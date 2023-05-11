@@ -1,6 +1,7 @@
-import { AURA_PASSWORD, AURA_URL, AURA_USER } from '$env/static/private';
 import { error, json } from '@sveltejs/kit';
-import neo4j, { DateTime, Integer, Node, Relationship } from 'neo4j-driver';
+
+import { DRIVER } from '$lib/db/driver';
+import type { RequestHandler } from './$types';
 
 // type Book = Node<
 // 	Integer,
@@ -36,12 +37,9 @@ export interface Book {
 	};
 }
 
-const driver = neo4j.driver(AURA_URL, neo4j.auth.basic(AURA_USER, AURA_PASSWORD));
-
-/** @type {import('./$types').RequestHandler} */
-export async function GET({ url }) {
+export const GET = (async ({ url }) => {
 	const author = String(url.searchParams.get('author') ?? '');
-	const session = driver.session({ database: 'neo4j' });
+	const session = DRIVER.session({ database: 'neo4j' });
 	const books: Book[] = [];
 
 	let readQuery =
@@ -66,4 +64,4 @@ export async function GET({ url }) {
 	return json({
 		books
 	});
-}
+}) satisfies RequestHandler;
