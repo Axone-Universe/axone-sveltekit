@@ -7,23 +7,33 @@
 	import '../app.postcss';
 
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { AppShell, AppBar, storePopup, Toast } from '@skeletonlabs/skeleton';
+	import { storePopup, Toast, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+
+	import { invalidate } from '$app/navigation';
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
+
+	$: ({ supabase, session } = data);
+
+	onMount(() => {
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange((event, _session) => {
+			if (_session?.expires_at !== session?.expires_at) {
+				invalidate('supabase:auth');
+			}
+		});
+
+		return () => subscription.unsubscribe();
+	});
+
+	const modalComponentRegistry: Record<string, ModalComponent> = {};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
-<!-- App Shell -->
-<AppShell>
-	<svelte:fragment slot="header">
-		<!-- App Bar -->
-		<AppBar>
-			<svelte:fragment slot="lead">
-				<strong class="text-xl uppercase">Axone</strong>
-			</svelte:fragment>
-			<svelte:fragment slot="trail" />
-		</AppBar>
-	</svelte:fragment>
-	<!-- Page Route Content -->
-	<slot />
-</AppShell>
+<slot />
+<Modal components={modalComponentRegistry} />
 <Toast />
