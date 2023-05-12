@@ -11,7 +11,7 @@
 		const response = await fetch(`/api/books/get?author=${author}`);
 		books = (await response.json())['data'];
 		let searchedAuthor = author;
-		if (books.length == 0) {
+		if (books.length === 0) {
 			const t: ToastSettings = {
 				message: `Looks like we don\'t have any books from ${String(searchedAuthor)}.`,
 				background: 'variant-filled-error'
@@ -23,7 +23,7 @@
 
 <Container classes="flex flex-col items-center gap-8">
 	<h1>Test AuraDB 👇</h1>
-	<form class="card p-4 max-w-lg flex flex-col gap-4">
+	<form class="card p-4 max-w-lg flex flex-col gap-4 mt-8">
 		<label class="label">
 			<span>Creator Name</span>
 			<input
@@ -36,9 +36,7 @@
 		<button on:click={onClick} class="btn variant-filled-primary">Submit</button>
 	</form>
 
-	<!-- Responsive Container (recommended) -->
 	<div class="table-container">
-		<!-- Native Table Element -->
 		<table class="table table-hover">
 			<thead>
 				<tr>
