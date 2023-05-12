@@ -10,6 +10,7 @@ export type BookNode = Node<
 export type UserNode = Node<
     Integer,
     {
-        name: string;
+        name: string,
+        email: string
     }
 >;
