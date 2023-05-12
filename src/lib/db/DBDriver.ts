@@ -8,7 +8,6 @@ export default class DBDriver {
 
     getDriver(): Driver {
         if (this.driver === undefined) {
-            console.log("*** " + AURA_URL)
             this.driver = neo4j.driver(AURA_URL, neo4j.auth.basic(AURA_USER, AURA_PASSWORD));
         }
         return this.driver

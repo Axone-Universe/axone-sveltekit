@@ -5,11 +5,14 @@ import type { response } from '$lib/helpers/types'
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request, cookies }) {
 	const params = await request.json();
+	const headers = request.headers;
+
+	const userId: string = headers.get('userid')!;
 
 	let title = params.title
 	let summary = params.summary
 
-	let book = new Book({ title: title })
+	let book = new Book({ id: '0', title: title, creator: { id: userId, name: '', email: '' } })
 
 	const result = await book.create<Book>();
 

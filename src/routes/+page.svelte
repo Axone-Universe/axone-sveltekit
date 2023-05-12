@@ -2,14 +2,14 @@
 	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import Container from '$lib/components/Container.svelte';
-	import type { Book } from './api/books/+server';
+	import type { BookProperties } from '$lib/nodes/base/NodeProperties';
 
 	let author = '';
-	let books: Book[] = [];
+	let books: BookProperties[] = [];
 
 	async function onClick() {
-		const response = await fetch(`/api/books?author=${author}`);
-		books = (await response.json()).books;
+		const response = await fetch(`/api/books/get?author=${author}`);
+		books = (await response.json())['data'];
 		let searchedAuthor = author;
 		if (books.length == 0) {
 			const t: ToastSettings = {
@@ -25,7 +25,7 @@
 	<h1>Test AuraDB 👇</h1>
 	<form class="card p-4 max-w-lg flex flex-col gap-4">
 		<label class="label">
-			<span>Author Name</span>
+			<span>Creator Name</span>
 			<input
 				class="input"
 				type="text"
@@ -51,7 +51,7 @@
 				{#each books as book, i}
 					<tr>
 						<td>{i + 1}</td>
-						<td>{book.author.name}</td>
+						<td>{book.creator.name}</td>
 						<td>{book.title}</td>
 					</tr>
 				{/each}
