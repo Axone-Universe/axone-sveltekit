@@ -1,34 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 
-import { DRIVER } from '$lib/db/driver';
+import { neo4jDriver } from '$lib/db/driver';
 import type { RequestHandler } from './$types';
-
-// type Book = Node<
-// 	Integer,
-// 	{
-// 		title: string;
-// 	}
-// >;
-
-// type User = Node<
-// 	Integer,
-// 	{
-// 		name: string;
-// 	}
-// >;
-
-// type Authored = Relationship<
-// 	Integer,
-// 	{
-// 		date: DateTime;
-// 	}
-// >;
-
-// interface UserAuthoredBook {
-// 	user: User;
-// 	authored: Authored;
-// 	book: Book;
-// }
 
 export interface Book {
 	title: string;
@@ -39,7 +12,7 @@ export interface Book {
 
 export const GET = (async ({ url }) => {
 	const author = String(url.searchParams.get('author') ?? '');
-	const session = DRIVER.session({ database: 'neo4j' });
+	const session = neo4jDriver.session({ database: 'neo4j' });
 	const books: Book[] = [];
 
 	let readQuery =
