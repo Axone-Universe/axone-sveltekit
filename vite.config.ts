@@ -4,8 +4,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [sveltekit()],
 	test: {
-		environment: 'jsdom',
-		setupFiles: ['./src/tests/setup.ts'],
-		globals: true
+		// environment: 'happy-dom',
+		setupFiles: ['./src/setup.ts'],
+		globals: true,
+		include: ['src/**/*.{test,spec}.{js,ts}']
 	}
 });

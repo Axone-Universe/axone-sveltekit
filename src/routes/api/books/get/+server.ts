@@ -1,20 +1,23 @@
-import type { BookProperties } from '$lib/nodes/base/NodeProperties.js';
+import { neo4jDriver } from '$lib/db/driver';
+import type { APIResponse } from '$lib/helpers/types.js';
 import { BooksRepository } from '$lib/repositories/BooksRepository.js';
-import { error, json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
-	const author = String(url.searchParams.get('author') ?? '');
+	const session = neo4jDriver.session({ database: 'neo4j' });
 
-	let books: BookProperties[] = [];
-	let bookRepo = new BooksRepository()
+	const bookRepo = new BooksRepository();
 
-	books = await bookRepo.getBooks()
+	let result;
 
-	// console.log(books)
-	// console.log("\n\n\n\n")
+	try {
+		result = await bookRepo.getBooks(session);
+	} finally {
+		session.close();
+	}
 
-	let response = { message: "Books Obtained", data: books } as response
+	const response = { message: 'Books Obtained', data: result } as APIResponse;
 
 	return json(response, { status: 200 });
 }

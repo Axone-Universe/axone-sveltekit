@@ -1,5 +1,5 @@
 <script>
-	export let classes = ''
+	export let classes = '';
 </script>
 
 <div class={`max-w-screen-xl mx-auto p-4 ${classes}`}>

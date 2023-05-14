@@ -1,25 +1,32 @@
 import { json } from '@sveltejs/kit';
-import { Book } from '$lib/nodes/digital-products/Book'
-import type { response } from '$lib/helpers/types'
 
-/** @type {import('./$types').RequestHandler} */
-export async function POST({ request, cookies }) {
+import { neo4jDriver } from '$lib/db/driver';
+import type { APIResponse } from '$lib/helpers/types';
+import { Book } from '$lib/nodes/digital-products/Book';
+import type { RequestHandler } from './$types';
+
+export const POST = (async ({ request }) => {
+	const session = neo4jDriver.session({ database: 'neo4j' });
+
 	const params = await request.json();
 	const headers = request.headers;
-
 	const userId: string = headers.get('userid')!;
+	const title = params.title;
+	const summary = params.summary;
 
-	let title = params.title
-	let summary = params.summary
+	const book = new Book({ id: '0', title: title, creator: { id: userId, name: '', email: '' } });
 
-	let book = new Book({ id: '0', title: title, creator: { id: userId, name: '', email: '' } })
+	let result;
+	try {
+		result = await book.create<Book>(session);
+	} finally {
+		session.close();
+	}
 
-	const result = await book.create<Book>();
-
-	console.log(result.records[0].get('properties'))
-	console.log('\n');
-
-	let response = { message: "Book created successfully", data: result.records[0].get('properties') } as response
+	const response = {
+		message: 'Book created successfully',
+		data: result.records[0].get('properties')
+	} as APIResponse;
 
 	return json(response, { status: 200 });
-}
+}) satisfies RequestHandler;
