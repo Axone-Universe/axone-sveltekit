@@ -42,6 +42,7 @@
 		"@floating-ui/dom": "^1.2.7",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
 		"@supabase/supabase-js": "^2.21.0",
+		"happy-dom": "^9.18.3",
 		"neo4j-driver": "^5.8.0",
 		"stringify-object": "^5.0.0"
 	}
