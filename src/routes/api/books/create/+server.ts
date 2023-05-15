@@ -1,12 +1,13 @@
 import { json } from '@sveltejs/kit';
 
+import { AURA_DB } from '$env/static/private';
 import { neo4jDriver } from '$lib/db/driver';
 import type { APIResponse } from '$lib/helpers/types';
 import { Book } from '$lib/nodes/digital-products/Book';
 import type { RequestHandler } from './$types';
 
 export const POST = (async ({ request }) => {
-	const session = neo4jDriver.session({ database: 'neo4j' });
+	const session = neo4jDriver.session({ database: AURA_DB });
 
 	const params = await request.json();
 	const headers = request.headers;

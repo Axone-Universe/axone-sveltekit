@@ -1,4 +1,5 @@
 import { neo4jDriver } from '$lib/db/driver';
+import { AURA_DB } from '$env/static/private';
 
 beforeAll(() => {
 	cleanup();
@@ -7,7 +8,7 @@ beforeAll(() => {
 async function cleanup() {
 	console.log('Cleaning up database...');
 
-	const session = neo4jDriver.session({ database: 'neo4j' });
+	const session = neo4jDriver.session({ database: AURA_DB });
 
 	const cypher = 'MATCH (n) DETACH DELETE n';
 
