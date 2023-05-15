@@ -19,7 +19,7 @@ export const POST = (async ({ request }) => {
 
 	let result;
 	try {
-		result = await book.create<Book>(session);
+		result = await book.create<Book>();
 	} finally {
 		session.close();
 	}
