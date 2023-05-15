@@ -1,18 +1,15 @@
 import type { BookNode } from '../base/NodeTypes';
 import type { BookProperties } from '../base/NodeProperties';
 import type { INode } from '../base/INode';
-import neo4j, {
-	DateTime,
+import {
 	Integer,
 	int,
-	Node,
-	Relationship,
-	type QueryResult,
-	Session
+	type QueryResult
 } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
-import { neo4jDriver } from '../../db/driver';
+import { neo4jDriver } from '$lib/db/driver';
 import stringifyObject from 'stringify-object';
+import {DBSession} from '$lib/db/session'; 
 
 export class Book implements BookNode, INode {
 	identity: Integer;
@@ -31,7 +28,9 @@ export class Book implements BookNode, INode {
 	 * This should be an atomic transaction because every book should have a creator.
 	 * @returns
 	 */
-	create<T extends Dict>(session: Session): Promise<QueryResult<T>> {
+	create<T extends Dict>(): Promise<QueryResult<T>> {
+        const session = new DBSession()
+
 		const userId = this.properties.creator.id;
 		const properties = stringifyObject(this.properties, {
 			filter: this.propertyFilter
@@ -46,7 +45,7 @@ export class Book implements BookNode, INode {
             SET book.id = toString(id(book))
             RETURN book{.*, creator: user{.*}} AS properties`;
 
-		return session.executeWrite((tx) => tx.run<T>(cypher));
+		return session.executeWrite<T>(cypher);
 	}
 
 	propertyFilter = (object: any, property: string) => {
