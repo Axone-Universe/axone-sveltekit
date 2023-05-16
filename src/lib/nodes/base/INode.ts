@@ -1,4 +1,4 @@
-import type { QueryResult, Node, Session } from 'neo4j-driver';
+import type { QueryResult, Session } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
 
 export interface INode {

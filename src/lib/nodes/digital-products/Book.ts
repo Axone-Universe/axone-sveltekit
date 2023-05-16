@@ -1,15 +1,11 @@
-import type { BookNode } from '../base/NodeTypes';
-import type { BookProperties } from '../base/NodeProperties';
-import type { INode } from '../base/INode';
-import {
-	Integer,
-	int,
-	type QueryResult
-} from 'neo4j-driver';
+import { Integer, int, type QueryResult } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
-import { neo4jDriver } from '$lib/db/driver';
 import stringifyObject from 'stringify-object';
-import {DBSession} from '$lib/db/session'; 
+
+import { DBSession } from '$lib/db/session';
+import type { BookNode } from '$lib/nodes/base/NodeTypes';
+import type { BookProperties } from '$lib/nodes/base/NodeProperties';
+import type { INode } from '$lib/nodes/base/INode';
 
 export class Book implements BookNode, INode {
 	identity: Integer;
@@ -29,7 +25,7 @@ export class Book implements BookNode, INode {
 	 * @returns
 	 */
 	create<T extends Dict>(): Promise<QueryResult<T>> {
-        const session = new DBSession()
+		const session = new DBSession();
 
 		const userId = this.properties.creator.id;
 		const properties = stringifyObject(this.properties, {
