@@ -3,7 +3,10 @@
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
+	import { trpc } from '$lib/trpc/client';
+	import type { UserProperties } from '$lib/nodes/base/NodeProperties';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -45,7 +48,14 @@
 		} else {
 			console.log(resp.data);
 			toastStore.trigger(t);
-			await goto('/');
+			if (resp.data.user) {
+				const users = (await trpc($page).users.list.query(resp.data.user.id)) as UserProperties[];
+				if (users.length === 1 && users[0].id === resp.data.user.id) {
+					await goto('/');
+				} else {
+					await goto('/create-profile');
+				}
+			}
 		}
 	};
 </script>

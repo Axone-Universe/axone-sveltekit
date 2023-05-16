@@ -1,8 +1,13 @@
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import { redirect, type Handle } from '@sveltejs/kit';
+import { createTRPCHandle } from 'trpc-sveltekit';
 
-export const handle: Handle = async ({ event, resolve }) => {
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { createContext } from '$lib/trpc/context';
+import { router } from '$lib/trpc/router';
+import { sequence } from '@sveltejs/kit/hooks';
+
+const supabaseHandle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient({
 		supabaseUrl: PUBLIC_SUPABASE_URL,
 		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
@@ -40,3 +45,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
+
+export const handle = sequence(supabaseHandle, createTRPCHandle({ router, createContext }));
