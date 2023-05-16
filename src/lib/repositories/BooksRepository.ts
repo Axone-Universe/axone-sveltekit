@@ -1,4 +1,4 @@
-import { session } from '$lib/db/session';
+import { DBSession } from '$lib/db/session';
 import type { BookProperties } from '$lib/nodes/base/NodeProperties';
 import type { Book } from '$lib/nodes/digital-products/Book';
 
@@ -12,6 +12,7 @@ export class BooksRepository {
 		const cypher = `MATCH (book:Book)-[:CREATED]-(user:User)
             RETURN book{.*, creator: user{.*}} AS properties`;
 
+		const session = new DBSession();
 		const result = await session.executeRead<Book>(cypher);
 
 		result.records.forEach((record) => {

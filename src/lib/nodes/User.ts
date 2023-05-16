@@ -1,9 +1,11 @@
-import type { UserNode } from './base/NodeTypes';
-import type { UserProperties } from './base/NodeProperties';
-import type { INode } from './base/INode';
-import { Integer, int, type QueryResult, Session } from 'neo4j-driver';
+import { Integer, int, type QueryResult } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
 import stringifyObject from 'stringify-object';
+
+import { DBSession } from '$lib/db/session';
+import type { UserNode } from '$lib/nodes/base/NodeTypes';
+import type { UserProperties } from '$lib/nodes/base/NodeProperties';
+import type { INode } from '$lib/nodes/base/INode';
 
 export class User implements UserNode, INode {
 	identity: Integer;
@@ -22,11 +24,12 @@ export class User implements UserNode, INode {
 	 * This should be an atomic transaction because every book should have a creator.
 	 * @returns
 	 */
-	create<T extends Dict>(session: Session): Promise<QueryResult<T>> {
+	create<T extends Dict>(): Promise<QueryResult<T>> {
 		const properties = stringifyObject(this.properties);
 		const cypherLabels = this.labels.join(':');
 
 		const cypher = `CREATE (user:${cypherLabels} ${properties}) RETURN user{.*} as properties`;
+		const session = new DBSession();
 		return session.executeWrite((tx) => tx.run<T>(cypher));
 	}
 

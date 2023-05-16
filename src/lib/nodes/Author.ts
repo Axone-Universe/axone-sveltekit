@@ -1,14 +1,11 @@
-import type { UserNode } from './base/NodeTypes';
-import type { UserProperties } from './base/NodeProperties';
-import type { INode } from './base/INode';
-import {
-	Integer,
-	int,
-	type QueryResult
-} from 'neo4j-driver';
+import { Integer, int, type QueryResult } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
 import stringifyObject from 'stringify-object';
+
 import { DBSession } from '$lib/db/session';
+import type { UserNode } from '$lib/nodes/base/NodeTypes';
+import type { UserProperties } from '$lib/nodes/base/NodeProperties';
+import type { INode } from '$lib/nodes/base/INode';
 
 export class Author implements UserNode, INode {
 	identity: Integer;
@@ -28,7 +25,7 @@ export class Author implements UserNode, INode {
 	 * @returns
 	 */
 	create<T extends Dict>(): Promise<QueryResult<T>> {
-        const session = new DBSession()
+		const session = new DBSession();
 
 		const properties = stringifyObject(this.properties);
 		const cypherLabels = this.labels.join(':');
@@ -37,7 +34,9 @@ export class Author implements UserNode, INode {
 		return session.executeWrite<T>(cypher);
 	}
 
-	propertyFilter = (object: any, property: string) => {throw new Error('Method not implemented.')};
+	propertyFilter = (object: any, property: string) => {
+		throw new Error('Method not implemented.');
+	};
 
 	toString(): string {
 		throw new Error('Method not implemented.');

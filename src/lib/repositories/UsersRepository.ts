@@ -1,4 +1,4 @@
-import { session } from '$lib/db/session';
+import { DBSession } from '$lib/db/session';
 import type { UserProperties } from '$lib/nodes/base/NodeProperties';
 
 export class UsersRepository {
@@ -10,6 +10,7 @@ export class UsersRepository {
 			uid ? `WHERE user.uid = '${uid}'` : ''
 		} RETURN user{.*} AS properties`;
 
+		const session = new DBSession();
 		const result = await session.executeRead(cypher);
 		const users: UserProperties[] = [];
 
