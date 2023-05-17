@@ -30,7 +30,7 @@ export class Author implements UserNode, INode {
 		const properties = stringifyObject(this.properties);
 		const cypherLabels = this.labels.join(':');
 
-		const cypher = `CREATE (user:${cypherLabels} ${properties}) SET user.id = toString(id(user)) RETURN user{.*} as properties`;
+		const cypher = `CREATE (user:${cypherLabels} ${properties}) RETURN user{.*} as properties`;
 		return session.executeWrite<T>(cypher);
 	}
 

@@ -7,7 +7,7 @@ export class UsersRepository {
 
 	async getUsers(uid?: string): Promise<UserProperties[]> {
 		const cypher = `MATCH (user:User) ${
-			uid ? `WHERE user.uid = '${uid}'` : ''
+			uid ? `WHERE user.id = '${uid}'` : ''
 		} RETURN user{.*} AS properties`;
 
 		const session = new DBSession();

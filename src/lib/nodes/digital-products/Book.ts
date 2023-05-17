@@ -1,10 +1,12 @@
+import { randomUUID } from 'crypto';
+
 import { Integer, int, type QueryResult } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
 import type { BookNode } from '$lib/nodes/base/NodeTypes';
-import type { BookProperties } from '$lib/nodes/base/NodeProperties';
+import type { BookProperties, UserProperties } from '$lib/nodes/base/NodeProperties';
 import type { INode } from '$lib/nodes/base/INode';
 
 export class Book implements BookNode, INode {
@@ -12,10 +14,14 @@ export class Book implements BookNode, INode {
 	labels: string[] = ['Book'];
 	properties: BookProperties;
 	elementId: string;
+	creator: UserProperties;
+	creatorID: string;
 
-	constructor(properties: BookProperties) {
+	constructor(properties: BookProperties, creatorID: string) {
 		this.identity = int(0);
 		this.properties = properties;
+		this.creator = { id: '', name: '', email: '' };
+		this.creatorID = creatorID;
 		this.elementId = '0';
 	}
 
@@ -25,31 +31,21 @@ export class Book implements BookNode, INode {
 	 * @returns
 	 */
 	create<T extends Dict>(): Promise<QueryResult<T>> {
-		const session = new DBSession();
-
-		const userId = this.properties.creator.id;
-		const properties = stringifyObject(this.properties, {
-			filter: this.propertyFilter
-		});
-
-		console.log(properties);
+		this.properties.id = randomUUID();
+		const properties = stringifyObject(this.properties);
 
 		const cypherLabels = this.labels.join(':');
 
-		const cypher = `MATCH (user) WHERE user:User AND id(user)=${userId} 
-            CREATE (book:${cypherLabels} ${properties})<-[:CREATED]-(user)
-            SET book.id = toString(id(book))
-            RETURN book{.*, creator: user{.*}} AS properties`;
+		const cypher = `MATCH (user:User) WHERE user.id='${this.creatorID}'
+			MERGE (book:${cypherLabels} ${properties}) 
+            MERGE (user)-[:CREATED]->(book)
+            RETURN book{.*} AS properties, user{.*} AS creator`;
 
+		const session = new DBSession();
 		return session.executeWrite<T>(cypher);
 	}
 
-	propertyFilter = (object: any, property: string) => {
-		if (property === 'creator') {
-			return false;
-		}
-		return true;
-	};
+	propertyFilter = (object: any, property: string) => {};
 
 	toString(): string {
 		throw new Error('Method not implemented.');

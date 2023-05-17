@@ -11,6 +11,7 @@ export type UserNode = Node<
 	Integer,
 	{
 		id: string;
+		name: string;
 		email: string;
 	}
 >;

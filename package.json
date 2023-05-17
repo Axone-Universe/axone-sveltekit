@@ -10,7 +10,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"test": "vitest"
+		"test": "vitest --no-threads"
 	},
 	"devDependencies": {
 		"@skeletonlabs/skeleton": "^1.2.5",
@@ -46,6 +46,7 @@
 		"@trpc/server": "^10.26.0",
 		"happy-dom": "^9.18.3",
 		"neo4j-driver": "^5.8.0",
+		"neo4j-driver-core": "^5.8.0",
 		"stringify-object": "^5.0.0",
 		"trpc-sveltekit": "^3.5.7",
 		"zod": "^3.21.4"

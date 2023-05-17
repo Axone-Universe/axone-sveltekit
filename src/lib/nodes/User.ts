@@ -30,7 +30,7 @@ export class User implements UserNode, INode {
 
 		const cypher = `CREATE (user:${cypherLabels} ${properties}) RETURN user{.*} as properties`;
 		const session = new DBSession();
-		return session.executeWrite((tx) => tx.run<T>(cypher));
+		return session.executeWrite(cypher);
 	}
 
 	propertyFilter = (object: any, property: string) => {};

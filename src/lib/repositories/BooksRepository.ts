@@ -6,11 +6,12 @@ export class BooksRepository {
 	// TODO: supply the context i.e. user sessions, permissions etc
 	// constructor() {}
 
-	async getBooks(): Promise<BookProperties[]> {
+	async getBooks(title?: string): Promise<BookProperties[]> {
 		const books: BookProperties[] = [];
 
-		const cypher = `MATCH (book:Book)-[:CREATED]-(user:User)
-            RETURN book{.*, creator: user{.*}} AS properties`;
+		const cypher = `MATCH (book:Book) ${
+			title ? `WHERE book.title = '${title}'` : ''
+		} RETURN book{.*} AS properties`;
 
 		const session = new DBSession();
 		const result = await session.executeRead<Book>(cypher);
