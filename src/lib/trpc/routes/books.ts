@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Book } from '$lib/nodes/digital-products/Book';
+import { BookHandler } from '$lib/nodes/digital-products/Book';
 import { BooksRepository } from '$lib/repositories/BooksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -24,14 +24,14 @@ export const books = t.router({
 		.input(z.string())
 		.query(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
-			const book = new Book(
+			const book = new BookHandler(
 				{
 					title: input
 				},
 				ctx.session?.user.id
 			);
 
-			const result = await book.create<Book>();
+			const result = await book.create<BookHandler>();
 
 			return {
 				book: result.records[0].get('properties'),

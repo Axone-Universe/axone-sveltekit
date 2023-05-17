@@ -1,48 +1,48 @@
 import { randomUUID } from 'crypto';
 
-import { Integer, int, type QueryResult } from 'neo4j-driver';
-import type { Dict } from 'neo4j-driver-core/types/record';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
-import type { BookNode } from '$lib/nodes/base/NodeTypes';
-import type { BookProperties, UserProperties } from '$lib/nodes/base/NodeProperties';
-import type { INode } from '$lib/nodes/base/INode';
+import type { BookProperties } from '$lib/nodes/base/NodeProperties';
+import type { Book, User } from '$lib/nodes/base/NodeTypes';
+import type { QueryResult } from 'neo4j-driver';
+import { Handler } from '../base/INode';
+import type { Dict } from 'neo4j-driver-core/types/record';
 
-export class Book implements BookNode, INode {
-	identity: Integer;
+interface CreateBookResponse extends Dict {
+	book: Book;
+	user: User;
+}
+
+export class BookHandler extends Handler {
 	labels: string[] = ['Book'];
 	properties: BookProperties;
-	creator: UserProperties;
-	elementId: string;
+	creatorID: string;
 
-	constructor(properties: BookProperties, creatorID: string) {
-		this.identity = int(0);
-		this.properties = properties;
-		this.creator = { id: creatorID, name: '', email: '' };
-		this.elementId = '0';
+	id?: string;
+
+	constructor(title: string, creatorID: string) {
+		super();
+		this.properties = { id: randomUUID(), title };
+		this.creatorID = creatorID;
 	}
 
-	/**
-	 * Creates book AND creator nodes having the CREATED relationship.
-	 * This should be an atomic transaction because every book should have a creator.
-	 * @returns
-	 */
-	create<T extends Dict>(): Promise<QueryResult<T>> {
-		this.properties.id = randomUUID();
-		const properties = stringifyObject(this.properties);
+	async create<CreateBookResponse extends Dict>(): Promise<QueryResult<CreateBookResponse>> {
+		const stringifedProperties = stringifyObject(this.properties);
 		const cypherLabels = this.labels.join(':');
 
 		const cypher = `
-			MATCH (user:User) WHERE user.id='${this.creator.id}'
+			MATCH (user:User) WHERE user.id='${this.creatorID}'
 			SET user:Author
-			CREATE (book:${cypherLabels} ${properties})
+			CREATE (book:${cypherLabels} ${stringifedProperties})
             MERGE (user)-[:CREATED]->(book)
-            RETURN book{.*} AS properties, user{.*} AS creator
+            RETURN book, user
 		`;
 
 		const session = new DBSession();
-		return session.executeWrite<T>(cypher);
+		const result = await session.executeWrite<CreateBookResponse>(cypher);
+
+		return result;
 	}
 
 	propertyFilter = (object: any, property: string) => {

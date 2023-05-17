@@ -1,13 +1,13 @@
-import type { QueryResult, Session } from 'neo4j-driver';
+import type { QueryResult } from 'neo4j-driver-core';
 import type { Dict } from 'neo4j-driver-core/types/record';
 
-export interface INode {
-	create<T extends Dict>(session: Session): Promise<QueryResult<T>>;
+export abstract class Handler {
+	abstract create<T extends Dict>(): Promise<QueryResult<T>>;
 
 	/**
 	 * Used for removing properties when saving an object in the DB
 	 * @param object
 	 * @param property
 	 */
-	propertyFilter(object: any, property: string): void;
+	abstract propertyFilter(object: any, property: string): void;
 }
