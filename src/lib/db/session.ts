@@ -7,17 +7,13 @@ import { neo4jDriver } from '$lib/db/driver';
 export class DBSession {
 	async executeWrite<T extends Dict>(cypher: string): Promise<QueryResult<T>> {
 		const session = neo4jDriver.session({ database: AURA_DB });
-		let result: QueryResult<T>;
 
 		try {
-			result = await session.executeWrite((tx) => tx.run<T>(cypher));
+			const result: QueryResult<T> = await session.executeWrite((tx) => tx.run<T>(cypher));
+			return result;
 		} finally {
 			session.close();
 		}
-
-		return new Promise<QueryResult<T>>((resolve) => {
-			resolve(result);
-		});
 	}
 
 	async executeRead<T extends Dict>(cypher: string): Promise<QueryResult<T>> {

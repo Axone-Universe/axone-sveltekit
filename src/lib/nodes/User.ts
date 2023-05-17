@@ -3,11 +3,11 @@ import type { Dict } from 'neo4j-driver-core/types/record';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
-import type { UserNode } from '$lib/nodes/base/NodeTypes';
+import type { User } from '$lib/nodes/base/NodeTypes';
 import type { UserProperties } from '$lib/nodes/base/NodeProperties';
-import type { INode } from '$lib/nodes/base/INode';
+import type { Handler } from '$lib/nodes/base/INode';
 
-export class User implements UserNode, INode {
+export class UserHandler implements User, Handler {
 	identity: Integer;
 	labels: string[] = ['User'];
 	properties: UserProperties;
@@ -32,7 +32,7 @@ export class User implements UserNode, INode {
 			CREATE (user:${cypherLabels} ${properties})
 			RETURN user{.*} as properties
 		`;
-		
+
 		const session = new DBSession();
 		return session.executeWrite(cypher);
 	}

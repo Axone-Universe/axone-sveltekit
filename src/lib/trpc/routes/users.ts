@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { User } from '$lib/nodes/User';
+import { UserHandler } from '$lib/nodes/User';
 import { Author } from '$lib/nodes/Author';
 import { UsersRepository } from '$lib/repositories/UsersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
@@ -29,13 +29,13 @@ export const users = t.router({
 			assert(ctx.session.user.email);
 			assert(ctx.session.user.user_metadata.name);
 
-			const user = new User({
+			const user = new UserHandler({
 				id: ctx.session.user.id,
 				name: ctx.session.user.user_metadata.name,
 				email: ctx.session.user.email
 			});
 
-			const result = await user.create<User>();
+			const result = await user.create<UserHandler>();
 
 			return result.records[0].get('properties');
 		}),

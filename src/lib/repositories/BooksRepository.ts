@@ -1,6 +1,6 @@
 import { DBSession } from '$lib/db/session';
 import type { BookProperties } from '$lib/nodes/base/NodeProperties';
-import type { Book } from '$lib/nodes/digital-products/Book';
+import type { BookHandler } from '$lib/nodes/digital-products/Book';
 
 export class BooksRepository {
 	// TODO: supply the context i.e. user sessions, permissions etc
@@ -14,7 +14,7 @@ export class BooksRepository {
 		} RETURN book{.*} AS properties`;
 
 		const session = new DBSession();
-		const result = await session.executeRead<Book>(cypher);
+		const result = await session.executeRead<BookHandler>(cypher);
 
 		result.records.forEach((record) => {
 			books.push(record.get('properties'));

@@ -2,11 +2,11 @@ import { Integer, int, type QueryResult } from 'neo4j-driver';
 import type { Dict } from 'neo4j-driver-core/types/record';
 
 import { DBSession } from '$lib/db/session';
-import type { UserNode } from '$lib/nodes/base/NodeTypes';
+import type { User } from '$lib/nodes/base/NodeTypes';
 import type { UserProperties } from '$lib/nodes/base/NodeProperties';
-import type { INode } from '$lib/nodes/base/INode';
+import type { Handler } from '$lib/nodes/base/INode';
 
-export class Author implements UserNode, INode {
+export class Author implements User, Handler {
 	identity: Integer;
 	labels: string[] = ['Author'];
 	properties: UserProperties;

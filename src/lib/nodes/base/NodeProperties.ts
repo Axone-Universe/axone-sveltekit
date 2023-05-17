@@ -1,10 +1,12 @@
-export type UserProperties = {
+// Interfaces for the properties that can be RETURNED from a cypher query for their respective nodes
+
+export interface UserProperties {
 	id: string;
 	name: string;
 	email: string;
-};
+}
 
-export type BookProperties = {
-	id?: string;
+export interface BookProperties {
+	id: string;
 	title: string;
-};
+}
