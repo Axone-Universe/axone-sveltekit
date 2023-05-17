@@ -32,6 +32,7 @@ export class User implements UserNode, INode {
 			CREATE (user:${cypherLabels} ${properties})
 			RETURN user{.*} as properties
 		`;
+		
 		const session = new DBSession();
 		return session.executeWrite(cypher);
 	}

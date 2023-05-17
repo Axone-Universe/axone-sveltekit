@@ -13,15 +13,13 @@ export class Book implements BookNode, INode {
 	identity: Integer;
 	labels: string[] = ['Book'];
 	properties: BookProperties;
-	elementId: string;
 	creator: UserProperties;
-	creatorID: string;
+	elementId: string;
 
 	constructor(properties: BookProperties, creatorID: string) {
 		this.identity = int(0);
 		this.properties = properties;
-		this.creator = { id: '', name: '', email: '' };
-		this.creatorID = creatorID;
+		this.creator = { id: creatorID, name: '', email: '' };
 		this.elementId = '0';
 	}
 
@@ -33,11 +31,11 @@ export class Book implements BookNode, INode {
 	create<T extends Dict>(): Promise<QueryResult<T>> {
 		this.properties.id = randomUUID();
 		const properties = stringifyObject(this.properties);
-
 		const cypherLabels = this.labels.join(':');
 
 		const cypher = `
-			MATCH (user:User) WHERE user.id='${this.creatorID}'
+			MATCH (user:User) WHERE user.id='${this.creator.id}'
+			SET user:Author
 			CREATE (book:${cypherLabels} ${properties})
             MERGE (user)-[:CREATED]->(book)
             RETURN book{.*} AS properties, user{.*} AS creator

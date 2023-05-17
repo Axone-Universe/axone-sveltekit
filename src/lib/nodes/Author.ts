@@ -26,8 +26,6 @@ export class Author implements UserNode, INode {
 	 * @returns
 	 */
 	create<T extends Dict>(): Promise<QueryResult<T>> {
-		const session = new DBSession();
-
 		const cypherLabels = this.labels.join(':');
 
 		const cypher = `
@@ -36,6 +34,8 @@ export class Author implements UserNode, INode {
 			SET user:${cypherLabels}
 			RETURN user{.*} as properties
 		`;
+
+		const session = new DBSession();
 		return session.executeWrite<T>(cypher);
 	}
 
