@@ -1,11 +1,12 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { User } from '$lib/nodes/User';
+import { Author } from '$lib/nodes/Author';
 import { UsersRepository } from '$lib/repositories/UsersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { User } from '$lib/nodes/User';
 
 export const users = t.router({
 	list: t.procedure
@@ -25,8 +26,9 @@ export const users = t.router({
 		.query(async ({ ctx }) => {
 			// session should always be there since auth would have passed by now
 			// but have to check anyway otherwise Typescript complains
-			if (!ctx.session?.user.id || !ctx.session.user.email || !ctx.session.user.user_metadata.name)
-				throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+			assert(ctx.session?.user.id);
+			assert(ctx.session.user.email);
+			assert(ctx.session.user.user_metadata.name);
 
 			const user = new User({
 				id: ctx.session.user.id,
@@ -35,6 +37,19 @@ export const users = t.router({
 			});
 
 			const result = await user.create<User>();
+
+			return result.records[0].get('properties');
+		}),
+
+	setAuthor: t.procedure
+		.use(logger)
+		.use(auth)
+		.query(async ({ ctx }) => {
+			assert(ctx.session?.user.id);
+
+			const author = new Author(ctx.session.user.id);
+
+			const result = await author.create<Author>();
 
 			return result.records[0].get('properties');
 		})

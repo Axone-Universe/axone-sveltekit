@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
+import { Book } from '$lib/nodes/digital-products/Book';
 import { BooksRepository } from '$lib/repositories/BooksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { Book } from '$lib/nodes/digital-products/Book';
 
 export const books = t.router({
 	list: t.procedure

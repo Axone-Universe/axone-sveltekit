@@ -36,16 +36,20 @@ export class Book implements BookNode, INode {
 
 		const cypherLabels = this.labels.join(':');
 
-		const cypher = `MATCH (user:User) WHERE user.id='${this.creatorID}'
-			MERGE (book:${cypherLabels} ${properties}) 
+		const cypher = `
+			MATCH (user:User) WHERE user.id='${this.creatorID}'
+			CREATE (book:${cypherLabels} ${properties})
             MERGE (user)-[:CREATED]->(book)
-            RETURN book{.*} AS properties, user{.*} AS creator`;
+            RETURN book{.*} AS properties, user{.*} AS creator
+		`;
 
 		const session = new DBSession();
 		return session.executeWrite<T>(cypher);
 	}
 
-	propertyFilter = (object: any, property: string) => {};
+	propertyFilter = (object: any, property: string) => {
+		throw new Error('Method not implemented.');
+	};
 
 	toString(): string {
 		throw new Error('Method not implemented.');

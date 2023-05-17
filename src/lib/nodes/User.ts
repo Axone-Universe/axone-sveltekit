@@ -28,12 +28,17 @@ export class User implements UserNode, INode {
 		const properties = stringifyObject(this.properties);
 		const cypherLabels = this.labels.join(':');
 
-		const cypher = `CREATE (user:${cypherLabels} ${properties}) RETURN user{.*} as properties`;
+		const cypher = `
+			CREATE (user:${cypherLabels} ${properties})
+			RETURN user{.*} as properties
+		`;
 		const session = new DBSession();
 		return session.executeWrite(cypher);
 	}
 
-	propertyFilter = (object: any, property: string) => {};
+	propertyFilter = (object: any, property: string) => {
+		throw new Error('Method not implemented.');
+	};
 
 	toString(): string {
 		throw new Error('Method not implemented.');
