@@ -1,55 +1,70 @@
 import { randomUUID } from 'crypto';
 
+import type { Node, Integer } from 'neo4j-driver';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
-import type { BookProperties } from '$lib/nodes/base/NodeProperties';
-import type { Book, User } from '$lib/nodes/base/NodeTypes';
-import type { QueryResult } from 'neo4j-driver';
-import { Handler } from '../base/INode';
-import type { Dict } from 'neo4j-driver-core/types/record';
+import { NodeBuilder } from '$lib/nodes/nodeBuilder';
+import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 
-interface CreateBookResponse extends Dict {
-	book: Book;
-	user: User;
+export interface BookProperties {
+	id: string;
+	title?: string;
 }
 
-export class BookHandler extends Handler {
-	labels: string[] = ['Book'];
-	properties: BookProperties;
-	creatorID: string;
+export type BookNode = Node<Integer, BookProperties>;
 
-	id?: string;
+export interface BookResponse {
+	book: BookNode;
+}
 
-	constructor(title: string, creatorID: string) {
+export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
+	private readonly _bookProperties: BookProperties;
+	private readonly _userID: { id?: string };
+
+	constructor() {
 		super();
-		this.properties = { id: randomUUID(), title };
-		this.creatorID = creatorID;
+		this._bookProperties = {
+			id: randomUUID()
+		};
+		this.labels(['Book']);
+		this._userID = {};
 	}
 
-	async create<CreateBookResponse extends Dict>(): Promise<QueryResult<CreateBookResponse>> {
-		const stringifedProperties = stringifyObject(this.properties);
-		const cypherLabels = this.labels.join(':');
+	// TODO: remove? We shouldn't ever be setting the ID anyway
+	id(id: string): BookBuilder {
+		this._bookProperties.id = id;
+		return this;
+	}
 
-		const cypher = `
-			MATCH (user:User) WHERE user.id='${this.creatorID}'
+	title(title: string): BookBuilder {
+		this._bookProperties.title = title;
+		return this;
+	}
+
+	userID(userID: string): BookBuilder {
+		this._userID.id = userID;
+		return this;
+	}
+
+	async build(): Promise<UserAuthoredBookResponse> {
+		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
+
+		// TODO: check if undefined values are still stringified or just missing (need latter)
+		const properties = stringifyObject(this._bookProperties);
+		const labels = this._labels.join(':');
+
+		const query = `
+			MATCH (user:User) WHERE user.id='${this._userID.id}'
 			SET user:Author
-			CREATE (book:${cypherLabels} ${stringifedProperties})
-            MERGE (user)-[:CREATED]->(book)
-            RETURN book, user
+			CREATE (book:${labels} ${properties})
+			MERGE (user)-[authored:AUTHORED]->(book)
+			RETURN user, authored, book
 		`;
 
 		const session = new DBSession();
-		const result = await session.executeWrite<CreateBookResponse>(cypher);
+		const result = await session.executeWrite<UserAuthoredBookResponse>(query);
 
-		return result;
-	}
-
-	propertyFilter = (object: any, property: string) => {
-		throw new Error('Method not implemented.');
-	};
-
-	toString(): string {
-		throw new Error('Method not implemented.');
+		return result.records[0].toObject();
 	}
 }

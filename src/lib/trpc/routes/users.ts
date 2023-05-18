@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { UserHandler } from '$lib/nodes/User';
-import { Author } from '$lib/nodes/Author';
+import { UserBuilder } from '$lib/nodes/user';
 import { UsersRepository } from '$lib/repositories/UsersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -25,31 +24,14 @@ export const users = t.router({
 		.query(async ({ ctx }) => {
 			// session should always be there since auth would have passed by now
 			// but have to check anyway otherwise Typescript complains
-			assert(ctx.session?.user.id);
-			assert(ctx.session.user.email);
-			assert(ctx.session.user.user_metadata.name);
+			assert(ctx.session?.user.id && ctx.session.user.email && ctx.session.user.user_metadata.name);
 
-			const user = new UserHandler({
-				id: ctx.session.user.id,
-				name: ctx.session.user.user_metadata.name,
-				email: ctx.session.user.email
-			});
+			const userNode = await new UserBuilder()
+				.id(ctx.session.user.id)
+				.email(ctx.session.user.email)
+				.name(ctx.session.user.user_metadata.name)
+				.build();
 
-			const result = await user.create<UserHandler>();
-
-			return result.records[0].get('properties');
-		}),
-
-	setAuthor: t.procedure
-		.use(logger)
-		.use(auth)
-		.query(async ({ ctx }) => {
-			assert(ctx.session?.user.id);
-
-			const author = new Author(ctx.session.user.id);
-
-			const result = await author.create<Author>();
-
-			return result.records[0].get('properties');
+			return userNode;
 		})
 });

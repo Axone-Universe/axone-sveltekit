@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
-	import type { UserProperties } from '$lib/nodes/base/NodeProperties';
+	import type { UserProperties } from '$lib/nodes/base/nodeProperties';
 
 	export let data: PageData;
 	const { supabase } = data;
