@@ -7,9 +7,9 @@ describe('users', () => {
 	});
 
 	test('create user', async () => {
-		const user = await createUser(testSession);
+		const userResponse = await createUser(testSession);
 
-		expect(user).toEqual({
+		expect(userResponse.user.properties).toEqual({
 			id: testSession.user.id,
 			name: testSession.user.user_metadata.name,
 			email: testSession.user.email
@@ -27,14 +27,16 @@ describe('users', () => {
 		const testSession2 = { ...testSession };
 		testSession2.user = testUser2;
 
-		const user1 = await createUser(testSession1);
-		const user2 = await createUser(testSession2);
+		const userResponse1 = await createUser(testSession1);
+		const userResponse2 = await createUser(testSession2);
 
 		const caller = router.createCaller({ session: null });
-		const users = await caller.users.list();
+		const userResponses = await caller.users.list();
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(users.map((a) => a.id).sort()).toEqual([user1.id, user2.id].sort());
+		expect(userResponses.map((a) => a.user.properties.id).sort()).toEqual(
+			[userResponse1.user.properties.id, userResponse2.user.properties.id].sort()
+		);
 	});
 
 	test('get single user', async () => {
@@ -48,13 +50,13 @@ describe('users', () => {
 		const testSession2 = { ...testSession };
 		testSession2.user = testUser2;
 
-		const user1 = await createUser(testSession1);
+		const userResponse = await createUser(testSession1);
 		await createUser(testSession2);
 
 		const caller = router.createCaller({ session: null });
-		const users = await caller.users.list(user1.id);
+		const userResponses = await caller.users.list(userResponse.user.properties.id);
 
-		expect(users.length).toEqual(1);
-		expect(users.pop()).toEqual(user1);
+		expect(userResponses.length).toEqual(1);
+		expect(userResponses.pop()).toEqual(userResponse);
 	});
 });

@@ -1,47 +1,76 @@
-import { Integer, int, type QueryResult } from 'neo4j-driver';
-import type { Dict } from 'neo4j-driver-core/types/record';
+import type { Integer, Node, Relationship } from 'neo4j-driver';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
-import type { User } from '$lib/nodes/base/NodeTypes';
-import type { UserProperties } from '$lib/nodes/base/NodeProperties';
-import type { Handler } from '$lib/nodes/base/INode';
+import type { BookNode } from '$lib/nodes/digital-products/book';
+import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 
-export class UserHandler implements User, Handler {
-	identity: Integer;
-	labels: string[] = ['User'];
-	properties: UserProperties;
-	elementId: string;
+interface UserProperties {
+	id: string;
+	name?: string;
+	email?: string;
+}
 
-	constructor(properties: UserProperties) {
-		this.identity = int(0);
-		this.properties = properties;
-		this.elementId = '0';
+export type UserNode = Node<Integer, UserProperties>;
+
+export type Authored = Relationship<
+	Integer,
+	{
+		date: string;
+	}
+>;
+
+export interface UserResponse {
+	user: UserNode;
+}
+
+export interface UserAuthoredBookResponse {
+	user: UserNode;
+	authored: Authored;
+	book: BookNode;
+}
+
+export class UserBuilder extends NodeBuilder<UserResponse> {
+	private readonly _userProperties: UserProperties;
+
+	constructor() {
+		super();
+		this._userProperties = {
+			id: ''
+		};
+		this.labels(['User']);
 	}
 
-	/**
-	 * Creates book AND creator nodes having the CREATED relationship.
-	 * This should be an atomic transaction because every book should have a creator.
-	 * @returns
-	 */
-	create<T extends Dict>(): Promise<QueryResult<T>> {
-		const properties = stringifyObject(this.properties);
-		const cypherLabels = this.labels.join(':');
+	// TODO: remove? We shouldn't ever be setting the ID anyway
+	id(id: string): UserBuilder {
+		this._userProperties.id = id;
+		return this;
+	}
 
-		const cypher = `
-			CREATE (user:${cypherLabels} ${properties})
-			RETURN user{.*} as properties
+	name(name: string): UserBuilder {
+		this._userProperties.name = name;
+		return this;
+	}
+
+	email(email: string): UserBuilder {
+		this._userProperties.email = email;
+		return this;
+	}
+
+	async build(): Promise<UserResponse> {
+		if (this._userProperties.id === '') throw new Error('Must provide userID to build user.');
+
+		const properties = stringifyObject(this._userProperties);
+		const labels = this._labels.join(':');
+
+		const query = `
+			CREATE (user:${labels} ${properties})
+			RETURN user
 		`;
 
 		const session = new DBSession();
-		return session.executeWrite(cypher);
-	}
+		const result = await session.executeWrite<UserResponse>(query);
 
-	propertyFilter = (object: any, property: string) => {
-		throw new Error('Method not implemented.');
-	};
-
-	toString(): string {
-		throw new Error('Method not implemented.');
+		return result.records[0].toObject();
 	}
 }

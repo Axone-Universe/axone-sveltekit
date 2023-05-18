@@ -1,26 +1,23 @@
 import { DBSession } from '$lib/db/session';
-import type { UserProperties } from '$lib/nodes/base/NodeProperties';
+import type { UserResponse } from '$lib/nodes/user';
 
 export class UsersRepository {
-	// TODO: supply the context i.e. user sessions, permissions etc
-	// constructor() {}
-
-	async getUsers(uid?: string): Promise<UserProperties[]> {
-		const cypher = `MATCH (user:User) ${
-			uid ? `WHERE user.id = '${uid}'` : ''
-		} RETURN user{.*} AS properties`;
+	async getUsers(uid?: string): Promise<UserResponse[]> {
+		const query = `
+			MATCH (user:User) 
+			${uid ? `WHERE user.id = '${uid}'` : ''}
+			RETURN user
+		`;
 
 		const session = new DBSession();
-		const result = await session.executeRead(cypher);
-		const users: UserProperties[] = [];
+		const result = await session.executeRead<UserResponse>(query);
 
-		console.log(result.records);
-
+		const users: UserResponse[] = [];
 		result.records.forEach((record) => {
-			users.push(record.get('properties'));
+			users.push(record.toObject());
 		});
 
-		return new Promise<UserProperties[]>((resolve) => {
+		return new Promise<UserResponse[]>((resolve) => {
 			resolve(users);
 		});
 	}

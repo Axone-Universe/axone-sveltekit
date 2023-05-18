@@ -2,7 +2,7 @@
 	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import Container from '$lib/components/Container.svelte';
-	import type { BookProperties } from '$lib/nodes/base/NodeProperties';
+	import type { BookProperties } from '$lib/nodes/base/nodeProperties';
 
 	let author = '';
 	let books: BookProperties[] = [];
