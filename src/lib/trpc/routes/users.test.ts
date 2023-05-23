@@ -1,5 +1,5 @@
 import { router } from '$lib/trpc/router';
-import { cleanUpDatabase, createUser, testSession, testUser } from '$lib/util/testing';
+import { cleanUpDatabase, createUser, testSession, testUser } from '$lib/utilities/testing/testing';
 
 describe('users', () => {
 	beforeEach(async () => {
