@@ -1,19 +1,20 @@
 <script lang="ts">
 	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
+	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
-	import type { BookProperties } from '$lib/nodes/base/nodeProperties';
+	import { trpc } from '$lib/trpc/client';
+	import type { BookResponse } from '$lib/nodes/digital-products/book';
 
-	let author = '';
-	let books: BookProperties[] = [];
+	let title = '';
+	let books: BookResponse[] = [];
 
 	async function onClick() {
-		const response = await fetch(`/api/books/get?author=${author}`);
-		books = (await response.json())['data'];
-		let searchedAuthor = author;
+		books = (await trpc($page).books.list.query(title)) as BookResponse[];
+		let searchedTitle = title;
 		if (books.length === 0) {
 			const t: ToastSettings = {
-				message: `Looks like we don\'t have any books from ${String(searchedAuthor)}.`,
+				message: `Looks like we don\'t have any books named ${String(searchedTitle)}.`,
 				background: 'variant-filled-error'
 			};
 			toastStore.trigger(t);
@@ -25,13 +26,8 @@
 	<h1>Test AuraDB 👇</h1>
 	<form class="card p-4 max-w-lg flex flex-col gap-4 mt-8">
 		<label class="label">
-			<span>Creator Name</span>
-			<input
-				class="input"
-				type="text"
-				placeholder="e.g. JK Rowling or leave blank for all"
-				bind:value={author}
-			/>
+			<span>Book Title</span>
+			<input class="input" type="text" placeholder="e.g. The Name of the Wind" bind:value={title} />
 		</label>
 		<button on:click={onClick} class="btn variant-filled-primary">Submit</button>
 	</form>
@@ -41,7 +37,7 @@
 			<thead>
 				<tr>
 					<th />
-					<th>Author</th>
+					<th>Book ID</th>
 					<th>Book Title</th>
 				</tr>
 			</thead>
@@ -49,8 +45,8 @@
 				{#each books as book, i}
 					<tr>
 						<td>{i + 1}</td>
-						<td>{book.creator.name}</td>
-						<td>{book.title}</td>
+						<td>{book.book.properties.id}</td>
+						<td>{book.book.properties.title}</td>
 					</tr>
 				{/each}
 			</tbody>

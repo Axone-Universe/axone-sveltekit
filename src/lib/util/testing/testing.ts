@@ -6,7 +6,7 @@ import { router } from '$lib/trpc/router';
 export const testUser: User = {
 	id: '123',
 	email: 'user@test.com',
-	user_metadata: { name: 'TestName' },
+	user_metadata: {},
 	app_metadata: {},
 	aud: '',
 	created_at: ''
@@ -20,6 +20,8 @@ export const testSession: Session = {
 	user: testUser
 };
 
+export const testUserInfo = { firstName: 'Test', lastName: 'User' };
+
 export async function cleanUpDatabase() {
 	const session = new DBSession();
 	const cypher = 'MATCH (n) DETACH DELETE n';
@@ -31,5 +33,5 @@ export async function cleanUpDatabase() {
 export const createUser = async (session: Session) => {
 	const caller = router.createCaller({ session });
 
-	return await caller.users.create();
+	return await caller.users.create(testUserInfo);
 };

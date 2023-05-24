@@ -1,5 +1,5 @@
 import { router } from '$lib/trpc/router';
-import { cleanUpDatabase, createUser, testSession, testUser } from '$lib/utilities/testing/testing';
+import { cleanUpDatabase, createUser, testSession, testUser, testUserInfo } from '$lib/util/testing/testing';
 
 describe('users', () => {
 	beforeEach(async () => {
@@ -11,8 +11,8 @@ describe('users', () => {
 
 		expect(userResponse.user.properties).toEqual({
 			id: testSession.user.id,
-			name: testSession.user.user_metadata.name,
-			email: testSession.user.email
+			firstName: testUserInfo.firstName,
+			lastName: testUserInfo.lastName,
 		});
 	});
 

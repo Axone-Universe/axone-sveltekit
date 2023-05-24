@@ -1,19 +1,17 @@
 <script lang="ts">
-	import Header from '$lib/components/header/header.svelte';
-	import Footer from '$lib/components/footer/footer.svelte';
+	import Header from '$lib/components/header/Header.svelte';
+	import Footer from '$lib/components/footer/Footer.svelte';
 
-	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+	import { AppShell } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
-	$: ({ supabase, session } = data);
-
 </script>
 
 <!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="header">
-		<Header data={data}></Header>
+		<Header {data} />
 	</svelte:fragment>
 	<!-- Page Route Content -->
 	<slot />

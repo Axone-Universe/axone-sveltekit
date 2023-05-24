@@ -1,5 +1,5 @@
 import { router } from '$lib/trpc/router';
-import { cleanUpDatabase, createUser, testSession } from '$lib/utilities/testing/testing';
+import { cleanUpDatabase, createUser, testSession } from '$lib/util/testing/testing';
 
 const createBook = async (title: string) => {
 	const caller = router.createCaller({ session: testSession });

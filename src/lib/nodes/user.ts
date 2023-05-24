@@ -7,8 +7,14 @@ import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 
 interface UserProperties {
 	id: string;
-	name?: string;
-	email?: string;
+	firstName?: string;
+	lastName?: string;
+	about?: string;
+	facebook?: string;
+	instagram?: string;
+	twitter?: string;
+	fictional?: string[];
+	nonFictional?: string[];
 }
 
 export type UserNode = Node<Integer, UserProperties>;
@@ -47,13 +53,43 @@ export class UserBuilder extends NodeBuilder<UserResponse> {
 		return this;
 	}
 
-	name(name: string): UserBuilder {
-		this._userProperties.name = name;
+	firstName(firstName: string): UserBuilder {
+		this._userProperties.firstName = firstName;
 		return this;
 	}
 
-	email(email: string): UserBuilder {
-		this._userProperties.email = email;
+	lastName(lastName: string): UserBuilder {
+		this._userProperties.lastName = lastName;
+		return this;
+	}
+
+	about(about: string): UserBuilder {
+		this._userProperties.about = about;
+		return this;
+	}
+
+	facebook(facebook: string): UserBuilder {
+		this._userProperties.facebook = facebook;
+		return this;
+	}
+
+	instagram(instagram: string): UserBuilder {
+		this._userProperties.instagram = instagram;
+		return this;
+	}
+
+	twitter(twitter: string): UserBuilder {
+		this._userProperties.twitter = twitter;
+		return this;
+	}
+
+	fictional(fictional: string[]): UserBuilder {
+		this._userProperties.fictional = fictional;
+		return this;
+	}
+
+	nonFictional(nonFictional: string[]): UserBuilder {
+		this._userProperties.nonFictional = nonFictional;
 		return this;
 	}
 
@@ -63,8 +99,12 @@ export class UserBuilder extends NodeBuilder<UserResponse> {
 		const properties = stringifyObject(this._userProperties);
 		const labels = this._labels.join(':');
 
+		// TODO: find better way to replace all labels?
 		const query = `
-			CREATE (user:${labels} ${properties})
+			MERGE (user:User {id: '${this._userProperties.id}'})
+			SET user = ${properties}
+			REMOVE user:User:Writer:Editor:Illustrator
+			SET user:${labels}
 			RETURN user
 		`;
 

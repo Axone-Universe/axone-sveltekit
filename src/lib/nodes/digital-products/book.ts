@@ -7,7 +7,7 @@ import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 
-export interface BookProperties {
+interface BookProperties {
 	id: string;
 	title?: string;
 }
@@ -56,7 +56,6 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 
 		const query = `
 			MATCH (user:User) WHERE user.id='${this._userID.id}'
-			SET user:Author
 			CREATE (book:${labels} ${properties})
 			MERGE (user)-[authored:AUTHORED]->(book)
 			RETURN user, authored, book

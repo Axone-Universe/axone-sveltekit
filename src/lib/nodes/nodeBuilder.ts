@@ -7,7 +7,7 @@ export abstract class NodeBuilder<T> {
 
 	abstract build(): Promise<T>;
 
-	labels(labels: string[]): NodeBuilder<T> {
+	labels(labels: string[]): this {
 		this._labels.length = 0;
 		labels.forEach((label) => this._labels.push(label));
 		return this;

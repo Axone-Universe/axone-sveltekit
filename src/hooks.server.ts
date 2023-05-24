@@ -27,7 +27,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 	};
 
 	// User should only be able to update password if logged in
-	if (event.url.pathname === '/update-password') {
+	if (event.url.pathname.startsWith('/profile/')) {
 		const session = await event.locals.getSession();
 		if (!session) {
 			throw redirect(303, '/login');

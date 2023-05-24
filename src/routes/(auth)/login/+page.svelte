@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
-	import type { UserProperties } from '$lib/nodes/base/nodeProperties';
+	import type { UserResponse } from '$lib/nodes/user';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -17,20 +17,20 @@
 	};
 
 	const onSubmit = async () => {
-		const resp = await supabase.auth.signInWithPassword({
+		const supabaseResponse = await supabase.auth.signInWithPassword({
 			email: formData.email,
 			password: formData.password
 		});
 
 		let t: ToastSettings = {
-			message: `Successfully logged in. Welcome back!`,
+			message: `Successfully logged in. Welcome!`,
 			background: 'variant-filled-primary',
 			autohide: true
 		};
 
-		if (resp.error) {
+		if (supabaseResponse.error) {
 			// TODO: move to event listener for authState change?
-			if (resp.error.message === 'Email not confirmed') {
+			if (supabaseResponse.error.message === 'Email not confirmed') {
 				t = {
 					message: `Please confirm your email address before logging in.`,
 					background: 'variant-filled-error',
@@ -43,17 +43,21 @@
 					autohide: true
 				};
 			}
-			console.log(resp.error);
+			console.log(supabaseResponse.error);
 			toastStore.trigger(t);
 		} else {
-			console.log(resp.data);
+			console.log(supabaseResponse.data);
 			toastStore.trigger(t);
-			if (resp.data.user) {
-				const users = (await trpc($page).users.list.query(resp.data.user.id)) as UserProperties[];
-				if (users.length === 1 && users[0].id === resp.data.user.id) {
+			if (supabaseResponse.data.user) {
+				const users = (await trpc($page).users.list.query(
+					supabaseResponse.data.user.id
+				)) as UserResponse[];
+				if (users.length === 1 && users[0].user.properties.id === supabaseResponse.data.user.id) {
+					// user already created profile - go to home page (later change to app home page)
 					await goto('/');
 				} else {
-					await goto('/create-profile');
+					// user does not have profile - go to profile page to create one
+					await goto(`/profile/${supabaseResponse.data.user.id}`);
 				}
 			}
 		}
