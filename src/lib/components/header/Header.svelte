@@ -6,6 +6,7 @@
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { writable, type Writable } from 'svelte/store';
+	import Logo from '$lib/assets/logo.svelte';
 
 	import { popup } from '../../util/popup/popup';
 	import type { PopupSettings } from '../../util/popup/types';
@@ -16,13 +17,6 @@
 	import { caretDown, navicon, leanpub, heartbeat, handshakeO, pencil } from 'svelte-awesome/icons';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
-
-	/**
-	 * App Bar settings
-	 */
-	let genreValue: string;
-	let collaborateValue: string;
-	let creatorValue: string;
 
 	// Settings for popups on app bar shown for larger screens
 	const popupSettings = (target: string) => {
@@ -75,12 +69,9 @@
 		<button class="md:hidden" on:click={openDrawer}>
 			<Icon data={navicon} scale={1.5} />
 		</button>
-		<a href="/">
-			<img
-				alt="logo"
-				class="hidden md:inline-block text-xl uppercase w-16 md:w-36"
-				src="/images/logo_circle_transparent.png"
-			/>
+		<a class="hidden md:flex items-center text-l" href="/">
+			<Logo />
+			<span class="logo-name">AXONE</span>
 		</a>
 	</svelte:fragment>
 	<AppBar padding="p-2" class="hidden md:inline-block">
@@ -300,3 +291,15 @@
 		</section>
 	</div>
 </Drawer>
+
+<style>
+	@font-face {
+		font-family: colortube;
+		src: url('fonts/color_tube.otf') format('opentype');
+	}
+
+	.logo-name {
+		font-family: colortube;
+		margin-bottom: -5px;
+	}
+</style>

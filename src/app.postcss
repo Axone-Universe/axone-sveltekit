@@ -1,2 +1,17 @@
 /*place global styles here */
-html, body { @apply h-full overflow-hidden; }
+html,
+body {
+	@apply h-full overflow-hidden;
+}
+
+.fill-transparent-logo {
+	fill: transparent;
+}
+
+.dark .fill-logo {
+	fill: rgba(var(--theme-font-color-dark));
+}
+
+.fill-logo {
+	fill: rgba(var(--theme-font-color-base));
+}
