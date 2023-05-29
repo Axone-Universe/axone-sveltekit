@@ -34,6 +34,14 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
+	// User if the user is logged in and coming from the landing page, go to the homepage
+	if (event.url.pathname.startsWith('/')) {
+		const session = await event.locals.getSession();
+		if (session) {
+			throw redirect(303, '/profile');
+		}
+	}
+
 	return resolve(event, {
 		/**
 		 * There´s an issue with `filterSerializedResponseHeaders` not working when using `sequence`

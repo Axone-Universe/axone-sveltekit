@@ -44,7 +44,7 @@
 	};
 </script>
 
-<Container classes="flex h-full justify-center items-center">
+<Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
 		<h1>Update Password</h1>
 		<form class="flex flex-col items-end gap-4">

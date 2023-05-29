@@ -3,6 +3,6 @@
 	export { customClass as class };
 </script>
 
-<div class={`max-w-screen-xl mx-auto p-4 ${customClass}`}>
+<div class={`min-h-fit ${customClass}`}>
 	<slot />
 </div>

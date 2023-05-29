@@ -295,11 +295,11 @@
 <style>
 	@font-face {
 		font-family: colortube;
-		src: url('fonts/color_tube.otf') format('opentype');
+		src: url('/fonts/color_tube.otf') format('opentype');
 	}
 
 	.logo-name {
 		font-family: colortube;
-		margin-bottom: -5px;
+		margin-bottom: -10px;
 	}
 </style>

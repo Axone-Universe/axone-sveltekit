@@ -1,55 +1,246 @@
 <script lang="ts">
 	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton';
 
 	import { page } from '$app/stores';
+	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
 	import type { BookResponse } from '$lib/nodes/digital-products/book';
+	import emblaCarouselSvelte from 'embla-carousel-svelte';
+	import type { EmblaCarouselSvelteType } from 'embla-carousel-svelte';
 
-	let title = '';
-	let books: BookResponse[] = [];
+	import Author_1 from '$lib/assets/author-1.svelte';
+	import Author_2 from '$lib/assets/author-2.svelte';
+	import Author_3 from '$lib/assets/author-3.svelte';
+	import Author_4 from '$lib/assets/author-4.svelte';
 
-	async function onClick() {
-		books = (await trpc($page).books.list.query(title)) as BookResponse[];
-		let searchedTitle = title;
-		if (books.length === 0) {
-			const t: ToastSettings = {
-				message: `Looks like we don\'t have any books named ${String(searchedTitle)}.`,
-				background: 'variant-filled-error'
-			};
-			toastStore.trigger(t);
-		}
-	}
+	emblaCarouselSvelte.globalOptions = { align: 0.2 };
 </script>
 
-<Container classes="flex flex-col items-center gap-8">
-	<h1>Test AuraDB 👇</h1>
-	<form class="card p-4 max-w-lg flex flex-col gap-4 mt-8">
-		<label class="label">
-			<span>Book Title</span>
-			<input class="input" type="text" placeholder="e.g. The Name of the Wind" bind:value={title} />
-		</label>
-		<button on:click={onClick} class="btn variant-filled-primary">Submit</button>
-	</form>
+<Section class="bg-surface-100-800-token flex items-center">
+	<Container>
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
+			<div class="lg:order-2 w-full mx-auto">
+				<div class="aspect-video relative">
+					<Author_2 />
+				</div>
+			</div>
+			<div
+				class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4"
+			>
+				<h1 class="!text-3xl lg:!text-5xl unstyled">Enter The Axone Universe</h1>
+				<h3 class="!text-2xl lg:!text-3xl unstyled">A collaborative way of storytelling</h3>
+				<p class="!text-l md:!text-xl">
+					Collaborate with authors and illustrators to create stories with multiple storylines
+				</p>
+				<div class="flex gap-4">
+					<a href="/login" class="btn variant-filled-primary"
+						><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
+					> <a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+				</div>
+			</div>
+		</div>
+	</Container>
+</Section>
 
-	<div class="table-container">
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th />
-					<th>Book ID</th>
-					<th>Book Title</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each books as book, i}
-					<tr>
-						<td>{i + 1}</td>
-						<td>{book.book.properties.id}</td>
-						<td>{book.book.properties.title}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
-</Container>
+<Section class="bg-surface-50-900-token flex items-center">
+	<Container>
+		<div class="text-center max-w-[700px]">
+			<p>
+				<i
+					>"Great discoveries and improvements invariably involve the cooperation of many minds. I
+					may be given credit for having blazed the trail, but when I look at the subsequent
+					developments I feel the credit is due to others rather than to myself." - <b
+						>Alexandar Graham Bell</b
+					></i
+				>
+			</p>
+		</div>
+	</Container>
+</Section>
+
+<Section class="bg-surface-100-800-token flex items-center">
+	<Container>
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
+			<div class="w-full max-w-[400px] mx-auto">
+				<div class="relative">
+					<Author_3 />
+				</div>
+			</div>
+			<div
+				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
+			>
+				<div class="mx-auto space-y-4">
+					<h3 class="!text-3xl lg:!text-3xl unstyled">Publish Your Story</h3>
+					<p>
+						Write and publish your story using our online platform. Keep track of your characters,
+						places, notes and more. Get editorial services and constant feedback from our readers.
+					</p>
+				</div>
+				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
+					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+				</div>
+			</div>
+		</div>
+	</Container>
+</Section>
+<Section class="bg-surface-50-900-token flex items-center">
+	<Container>
+		<div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 items-center">
+			<div class="lg:order-2 w-full max-w-[400px] mx-auto">
+				<div class="relative">
+					<Author_1 />
+				</div>
+			</div>
+			<div
+				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
+			>
+				<div class="mx-auto space-y-4">
+					<h3 class="!text-3xl md:!text-3xl unstyled">Overcome The Writer's Block</h3>
+					<p>
+						Collaborate with the <i><b>universe</b></i>. Let other authors continue your story using
+						alternate storylines. You'll be a co-owner of each storyline and receive royalties from
+						them.
+					</p>
+				</div>
+				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
+					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+				</div>
+			</div>
+		</div>
+	</Container>
+</Section>
+<Section class="bg-surface-100-800-token flex items-center">
+	<Container>
+		<div class="grid grid-cols-1 lg:grid-cols-2 md:gap-10 items-center">
+			<div class="md:inline-block w-full max-w-[400px] mx-auto">
+				<div class="relative">
+					<Author_4 />
+				</div>
+			</div>
+			<div
+				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
+			>
+				<div class="mx-auto space-y-4">
+					<h3 class="!text-3xl md:!text-3xl unstyled">Bring Your Story To Life</h3>
+					<p>
+						Create a call for collaboration with Editors, Illustrators and other Authors to bring
+						your story to life.
+					</p>
+				</div>
+				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
+					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+				</div>
+			</div>
+		</div>
+	</Container>
+</Section>
+
+<Section class="bg-surface-50-900-token">
+	<Container>
+		<div class="embla" use:emblaCarouselSvelte>
+			<div class="embla__container m-4 space-x-4">
+				<div class="embla__slide card p-4 shadow-xl overflow-hidden max-w-[300px] text-token">
+					<header class="flex flex-col items-center">
+						<Avatar
+							src="https://source.unsplash.com/YOErFW8AfkI/128x128"
+							width="w-32"
+							rounded="rounded-full"
+						/>
+					</header>
+					<div class="p-4 space-y-4 flex flex-col items-center">
+						<h2 class="unstyled">Takunda Chirema</h2>
+						<article>
+							<p class="opacity-75">
+								<i>"Axone has allowed me to publish and monetize my unfinished book"</i>
+							</p>
+						</article>
+					</div>
+					<hr class="opacity-50" />
+					<footer class="p-4 flex justify-center items-center space-x-4">
+						<div class="flex justify-center space-x-2">
+							<span class="chip bg-primary-500 hover:variant-filled"
+								><i class="fa-solid fa-heart" /> <span>Author</span></span
+							>
+							<span class="chip bg-error-300 hover:error-filled"
+								><i class="fa-solid fa-paperclip" /> <span>Editor</span></span
+							>
+							<span class="chip variant-soft hover:variant-filled"
+								><i class="fa-solid fa-share" /> <span>Writer</span></span
+							>
+						</div>
+					</footer>
+				</div>
+				<div class="embla__slide card p-4 shadow-xl overflow-hidden max-w-[300px] text-token">
+					<header class="flex flex-col items-center">
+						<Avatar
+							src="https://source.unsplash.com/YOErFW8AfkI/128x128"
+							width="w-32"
+							rounded="rounded-full"
+						/>
+					</header>
+					<div class="p-4 space-y-4 flex flex-col items-center">
+						<h2 class="unstyled">Lindi Kers</h2>
+						<article>
+							<p class="opacity-75">
+								<i
+									>"I have found inspiration for continuing my stories and my creativity has been
+									awakened"</i
+								>
+							</p>
+						</article>
+					</div>
+					<hr class="opacity-50" />
+					<footer class="p-4 flex justify-center items-center space-x-4">
+						<div class="flex justify-center space-x-2">
+							<span class="chip bg-primary-500 hover:variant-filled"
+								><i class="fa-solid fa-heart" /> <span>Author</span></span
+							>
+							<span class="chip bg-error-300 hover:error-filled"
+								><i class="fa-solid fa-paperclip" /> <span>Editor</span></span
+							>
+							<span class="chip variant-soft hover:variant-filled"
+								><i class="fa-solid fa-share" /> <span>Writer</span></span
+							>
+						</div>
+					</footer>
+				</div>
+				<div class="embla__slide card p-4 shadow-xl overflow-hidden max-w-[300px] text-token">
+					<header class="flex flex-col items-center">
+						<Avatar
+							src="https://source.unsplash.com/YOErFW8AfkI/128x128"
+							width="w-32"
+							rounded="rounded-full"
+						/>
+					</header>
+					<div class="p-4 space-y-4 flex flex-col items-center">
+						<h2 class="unstyled">Danae Bouwer</h2>
+						<article>
+							<p class="opacity-75">
+								<i
+									>"It is quite fun to explore the different authors, storylines and illustrations
+									of artists. I love it!"</i
+								>
+							</p>
+						</article>
+					</div>
+					<hr class="opacity-50" />
+					<footer class="p-4 flex justify-center items-center space-x-4">
+						<div class="flex justify-center space-x-2">
+							<span class="chip bg-primary-500 hover:variant-filled"
+								><i class="fa-solid fa-heart" /> <span>Author</span></span
+							>
+							<span class="chip bg-error-300 hover:error-filled"
+								><i class="fa-solid fa-paperclip" /> <span>Editor</span></span
+							>
+							<span class="chip variant-soft hover:variant-filled"
+								><i class="fa-solid fa-share" /> <span>Writer</span></span
+							>
+						</div>
+					</footer>
+				</div>
+			</div>
+		</div>
+	</Container>
+</Section>
