@@ -42,29 +42,27 @@
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
 				<div class="flex flex-col gap-1">
 					<h3 class="flex items-center gap-2">
-						{userNode?.properties.firstName}
-						{userNode?.properties.lastName}
+						{userNode.properties.firstName}
+						{userNode.properties.lastName}
 						{#if viewerIsUser}
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						{/if}
 					</h3>
-					{#if userNode}
-						<div class="flex gap-2 flex-wrap">
-							{#each userNode.labels as label}
-								{#if label !== 'User'}
-									<div class={`chip ${userVariant(label)}`}>{label}</div>
-								{/if}
-							{/each}
-						</div>
-					{/if}
+					<div class="flex gap-2 flex-wrap">
+						{#each userNode.labels as label}
+							{#if label !== 'User'}
+								<div class={`chip ${userVariant(label)}`}>{label}</div>
+							{/if}
+						{/each}
+					</div>
 					<div class="flex gap-2">
-						{#if userNode && userNode.properties.facebook}
+						{#if userNode.properties.facebook}
 							<Icon data={facebookIcon} scale={2} />
 						{/if}
-						{#if userNode && userNode.properties.instagram}
+						{#if userNode.properties.instagram}
 							<Icon data={instagramIcon} scale={2} />
 						{/if}
-						{#if userNode && userNode.properties.twitter}
+						{#if userNode.properties.twitter}
 							<Icon data={twitterIcon} scale={2} />
 						{/if}
 					</div>
@@ -81,8 +79,8 @@
 			<h2 class="mb-4">About</h2>
 			<div class="card p-4">
 				<p>
-					{userNode?.properties.about
-						? userNode?.properties.about
+					{userNode.properties.about
+						? userNode.properties.about
 						: 'Apparently, this user is really boring and did not say anything for their About section.'}
 				</p>
 			</div>
@@ -93,7 +91,7 @@
 			<div class="grid sm:grid-cols-2 gap-4 w-full">
 				<div class="card p-4">
 					<header class="text-xl pb-4 font-bold">Fictional</header>
-					{#if userNode && userNode.properties.fictional}
+					{#if userNode.properties.fictional}
 						<div class="flex gap-2 flex-wrap">
 							{#each userNode.properties.fictional as genre}
 								<div class="chip variant-filled">{genre}</div>
@@ -105,7 +103,7 @@
 				</div>
 				<div class="card p-4">
 					<header class="text-xl pb-4 font-bold">Non-fictional</header>
-					{#if userNode && userNode.properties.nonFictional}
+					{#if userNode.properties.nonFictional}
 						<div class="flex gap-2 flex-wrap">
 							{#each userNode.properties.nonFictional as genre}
 								<div class="chip variant-filled">{genre}</div>

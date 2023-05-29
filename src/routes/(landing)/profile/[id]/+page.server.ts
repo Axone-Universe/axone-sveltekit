@@ -8,7 +8,6 @@ import { supabaseAdmin } from '$lib/util/supabase';
 
 export const load = (async (event) => {
 	const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
-	const session = await event.locals.getSession();
 
 	if (data && data.user) {
 		// check if user has a profile
@@ -16,13 +15,12 @@ export const load = (async (event) => {
 			searchTerm: event.params.id
 		})) as UserResponse[];
 		if (userResponse.length === 1) {
-			const userNode = userResponse.pop()?.user;
+			const userNode = userResponse[0].user;
 			return { userNode };
 		}
 	}
 
-	if (session?.user.id !== event.params.id)
-		throw error(404, 'The requested user profile does not exist');
+	throw error(404, 'The requested user profile does not exist');
 }) satisfies PageServerLoad;
 
 export const actions = {
