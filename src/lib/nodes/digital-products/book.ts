@@ -50,7 +50,6 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 	async build(): Promise<UserAuthoredBookResponse> {
 		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
 
-		// TODO: check if undefined values are still stringified or just missing (need latter)
 		const properties = stringifyObject(this._bookProperties);
 		const labels = this._labels.join(':');
 

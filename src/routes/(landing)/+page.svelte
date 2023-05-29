@@ -45,8 +45,8 @@
 				{#each books as book, i}
 					<tr>
 						<td>{i + 1}</td>
-						<td>{book.book.properties.id}</td>
-						<td>{book.book.properties.title}</td>
+						<td>{book.value.book.properties.id}</td>
+						<td>{book.value.book.properties.title}</td>
 					</tr>
 				{/each}
 			</tbody>

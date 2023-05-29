@@ -204,6 +204,7 @@
 	<svelte:fragment slot="trail">
 		{#if data.session && data.session.user}
 			<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
+			<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a>
 		{:else}
 			<div class="flex gap-2">
 				<a class="btn variant-filled-primary" href="/login"> Login </a>

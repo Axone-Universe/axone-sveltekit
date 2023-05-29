@@ -1,12 +1,16 @@
 import { DBSession } from '$lib/db/session';
 import type { UserResponse } from '$lib/nodes/user';
+import { Repository } from '$lib/repositories/repository';
 
-export class UsersRepository {
-	async getUsers(uid?: string): Promise<UserResponse[]> {
+export class UsersRepository extends Repository {
+	async get(uid?: string, limit?: number, skip?: number): Promise<UserResponse[]> {
 		const query = `
 			MATCH (user:User) 
 			${uid ? `WHERE user.id = '${uid}'` : ''}
 			RETURN user
+			ORDER BY user.name
+			${skip ? `SKIP ${skip}` : ''}
+			${limit ? `LIMIT ${limit}` : ''}
 		`;
 
 		const session = new DBSession();
@@ -19,6 +23,14 @@ export class UsersRepository {
 
 		return new Promise<UserResponse[]>((resolve) => {
 			resolve(users);
+		});
+	}
+
+	async count(): Promise<number> {
+		const count = await this._count('User');
+
+		return new Promise<number>((resolve) => {
+			resolve(count);
 		});
 	}
 }

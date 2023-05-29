@@ -7,14 +7,20 @@
 	import '../app.postcss';
 
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { storePopup, Toast, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
+	import {
+		storePopup,
+		Toast,
+		Modal,
+		type ModalComponent,
+		LightSwitch
+	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
 
 	export let data: LayoutData;
-	
+
 	$: ({ supabase, session } = data);
 
 	onMount(() => {
@@ -35,5 +41,10 @@
 </script>
 
 <slot />
+<!-- LightSwitch needed at root for it to work properly
+	hide it as we implement it in the navbar in children layouts -->
+<div hidden>
+	<LightSwitch />
+</div>
 <Modal components={modalComponentRegistry} />
 <Toast />

@@ -50,7 +50,7 @@ describe('books', () => {
 		await createBook(testBookTitle2);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.list(testBookTitle1);
+		const bookResponses = await caller.books.list({ searchTerm: testBookTitle1 });
 
 		expect(bookResponses.length).toEqual(1);
 		expect(bookResponses.pop()?.book).toEqual(userAuthoredBookResponse.book);

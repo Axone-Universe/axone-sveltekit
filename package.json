@@ -44,6 +44,7 @@
 		"@supabase/supabase-js": "^2.22.0",
 		"@trpc/client": "^10.27.1",
 		"@trpc/server": "^10.27.1",
+		"date-fns": "^2.30.0",
 		"happy-dom": "^9.20.1",
 		"neo4j-driver": "^5.8.1",
 		"neo4j-driver-core": "^5.8.1",

@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import type { FictionalGenres, NonFictionalGenres } from '$lib/util/types';
+import type {
+	CreateCampaign,
+	CreateUser,
+	FictionalGenres,
+	NonFictionalGenres
+} from '$lib/util/types';
 
 const fictionalSchema = z.object({
 	'Action & Adventure': z.boolean(),
@@ -25,16 +30,34 @@ const nonFictionalSchema = z.object({
 	'Travel Guides': z.boolean()
 }) satisfies z.ZodType<NonFictionalGenres>;
 
-export const formDataSchema = z.object({
+export const createUserSchema = z.object({
 	firstName: z.string().min(1),
 	lastName: z.string().min(1),
-	about: z.string().optional(),
-	userWriterChecked: z.boolean().optional(),
-	userEditorChecked: z.boolean().optional(),
-	userIllustratorChecked: z.boolean().optional(),
-	facebook: z.string().optional(),
-	instagram: z.string().optional(),
-	twitter: z.string().optional(),
-	fictional: fictionalSchema.optional(),
-	nonFictional: nonFictionalSchema.optional()
+	about: z.string(),
+	userWriterChecked: z.boolean(),
+	userEditorChecked: z.boolean(),
+	userIllustratorChecked: z.boolean(),
+	facebook: z.string(),
+	instagram: z.string(),
+	twitter: z.string(),
+	fictional: fictionalSchema,
+	nonFictional: nonFictionalSchema
+}) satisfies z.ZodType<CreateUser>;
+
+export const createCampaignSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	organizer: z.object({ name: z.string(), link: z.string() }),
+	dates: z.array(
+		z.object({ startDate: z.coerce.date(), endDate: z.coerce.date(), event: z.string() })
+	),
+	about: z.string(),
+	tags: z.array(z.string()),
+	bannerURL: z.string()
+}) satisfies z.ZodType<CreateCampaign>;
+
+export const listSchema = z.object({
+	searchTerm: z.string().optional(),
+	limit: z.number().optional(),
+	skip: z.number().optional()
 });

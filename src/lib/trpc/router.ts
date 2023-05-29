@@ -1,11 +1,13 @@
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 
-import { t } from '$lib/trpc/t';
-import { users } from '$lib/trpc/routes/users';
 import { books } from '$lib/trpc/routes/books';
+import { campaigns } from '$lib/trpc/routes/campaigns';
+import { users } from '$lib/trpc/routes/users';
+import { t } from '$lib/trpc/t';
 
 export const router = t.router({
 	books,
+	campaigns,
 	users
 });
 
