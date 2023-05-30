@@ -35,7 +35,7 @@
 	}
 </script>
 
-<Container classes="my-8 w-full flex justify-center">
+<Container class="my-8 w-full flex justify-center">
 	<div class="card variant-ghost-surface p-8 max-w-2xl flex flex-col gap-8">
 		<div class="flex flex-col sm:flex-row justify-between items-center w-full gap-8">
 			<div class="flex gap-4 items-center mx-auto sm:mx-0">

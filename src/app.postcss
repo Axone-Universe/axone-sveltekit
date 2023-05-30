@@ -1,2 +1,24 @@
 /*place global styles here */
-html, body { @apply h-full overflow-hidden; }
+html,
+body {
+	@apply h-full overflow-hidden;
+}
+
+.dark .fill-logo {
+	fill: rgba(var(--theme-font-color-dark));
+}
+
+.fill-logo {
+	fill: rgba(var(--theme-font-color-base));
+}
+
+.embla {
+	overflow: hidden;
+}
+.embla__container {
+	display: flex;
+}
+.embla__slide {
+	flex: 0 0 100%;
+	min-width: 0;
+}

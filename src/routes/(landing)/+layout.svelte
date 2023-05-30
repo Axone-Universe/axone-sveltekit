@@ -9,7 +9,7 @@
 </script>
 
 <!-- App Shell -->
-<AppShell>
+<AppShell slotPageContent="w-full">
 	<svelte:fragment slot="header">
 		<Header {data} />
 	</svelte:fragment>

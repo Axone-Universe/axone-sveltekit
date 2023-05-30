@@ -34,7 +34,7 @@
 	}
 </script>
 
-<Container classes="space-y-8">
+<Container class="space-y-8">
 	<h1>My Profile</h1>
 	<h2>Account Information</h2>
 	<div class="space-y-4">
