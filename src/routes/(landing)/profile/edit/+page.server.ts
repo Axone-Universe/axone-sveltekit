@@ -58,9 +58,6 @@ export const load = (async (event) => {
 			};
 			return { user };
 		} else {
-			if (session.user.user_metadata.profile) {
-				await event.locals.supabase.auth.updateUser({ data: { profile: false } });
-			}
 			throw redirect(303, '/profile/create');
 		}
 	} else {

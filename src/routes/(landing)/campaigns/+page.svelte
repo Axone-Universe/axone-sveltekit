@@ -24,56 +24,58 @@
 	);
 </script>
 
-<Container>
-	<div class="flex justify-between items-center">
-		<h1 class="my-8">Campaigns</h1>
-		<a href={`${$page.url.pathname}/create`}><Icon data={plusIcon} scale={2} /></a>
-	</div>
-	<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-		{#each paginatedCampaigns as campaign}
-			<div class="card card-hover flex flex-col gap-4 overflow-hidden">
-				<header>
-					<img
-						src={campaign.bannerURL}
-						class="bg-black/50 w-full aspect-[21/9]"
-						alt={`${campaign.title} banner`}
-					/>
-				</header>
-				<div class="px-4 grow space-y-6 py-4">
-					<div class="space-y-4">
-						<div>
-							<h3>{campaign.title}</h3>
-							<p class="text-xs font-semibold">
-								{format(new Date(campaign.dates[0].startDate), 'd MMM y')} - {format(
-									new Date(campaign.dates[0].endDate),
-									'd MMM y'
-								)}
-							</p>
+<Container class="h-full flex flex-col justify-between">
+	<div>
+		<div class="flex justify-between items-center">
+			<h1 class="my-8">Campaigns</h1>
+			<a href={`${$page.url.pathname}/create`}><Icon data={plusIcon} scale={2} /></a>
+		</div>
+		<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+			{#each paginatedCampaigns as campaign}
+				<div class="card card-hover flex flex-col gap-4 overflow-hidden">
+					<header>
+						<img
+							src={campaign.bannerURL}
+							class="bg-black/50 w-full aspect-[21/9]"
+							alt={`${campaign.title} banner`}
+						/>
+					</header>
+					<div class="px-4 grow space-y-6 py-4">
+						<div class="space-y-4">
+							<div>
+								<h3>{campaign.title}</h3>
+								<p class="text-xs font-semibold">
+									{format(new Date(campaign.dates[0].startDate), 'd MMM y')} - {format(
+										new Date(campaign.dates[0].endDate),
+										'd MMM y'
+									)}
+								</p>
 
-							<a class="text-xs" href={campaign.organizer.link}>By {campaign.organizer.name}</a>
+								<a class="text-xs" href={campaign.organizer.link}>By {campaign.organizer.name}</a>
+							</div>
+							<div class="flex gap-2 flex-wrap">
+								{#each campaign.tags as tag}
+									<span class="chip variant-filled">{tag}</span>
+								{/each}
+							</div>
 						</div>
-						<div class="flex gap-2 flex-wrap">
-							{#each campaign.tags as tag}
-								<span class="chip variant-filled">{tag}</span>
-							{/each}
+						<hr class="w-full" />
+						<div>
+							<!-- <h4 class="mb-2">About</h4> -->
+							<p class="italic text-sm">"{campaign.about}"</p>
 						</div>
 					</div>
-					<hr class="w-full" />
-					<div>
-						<!-- <h4 class="mb-2">About</h4> -->
-						<p class="italic text-sm">"{campaign.about}"</p>
-					</div>
+					<footer class="card-footer">
+						<a
+							class="btn variant-filled-primary w-full"
+							href={`${$page.url.pathname}/${campaign.id}`}
+						>
+							Learn more
+						</a>
+					</footer>
 				</div>
-				<footer class="card-footer">
-					<a
-						class="btn variant-filled-primary w-full"
-						href={`${$page.url.pathname}/${campaign.id}`}
-					>
-						Learn more
-					</a>
-				</footer>
-			</div>
-		{/each}
+			{/each}
+		</div>
 	</div>
 	<Paginator bind:settings={paginatorSettings} amountText="campaigns" />
 </Container>

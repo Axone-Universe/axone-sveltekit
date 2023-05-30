@@ -14,7 +14,15 @@
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 
 	import Icon from 'svelte-awesome';
-	import { caretDown, navicon, leanpub, heartbeat, handshakeO, pencil } from 'svelte-awesome/icons';
+	import {
+		caretDown,
+		navicon,
+		leanpub,
+		lineChart,
+		handshakeO,
+		pencil,
+		user
+	} from 'svelte-awesome/icons';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -91,116 +99,122 @@
 	};
 </script>
 
-<AppBar gridColumns="grid-cols-3" slotDefault="flex justify-center" slotTrail="place-content-end">
+<AppBar
+	gridColumns="grid-cols-3"
+	slotDefault="flex justify-center"
+	slotTrail="place-content-end"
+	padding="px-4"
+>
 	<svelte:fragment slot="lead">
 		<button class="lg:hidden" on:click={openDrawer}>
 			<Icon data={navicon} scale={1.5} />
 		</button>
-		{#if data.session && data.session.user}
-			<a class="hidden md:flex items-center text-l" href="/home">
-				<Logo />
-				<span class="logo-name">AXONE</span>
-			</a>
-		{:else}
-			<a class="hidden md:flex items-center text-l" href="/">
-				<Logo />
-				<span class="logo-name">AXONE</span>
-			</a>
-		{/if}
+		<a
+			class="hidden lg:flex items-center text-l"
+			href={data.session && data.session.user.id ? '/home' : '/'}
+		>
+			<Logo />
+			<span class="logo-name">AXONE</span>
+		</a>
 	</svelte:fragment>
-	<AppBar padding="p-2" class="hidden lg:inline-block">
-		<svelte:fragment slot="lead">
-			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={readPopupBox}
-				>
-					<span class="capitalize">Read</span>
-					<Icon data={caretDown} />
-				</button>
+	<div class="hidden lg:flex">
+		<div>
+			<button
+				class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				use:popup={readPopupBox}
+			>
+				<span class="capitalize">Read</span>
+				<Icon data={caretDown} />
+			</button>
 
-				<div class="card p-4 w-fit" data-popup="readPopupBox">
+			<div class="card p-4 w-fit" data-popup="readPopupBox">
+				<nav class="list-nav">
+					<ul class="grid grid-cols-2 gap-2 list">
+						{#each readMenuList as menuItem}
+							<li>
+								<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+							</li>
+						{/each}
+					</ul>
+				</nav>
+				<div class="arrow bg-surface-100-800-token" />
+			</div>
+		</div>
+
+		<div>
+			<button class="btn justify-between hover:variant-soft-primary">
+				<span class="capitalize">Trending</span>
+			</button>
+		</div>
+
+		<div>
+			<button
+				class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				use:popup={collaboratePopupBox}
+			>
+				<span class="capitalize">Collaborate</span>
+				<Icon data={caretDown} />
+			</button>
+
+			<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
+				<div class="grid grid-cols-1">
 					<nav class="list-nav">
-						<ul class="grid grid-cols-2 gap-2 list">
-							{#each readMenuList as menuItem}
+						<ul class="grid grid-cols-1 gap-2 list">
+							{#each collaborateMenuList as menuItem}
 								<li>
 									<a href={menuItem.url} class="w-full">{menuItem.label}</a>
 								</li>
 							{/each}
 						</ul>
 					</nav>
-					<div class="arrow bg-surface-100-800-token" />
-				</div>
-			</div>
-
-			<div>
-				<button class="btn justify-between hover:variant-soft-primary">
-					<span class="capitalize">Trending</span>
-				</button>
-			</div>
-
-			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={collaboratePopupBox}
-				>
-					<span class="capitalize">Collaborate</span>
-					<Icon data={caretDown} />
-				</button>
-
-				<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
-					<div class="grid grid-cols-1">
-						<nav class="list-nav">
-							<ul class="grid grid-cols-1 gap-2 list">
-								{#each collaborateMenuList as menuItem}
-									<li>
-										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
-									</li>
-								{/each}
-							</ul>
-						</nav>
-					</div>
-					<div class="arrow bg-surface-100-800-token" />
-				</div>
-			</div>
-
-			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={creatorsPopupBox}
-				>
-					<span class="capitalize">Creators</span>
-					<Icon data={caretDown} />
-				</button>
-
-				<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
-					<div class="grid grid-cols-1">
-						<nav class="list-nav">
-							<ul class="grid grid-cols-1 gap-2 list">
-								{#each creatorsMenuList as menuItem}
-									<li>
-										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
-									</li>
-								{/each}
-							</ul>
-						</nav>
-					</div>
 				</div>
 				<div class="arrow bg-surface-100-800-token" />
 			</div>
-		</svelte:fragment>
-	</AppBar>
+		</div>
+
+		<div>
+			<button
+				class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				use:popup={creatorsPopupBox}
+			>
+				<span class="capitalize">Creators</span>
+				<Icon data={caretDown} />
+			</button>
+
+			<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
+				<div class="grid grid-cols-1">
+					<nav class="list-nav">
+						<ul class="grid grid-cols-1 gap-2 list">
+							{#each creatorsMenuList as menuItem}
+								<li>
+									<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+								</li>
+							{/each}
+						</ul>
+					</nav>
+				</div>
+			</div>
+			<div class="arrow bg-surface-100-800-token" />
+		</div>
+	</div>
+	<a
+		class="lg:hidden flex items-center text-l"
+		href={data.session && data.session.user.id ? '/home' : '/'}
+	>
+		<Logo />
+		<span class="logo-name">AXONE</span>
+	</a>
 	<svelte:fragment slot="trail">
 		<div class="flex gap-2 items-center">
-			{#if data.session && data.session.user}
-				<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
-				<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a>
-			{:else}
-				<div class="flex gap-2">
+			<div class="lg:flex gap-2 hidden">
+				{#if data.session && data.session.user}
+					<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
+					<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a
+					>
+				{:else}
 					<a class="btn variant-filled-primary" href="/login"> Login </a>
-					<a class="hidden lg:inline-block btn variant-filled-primary" href="sign-up"> Sign up </a>
-				</div>
-			{/if}
+				{/if}
+			</div>
 			<LightSwitch />
 		</div>
 	</svelte:fragment>
@@ -209,17 +223,24 @@
 <Drawer>
 	<div class="grid grid-cols-3 h-full">
 		<AppRail class="col-span-1 w-full border-r border-surface-500/30" selected={storeValue}>
-			<AppRailTile label="Read" value={0}><Icon data={leanpub} scale={1.5} /></AppRailTile>
-			<AppRailTile label="Trending" value={1}><Icon data={heartbeat} scale={1.5} /></AppRailTile>
-			<AppRailTile label="Collaborate" value={2}><Icon data={handshakeO} scale={1.5} /></AppRailTile
-			>
-			<AppRailTile label="Creators" value={3}><Icon data={pencil} scale={1.5} /></AppRailTile>
-		</AppRail>
-		<section hidden={selectedTile != 0} class="col-span-2 m-4">
-			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
-				Genres
+			<div class="h-full flex flex-col justify-between">
+				<div>
+					<AppRailTile label="Read" value={0}><Icon data={leanpub} scale={1.5} /></AppRailTile>
+					<AppRailTile label="Trending" value={1}><Icon data={lineChart} scale={1.5} /></AppRailTile
+					>
+					<AppRailTile label="Collaborate" value={2}
+						><Icon data={handshakeO} scale={1.5} /></AppRailTile
+					>
+					<AppRailTile label="Creators" value={3}><Icon data={pencil} scale={1.5} /></AppRailTile>
+				</div>
+				<AppRailTile label="Profile" value={4}><Icon data={user} scale={1.5} /></AppRailTile>
 			</div>
-			<hr class="!my-6 opacity-50" />
+		</AppRail>
+		<section hidden={selectedTile != 0} class="m-4 col-span-2">
+			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+				Read
+			</div>
+			<hr class="my-3 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
 					{#each readMenuList as menuItem}
@@ -234,7 +255,7 @@
 			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
 				Collaborate
 			</div>
-			<hr class="!my-6 opacity-50" />
+			<hr class="my-3 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
 					{#each collaborateMenuList as menuItem}
@@ -249,7 +270,7 @@
 			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
 				Creators
 			</div>
-			<hr class="!my-6 opacity-50" />
+			<hr class="my-3 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
 					{#each creatorsMenuList as menuItem}
@@ -257,6 +278,28 @@
 							<a href={menuItem.url} class="w-full">{menuItem.label}</a>
 						</li>
 					{/each}
+				</ul>
+			</nav>
+		</section>
+		<section hidden={selectedTile != 4} class="m-4 col-span-2">
+			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+				Profile
+			</div>
+			<hr class="my-3 opacity-50" />
+			<nav class="list-nav">
+				<ul class="list">
+					{#if data.session && data.session.user}
+						<li>
+							<button class="w-full" on:click={onLogoutButtonClick}>Logout</button>
+						</li>
+						<li>
+							<a class="w-full" href={`/profile/${data.session.user.id}`}>Profile</a>
+						</li>
+					{:else}
+						<li>
+							<a class="w-full" href="/login"> Login </a>
+						</li>
+					{/if}
 				</ul>
 			</nav>
 		</section>
