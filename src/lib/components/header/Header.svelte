@@ -6,8 +6,8 @@
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { writable, type Writable } from 'svelte/store';
-	import Logo from '$lib/assets/logo.svelte';
 
+	import Logo from '$lib/assets/logo.svelte';
 	import { popup } from '../../util/popup/popup';
 	import type { PopupSettings } from '../../util/popup/types';
 
@@ -18,7 +18,10 @@
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
-	// Settings for popups on app bar shown for larger screens
+	/**
+	 * parameters and methods for the nav header
+	 * @param target
+	 */
 	const popupSettings = (target: string) => {
 		let settings: PopupSettings = {
 			event: 'hover-popup',
@@ -31,6 +34,30 @@
 	const readPopupBox: PopupSettings = popupSettings('readPopupBox');
 	const collaboratePopupBox: PopupSettings = popupSettings('collaboratePopupBox');
 	const creatorsPopupBox: PopupSettings = popupSettings('creatorsPopupBox');
+
+	const readMenuList = [
+		{ url: '/genres/sci-fi', label: 'Sci-Fi' },
+		{ url: '/genres/fantasy', label: 'Fantasy' },
+		{ url: '/genres/mystery', label: 'Mystery' },
+		{ url: '/genres/action', label: 'Action' },
+		{ url: '/genres/horror', label: 'Horror' },
+		{ url: '/genres/humor', label: 'Humor' },
+		{ url: '/genres/erotica', label: 'Erotica' },
+		{ url: '/genres/thriller', label: 'Thriller' },
+		{ url: '/genres/romance', label: 'Romance' },
+		{ url: '/genres/children', label: 'Children' }
+	];
+
+	const collaborateMenuList = [
+		{ url: '/open-calls', label: 'Open Calls' },
+		{ url: '/campaigns', label: 'Campaigns' }
+	];
+
+	const creatorsMenuList = [
+		{ url: '/authors', label: 'Sci-Fi' },
+		{ url: '/illustrators', label: 'Illustrators' },
+		{ url: '/editors', label: 'Editors' }
+	];
 
 	/**
 	 * App Rail settings
@@ -93,46 +120,15 @@
 				</button>
 
 				<div class="card p-4 w-fit" data-popup="readPopupBox">
-					<div class="grid grid-cols-2 gap-2">
-						<nav class="list-nav">
-							<ul class="list">
+					<nav class="list-nav">
+						<ul class="grid grid-cols-2 gap-2 list">
+							{#each readMenuList as menuItem}
 								<li>
-									<a href="/genres/sci-fi" class="w-full">Sci-Fi</a>
+									<a href={menuItem.url} class="w-full">{menuItem.label}</a>
 								</li>
-								<li>
-									<a href="/genres/fantasy" class="w-full">Fantasy</a>
-								</li>
-								<li>
-									<a href="/genres/mystery" class="w-full">Mystery</a>
-								</li>
-								<li>
-									<a href="/genres/action" class="w-full">Action</a>
-								</li>
-								<li>
-									<a href="/genres/horror" class="w-full">Horror</a>
-								</li>
-							</ul>
-						</nav>
-						<nav class="list-nav">
-							<ul class="list">
-								<li>
-									<a href="/genres/humor" class="w-full">Humor</a>
-								</li>
-								<li>
-									<a href="/genres/erotica" class="w-full">Erotica</a>
-								</li>
-								<li>
-									<a href="/genres/thriller" class="w-full">Thriller</a>
-								</li>
-								<li>
-									<a href="/genres/romance" class="w-full">Romance</a>
-								</li>
-								<li>
-									<a href="/genres/children" class="w-full">Children</a>
-								</li>
-							</ul>
-						</nav>
-					</div>
+							{/each}
+						</ul>
+					</nav>
 					<div class="arrow bg-surface-100-800-token" />
 				</div>
 			</div>
@@ -155,13 +151,12 @@
 				<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
 					<div class="grid grid-cols-1">
 						<nav class="list-nav">
-							<ul class="list">
-								<li>
-									<a href="/open-calls" class="w-full">Open Calls</a>
-								</li>
-								<li>
-									<a href="/campaigns" class="w-full">Campaigns</a>
-								</li>
+							<ul class="grid grid-cols-1 gap-2 list">
+								{#each collaborateMenuList as menuItem}
+									<li>
+										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+									</li>
+								{/each}
 							</ul>
 						</nav>
 					</div>
@@ -181,16 +176,12 @@
 				<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
 					<div class="grid grid-cols-1">
 						<nav class="list-nav">
-							<ul class="list">
-								<li>
-									<a href="/authors" class="w-full">Authors</a>
-								</li>
-								<li>
-									<a href="/illustrators" class="w-full">Illustrators</a>
-								</li>
-								<li>
-									<a href="/editors" class="w-full">Editors</a>
-								</li>
+							<ul class="grid grid-cols-1 gap-2 list">
+								{#each creatorsMenuList as menuItem}
+									<li>
+										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+									</li>
+								{/each}
 							</ul>
 						</nav>
 					</div>
@@ -231,36 +222,11 @@
 			<hr class="!my-6 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
-					<li>
-						<a href="/genres/sci-fi" class="w-full">Sci-Fi</a>
-					</li>
-					<li>
-						<a href="/genres/fantasy" class="w-full">Fantasy</a>
-					</li>
-					<li>
-						<a href="/genres/mystery" class="w-full">Mystery</a>
-					</li>
-					<li>
-						<a href="/genres/action" class="w-full">Action</a>
-					</li>
-					<li>
-						<a href="/genres/horror" class="w-full">Horror</a>
-					</li>
-					<li>
-						<a href="/genres/humor" class="w-full">Humor</a>
-					</li>
-					<li>
-						<a href="/genres/erotica" class="w-full">Erotica</a>
-					</li>
-					<li>
-						<a href="/genres/thriller" class="w-full">Thriller</a>
-					</li>
-					<li>
-						<a href="/genres/romance" class="w-full">Romance</a>
-					</li>
-					<li>
-						<a href="/genres/children" class="w-full">Children</a>
-					</li>
+					{#each readMenuList as menuItem}
+						<li>
+							<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+						</li>
+					{/each}
 				</ul>
 			</nav>
 		</section>
@@ -271,12 +237,11 @@
 			<hr class="!my-6 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
-					<li>
-						<a href="/open-calls" class="w-full">Open Calls</a>
-					</li>
-					<li>
-						<a href="/campaigns" class="w-full">Campaigns</a>
-					</li>
+					{#each collaborateMenuList as menuItem}
+						<li>
+							<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+						</li>
+					{/each}
 				</ul>
 			</nav>
 		</section>
@@ -287,15 +252,11 @@
 			<hr class="!my-6 opacity-50" />
 			<nav class="list-nav">
 				<ul class="list">
-					<li>
-						<a href="/authors" class="w-full">Authors</a>
-					</li>
-					<li>
-						<a href="/illustrators" class="w-full">Illustrators</a>
-					</li>
-					<li>
-						<a href="/editors" class="w-full">Editors</a>
-					</li>
+					{#each creatorsMenuList as menuItem}
+						<li>
+							<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+						</li>
+					{/each}
 				</ul>
 			</nav>
 		</section>
