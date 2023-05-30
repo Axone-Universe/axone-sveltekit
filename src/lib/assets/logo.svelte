@@ -11,7 +11,7 @@
 	xml:space="preserve"
 >
 	<path
-		class="fill-transparent-logo"
+		fill="none"
 		opacity="1.000000"
 		stroke="none"
 		d="
@@ -257,7 +257,7 @@ M103.531349,1.000001
 z"
 	/>
 	<path
-		class="fill-transparent-logo"
+		fill="none"
 		opacity="1.000000"
 		stroke="none"
 		d="
@@ -271,7 +271,7 @@ M513.000000,77.531342
 z"
 	/>
 	<path
-		class="fill-transparent-logo"
+		fill="none"
 		opacity="1.000000"
 		stroke="none"
 		d="
@@ -285,7 +285,7 @@ M77.531342,1.000000
 z"
 	/>
 	<path
-		class="fill-transparent-logo"
+		fill="none"
 		opacity="1.000000"
 		stroke="none"
 		d="
@@ -299,7 +299,7 @@ M1.000002,436.468658
 z"
 	/>
 	<path
-		class="fill-transparent-logo"
+		fill="none"
 		opacity="1.000000"
 		stroke="none"
 		d="

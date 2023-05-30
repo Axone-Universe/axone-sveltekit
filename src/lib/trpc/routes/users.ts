@@ -1,22 +1,22 @@
 import { TRPCError } from '@trpc/server';
-import { z } from 'zod';
 
 import { UserBuilder } from '$lib/nodes/user';
-import { UsersRepository } from '$lib/repositories/UsersRepository';
+import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { formDataSchema } from '$lib/util/schemas';
+import { createUserSchema, listSchema } from '$lib/util/schemas';
 import type { FictionalGenres, NonFictionalGenres } from '$lib/util/types';
+import { supabaseAdmin } from '$lib/util/supabase';
+
+const usersRepo = new UsersRepository();
 
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(z.string().optional())
+		.input(listSchema.optional())
 		.query(async ({ input }) => {
-			const usersRepo = new UsersRepository();
-
-			const result = await usersRepo.getUsers(input);
+			const result = await usersRepo.get(input?.searchTerm, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -24,8 +24,8 @@ export const users = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(formDataSchema)
-		.query(async ({ input, ctx }) => {
+		.input(createUserSchema)
+		.mutation(async ({ input, ctx }) => {
 			// session should always be there since auth would have passed by now
 			// but have to check anyway otherwise Typescript complains
 			if (!ctx.session?.user.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
@@ -63,6 +63,11 @@ export const users = t.router({
 			userBuilder = userBuilder.labels(labels);
 
 			const userNode = await userBuilder.build();
+
+			// TODO: error handle
+			await supabaseAdmin.auth.admin.updateUserById(ctx.session.user.id, {
+				user_metadata: { profile: true }
+			});
 
 			return userNode;
 		})

@@ -45,6 +45,7 @@
 		"@trpc/client": "^10.27.1",
 		"@trpc/server": "^10.27.1",
 		"embla-carousel-svelte": "8.0.0-rc05",
+		"date-fns": "^2.30.0",
 		"happy-dom": "^9.20.1",
 		"neo4j-driver": "^5.8.1",
 		"neo4j-driver-core": "^5.8.1",

@@ -66,15 +66,22 @@
 
 <AppBar gridColumns="grid-cols-3" slotDefault="flex justify-center" slotTrail="place-content-end">
 	<svelte:fragment slot="lead">
-		<button class="md:hidden" on:click={openDrawer}>
+		<button class="lg:hidden" on:click={openDrawer}>
 			<Icon data={navicon} scale={1.5} />
 		</button>
-		<a class="hidden md:flex items-center text-l" href="/">
-			<Logo />
-			<span class="logo-name">AXONE</span>
-		</a>
+		{#if data.session && data.session.user}
+			<a class="hidden md:flex items-center text-l" href="/home">
+				<Logo />
+				<span class="logo-name">AXONE</span>
+			</a>
+		{:else}
+			<a class="hidden md:flex items-center text-l" href="/">
+				<Logo />
+				<span class="logo-name">AXONE</span>
+			</a>
+		{/if}
 	</svelte:fragment>
-	<AppBar padding="p-2" class="hidden md:inline-block">
+	<AppBar padding="p-2" class="hidden lg:inline-block">
 		<svelte:fragment slot="lead">
 			<div>
 				<button
@@ -193,15 +200,18 @@
 		</svelte:fragment>
 	</AppBar>
 	<svelte:fragment slot="trail">
-		{#if data.session && data.session.user}
-			<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
-		{:else}
-			<div class="flex gap-2">
-				<a class="btn variant-filled-primary" href="/login"> Login </a>
-				<a class="hidden lg:inline-block btn variant-filled-primary" href="sign-up"> Sign up </a>
-			</div>
-		{/if}
-		<LightSwitch />
+		<div class="flex gap-2 items-center">
+			{#if data.session && data.session.user}
+				<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
+				<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a>
+			{:else}
+				<div class="flex gap-2">
+					<a class="btn variant-filled-primary" href="/login"> Login </a>
+					<a class="hidden lg:inline-block btn variant-filled-primary" href="sign-up"> Sign up </a>
+				</div>
+			{/if}
+			<LightSwitch />
+		</div>
 	</svelte:fragment>
 </AppBar>
 

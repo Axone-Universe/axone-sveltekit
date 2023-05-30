@@ -26,19 +26,33 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		return session;
 	};
 
-	// User should only be able to update password if logged in
-	if (event.url.pathname.startsWith('/profile/')) {
-		const session = await event.locals.getSession();
-		if (!session) {
+	const session = await event.locals.getSession();
+
+	if (!session) {
+		if (event.url.pathname === '/profile/create' || event.url.pathname === '/profile/edit') {
 			throw redirect(303, '/login');
+		}
+	} else {
+		if (
+			!session.user.user_metadata.profile &&
+			event.url.pathname.startsWith('/profile') &&
+			event.url.pathname !== '/profile/create'
+		) {
+			throw redirect(303, '/profile/create');
+		} else if (session.user.user_metadata.profile && event.url.pathname === '/profile/create') {
+			// user already has a profile - go to it instead of creating one
+			throw redirect(303, `/profile/${session.user.id}`);
+		} else if (event.url.pathname === '/login' || event.url.pathname === '/sign-up') {
+			// user already logged in - redirect to home page
+			throw redirect(303, '/');
 		}
 	}
 
 	// User if the user is logged in and coming from the landing page, go to the homepage
-	if (event.url.pathname.startsWith('/')) {
+	if (event.url.pathname === '/') {
 		const session = await event.locals.getSession();
 		if (session) {
-			throw redirect(303, '/profile');
+			throw redirect(303, '/home');
 		}
 	}
 
@@ -54,4 +68,5 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 	});
 };
 
+// NB: this order is important - do not change!
 export const handle = sequence(supabaseHandle, createTRPCHandle({ router, createContext }));

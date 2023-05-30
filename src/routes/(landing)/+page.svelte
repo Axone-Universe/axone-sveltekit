@@ -1,14 +1,9 @@
 <script lang="ts">
-	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	import { page } from '$app/stores';
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import { trpc } from '$lib/trpc/client';
-	import type { BookResponse } from '$lib/nodes/digital-products/book';
 	import emblaCarouselSvelte from 'embla-carousel-svelte';
-	import type { EmblaCarouselSvelteType } from 'embla-carousel-svelte';
 
 	import Author_1 from '$lib/assets/author-1.svelte';
 	import Author_2 from '$lib/assets/author-2.svelte';

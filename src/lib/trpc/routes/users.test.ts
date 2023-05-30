@@ -1,5 +1,11 @@
 import { router } from '$lib/trpc/router';
-import { cleanUpDatabase, createUser, testSession, testUser, testUserInfo } from '$lib/util/testing/testing';
+import {
+	cleanUpDatabase,
+	createUser,
+	testSession,
+	testUser,
+	testUserInfo
+} from '$lib/util/testing/testing';
 
 describe('users', () => {
 	beforeEach(async () => {
@@ -12,7 +18,7 @@ describe('users', () => {
 		expect(userResponse.user.properties).toEqual({
 			id: testSession.user.id,
 			firstName: testUserInfo.firstName,
-			lastName: testUserInfo.lastName,
+			lastName: testUserInfo.lastName
 		});
 	});
 
@@ -54,7 +60,7 @@ describe('users', () => {
 		await createUser(testSession2);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list(userResponse.user.properties.id);
+		const userResponses = await caller.users.list({ searchTerm: userResponse.user.properties.id });
 
 		expect(userResponses.length).toEqual(1);
 		expect(userResponses.pop()).toEqual(userResponse);

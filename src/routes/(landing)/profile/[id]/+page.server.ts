@@ -3,24 +3,24 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { UserResponse } from '$lib/nodes/user';
-import { formDataSchema } from '$lib/util/schemas';
-import { supbaseAdmin } from '$lib/util/supabase';
+import { createUserSchema } from '$lib/util/schemas';
+import { supabaseAdmin } from '$lib/util/supabase';
 
 export const load = (async (event) => {
-	const { data } = await supbaseAdmin.auth.admin.getUserById(event.params.id);
-	const session = await event.locals.getSession();
+	const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
 
 	if (data && data.user) {
 		// check if user has a profile
-		const userResponse = (await trpc(event).users.list.query(event.params.id)) as UserResponse[];
+		const userResponse = (await trpc(event).users.list.query({
+			searchTerm: event.params.id
+		})) as UserResponse[];
 		if (userResponse.length === 1) {
-			const userNode = userResponse.pop()?.user;
-			return { userNode, id: event.params.id };
+			const userNode = userResponse[0].user;
+			return { userNode };
 		}
 	}
 
-	if (session?.user.id !== event.params.id)
-		throw error(404, 'The requested user profile does not exist');
+	throw error(404, 'The requested user profile does not exist');
 }) satisfies PageServerLoad;
 
 export const actions = {
@@ -46,7 +46,7 @@ export const actions = {
 		const parsedFictional = JSON.parse(fictional as string);
 		const parsedNonFictional = JSON.parse(nonFictional as string);
 
-		const possibleFormData = formDataSchema.safeParse({
+		const possibleFormData = createUserSchema.safeParse({
 			firstName,
 			lastName,
 			about,
@@ -68,6 +68,7 @@ export const actions = {
 		const session = await event.locals.getSession();
 		if (!session) return fail(400);
 
-		await trpc(event).users.create.query(possibleFormData.data);
+		// TODO: remove the server action and just call the trpc query directly
+		await trpc(event).users.create.mutate(possibleFormData.data);
 	}
 } satisfies Actions;

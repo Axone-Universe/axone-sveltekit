@@ -65,7 +65,7 @@
 				<input class="input" type="password" bind:value={formData.confirmPassword} />
 			</label>
 			<a class="underline text-xs" href="/login">Already have an account?</a>
-			<a class="underline text-xs" href="/forgot-password">Forgot your password?</a>
+			<a class="underline text-xs" href="/password/forgot">Forgot your password?</a>
 		</form>
 
 		<footer class="flex justify-end">
