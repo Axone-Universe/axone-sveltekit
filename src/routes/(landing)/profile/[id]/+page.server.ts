@@ -3,7 +3,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { UserResponse } from '$lib/nodes/user';
-import { createUserSchema } from '$lib/util/schemas';
+import { createUserSchema } from '$lib/trpc/schemas';
 import { supabaseAdmin } from '$lib/util/supabase';
 
 export const load = (async (event) => {

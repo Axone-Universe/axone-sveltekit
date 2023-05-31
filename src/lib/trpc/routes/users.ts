@@ -5,7 +5,7 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { createUserSchema, listSchema } from '$lib/util/schemas';
+import { createUserSchema, listSchema } from '$lib/trpc/schemas';
 import type { FictionalGenres, NonFictionalGenres } from '$lib/util/types';
 
 const usersRepo = new UsersRepository();

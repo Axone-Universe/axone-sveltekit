@@ -7,13 +7,18 @@ import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 
 interface CampaignProperties {
+	// preview + main
 	id: string;
 	title?: string;
 	organizer?: string;
 	dates?: string[];
-	about?: string;
+	previewText?: string;
 	tags?: string[];
 	bannerURL?: string;
+	// main
+	submissionCriteria?: string;
+	rewards?: string;
+	about?: string;
 }
 
 export type CampaignNode = Node<Integer, CampaignProperties>;
@@ -71,6 +76,21 @@ export class CampaignBuilder extends NodeBuilder<CampaignResponse> {
 		return this;
 	}
 
+	previewText(previewText: string): CampaignBuilder {
+		this._campaignProperties.previewText = previewText;
+		return this;
+	}
+
+	submissionCriteria(submissionCriteria: string): CampaignBuilder {
+		this._campaignProperties.submissionCriteria = submissionCriteria;
+		return this;
+	}
+
+	rewards(rewards: string): CampaignBuilder {
+		this._campaignProperties.rewards = rewards;
+		return this;
+	}
+
 	// userID(userID: string): CampaignBuilder {
 	// 	this._userID.id = userID;
 	// 	return this;
@@ -80,7 +100,6 @@ export class CampaignBuilder extends NodeBuilder<CampaignResponse> {
 		// if (!this._userID.id) throw new Error('Must provide userID of user to build campaign.');
 
 		const properties = stringifyObject(this._campaignProperties);
-		console.log('PROPS: ', properties);
 		const labels = this._labels.join(':');
 
 		const query = `

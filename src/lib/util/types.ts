@@ -36,7 +36,7 @@ export interface CreateUser {
 }
 
 export interface CreateCampaign {
-	id: string;
+	id?: string;
 	title: string;
 	organizer: { name: string; link: string };
 	dates: {
@@ -47,4 +47,7 @@ export interface CreateCampaign {
 	about: string;
 	tags: string[];
 	bannerURL: string;
+	submissionCriteria: string;
+	rewards: string;
+	previewText: string;
 }

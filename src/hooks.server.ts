@@ -37,7 +37,10 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 	} else {
 		const users = await userRepo.get(session.user.id);
-		if (
+		// User if the user is logged in and coming from the landing page, go to the homepage
+		if (event.url.pathname === '/') {
+			throw redirect(303, '/home');
+		} else if (
 			users.length === 0 &&
 			(event.url.pathname === '/profile/edit' ||
 				event.url.pathname === `/profile/${session.user.id}`)
@@ -49,14 +52,6 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		} else if (event.url.pathname === '/login' || event.url.pathname === '/sign-up') {
 			// user already logged in - redirect to home page
 			throw redirect(303, '/');
-		}
-	}
-
-	// User if the user is logged in and coming from the landing page, go to the homepage
-	if (event.url.pathname === '/') {
-		const session = await event.locals.getSession();
-		if (session) {
-			throw redirect(303, '/home');
 		}
 	}
 

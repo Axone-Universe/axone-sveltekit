@@ -13,7 +13,7 @@
 
 	const onSubmit = async () => {
 		const resp = await supabase.auth.resetPasswordForEmail(formData.email, {
-			redirectTo: 'http://localhost:5173/update-password'
+			redirectTo: 'http://localhost:5173/update-password' // TODO: change in prod
 		});
 
 		let t: ToastSettings = {

@@ -62,7 +62,7 @@
 	];
 
 	const creatorsMenuList = [
-		{ url: '/authors', label: 'Sci-Fi' },
+		{ url: '/authors', label: 'Authors' },
 		{ url: '/illustrators', label: 'Illustrators' },
 		{ url: '/editors', label: 'Editors' }
 	];

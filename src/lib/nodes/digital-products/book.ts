@@ -1,21 +1,36 @@
 import { randomUUID } from 'crypto';
 
-import type { Node, Integer } from 'neo4j-driver';
+import type { Node, Integer, Relationship } from 'neo4j-driver';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
+import type { CampaignNode } from '../campaigns/campaign';
 
 interface BookProperties {
 	id: string;
 	title?: string;
+	frontCoverURL?: string;
 }
 
 export type BookNode = Node<Integer, BookProperties>;
 
 export interface BookResponse {
 	book: BookNode;
+}
+
+export type SubmittedTo = Relationship<
+	Integer,
+	{
+		date: string;
+	}
+>;
+
+export interface BookSubmittedToCampaignResponse {
+	book: BookNode;
+	submittedTo: SubmittedTo;
+	campaign: CampaignNode;
 }
 
 export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
@@ -44,6 +59,11 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 
 	userID(userID: string): BookBuilder {
 		this._userID.id = userID;
+		return this;
+	}
+
+	frontCoverURL(frontCoverURL: string): BookBuilder {
+		this._bookProperties.frontCoverURL = frontCoverURL;
 		return this;
 	}
 
