@@ -1,7 +1,7 @@
-import type { PageServerLoad } from './$types';
+import type { CampaignResponse } from '$lib/nodes/campaigns/campaign';
 import { trpc } from '$lib/trpc/client';
-import type { CampaignResponse } from '$lib/nodes/campaign';
 import { preprocessCampaigns } from '$lib/util/preprocess';
+import type { LayoutServerLoad } from './$types';
 
 // const campaigns = [
 // 	{
@@ -39,6 +39,7 @@ import { preprocessCampaigns } from '$lib/util/preprocess';
 // ];
 
 export const load = (async (event) => {
+	// get campaigns at layout to be stored in page.data to be used by all child pages
 	const campaignResponses = (await trpc(event).campaigns.list.query()) as CampaignResponse[];
 	// const count = await trpc(event).campaigns.total.query();
 
@@ -46,4 +47,4 @@ export const load = (async (event) => {
 	const campaigns = preprocessCampaigns(campaignResponses);
 
 	return { campaigns };
-}) satisfies PageServerLoad;
+}) satisfies LayoutServerLoad;

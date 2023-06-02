@@ -1,4 +1,4 @@
-import type { CampaignResponse } from '$lib/nodes/campaign';
+import type { CampaignResponse } from '$lib/nodes/campaigns/campaign';
 import type { CreateCampaign } from '$lib/util/types';
 
 export function preprocessCampaigns(campaignResponses: CampaignResponse[]) {

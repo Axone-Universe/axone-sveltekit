@@ -45,7 +45,6 @@ export const createUserSchema = z.object({
 }) satisfies z.ZodType<CreateUser>;
 
 export const createCampaignSchema = z.object({
-	id: z.string(),
 	title: z.string(),
 	organizer: z.object({ name: z.string(), link: z.string() }),
 	dates: z.array(
@@ -53,11 +52,24 @@ export const createCampaignSchema = z.object({
 	),
 	about: z.string(),
 	tags: z.array(z.string()),
-	bannerURL: z.string()
+	bannerURL: z.string(),
+	submissionCriteria: z.string(),
+	rewards: z.string(),
+	previewText: z.string()
 }) satisfies z.ZodType<CreateCampaign>;
 
 export const listSchema = z.object({
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
 	skip: z.number().optional()
+});
+
+export const createBookSchema = z.object({
+	title: z.string(),
+	frontCoverURL: z.string()
+});
+
+export const submitToCampaignSchema = z.object({
+	bookID: z.string(),
+	campaignID: z.string()
 });

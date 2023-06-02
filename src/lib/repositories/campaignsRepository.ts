@@ -1,6 +1,6 @@
 import { DBSession } from '$lib/db/session';
-import type { CampaignResponse } from '$lib/nodes/campaign';
-import { Repository, type Count } from '$lib/repositories/repository';
+import type { CampaignResponse } from '$lib/nodes/campaigns/campaign';
+import { Repository } from '$lib/repositories/repository';
 
 export class CampaignsRepository extends Repository {
 	async get(title?: string, limit?: number, skip?: number): Promise<CampaignResponse[]> {
