@@ -24,15 +24,16 @@ export interface NonFictionalGenres extends Record<string, boolean> {
 export interface CreateUser {
 	firstName: string;
 	lastName: string;
-	about: string;
-	userWriterChecked: boolean;
-	userEditorChecked: boolean;
-	userIllustratorChecked: boolean;
-	facebook: string;
-	instagram: string;
-	twitter: string;
-	fictional: FictionalGenres;
-	nonFictional: NonFictionalGenres;
+	imageUrl?: string;
+	about?: string;
+	userWriterChecked?: boolean;
+	userEditorChecked?: boolean;
+	userIllustratorChecked?: boolean;
+	facebook?: string;
+	instagram?: string;
+	twitter?: string;
+	fictional?: FictionalGenres;
+	nonFictional?: NonFictionalGenres;
 }
 
 export interface CreateCampaign {

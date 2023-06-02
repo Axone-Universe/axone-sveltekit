@@ -31,6 +31,8 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 	if (!session) {
 		if (event.url.pathname === '/profile/create' || event.url.pathname === '/profile/edit') {
 			throw redirect(303, '/login');
+		} else if (event.url.pathname !== '/') {
+			throw redirect(303, '/');
 		}
 	} else {
 		if (

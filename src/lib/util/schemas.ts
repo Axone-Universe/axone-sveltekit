@@ -33,15 +33,15 @@ const nonFictionalSchema = z.object({
 export const createUserSchema = z.object({
 	firstName: z.string().min(1),
 	lastName: z.string().min(1),
-	about: z.string(),
-	userWriterChecked: z.boolean(),
-	userEditorChecked: z.boolean(),
-	userIllustratorChecked: z.boolean(),
-	facebook: z.string(),
-	instagram: z.string(),
-	twitter: z.string(),
-	fictional: fictionalSchema,
-	nonFictional: nonFictionalSchema
+	about: z.string().optional(),
+	userWriterChecked: z.boolean().optional(),
+	userEditorChecked: z.boolean().optional(),
+	userIllustratorChecked: z.boolean().optional(),
+	facebook: z.string().optional(),
+	instagram: z.string().optional(),
+	twitter: z.string().optional(),
+	fictional: fictionalSchema.optional(),
+	nonFictional: nonFictionalSchema.optional()
 }) satisfies z.ZodType<CreateUser>;
 
 export const createCampaignSchema = z.object({

@@ -1,27 +1,27 @@
 import { DBSession } from '$lib/db/session';
-import type { BookResponse } from '$lib/nodes/digital-products/book';
+import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { Repository } from '$lib/repositories/repository';
 
 export class BooksRepository extends Repository {
-	async get(title?: string, limit?: number, skip?: number): Promise<BookResponse[]> {
+	async get(title?: string, limit?: number, skip?: number): Promise<UserAuthoredBookResponse[]> {
 		const query = `
-			MATCH (book:Book)
+			MATCH (book:Book)<-[authored:AUTHORED]-(user:User)
 			${title ? `WHERE book.title = '${title}'` : ''}
-			RETURN book
+			RETURN user, authored, book
 			ORDER BY book.title
 			${skip ? `SKIP ${skip}` : ''}
 			${limit ? `LIMIT ${limit}` : ''}
 		`;
 
 		const session = new DBSession();
-		const result = await session.executeRead<BookResponse>(query);
+		const result = await session.executeRead<UserAuthoredBookResponse>(query);
 
-		const books: BookResponse[] = [];
+		const books: UserAuthoredBookResponse[] = [];
 		result.records.forEach((record) => {
 			books.push(record.toObject());
 		});
 
-		return new Promise<BookResponse[]>((resolve) => {
+		return new Promise<UserAuthoredBookResponse[]>((resolve) => {
 			resolve(books);
 		});
 	}
