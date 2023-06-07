@@ -24,7 +24,8 @@ export interface NonFictionalGenres extends Record<string, boolean> {
 export interface CreateUser {
 	firstName: string;
 	lastName: string;
-	imageUrl?: string;
+	id?: string;
+	imageURL?: string;
 	about?: string;
 	userWriterChecked?: boolean;
 	userEditorChecked?: boolean;

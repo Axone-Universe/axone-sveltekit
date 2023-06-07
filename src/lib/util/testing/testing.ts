@@ -20,7 +20,7 @@ export const testSession: Session = {
 	user: testUser
 };
 
-export const testUserInfo = { firstName: 'Test', lastName: 'User' };
+export const testUserInfo = { firstName: 'Test', lastName: 'User', imageURL: '' };
 
 export async function cleanUpDatabase() {
 	const session = new DBSession();

@@ -2,6 +2,11 @@
 html,
 body {
 	@apply h-full overflow-hidden;
+	background: rgb(var(--color-surface-100)) !important;
+}
+
+.dark body {
+	background: rgb(var(--color-surface-800)) !important;
 }
 
 :root {
@@ -17,15 +22,4 @@ body {
 
 .fill-logo {
 	fill: rgba(var(--theme-font-color-base));
-}
-
-.embla {
-	overflow: hidden;
-}
-.embla__container {
-	display: flex;
-}
-.embla__slide {
-	flex: 0 0 100%;
-	min-width: 0;
 }

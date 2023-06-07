@@ -10,6 +10,7 @@ interface UserProperties {
 	firstName?: string;
 	lastName?: string;
 	about?: string;
+	imageURL?: string;
 	facebook?: string;
 	instagram?: string;
 	twitter?: string;
@@ -60,6 +61,11 @@ export class UserBuilder extends NodeBuilder<UserResponse> {
 
 	lastName(lastName: string): UserBuilder {
 		this._userProperties.lastName = lastName;
+		return this;
+	}
+
+	imageURL(imageURL: string): UserBuilder {
+		this._userProperties.imageURL = imageURL;
 		return this;
 	}
 

@@ -12,7 +12,11 @@ beforeAll(async () => {
 const createBook = async (title: string, testSession: Session) => {
 	const caller = router.createCaller({ session: testSession });
 
-	return await caller.books.create(title);
+	return await caller.books.create({
+		title: title,
+		imageURL:
+			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
+	});
 };
 
 describe('db test data', () => {

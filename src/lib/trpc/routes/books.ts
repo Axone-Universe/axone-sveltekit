@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { BookBuilder, type BookSubmittedToCampaignResponse } from '$lib/nodes/digital-products/book';
+import {
+	BookBuilder,
+	type BookSubmittedToCampaignResponse
+} from '$lib/nodes/digital-products/book';
 import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -30,7 +33,7 @@ export const books = t.router({
 			const userAuthoredBook = await new BookBuilder()
 				.userID(ctx.session.user.id)
 				.title(input.title)
-				.frontCoverURL(input.frontCoverURL)
+				.imageURL(input.imageURL)
 				.build();
 
 			return userAuthoredBook;
@@ -54,6 +57,6 @@ export const books = t.router({
 			const result = await session.executeWrite<BookSubmittedToCampaignResponse>(query);
 
 			// TODO: fixup or move query to own class
-			return result
+			return result;
 		})
 });

@@ -11,7 +11,7 @@
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
 		"test": "vitest --no-threads -t '^((?!db).)*$' ",
-		"test-data": "vitest db-testdata --no-threads"
+		"test-data": "vitest db-data --no-threads"
 	},
 	"devDependencies": {
 		"@skeletonlabs/skeleton": "^1.5.1",
@@ -41,6 +41,7 @@
 	"type": "module",
 	"dependencies": {
 		"@floating-ui/dom": "^1.2.8",
+		"@splidejs/svelte-splide": "^0.2.9",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
 		"@supabase/supabase-js": "^2.22.0",
 		"@tailwindcss/line-clamp": "^0.4.4",

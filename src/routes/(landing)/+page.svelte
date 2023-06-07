@@ -142,7 +142,9 @@
 					userData={{
 						firstName: 'Takunda',
 						lastName: 'Chirema',
-						imageUrl: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+						userWriterChecked: true,
+						userEditorChecked: true,
+						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 						about: '"Axone has allowed me to publish and monetize my unfinished book"'
 					}}
 				/>
@@ -151,7 +153,9 @@
 					userData={{
 						firstName: 'Lindi',
 						lastName: 'Kers',
-						imageUrl: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+						userWriterChecked: true,
+						userIllustratorChecked: true,
+						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 						about:
 							'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
 					}}
@@ -161,7 +165,8 @@
 					userData={{
 						firstName: 'Danae',
 						lastName: 'Bouwer',
-						imageUrl: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+						userWriterChecked: true,
+						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 						about:
 							'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
 					}}

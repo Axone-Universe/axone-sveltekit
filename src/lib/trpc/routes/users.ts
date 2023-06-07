@@ -34,6 +34,7 @@ export const users = t.router({
 				.firstName(input.firstName)
 				.lastName(input.lastName);
 
+			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);

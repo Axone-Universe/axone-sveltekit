@@ -10,8 +10,10 @@ import type { CampaignNode } from '../campaigns/campaign';
 
 interface BookProperties {
 	id: string;
+	imageURL?: string;
 	title?: string;
-	frontCoverURL?: string;
+	description?: string;
+	genres?: string[];
 }
 
 export type BookNode = Node<Integer, BookProperties>;
@@ -62,8 +64,8 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 		return this;
 	}
 
-	frontCoverURL(frontCoverURL: string): BookBuilder {
-		this._bookProperties.frontCoverURL = frontCoverURL;
+	imageURL(imageURL: string): BookBuilder {
+		this._bookProperties.imageURL = imageURL;
 		return this;
 	}
 

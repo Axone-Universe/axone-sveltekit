@@ -33,6 +33,7 @@ const nonFictionalSchema = z.object({
 export const createUserSchema = z.object({
 	firstName: z.string().min(1),
 	lastName: z.string().min(1),
+	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	userWriterChecked: z.boolean().optional(),
 	userEditorChecked: z.boolean().optional(),
@@ -66,7 +67,7 @@ export const listSchema = z.object({
 
 export const createBookSchema = z.object({
 	title: z.string(),
-	frontCoverURL: z.string()
+	imageURL: z.string()
 });
 
 export const submitToCampaignSchema = z.object({

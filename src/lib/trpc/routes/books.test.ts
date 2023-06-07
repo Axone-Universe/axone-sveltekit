@@ -4,7 +4,7 @@ import { cleanUpDatabase, createUser, testSession } from '$lib/util/testing/test
 const createBook = async (title: string) => {
 	const caller = router.createCaller({ session: testSession });
 
-	return await caller.books.create({ title, frontCoverURL: 'www.example.com' });
+	return await caller.books.create({ title, imageURL: 'www.example.com' });
 };
 
 describe('books', () => {
