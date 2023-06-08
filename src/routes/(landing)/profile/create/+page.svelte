@@ -8,6 +8,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
+	import { GenresBuilder } from '$lib/util/genres';
 
 	export let data: PageData;
 	const { session } = data;
@@ -15,6 +16,8 @@
 	const aboutMaxLength = 500;
 
 	let profileImage = defaultUserImage;
+
+	const genres = new GenresBuilder();
 
 	const userInfo: CreateUser = {
 		firstName: '',
@@ -26,27 +29,7 @@
 		facebook: '',
 		instagram: '',
 		twitter: '',
-		fictional: {
-			'Action & Adventure': false,
-			Dystopian: false,
-			Fantasy: false,
-			Historical: false,
-			Horror: false,
-			Mystery: false,
-			Romance: false,
-			'Science Fiction': false,
-			Thriller: false,
-			'Young Adult': false
-		},
-		nonFictional: {
-			Autobiographies: false,
-			Biographies: false,
-			Historical: false,
-			Journalism: false,
-			'Self-help': false,
-			Science: false,
-			'Travel Guides': false
-		}
+		genres: genres.getGenres()
 	};
 
 	$: if (userInfo.about.length > aboutMaxLength) {
@@ -86,27 +69,12 @@
 		</Step>
 		<Step>
 			<svelte:fragment slot="header">Genre Preferences</svelte:fragment>
-			<div class="text-xl">Fiction</div>
 			<div class="flex flex-wrap gap-2">
-				{#each Object.keys(userInfo.fictional) as genre}
+				{#each Object.keys(userInfo.genres) as genre}
 					<span
-						class="chip {userInfo.fictional[genre] ? 'variant-filled' : 'variant-soft'}"
+						class="chip {userInfo.genres[genre] ? 'variant-filled' : 'variant-soft'}"
 						on:click={() => {
-							userInfo.fictional[genre] = !userInfo.fictional[genre];
-						}}
-						on:keypress
-					>
-						<span>{genre}</span>
-					</span>
-				{/each}
-			</div>
-			<div class="text-xl">Non-fiction</div>
-			<div class="flex flex-wrap gap-2">
-				{#each Object.keys(userInfo.nonFictional) as genre}
-					<span
-						class="chip {userInfo.nonFictional[genre] ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
-							userInfo.nonFictional[genre] = !userInfo.nonFictional[genre];
+							userInfo.genres[genre] = !userInfo.genres[genre];
 						}}
 						on:keypress
 					>

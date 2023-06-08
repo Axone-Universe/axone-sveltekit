@@ -4,6 +4,7 @@ import stringifyObject from 'stringify-object';
 import { DBSession } from '$lib/db/session';
 import type { BookNode } from '$lib/nodes/digital-products/book';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
+import type { NodeRelationship } from '$lib/util/types';
 
 interface UserProperties {
 	id: string;
@@ -14,8 +15,7 @@ interface UserProperties {
 	facebook?: string;
 	instagram?: string;
 	twitter?: string;
-	fictional?: string[];
-	nonFictional?: string[];
+	genres?: string[];
 }
 
 export type UserNode = Node<Integer, UserProperties>;
@@ -30,6 +30,16 @@ export type Authored = Relationship<
 export interface UserResponse {
 	user: UserNode;
 }
+
+export const UserAuthoredRelationship: NodeRelationship = {
+	name: 'authored',
+	label: 'AUTHORED'
+};
+
+export const UserLikesGenreRelationship: NodeRelationship = {
+	name: 'likes_genre',
+	label: 'LIKES_GENRE'
+};
 
 export interface UserAuthoredBookResponse {
 	user: UserNode;
@@ -89,13 +99,8 @@ export class UserBuilder extends NodeBuilder<UserResponse> {
 		return this;
 	}
 
-	fictional(fictional: string[]): UserBuilder {
-		this._userProperties.fictional = fictional;
-		return this;
-	}
-
-	nonFictional(nonFictional: string[]): UserBuilder {
-		this._userProperties.nonFictional = nonFictional;
+	genres(genres: string[]): UserBuilder {
+		this._userProperties.genres = genres;
 		return this;
 	}
 

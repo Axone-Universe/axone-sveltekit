@@ -1,10 +1,18 @@
 import { router } from '$lib/trpc/router';
+import { GenresBuilder } from '$lib/util/genres';
 import { cleanUpDatabase, createUser, testSession } from '$lib/util/testing/testing';
 
 const createBook = async (title: string) => {
 	const caller = router.createCaller({ session: testSession });
 
-	return await caller.books.create({ title, imageURL: 'www.example.com' });
+	const genres = new GenresBuilder();
+	genres.genre('Action');
+
+	return await caller.books.create({
+		title,
+		imageURL: 'www.example.com',
+		genres: genres.getGenres()
+	});
 };
 
 describe('books', () => {

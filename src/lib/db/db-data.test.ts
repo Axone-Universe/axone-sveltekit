@@ -1,6 +1,7 @@
 import { beforeAll } from 'vitest';
 
 import { router } from '$lib/trpc/router';
+import { GenresBuilder } from '$lib/util/genres';
 import { cleanUpDatabase, createUser, testSession, testUser } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -12,8 +13,14 @@ beforeAll(async () => {
 const createBook = async (title: string, testSession: Session) => {
 	const caller = router.createCaller({ session: testSession });
 
+	const genres = new GenresBuilder();
+	genres.genre('Action');
+	genres.genre('Adventure');
+	genres.genre('Science Fiction');
+
 	return await caller.books.create({
 		title: title,
+		genres: genres.getGenres(),
 		imageURL:
 			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
 	});

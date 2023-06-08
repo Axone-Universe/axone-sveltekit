@@ -10,6 +10,7 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { createBookSchema, listSchema, submitToCampaignSchema } from '$lib/trpc/schemas';
 import { DBSession } from '$lib/db/session';
+import type { Genres } from '$lib/util/types';
 
 const usersRepo = new BooksRepository();
 
@@ -30,13 +31,22 @@ export const books = t.router({
 		.mutation(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
 
-			const userAuthoredBook = await new BookBuilder()
+			let bookBuilder = await new BookBuilder()
 				.userID(ctx.session.user.id)
 				.title(input.title)
-				.imageURL(input.imageURL)
-				.build();
 
-			return userAuthoredBook;
+				.imageURL(input.imageURL);
+
+			if (input.genres) {
+				const genres = Object.keys(input.genres).filter(
+					(key) => (input.genres as Genres)[key as keyof Genres]
+				);
+				if (genres.length > 0) bookBuilder = bookBuilder.genres(genres);
+			}
+
+			const bookNode = await bookBuilder.build();
+
+			return bookNode;
 		}),
 
 	submitToCampaign: t.procedure

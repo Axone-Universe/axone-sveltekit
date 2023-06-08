@@ -7,6 +7,8 @@ import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import type { CampaignNode } from '../campaigns/campaign';
+import { UserAuthoredRelationship } from '$lib/nodes/user';
+import type { NodeRelationship } from '$lib/util/types';
 
 interface BookProperties {
 	id: string;
@@ -21,6 +23,11 @@ export type BookNode = Node<Integer, BookProperties>;
 export interface BookResponse {
 	book: BookNode;
 }
+
+export const BookGenreRelationship: NodeRelationship = {
+	name: 'in_genre',
+	label: 'IN_GENRE'
+};
 
 export type SubmittedTo = Relationship<
 	Integer,
@@ -69,16 +76,37 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 		return this;
 	}
 
+	genres(genres: string[]) {
+		this._bookProperties.genres = genres;
+		return this;
+	}
+
 	async build(): Promise<UserAuthoredBookResponse> {
 		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
 
 		const properties = stringifyObject(this._bookProperties);
+		let genreNodes = stringifyObject(this._bookProperties.genres, {
+			transform: (object, property, originalResult) => {
+				return `(:Genre {name:${originalResult}})`;
+			}
+		})
+			.replaceAll(/\[|\]/g, '')
+			.replaceAll(',', 'MERGE');
+
 		const labels = this._labels.join(':');
 
 		const query = `
+			MERGE (book:${labels} {id: '${this._bookProperties.id}'})
+			SET book = ${properties}
+			MERGE ${genreNodes}
+			WITH book
 			MATCH (user:User) WHERE user.id='${this._userID.id}'
-			CREATE (book:${labels} ${properties})
-			MERGE (user)-[authored:AUTHORED]->(book)
+			MERGE (user)-[${UserAuthoredRelationship.name}:${UserAuthoredRelationship.label}]->(book)
+			WITH user, authored, book
+			OPTIONAL MATCH (book)-[r:${BookGenreRelationship.label}]->(:Genre) DELETE r
+			WITH user, authored, book
+			MATCH (genre:Genre) WHERE genre.name IN book.genres
+			CREATE (book)-[:${BookGenreRelationship.label}]->(genre)
 			RETURN user, authored, book
 		`;
 

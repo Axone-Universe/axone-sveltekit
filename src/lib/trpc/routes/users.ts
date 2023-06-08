@@ -6,7 +6,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { createUserSchema, listSchema } from '$lib/trpc/schemas';
-import type { FictionalGenres, NonFictionalGenres } from '$lib/util/types';
+import type { Genres } from '$lib/util/types';
 
 const usersRepo = new UsersRepository();
 
@@ -40,19 +40,11 @@ export const users = t.router({
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 
-			if (input.fictional) {
-				const fictional = Object.keys(input.fictional).filter(
-					(key: keyof FictionalGenres) => (input.fictional as FictionalGenres)[key]
+			if (input.genres) {
+				const genres = Object.keys(input.genres).filter(
+					(key) => (input.genres as Genres)[key as keyof Genres]
 				);
-				if (fictional.length > 0) userBuilder = userBuilder.fictional(fictional);
-			}
-
-			if (input.nonFictional) {
-				const nonFictional = Object.keys(input.nonFictional).filter(
-					(key: keyof NonFictionalGenres) => (input.nonFictional as NonFictionalGenres)[key]
-				);
-
-				if (nonFictional.length > 0) userBuilder = userBuilder.nonFictional(nonFictional);
+				if (genres.length > 0) userBuilder = userBuilder.genres(genres);
 			}
 
 			const labels = ['User'];

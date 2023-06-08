@@ -30,7 +30,7 @@
 			</div>
 		</header>
 		<div class="">
-			<div>
+			<div class="space-x-2">
 				{#if bookData.book.properties.genres !== undefined}
 					{#each bookData.book.properties.genres as genre}
 						<div class="chip variant-filled">{genre}</div>

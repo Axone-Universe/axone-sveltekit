@@ -21,6 +21,26 @@ export interface NonFictionalGenres extends Record<string, boolean> {
 	'Travel Guides': boolean;
 }
 
+export interface Genres {
+	Action: boolean;
+	Adventure: boolean;
+	Dystopian: boolean;
+	Fantasy: boolean;
+	Historical: boolean;
+	Horror: boolean;
+	Mystery: boolean;
+	Romance: boolean;
+	'Science Fiction': boolean;
+	Thriller: boolean;
+	'Young Adult': boolean;
+	Autobiographies: boolean;
+	Biographies: boolean;
+	Journalism: boolean;
+	'Self-help': boolean;
+	Science: boolean;
+	'Travel Guides': boolean;
+}
+
 export interface CreateUser {
 	firstName: string;
 	lastName: string;
@@ -33,8 +53,7 @@ export interface CreateUser {
 	facebook?: string;
 	instagram?: string;
 	twitter?: string;
-	fictional?: FictionalGenres;
-	nonFictional?: NonFictionalGenres;
+	genres?: Genres;
 }
 
 export interface CreateCampaign {
@@ -52,4 +71,9 @@ export interface CreateCampaign {
 	submissionCriteria: string;
 	rewards: string;
 	previewText: string;
+}
+
+export interface NodeRelationship {
+	name: string;
+	label: string;
 }
