@@ -20,6 +20,8 @@ const createBook = async (title: string, testSession: Session) => {
 
 	return await caller.books.create({
 		title: title,
+		description:
+			'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness, it was the spring of hope, it was the winter of despair.',
 		genres: genres.getGenres(),
 		imageURL:
 			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'

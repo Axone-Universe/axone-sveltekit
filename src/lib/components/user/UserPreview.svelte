@@ -11,7 +11,9 @@
 	export { customClass as class };
 </script>
 
-<div class={`card p-4 shadow-xl overflow-hidden max-w-[300px] text-token ${customClass}`}>
+<div
+	class={`card p-4 shadow-xl overflow-hidden max-w-[300px] text-token flex-[0_0_100%]  sm:flex-[0_0_50%] xl:flex-[0_0_33%] ${customClass}`}
+>
 	<header class="flex flex-col items-center">
 		<a href="/profile/ee8f6cf3-9fac-4eaf-8a40-da68da8083c5">
 			{#if userData.imageURL !== undefined}

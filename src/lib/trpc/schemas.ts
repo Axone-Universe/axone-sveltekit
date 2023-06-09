@@ -87,6 +87,7 @@ export const listSchema = z.object({
 
 export const createBookSchema = z.object({
 	title: z.string(),
+	description: z.string(),
 	imageURL: z.string(),
 	genres: genresSchema.optional()
 });

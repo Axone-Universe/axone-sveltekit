@@ -12,9 +12,9 @@ import type { NodeRelationship } from '$lib/util/types';
 
 interface BookProperties {
 	id: string;
-	imageURL?: string;
 	title?: string;
 	description?: string;
+	imageURL?: string;
 	genres?: string[];
 }
 
@@ -63,6 +63,11 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 
 	title(title: string): BookBuilder {
 		this._bookProperties.title = title;
+		return this;
+	}
+
+	description(description: string): BookBuilder {
+		this._bookProperties.description = description;
 		return this;
 	}
 

@@ -25,15 +25,15 @@
 </script>
 
 <Container class="flex items-center w-full p-4">
-	<button class="embla__button embla__next" on:click={scrollPrev}
-		><Icon class="p-2" data={arrowCircleLeft} scale={3} /></button
-	>
+	<button class="embla__button embla__next" on:click={scrollPrev}>
+		<Icon class="p-2" data={arrowCircleLeft} scale={3} />
+	</button>
 	<div
-		class="embla overflow-hidden h-100 w-full m-4"
+		class="embla overflow-hidden w-full m-4"
 		use:emblaCarouselSvelte={{ options, plugins }}
 		on:emblaInit={onInit}
 	>
-		<div class="flex embla__container gap-4">
+		<div class="flex gap-4">
 			<slot />
 		</div>
 	</div>

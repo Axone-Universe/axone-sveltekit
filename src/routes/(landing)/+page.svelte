@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import type { EmblaOptionsType } from 'embla-carousel-svelte';
 
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
@@ -11,7 +11,14 @@
 	import Author_3 from '$lib/assets/author-3.svelte';
 	import Author_4 from '$lib/assets/author-4.svelte';
 
-	emblaCarouselSvelte.globalOptions = { align: 0.2 };
+	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
+
+	let options: EmblaOptionsType = {
+		loop: false,
+		align: 'start',
+		slidesToScroll: 1
+	};
+	let plugins: never[] = [];
 </script>
 
 <Section class="bg-surface-100-800-token flex items-center">
@@ -135,43 +142,41 @@
 
 <Section class="bg-surface-50-900-token">
 	<Container>
-		<div class="embla" use:emblaCarouselSvelte>
-			<div class="embla__container m-4 space-x-4">
-				<UserPreview
-					class="embla__slide"
-					userData={{
-						firstName: 'Takunda',
-						lastName: 'Chirema',
-						userWriterChecked: true,
-						userEditorChecked: true,
-						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
-						about: '"Axone has allowed me to publish and monetize my unfinished book"'
-					}}
-				/>
-				<UserPreview
-					class="embla__slide"
-					userData={{
-						firstName: 'Lindi',
-						lastName: 'Kers',
-						userWriterChecked: true,
-						userIllustratorChecked: true,
-						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
-						about:
-							'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
-					}}
-				/>
-				<UserPreview
-					class="embla__slide"
-					userData={{
-						firstName: 'Danae',
-						lastName: 'Bouwer',
-						userWriterChecked: true,
-						imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
-						about:
-							'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
-					}}
-				/>
-			</div>
-		</div>
+		<BookCarousel {options} {plugins}>
+			<UserPreview
+				class="embla__slide"
+				userData={{
+					firstName: 'Takunda',
+					lastName: 'Chirema',
+					userWriterChecked: true,
+					userEditorChecked: true,
+					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					about: '"Axone has allowed me to publish and monetize my unfinished book"'
+				}}
+			/>
+			<UserPreview
+				class="embla__slide"
+				userData={{
+					firstName: 'Lindi',
+					lastName: 'Kers',
+					userWriterChecked: true,
+					userIllustratorChecked: true,
+					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					about:
+						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
+				}}
+			/>
+			<UserPreview
+				class="embla__slide"
+				userData={{
+					firstName: 'Danae',
+					lastName: 'Bouwer',
+					userWriterChecked: true,
+					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					about:
+						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
+				}}
+			/>
+		</BookCarousel>
 	</Container>
 </Section>

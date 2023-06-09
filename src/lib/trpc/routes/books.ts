@@ -34,7 +34,7 @@ export const books = t.router({
 			let bookBuilder = await new BookBuilder()
 				.userID(ctx.session.user.id)
 				.title(input.title)
-
+				.description(input.description)
 				.imageURL(input.imageURL);
 
 			if (input.genres) {
