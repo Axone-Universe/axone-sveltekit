@@ -16,7 +16,7 @@
 </script>
 
 <div
-	class={`bg-surface-100-800-token flex w-full md:w-2/4 grid grid-cols-1 md:grid-cols-2 p-4 space-x-4 ${customClass}`}
+	class={`bg-surface-100-800-token flex w-full md:w-3/4 lg:w-2/4 grid grid-cols-1 md:grid-cols-2 p-4 space-x-4 ${customClass}`}
 >
 	<div class="flex flex-col items-center">
 		<img

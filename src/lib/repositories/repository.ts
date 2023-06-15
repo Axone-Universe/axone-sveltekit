@@ -5,7 +5,8 @@ export interface Count {
 }
 
 export abstract class Repository {
-	abstract get(searchTerm?: string, limit?: number, skip?: number): Promise<unknown[]>;
+	abstract getById(searchTerm?: string, limit?: number, skip?: number): Promise<unknown>;
+	abstract getByTitle(searchTerm?: string, limit?: number, skip?: number): Promise<unknown[]>;
 	abstract count(): Promise<number>;
 	protected async _count(label: string): Promise<number> {
 		const query = `

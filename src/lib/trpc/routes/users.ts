@@ -5,7 +5,8 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { createUserSchema, listSchema } from '$lib/trpc/schemas';
+import { create } from '$lib/trpc/schemas/users';
+import { search } from '$lib/trpc/schemas/shared';
 import type { Genres } from '$lib/util/types';
 
 const usersRepo = new UsersRepository();
@@ -13,7 +14,7 @@ const usersRepo = new UsersRepository();
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(listSchema.optional())
+		.input(search.optional())
 		.query(async ({ input }) => {
 			const result = await usersRepo.get(input?.searchTerm, input?.limit, input?.skip);
 
@@ -23,7 +24,7 @@ export const users = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(createUserSchema)
+		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			// session should always be there since auth would have passed by now
 			// but have to check anyway otherwise Typescript complains

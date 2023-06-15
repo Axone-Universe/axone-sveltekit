@@ -7,8 +7,10 @@ import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import type { CampaignNode } from '../campaigns/campaign';
-import { UserAuthoredRelationship } from '$lib/nodes/user';
+import type { StorylineNode } from './storyline';
+import { UserAuthoredBookRel } from '$lib/nodes/user';
 import type { NodeRelationship } from '$lib/util/types';
+import type { ChapterNode } from './chapter';
 
 interface BookProperties {
 	id: string;
@@ -24,9 +26,29 @@ export interface BookResponse {
 	book: BookNode;
 }
 
+export interface BookStorylineResponse {
+	book: BookNode;
+	storyline: StorylineNode;
+}
+
+export interface BookChapterResponse {
+	book: BookNode;
+	chapter: ChapterNode;
+}
+
 export const BookGenreRelationship: NodeRelationship = {
 	name: 'in_genre',
 	label: 'IN_GENRE'
+};
+
+export const BookHasStorylineRel: NodeRelationship = {
+	name: 'has_storyline',
+	label: 'HAS_STORYLINE'
+};
+
+export const BookHasChapterRel: NodeRelationship = {
+	name: 'has_chapter',
+	label: 'HAS_CHAPTER'
 };
 
 export type SubmittedTo = Relationship<
@@ -42,6 +64,11 @@ export interface BookSubmittedToCampaignResponse {
 	campaign: CampaignNode;
 }
 
+export interface BookHasStorylineResponse {
+	book: BookNode;
+	storyLine: StorylineNode;
+}
+
 export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 	private readonly _bookProperties: BookProperties;
 	private readonly _userID: { id?: string };
@@ -53,12 +80,6 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 		};
 		this.labels(['Book']);
 		this._userID = {};
-	}
-
-	// TODO: remove? We shouldn't ever be setting the ID anyway
-	id(id: string): BookBuilder {
-		this._bookProperties.id = id;
-		return this;
 	}
 
 	title(title: string): BookBuilder {
@@ -106,7 +127,7 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 			MERGE ${genreNodes}
 			WITH book
 			MATCH (user:User) WHERE user.id='${this._userID.id}'
-			MERGE (user)-[${UserAuthoredRelationship.name}:${UserAuthoredRelationship.label}]->(book)
+			MERGE (user)-[${UserAuthoredBookRel.name}:${UserAuthoredBookRel.label}]->(book)
 			WITH user, authored, book
 			OPTIONAL MATCH (book)-[r:${BookGenreRelationship.label}]->(:Genre) DELETE r
 			WITH user, authored, book

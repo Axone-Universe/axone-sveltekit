@@ -3,6 +3,7 @@ import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
 import type { BookNode } from '$lib/nodes/digital-products/book';
+import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
 import type { NodeRelationship } from '$lib/util/types';
 
@@ -31,12 +32,12 @@ export interface UserResponse {
 	user: UserNode;
 }
 
-export const UserAuthoredRelationship: NodeRelationship = {
+export const UserAuthoredBookRel: NodeRelationship = {
 	name: 'authored',
 	label: 'AUTHORED'
 };
 
-export const UserLikesGenreRelationship: NodeRelationship = {
+export const UserLikesGenreRel: NodeRelationship = {
 	name: 'likes_genre',
 	label: 'LIKES_GENRE'
 };
@@ -45,6 +46,12 @@ export interface UserAuthoredBookResponse {
 	user: UserNode;
 	authored: Authored;
 	book: BookNode;
+}
+
+export interface UserAuthoredChapterResponse {
+	user: UserNode;
+	authored: Authored;
+	chapter: ChapterNode;
 }
 
 export class UserBuilder extends NodeBuilder<UserResponse> {

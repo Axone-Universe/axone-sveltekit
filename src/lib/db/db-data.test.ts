@@ -67,7 +67,7 @@ describe('db test data', () => {
 		const userAuthoredBookResponse3 = await createBook(testBookTitle3, testSession3);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.list();
+		const bookResponses = await caller.books.getAll();
 
 		expect(bookResponses.map((a) => a.book.properties.id).sort()).toEqual(
 			[
