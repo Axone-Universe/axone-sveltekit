@@ -102,7 +102,7 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 							this._chapterProperties.prevChapterID
 								? `
                 WITH storyline, chapter
-                MATCH (prevChapter:Chapter) WHERE prevChapter.id='${this._chapterProperties.prevChapterID}' 
+                MATCH (prevChapter:Chapter {id:'${this._chapterProperties.prevChapterID}'})
                 MERGE (prevChapter)-[${ChapterPrecedesChapterRel.name}:${ChapterPrecedesChapterRel.label}]->(chapter)`
 								: ''
 						}

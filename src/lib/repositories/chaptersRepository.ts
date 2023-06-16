@@ -19,11 +19,18 @@ export class ChaptersRepository extends Repository {
 
 	async getAll(limit?: number, skip?: number): Promise<ChapterNode[]> {
 		const query = `
-            MATCH	p = (storyline:Storyline)-[:${BookHasChapterRel.label}]->
-				  	(:Chapter {head: true})-[:${ChapterPrecedesChapterRel.label}*1]->
-					(:Chapter)
-            ${this._storylineID ? `WHERE storyline.id='${this._storylineID}'` : ``}
-			RETURN nodes(p)
+            OPTIONAL MATCH
+				(storyline:Storyline ${this._storylineID ? `{id:'${this._storylineID}'}` : ``})-
+					[:${BookHasChapterRel.label}]->
+				(headChapter:Chapter {head: true})
+			OPTIONAL MATCH 
+				p = (headChapter)-
+						[:${ChapterPrecedesChapterRel.label}*0..]->
+					(chapter:Chapter)
+			WHERE 
+				NOT EXISTS((chapter)-[:${ChapterPrecedesChapterRel.label}]->())
+				AND EXISTS((storyline)-[:${BookHasChapterRel.label}]-(chapter))
+			RETURN nodes(p) as chapters
 			${skip ? `SKIP ${skip}` : ''}
 			${limit ? `LIMIT ${limit}` : ''}
 		`;
@@ -31,14 +38,14 @@ export class ChaptersRepository extends Repository {
 		const session = new DBSession();
 		const result = await session.executeRead(query);
 
-		const resultNodes = result.records[0].get('nodes(p)');
+		const resultNodes = result.records[0].get('chapters');
 		const chapters: ChapterNode[] = [];
 
-		resultNodes.forEach((node: ChapterNode) => {
-			if (node.labels.includes('Chapter')) {
+		if (resultNodes) {
+			resultNodes.forEach((node: ChapterNode) => {
 				chapters.push(node);
-			}
-		});
+			});
+		}
 
 		return new Promise<ChapterNode[]>((resolve) => {
 			resolve(chapters);

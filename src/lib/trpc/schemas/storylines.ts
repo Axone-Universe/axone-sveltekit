@@ -13,3 +13,12 @@ export const search = z.object({
 	limit: z.number().optional(),
 	skip: z.number().optional()
 });
+
+export const create = z.object({
+	title: z.string(),
+	description: z.string(),
+	bookID: z.string(),
+	imageURL: z.string().optional(),
+	parentStorylineID: z.string().optional(),
+	branchOffChapterID: z.string().optional()
+});

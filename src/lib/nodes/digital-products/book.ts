@@ -66,7 +66,7 @@ export interface BookSubmittedToCampaignResponse {
 
 export interface BookHasStorylineResponse {
 	book: BookNode;
-	storyLine: StorylineNode;
+	storyline: StorylineNode;
 }
 
 export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {

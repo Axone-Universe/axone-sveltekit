@@ -5,13 +5,14 @@ import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
 import { NodeBuilder } from '$lib/nodes/nodeBuilder';
-import type { BookHasStorylineResponse } from './book';
+import { BookHasChapterRel, type BookHasStorylineResponse } from './book';
 import type { CampaignNode } from '../campaigns/campaign';
 import { BookHasStorylineRel } from './book';
 import { UserAuthoredBookRel } from '$lib/nodes/user';
 import type { NodeRelationship } from '$lib/util/types';
 import type { S } from 'vitest/dist/types-ad1c3f45';
 import type { ChapterNode } from './chapter';
+import { ChapterPrecedesChapterRel } from '$lib/nodes/digital-products/chapter';
 
 interface StorylineProperties {
 	id: string;
@@ -50,6 +51,7 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
 	private _bookID?: string;
 	// If a storyline has no parent it is the default storyline
 	private _parentStorylineID?: string;
+	private _branchOffChapterID?: string;
 
 	constructor() {
 		super();
@@ -90,14 +92,28 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
 		return this;
 	}
 
+	branchOffChapterID(branchOffChapterID: string): StorylineBuilder {
+		this._branchOffChapterID = branchOffChapterID;
+		return this;
+	}
+
 	imageURL(imageURL: string): StorylineBuilder {
 		this._storylineProperties.imageURL = imageURL;
 		return this;
 	}
 
+	/**
+	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters
+	 *      UP TO the branch-off chapter which should be specified as well.
+	 * @returns
+	 */
 	async build(): Promise<BookHasStorylineResponse> {
 		if (!this._userID) throw new Error('Must provide userID of author to build storyline.');
 		if (!this._bookID) throw new Error('Must provide bookID of book to build storyline.');
+		if (this._parentStorylineID && !this._branchOffChapterID)
+			throw new Error(
+				'Must provide the chapter to branch off from if parent storyline is specified'
+			);
 
 		const properties = stringifyObject(this._storylineProperties);
 
@@ -111,8 +127,29 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
             MATCH (book:Book) WHERE book.id='${this._bookID}'
 			MERGE (user)-[${UserAuthoredBookRel.name}:${UserAuthoredBookRel.label}]->(storyline)
             MERGE (book)-[${BookHasStorylineRel.name}:${BookHasStorylineRel.label}]->(storyline)
-			RETURN book, storyline
+            ${
+							this._parentStorylineID
+								? `
+                WITH book, storyline
+                MATCH (branchOffChapter:Chapter {id:'${this._branchOffChapterID}'})
+                OPTIONAL MATCH 
+                    (parentStoryline:Storyline {id:'${this._parentStorylineID}'})-
+                        [:${BookHasChapterRel.label}]->
+                    (headChapter:Chapter {head: true})
+                OPTIONAL MATCH p = 
+                    (headChapter)-
+                        [:${ChapterPrecedesChapterRel.label}*0..]->
+                    (branchOffChapter)
+                WHERE
+                    EXISTS ((parentStoryline)-[:${BookHasChapterRel.label}]-(branchOffChapter))
+                WITH book, storyline, nodes(p) as parentChapters
+                FOREACH (n IN parentChapters | MERGE (storyline)-[:${BookHasChapterRel.label} {created:false}]->(n))`
+								: ``
+						}
+            RETURN book, storyline
 		`;
+
+		console.log(query);
 
 		const session = new DBSession();
 		const result = await session.executeWrite<BookHasStorylineResponse>(query);
