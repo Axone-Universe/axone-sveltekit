@@ -26,6 +26,7 @@ export type StorylineNode = Node<Integer, StorylineProperties>;
 
 export interface StorylineResponse {
 	storyline: StorylineNode;
+	chapters: ChapterNode[];
 }
 
 export const StorylineGenreRelationship: NodeRelationship = {

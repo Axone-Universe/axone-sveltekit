@@ -1,15 +1,17 @@
 <script lang="ts">
-	import { ListBox, ListBoxItem, popup } from '@skeletonlabs/skeleton';
+	import { ListBox, ListBoxItem, popup, Avatar } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
-
+	import { trpc } from '$lib/trpc/client';
+	import { page } from '$app/stores';
 	import Icon from 'svelte-awesome';
 	import { arrowDown, plus, leanpub, star } from 'svelte-awesome/icons';
 
 	import type { PageData } from './$types';
 	import Container from '$lib/components/Container.svelte';
+	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 
 	export let data: PageData;
-	let { userAuthoredBookResponse: bookData } = data;
+	$: ({ userAuthoredBookResponse: bookData, storylines, activeStoryline } = data);
 
 	let comboboxValue: string;
 
@@ -19,10 +21,22 @@
 		placement: 'bottom',
 		closeQuery: '.listbox-item'
 	};
+
+	async function loadChapters(storylineID: string) {
+		if (!storylines[storylineID].chapters) {
+			const chaptersResponse = await trpc($page).chapters.getAll.query({
+				storylineID: storylineID
+			});
+			storylines[storylineID].chapters = chaptersResponse as ChapterNode[];
+			activeStoryline = storylines[storylineID];
+		} else {
+			activeStoryline = storylines[storylineID];
+		}
+	}
 </script>
 
-<Container class="mx-2 md:mx-60 xl:mx-96">
-	<div class="!bg-[url('{bookData.book.properties.imageURL}')] bg-center w-full">
+<Container class="mx-2 md:mx-40 xl:mx-96">
+	<div class="!bg-[url('{bookData.book.properties.imageURL}')] bg-center bg-no-repeat w-full">
 		<div
 			class="bg-gradient-to-b from-transparent from-10%
             [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%
@@ -67,33 +81,82 @@
 					</p>
 				</div>
 				<hr class="opacity-50" />
-				<div class="flex w-full p-4 space-x-4">
-					<div class="flex items-center justify-start w-2/4">
-						<p class="text-l md:text-3xl font-bold">Chapters</p>
-					</div>
-					<div class="flex justify-end w-2/4">
-						<button class="btn variant-filled w-30 justify-between" use:popup={popupCombobox}>
-							<span class="capitalize text-sm">{comboboxValue ?? 'Story Lines'}</span>
-							<Icon class="p-2" data={arrowDown} scale={2} />
-						</button>
+			</div>
+		</div>
+	</div>
+	<div class="px-4 md:px-10 overflow-hidden space-y-4">
+		<div class="flex w-full p-4 space-x-4">
+			<div class="flex items-center justify-start w-3/5">
+				<p class="text-l md:text-3xl font-bold">Chapters</p>
+			</div>
+			<div class="flex justify-end w-2/5">
+				<button
+					class="btn variant-filled line-clamp-1 w-full justify-between"
+					use:popup={popupCombobox}
+				>
+					<span class="capitalize text-sm">{comboboxValue ?? 'Story Lines'}</span>
+					<Icon class="p-2" data={arrowDown} scale={2} />
+				</button>
 
-						<div class="card w-48 shadow-xl py-2" data-popup="popupCombobox">
-							<ListBox rounded="rounded-none">
-								<ListBoxItem bind:group={comboboxValue} name="medium" value="books">
-									Books
-								</ListBoxItem>
-								<ListBoxItem bind:group={comboboxValue} name="medium" value="movies">
-									Movies
-								</ListBoxItem>
-								<ListBoxItem bind:group={comboboxValue} name="medium" value="television">
-									TV
-								</ListBoxItem>
-							</ListBox>
-							<div class="arrow bg-surface-100-800-token" />
-						</div>
-					</div>
+				<div class="card w-48 shadow-xl py-2" data-popup="popupCombobox">
+					<ListBox rounded="rounded-none">
+						{#each Object.entries(storylines) as [id, storyline]}
+							<ListBoxItem
+								on:click={() => loadChapters(id)}
+								bind:group={comboboxValue}
+								name=""
+								value={storyline.storyline.properties.title}
+							>
+								{storyline.storyline.properties.title}
+							</ListBoxItem>
+						{/each}
+					</ListBox>
+					<div class="arrow bg-surface-100-800-token" />
 				</div>
 			</div>
+		</div>
+		<div class="flex flex-col w-full space-y-4">
+			{#if activeStoryline.chapters}
+				{#each activeStoryline.chapters as chapter}
+					<div class="space-y-2 text-center lg:text-left">
+						<p class="text-xl font-bold">{chapter.properties.title}</p>
+						<div class="flex justify-start items-center space-x-2">
+							<Avatar
+								src="https://source.unsplash.com/YOErFW8AfkI/32x32"
+								width="w-8"
+								rounded="rounded-full"
+							/>
+							<div class="flex-auto flex justify-between items-center">
+								<h6 class="font-bold">By Alex</h6>
+								<small>On 17/06/2023</small>
+							</div>
+						</div>
+						<div class="flex flex-col justify-between items-center">
+							<p class="w-full line-clamp-3">
+								{chapter.properties.description}
+							</p>
+							<div class="btn-group variant-filled">
+								<a
+									class="button"
+									href="/read/{bookData.book.properties.id}?storylineID={activeStoryline.storyline
+										.properties.id}&chapterID={chapter.properties.id}">Read</a
+								>
+								<a
+									class="button"
+									href="/write/{bookData.book.properties.id}?storylineID={activeStoryline.storyline
+										.properties.id}&chapterID={chapter.properties.id}">Edit</a
+								>
+								<button>+</button>
+							</div>
+						</div>
+
+						<hr class="opacity-100" />
+					</div>
+				{/each}
+			{/if}
+			{#if !activeStoryline.chapters}
+				{loadChapters(activeStoryline.storyline.properties.id)}
+			{/if}
 		</div>
 	</div>
 </Container>

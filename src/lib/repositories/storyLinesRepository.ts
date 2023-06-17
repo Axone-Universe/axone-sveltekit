@@ -2,6 +2,7 @@ import { DBSession } from '$lib/db/session';
 import type { BookStorylineResponse } from '$lib/nodes/digital-products/book';
 import { Repository } from '$lib/repositories/repository';
 import { BookHasStorylineRel } from '$lib/nodes/digital-products/book';
+import type { StorylineNode } from '$lib/nodes/digital-products/storyline';
 
 export class StorylinesRepository extends Repository {
 	private _bookID?: string;
@@ -15,25 +16,25 @@ export class StorylinesRepository extends Repository {
 		return this;
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<BookStorylineResponse[]> {
+	async getAll(limit?: number, skip?: number): Promise<StorylineNode[]> {
 		const query = `
             MATCH   (book:Book)-[:${BookHasStorylineRel.label}]->
                     (storyline:Storyline)
             ${this._bookID ? `WHERE book.id='${this._bookID}'` : ``}
-			RETURN book, storyline
+			RETURN storyline
 			${skip ? `SKIP ${skip}` : ''}
 			${limit ? `LIMIT ${limit}` : ''}
 		`;
 
 		const session = new DBSession();
-		const result = await session.executeRead<BookStorylineResponse>(query);
+		const result = await session.executeRead<StorylineNode>(query);
 
-		const storylines: BookStorylineResponse[] = [];
+		const storylines: StorylineNode[] = [];
 		result.records.forEach((record) => {
 			storylines.push(record.toObject());
 		});
 
-		return new Promise<BookStorylineResponse[]>((resolve) => {
+		return new Promise<StorylineNode[]>((resolve) => {
 			resolve(storylines);
 		});
 	}
