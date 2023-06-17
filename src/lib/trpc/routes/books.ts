@@ -1,21 +1,45 @@
 import { z } from 'zod';
 
-import { BookBuilder, type BookSubmittedToCampaignResponse } from '$lib/nodes/digital-products/book';
+import {
+	BookBuilder,
+	type BookSubmittedToCampaignResponse
+} from '$lib/nodes/digital-products/book';
+import { StorylineBuilder } from '$lib/nodes/digital-products/storyline';
 import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { createBookSchema, listSchema, submitToCampaignSchema } from '$lib/trpc/schemas';
+import { create, submitToCampaign } from '$lib/trpc/schemas/books';
+import { search } from '$lib/trpc/schemas/shared';
 import { DBSession } from '$lib/db/session';
+import type { Genres } from '$lib/util/types';
 
 const usersRepo = new BooksRepository();
 
 export const books = t.router({
-	list: t.procedure
+	getAll: t.procedure
 		.use(logger)
-		.input(listSchema.optional())
+		.input(search.optional())
 		.query(async ({ input }) => {
-			const result = await usersRepo.get(input?.searchTerm, input?.limit, input?.skip);
+			const result = await usersRepo.getAll(input?.limit, input?.skip);
+
+			return result;
+		}),
+
+	getByTitle: t.procedure
+		.use(logger)
+		.input(search.optional())
+		.query(async ({ input }) => {
+			const result = await usersRepo.getByTitle(input?.searchTerm, input?.limit, input?.skip);
+
+			return result;
+		}),
+
+	getById: t.procedure
+		.use(logger)
+		.input(search.optional())
+		.query(async ({ input }) => {
+			const result = await usersRepo.getById(input?.searchTerm);
 
 			return result;
 		}),
@@ -23,23 +47,43 @@ export const books = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(createBookSchema) // TODO: use createBook schema
+		.input(create) // TODO: use createBook schema
 		.mutation(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
 
-			const userAuthoredBook = await new BookBuilder()
+			let bookBuilder = new BookBuilder()
 				.userID(ctx.session.user.id)
 				.title(input.title)
-				.frontCoverURL(input.frontCoverURL)
-				.build();
+				.description(input.description)
+				.imageURL(input.imageURL);
 
-			return userAuthoredBook;
+			if (input.genres) {
+				const genres = Object.keys(input.genres).filter(
+					(key) => (input.genres as Genres)[key as keyof Genres]
+				);
+				if (genres.length > 0) bookBuilder = bookBuilder.genres(genres);
+			}
+
+			const bookNode = await bookBuilder.build();
+
+			// Also create the default/main storyline
+			let storylineBuilder = new StorylineBuilder()
+				.userID(ctx.session.user.id)
+				.bookID(bookNode.book.properties.id)
+				.title(input.title)
+				.main(true)
+				.description(input.description)
+				.imageURL(input.imageURL);
+
+			await storylineBuilder.build();
+
+			return bookNode;
 		}),
 
 	submitToCampaign: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(submitToCampaignSchema) // TODO: use createBook schema
+		.input(submitToCampaign) // TODO: use createBook schema
 		.mutation(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
 
@@ -54,6 +98,6 @@ export const books = t.router({
 			const result = await session.executeWrite<BookSubmittedToCampaignResponse>(query);
 
 			// TODO: fixup or move query to own class
-			return result
+			return result;
 		})
 });

@@ -1,55 +1,42 @@
 <script lang="ts">
-	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import type { EmblaOptionsType } from 'embla-carousel-svelte';
 
-	import { page } from '$app/stores';
-	import Container from '$lib/components/Container.svelte';
-	import { trpc } from '$lib/trpc/client';
-	import type { BookResponse } from '$lib/nodes/digital-products/book';
+	import Section from '$lib/components/Section.svelte';
+	import BookPreview from '$lib/components/book/BookPreview.svelte';
+	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
 
-	let title = '';
-	let books: BookResponse[] = [];
+	import type { PageData } from './$types';
 
-	async function onClick() {
-		books = []; // (await trpc($page).books.list.query(title)) as BookResponse[];
-		let searchedTitle = title;
-		if (books.length === 0) {
-			const t: ToastSettings = {
-				message: `Looks like we don\'t have any books named ${String(searchedTitle)}.`,
-				background: 'variant-filled-error'
-			};
-			toastStore.trigger(t);
-		}
-	}
+	export let data: PageData;
+	let { userAuthoredBookResponses } = data;
+
+	let options: EmblaOptionsType = {
+		loop: false,
+		align: 'start',
+		slidesToScroll: 1
+	};
+	let plugins: never[] = [];
 </script>
 
-<Container class="flex flex-col items-center gap-8">
-	<h1>Test AuraDB 👇</h1>
-	<form class="card p-4 max-w-lg flex flex-col gap-4 mt-8">
-		<label class="label">
-			<span>Book Title</span>
-			<input class="input" type="text" placeholder="e.g. The Name of the Wind" bind:value={title} />
-		</label>
-		<button on:click={onClick} class="btn variant-filled-primary">Submit</button>
-	</form>
-
-	<div class="table-container">
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th />
-					<th>Book ID</th>
-					<th>Book Title</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each books as book, i}
-					<tr>
-						<td>{i + 1}</td>
-						<td>{book.book.properties.id}</td>
-						<td>{book.book.properties.title}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+<Section>
+	<div class="mx-20 xl:mx-40 md:space-y-2">
+		<p class="text-l md:text-3xl font-bold">Featured</p>
+		<p class="text-sm text-thin md:text-normal">Our top picks from the universe</p>
 	</div>
-</Container>
+	<BookCarousel {options} {plugins}>
+		{#each userAuthoredBookResponses as bookResponse}
+			<BookPreview class="embla__slide" bookData={bookResponse} />
+		{/each}
+	</BookCarousel>
+</Section>
+
+<Section>
+	<div class="mx-20 xl:mx-40 md:space-y-2">
+		<p class="text-l md:text-3xl font-bold">Top Finds For You</p>
+	</div>
+	<BookCarousel {options} {plugins}>
+		{#each userAuthoredBookResponses as bookResponse}
+			<BookPreview class="embla__slide" bookData={bookResponse} />
+		{/each}
+	</BookCarousel>
+</Section>

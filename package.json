@@ -10,7 +10,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"test": "vitest --no-threads"
+		"test": "vitest --no-threads -t '^((?!db).)*$' ",
+		"test-data": "vitest db-data --no-threads"
 	},
 	"devDependencies": {
 		"@skeletonlabs/skeleton": "^1.5.1",
@@ -40,17 +41,20 @@
 	"type": "module",
 	"dependencies": {
 		"@floating-ui/dom": "^1.2.8",
+		"@splidejs/svelte-splide": "^0.2.9",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
 		"@supabase/supabase-js": "^2.22.0",
+		"@tailwindcss/line-clamp": "^0.4.4",
 		"@trpc/client": "^10.27.1",
 		"@trpc/server": "^10.27.1",
-		"embla-carousel-svelte": "8.0.0-rc05",
 		"date-fns": "^2.30.0",
+		"embla-carousel-svelte": "8.0.0-rc05",
 		"happy-dom": "^9.20.1",
 		"neo4j-driver": "^5.8.1",
 		"neo4j-driver-core": "^5.8.1",
 		"stringify-object": "^5.0.0",
 		"svelte-awesome": "^3.2.0",
+		"svelte-quill": "^1.2.0",
 		"trpc-sveltekit": "^3.5.8",
 		"zod": "^3.21.4"
 	}

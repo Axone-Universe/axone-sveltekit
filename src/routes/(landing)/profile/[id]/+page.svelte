@@ -88,24 +88,11 @@
 		<hr class="w-full" />
 		<div>
 			<h2 class="mb-4">Genre Preferences</h2>
-			<div class="grid sm:grid-cols-2 gap-4 w-full">
+			<div class="gap-4 w-full">
 				<div class="card p-4">
-					<header class="text-xl pb-4 font-bold">Fictional</header>
-					{#if userNode.properties.fictional}
+					{#if userNode.properties.genres}
 						<div class="flex gap-2 flex-wrap">
-							{#each userNode.properties.fictional as genre}
-								<div class="chip variant-filled">{genre}</div>
-							{/each}
-						</div>
-					{:else}
-						<div class="chip variant-soft">None</div>
-					{/if}
-				</div>
-				<div class="card p-4">
-					<header class="text-xl pb-4 font-bold">Non-fictional</header>
-					{#if userNode.properties.nonFictional}
-						<div class="flex gap-2 flex-wrap">
-							{#each userNode.properties.nonFictional as genre}
+							{#each userNode.properties.genres as genre}
 								<div class="chip variant-filled">{genre}</div>
 							{/each}
 						</div>

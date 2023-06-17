@@ -2,6 +2,20 @@
 html,
 body {
 	@apply h-full overflow-hidden;
+	background: rgb(var(--color-surface-100)) !important;
+}
+
+.dark body {
+	background: rgb(var(--color-surface-800)) !important;
+}
+
+:root {
+	/* =~= Theme Properties =~= */
+	--theme-font-family-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+		'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
+		'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+	--theme-rounded-base: 9999px;
+	--theme-rounded-container: 8px;
 }
 
 .dark .fill-logo {
@@ -10,15 +24,4 @@ body {
 
 .fill-logo {
 	fill: rgba(var(--theme-font-color-base));
-}
-
-.embla {
-	overflow: hidden;
-}
-.embla__container {
-	display: flex;
-}
-.embla__slide {
-	flex: 0 0 100%;
-	min-width: 0;
 }

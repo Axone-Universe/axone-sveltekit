@@ -5,15 +5,16 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { createUserSchema, listSchema } from '$lib/trpc/schemas';
-import type { FictionalGenres, NonFictionalGenres } from '$lib/util/types';
+import { create } from '$lib/trpc/schemas/users';
+import { search } from '$lib/trpc/schemas/shared';
+import type { Genres } from '$lib/util/types';
 
 const usersRepo = new UsersRepository();
 
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(listSchema.optional())
+		.input(search.optional())
 		.query(async ({ input }) => {
 			const result = await usersRepo.get(input?.searchTerm, input?.limit, input?.skip);
 
@@ -23,7 +24,7 @@ export const users = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(createUserSchema)
+		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			// session should always be there since auth would have passed by now
 			// but have to check anyway otherwise Typescript complains
@@ -34,24 +35,17 @@ export const users = t.router({
 				.firstName(input.firstName)
 				.lastName(input.lastName);
 
+			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 
-			if (input.fictional) {
-				const fictional = Object.keys(input.fictional).filter(
-					(key: keyof FictionalGenres) => (input.fictional as FictionalGenres)[key]
+			if (input.genres) {
+				const genres = Object.keys(input.genres).filter(
+					(key) => (input.genres as Genres)[key as keyof Genres]
 				);
-				if (fictional.length > 0) userBuilder = userBuilder.fictional(fictional);
-			}
-
-			if (input.nonFictional) {
-				const nonFictional = Object.keys(input.nonFictional).filter(
-					(key: keyof NonFictionalGenres) => (input.nonFictional as NonFictionalGenres)[key]
-				);
-
-				if (nonFictional.length > 0) userBuilder = userBuilder.nonFictional(nonFictional);
+				if (genres.length > 0) userBuilder = userBuilder.genres(genres);
 			}
 
 			const labels = ['User'];

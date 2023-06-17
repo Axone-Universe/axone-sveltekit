@@ -1,7 +1,8 @@
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { listSchema, createCampaignSchema } from '$lib/trpc/schemas';
+import { create } from '$lib/trpc/schemas/campaigns';
+import { search } from '$lib/trpc/schemas/shared';
 import { CampaignsRepository } from '$lib/repositories/campaignsRepository';
 import { CampaignBuilder } from '$lib/nodes/campaigns/campaign';
 
@@ -10,7 +11,7 @@ const campaignsRepo = new CampaignsRepository();
 export const campaigns = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(listSchema.optional())
+		.input(search.optional())
 		.query(async ({ input }) => {
 			const result = await campaignsRepo.get(input?.searchTerm, input?.limit, input?.skip);
 
@@ -26,7 +27,7 @@ export const campaigns = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(createCampaignSchema)
+		.input(create)
 		.mutation(async ({ input }) => {
 			const campaignResponse = await new CampaignBuilder()
 				.title(input.title)
