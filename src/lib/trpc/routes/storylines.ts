@@ -14,7 +14,7 @@ import { search } from '$lib/trpc/schemas/storylines';
 import { DBSession } from '$lib/db/session';
 import type { Genres } from '$lib/util/types';
 
-const storyLinesRepo = new StorylinesRepository();
+const storylinesRepo = new StorylinesRepository();
 
 export const storylines = t.router({
 	getAll: t.procedure
@@ -22,9 +22,19 @@ export const storylines = t.router({
 		.input(search.optional())
 		.query(async ({ input }) => {
 			if (input?.bookID) {
-				storyLinesRepo.bookId(input.bookID);
+				storylinesRepo.bookId(input.bookID);
 			}
-			const result = await storyLinesRepo.getAll(input?.limit, input?.skip);
+			const result = await storylinesRepo.getAll(input?.limit, input?.skip);
+
+			return result;
+		}),
+
+	getById: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input }) => {
+			storylinesRepo.bookId(input.bookID);
+			const result = await storylinesRepo.getById(input.storylineID);
 
 			return result;
 		}),

@@ -2,28 +2,33 @@ import type { PageServerLoad } from './$types';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { trpc } from '$lib/trpc/client';
 import type { StorylineResponse } from '$lib/nodes/digital-products/storyline';
+import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 
 export const ssr = false;
 
 export const load = (async (event) => {
+	const bookID = event.params.bookID;
+	const storylineID = event.url.searchParams.get('storylineID');
+	const chapterID = event.url.searchParams.get('chapterID');
+
 	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		searchTerm: event.params.bookID,
+		searchTerm: bookID,
 		limit: 10
 	})) as UserAuthoredBookResponse;
 
-	const storylineResponses = (await trpc(event).storylines.getAll.query({
-		bookID: event.params.bookID
-	})) as StorylineResponse[];
+	const storylineResponse = (await trpc(event).storylines.getById.query({
+		bookID: bookID,
+		storylineID: storylineID ? storylineID : undefined
+	})) as StorylineResponse;
 
-	const storylines: { [key: string]: StorylineResponse } = {};
-	let activeStoryline: StorylineResponse = storylineResponses[0];
+	const storylineChapters = (await trpc(event).chapters.getAll.query({
+		storylineID: storylineResponse.storyline.properties.id
+	})) as ChapterNode[];
 
-	storylineResponses.forEach((storylineResponse) => {
-		if (storylineResponse.storyline.properties.main) {
-			activeStoryline = storylineResponse;
-		}
-		storylines[storylineResponse.storyline.properties.id] = storylineResponse;
+	const chapters: { [key: string]: ChapterNode } = {};
+	storylineChapters.forEach((chapter) => {
+		chapters[chapter.properties.id] = chapter;
 	});
 
-	return { userAuthoredBookResponse, storylines, activeStoryline };
+	return { userAuthoredBookResponse, storylineResponse, chapters };
 }) satisfies PageServerLoad;

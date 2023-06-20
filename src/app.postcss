@@ -34,6 +34,10 @@ body {
 	fill: rgba(var(--theme-font-color-base));
 }
 
+textarea::placeholder {
+	color: rgb(var(--color-surface-400));
+}
+
 /* Quill editor styling  */
 .editor-container {
 	font-family: 'Crimson Text', serif;
@@ -55,4 +59,12 @@ body {
 
 .ql-container {
 	font-size: 24px !important;
+}
+
+.accordion-control {
+	background-color: rgb(var(--color-surface-200));
+}
+
+.dark .accordion-control {
+	background-color: rgb(var(--color-surface-700));
 }

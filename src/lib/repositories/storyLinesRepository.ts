@@ -47,8 +47,26 @@ export class StorylinesRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
-	async getById(id?: string): Promise<unknown> {
-		throw new Error('not Implemented');
+	async getById(id?: string): Promise<StorylineResponse> {
+		const query = `
+            MATCH   (book:Book)-[:${BookHasStorylineRel.label}]->
+                    (storyline:Storyline)
+            WHERE book.id='${this._bookID}' AND
+			${id ? ` storyline.id='${id}'` : ` storyline.main=true`}
+			RETURN storyline
+		`;
+
+		const session = new DBSession();
+		const result = await session.executeRead<StorylineResponse>(query);
+
+		let storyline: StorylineResponse;
+		result.records.forEach((record) => {
+			storyline = record.toObject();
+		});
+
+		return new Promise<StorylineResponse>((resolve) => {
+			resolve(storyline);
+		});
 	}
 
 	async count(): Promise<number> {
