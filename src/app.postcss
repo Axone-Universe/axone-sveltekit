@@ -18,10 +18,41 @@ body {
 	--theme-rounded-container: 8px;
 }
 
+.dark .card {
+	background-color: rgb(var(--color-surface-700));
+}
+
+.card {
+	background-color: rgb(var(--color-surface-300));
+}
+
 .dark .fill-logo {
 	fill: rgba(var(--theme-font-color-dark));
 }
 
 .fill-logo {
 	fill: rgba(var(--theme-font-color-base));
+}
+
+/* Quill editor styling  */
+.editor-container {
+	font-family: 'Crimson Text', serif;
+}
+
+.ql-editor {
+	outline-style: solid !important;
+	outline-color: rgb(var(--color-surface-100)) !important;
+	font-family: 'Crimson Text', serif;
+}
+
+.dark .ql-editor {
+	outline-color: rgb(var(--color-surface-800)) !important;
+}
+
+.ql-editor.ql-blank::before {
+	color: rgb(var(--color-surface-400)) !important;
+}
+
+.ql-container {
+	font-size: 24px !important;
 }

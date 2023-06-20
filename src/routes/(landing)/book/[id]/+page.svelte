@@ -5,6 +5,7 @@
 	import { page } from '$app/stores';
 	import Icon from 'svelte-awesome';
 	import { arrowDown, plus, leanpub, star } from 'svelte-awesome/icons';
+	import { beforeUpdate, afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
 	import Container from '$lib/components/Container.svelte';
@@ -13,8 +14,13 @@
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylines, activeStoryline } = data);
 
-	let comboboxValue: string;
+	afterUpdate(() => {
+		if (!activeStoryline.chapters) {
+			loadChapters(activeStoryline.storyline.properties.id);
+		}
+	});
 
+	let comboboxValue: string;
 	const popupCombobox: PopupSettings = {
 		event: 'focus-click',
 		target: 'popupCombobox',
@@ -36,7 +42,10 @@
 </script>
 
 <Container class="mx-2 md:mx-40 xl:mx-96">
-	<div class="!bg-[url('{bookData.book.properties.imageURL}')] bg-center bg-no-repeat w-full">
+	<div
+		class="bg-center bg-no-repeat w-full"
+		style="background-image: url({bookData.book.properties.imageURL})"
+	>
 		<div
 			class="bg-gradient-to-b from-transparent from-10%
             [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%
@@ -143,7 +152,7 @@
 								>
 								<a
 									class="button"
-									href="/write/{bookData.book.properties.id}?storylineID={activeStoryline.storyline
+									href="/editor/{bookData.book.properties.id}?storylineID={activeStoryline.storyline
 										.properties.id}&chapterID={chapter.properties.id}">Edit</a
 								>
 								<button>+</button>
@@ -153,9 +162,6 @@
 						<hr class="opacity-100" />
 					</div>
 				{/each}
-			{/if}
-			{#if !activeStoryline.chapters}
-				{loadChapters(activeStoryline.storyline.properties.id)}
 			{/if}
 		</div>
 	</div>

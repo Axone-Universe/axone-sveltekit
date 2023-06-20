@@ -35,11 +35,11 @@
 </script>
 
 <div
-	class={`card aspect-[8/13] bg-surface-200 card-hover overflow-hidden flex-[0_0_100%]  sm:flex-[0_0_50%] md:flex-[0_0_33%] xl:flex-[0_0_20%] ${customClass}`}
+	class={`card aspect-[8/13] pb-2 card-hover overflow-hidden flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33%] xl:flex-[0_0_20%] ${customClass}`}
 >
 	<header>
 		<div class="flex p-2 items-center">
-			<p class="text-xs lg:text-sm font-bold line-clamp-1">{bookData.book.properties.title}</p>
+			<p class="text-sm lg:text-lg font-bold line-clamp-1">{bookData.book.properties.title}</p>
 		</div>
 	</header>
 	<div class="">
