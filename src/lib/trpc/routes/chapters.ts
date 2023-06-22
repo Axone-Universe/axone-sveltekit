@@ -24,6 +24,14 @@ export const chapters = t.router({
 			return result;
 		}),
 
+	autosave: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(create)
+		.mutation(async ({ input, ctx }) => {
+			throw new Error('Method not implemented.');
+		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)

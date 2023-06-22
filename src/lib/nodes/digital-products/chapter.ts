@@ -16,6 +16,11 @@ interface ChapterProperties {
 	prevChapterID?: string;
 	title?: string;
 	description?: string;
+	// content is the current state of the chapter
+	content?: string;
+	// deltas are the autosaved increments of the state
+	// These should be merged into the content periodically on the UI in quill editor
+	deltas?: string[];
 }
 
 export type ChapterNode = Node<Integer, ChapterProperties>;
