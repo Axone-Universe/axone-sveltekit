@@ -6,31 +6,33 @@
 		Accordion,
 		AccordionItem,
 		ListBoxItem,
-		ListBox
+		ListBox,
+		LightSwitch,
+		modalStore,
+		Modal
 	} from '@skeletonlabs/skeleton';
-	import { LightSwitch } from '@skeletonlabs/skeleton';
+	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
+
 	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import Delta from 'quill-delta';
-
-	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 
 	import Icon from 'svelte-awesome';
 	import {
 		chevronLeft,
 		chevronRight,
-		save,
+		refresh,
+		check,
 		trash,
 		edit,
-		pencil,
 		user,
-		home,
-		undo
+		home
 	} from 'svelte-awesome/icons';
 	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 	import { page } from '$app/stores';
+	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapters } = data);
@@ -63,25 +65,29 @@
 		}
 	}
 
+	let modalComponent: ModalComponent = {
+		ref: undefined
+	};
+
+	let modalSettings: ModalSettings = {
+		type: 'component',
+		// Pass the component directly:
+		component: modalComponent
+	};
+
+	let showChapterDetails = () => {
+		modalComponent.ref = ChapterDetailsModal;
+		modalComponent.props = { chapterNode: chapters[selectedChapterID] };
+		modalStore.trigger(modalSettings);
+	};
+
 	/**
 	 * Quill Editor Settings
 	 */
-	let autosaveInterval = 2000;
+	let autosaveInterval = 5000;
 	let isEditor: boolean = true;
 	let isChapterDetails: boolean = false;
 	let quill: Quill;
-	let chapterID = $page.url.searchParams.get('chapterID');
-
-	function showChapterDetails() {
-		isChapterDetails = true;
-		isEditor = false;
-	}
-
-	function showEditor() {
-		isEditor = true;
-		isChapterDetails = false;
-		runSetupEditor = true;
-	}
 
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
@@ -90,6 +96,8 @@
 	];
 
 	beforeUpdate(() => {
+		let chapterID = $page.url.searchParams.get('chapterID');
+		// Set selectedChapterID to be from the url parameter
 		if (!selectedChapterID) {
 			if (chapterID) {
 				selectedChapterID = chapters[chapterID].properties.id;
@@ -109,18 +117,10 @@
 	});
 
 	/**
-	 * Takes the currently selected chapter node and saves it
-	 * Takes the current editor input and also saves it on the chapter node
-	 */
-	let text = '';
-	let contents: Delta;
-
-	/**
 	 * Finds the editor element and creates a new Quill instance from that
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
 	let runSetupEditor: boolean = true;
-	let maxStack = 500;
 	function setupEditor() {
 		if (!runSetupEditor) {
 			return;
@@ -136,27 +136,22 @@
 					toolbar: toolbarOptions,
 					history: {
 						delay: 1000,
-						maxStack: maxStack,
+						maxStack: 500,
 						userOnly: true
 					}
 				},
 				placeholder: 'Let your voice be heard...'
 			});
-			quill.on('text-change', updateChapterChange);
 
 			let chapterProperties = chapters[selectedChapterID].properties;
 			if (chapterProperties.content) {
 				let ops = JSON.parse(chapterProperties.content);
 				quill.setContents(new Delta(ops));
 			}
+
+			quill.on('text-change', updateChapterChange);
 		}
 		runSetupEditor = false;
-	}
-
-	function undoEditor() {
-		console.log(document.getSelection());
-		document.getSelection()?.removeAllRanges();
-		// quill.getModule('history').undo();
 	}
 
 	/**
@@ -166,21 +161,30 @@
 	 */
 
 	var changeDelta = new Delta();
+	var changeDeltaSnapshot: Delta;
+
 	function updateChapterChange(delta: Delta) {
 		changeDelta = changeDelta.compose(delta);
 	}
 
 	// Save the changes periodically
-	setInterval(function () {
+	setInterval(async function () {
 		if (changeDelta.length() > 0) {
-			// console.log('Saving changes', change);
-
-			// TODO: send changes to server which will merge into content string
-			// await trpc($page).chapters.autosave.mutate(change);
-
-			// Update the content to be one delta
-			updateChapterContent();
+			// take a snapshot of current delta state.
+			// that is the one sent to the server
+			changeDeltaSnapshot = new Delta(changeDelta.ops);
 			changeDelta = new Delta();
+
+			// TODO: If the autosave fails, merge snapshot and change deltas
+			trpc($page)
+				.chapters.update.mutate({
+					id: selectedChapterID,
+					delta: JSON.stringify(changeDeltaSnapshot.ops)
+				})
+				.then((chapterNodeResponse) => {
+					// Update the content to be one delta
+					updateChapterContent();
+				});
 		}
 	}, autosaveInterval);
 
@@ -196,12 +200,17 @@
 		// now update the content
 		let composedDelta = chapterContentDelta.compose(changeDelta);
 		chapters[selectedChapterID].properties.content = JSON.stringify(composedDelta.ops);
+
+		console.log('1 *' + chapters[selectedChapterID].properties.content);
+		console.log('2* ' + JSON.stringify(quill.getContents().ops));
 	}
 </script>
 
 <svelte:head>
 	<link rel="stylesheet" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
 </svelte:head>
+
+<!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <AppShell class="editor-shell">
@@ -271,20 +280,6 @@
 				>
 					<Icon class="p-2" data={edit} scale={2.5} />
 				</button>
-				<button
-					on:click={() => showEditor()}
-					type="button"
-					class="m-2 btn-icon bg-surface-200-700-token"
-				>
-					<Icon class="p-2" data={pencil} scale={2.5} />
-				</button>
-				<button
-					on:click={() => undoEditor()}
-					type="button"
-					class="m-2 btn-icon bg-surface-200-700-token"
-				>
-					<Icon class="p-2" data={undo} scale={2.5} />
-				</button>
 				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 					<Icon class="p-2" data={trash} scale={2.5} />
 				</button>
@@ -294,6 +289,15 @@
 				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 					<Icon class="p-2" data={home} scale={2.5} />
 				</button>
+				{#if changeDelta.length() > 0}
+					<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
+						<Icon class="p-2" data={refresh} scale={2.5} />
+					</button>
+				{:else}
+					<button type="button" class="m-2 btn-icon bg-success-300-600-token">
+						<Icon class="p-2" data={check} scale={2.5} />
+					</button>
+				{/if}
 			</div>
 		</Drawer>
 	</svelte:fragment>

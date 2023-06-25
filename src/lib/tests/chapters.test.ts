@@ -58,4 +58,41 @@ describe('chapters', () => {
 		expect(chapter2Response.chapter.properties.title).toEqual(chapter2Title);
 		expect(storylineChapters[0].properties.title).toEqual(chapter1Title);
 	});
+
+	test('update chapters', async () => {
+		const chapter1Title = 'Chapter 1';
+		const testBookTitle = 'My Book';
+
+		const userResponse = await createUser(testSession);
+		const userAuthoredBookResponse = await createBook(testBookTitle);
+
+		// get the default storyline from created book
+		let caller = router.createCaller({ session: null });
+		const storylines = await caller.storylines.getAll({
+			bookID: userAuthoredBookResponse.book.properties.id
+		});
+
+		// create chapter on default storyline
+		caller = router.createCaller({ session: testSession });
+		let chapterCreateResponse = await caller.chapters.create({
+			title: chapter1Title,
+			description: 'My chapter 1',
+			storylineID: storylines[0].storyline.properties.id,
+			bookID: userAuthoredBookResponse.book.properties.id
+		});
+
+		expect(chapterCreateResponse.chapter.properties.description).toEqual('My chapter 1');
+
+		let chapterUpdateResponse = await caller.chapters.update({
+			id: chapterCreateResponse.chapter.properties.id,
+			description: 'Updated chapter 1',
+			delta: '[{"insert": "This is the story of the best of us"}]'
+		});
+
+		console.log(chapterUpdateResponse);
+		expect(chapterUpdateResponse.chapter.properties.description).toEqual('Updated chapter 1');
+		expect(chapterUpdateResponse.chapter.properties.content).toEqual(
+			'[{"insert":"This is the story of the best of us"}]'
+		);
+	});
 });

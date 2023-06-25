@@ -5,7 +5,7 @@ import { ChaptersRepository } from '$lib/repositories/chaptersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create } from '$lib/trpc/schemas/chapters';
+import { create, update } from '$lib/trpc/schemas/chapters';
 import { search } from '$lib/trpc/schemas/chapters';
 import type { Genres } from '$lib/util/types';
 
@@ -30,6 +30,25 @@ export const chapters = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			throw new Error('Method not implemented.');
+		}),
+
+	update: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			let chapterBuilder = new ChapterBuilder().id(input.id);
+
+			if (input?.description) {
+				chapterBuilder.description(input.description);
+			}
+
+			if (input?.delta) {
+				await chapterBuilder.delta(input.id, input.delta);
+			}
+
+			const chapterNode = chapterBuilder.update();
+			return chapterNode;
 		}),
 
 	create: t.procedure
