@@ -24,14 +24,6 @@ export const chapters = t.router({
 			return result;
 		}),
 
-	autosave: t.procedure
-		.use(logger)
-		.use(auth)
-		.input(create)
-		.mutation(async ({ input, ctx }) => {
-			throw new Error('Method not implemented.');
-		}),
-
 	update: t.procedure
 		.use(logger)
 		.use(auth)
@@ -41,10 +33,6 @@ export const chapters = t.router({
 
 			if (input?.description) {
 				chapterBuilder.description(input.description);
-			}
-
-			if (input?.delta) {
-				await chapterBuilder.delta(input.id, input.delta);
 			}
 
 			const chapterNode = chapterBuilder.update();

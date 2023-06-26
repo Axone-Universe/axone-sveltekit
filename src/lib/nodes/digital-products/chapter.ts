@@ -9,7 +9,7 @@ import { UserAuthoredBookRel } from '$lib/nodes/user';
 import { BookHasChapterRel } from './book';
 import type { StorylineChapterResponse } from './storyline';
 import type { NodeRelationship } from '$lib/util/types';
-import Delta from 'quill-delta';
+import type { DeltaNode } from '../digital-assets/delta';
 
 export interface ChapterProperties {
 	id: string;
@@ -17,17 +17,15 @@ export interface ChapterProperties {
 	prevChapterID?: string;
 	title?: string;
 	description?: string;
-	// content is the current state of the chapter
-	content?: string;
-	// deltas are the autosaved increments of the state
-	// These should be merged into the content periodically on the UI in quill editor
-	deltas?: string[];
+	deltaID?: string;
 }
 
 export type ChapterNode = Node<Integer, ChapterProperties>;
 
 export interface ChapterResponse {
 	chapter: ChapterNode;
+	delta?: DeltaNode;
+	deltaOps?: string;
 }
 
 export const ChapterInStorylineRel: NodeRelationship = {
@@ -38,6 +36,11 @@ export const ChapterInStorylineRel: NodeRelationship = {
 export const ChapterPrecedesChapterRel: NodeRelationship = {
 	name: 'precedes',
 	label: 'PRECEDES'
+};
+
+export const ChapterHasDeltaRelationship: NodeRelationship = {
+	name: 'has_delta',
+	label: 'HAS_DELTA'
 };
 
 export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
@@ -91,40 +94,6 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 		return this;
 	}
 
-	/**
-	 * Mostly used for incremental autosaving
-	 * @param delta
-	 */
-	async delta(id: string, ops: string) {
-		console.log('** ' + ops);
-		let deltaOps = JSON.parse(ops);
-		let delta = new Delta(deltaOps);
-
-		const labels = this._labels.join(':');
-
-		// Get current node content
-		const query = `
-            MATCH (chapter:${labels} {id: '${id}'})
-            return chapter`;
-
-		const session = new DBSession();
-		const result = await session.executeWrite<ChapterResponse>(query);
-		const chapterResponse = result.records[0].toObject();
-
-		const content = chapterResponse.chapter.properties.content;
-
-		// convert current content to a delta
-		let contentOps = JSON.parse(content ? content : '[]');
-		let contentDelta = new Delta(contentOps);
-
-		// merge the 2 deltas
-		let newContentDelta = contentDelta.compose(delta);
-		let newContent = JSON.stringify(newContentDelta.ops);
-
-		this._chapterProperties.content = newContent;
-		return this;
-	}
-
 	async update(): Promise<ChapterResponse> {
 		if (!this._chapterProperties.id)
 			throw new Error('Must provide a chapterID to update the chapter.');
@@ -137,7 +106,6 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
             SET chapter += ${properties}
             return chapter`;
 
-		console.log('up** ' + properties);
 		const session = new DBSession();
 		const result = await session.executeWrite<ChapterResponse>(query);
 

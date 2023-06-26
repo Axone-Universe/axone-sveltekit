@@ -12,9 +12,7 @@ export const create = z.object({
 export const update = z.object({
 	id: z.string(),
 	title: z.string().optional(),
-	description: z.string().optional(),
-	delta: z.string().optional(),
-	content: z.string().optional()
+	description: z.string().optional()
 });
 
 export const search = z.object({

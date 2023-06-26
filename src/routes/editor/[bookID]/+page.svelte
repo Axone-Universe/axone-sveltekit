@@ -31,11 +31,13 @@
 		home
 	} from 'svelte-awesome/icons';
 	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
+	import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
+	import type { DeltaQuery } from '$lib/util/types';
 
 	export let data: PageData;
-	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapters } = data);
+	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
 	/**
 	 * Drawer settings
@@ -62,6 +64,7 @@
 	function drawerItemSelected(chapter?: ChapterNode) {
 		if (chapter) {
 			selectedChapterID = chapter.properties.id;
+			setupEditor();
 		}
 	}
 
@@ -77,7 +80,7 @@
 
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
-		modalComponent.props = { chapterNode: chapters[selectedChapterID] };
+		modalComponent.props = { chapterNode: chapterResponses[selectedChapterID].chapter };
 		modalStore.trigger(modalSettings);
 	};
 
@@ -100,31 +103,63 @@
 		// Set selectedChapterID to be from the url parameter
 		if (!selectedChapterID) {
 			if (chapterID) {
-				selectedChapterID = chapters[chapterID].properties.id;
+				selectedChapterID = chapterResponses[chapterID].chapter.properties.id;
 			} else {
-				selectedChapterID = Object.keys(chapters)[0];
+				selectedChapterID = Object.keys(chapterResponses)[0];
 			}
 			leftDrawerList = selectedChapterID;
 		}
 	});
 
-	afterUpdate(() => {
-		setupEditor();
-	});
+	// afterUpdate(() => {
+	// 	setupEditor();
+	// });
 
 	onMount(() => {
+		setupEditor();
 		toggleDrawer();
 	});
 
+	function loadChapterDelta() {
+		let deltaID = chapterResponses[selectedChapterID].chapter.properties.deltaID;
+
+		quill.disable();
+		quill.setText('Loading...');
+
+		let trpcRequest;
+		if (deltaID) {
+			trpcRequest = trpc($page).deltas.getById.query({
+				id: deltaID
+			});
+		} else {
+			trpcRequest = trpc($page).deltas.create.mutate({
+				chapterID: selectedChapterID
+			});
+		}
+
+		trpcRequest.then((deltaResponse) => {
+			chapterResponses[selectedChapterID].delta = deltaResponse.delta as DeltaNode;
+			chapterResponses[selectedChapterID].chapter.properties.deltaID =
+				deltaResponse.delta.properties.id;
+
+			let opsJSON = deltaResponse.delta.properties.ops;
+			let ops = JSON.parse(opsJSON ? opsJSON : '[]');
+
+			quill.setContents(new Delta(ops));
+			quill.enable();
+
+			quill.on('text-change', updateChapterChange);
+		});
+	}
 	/**
 	 * Finds the editor element and creates a new Quill instance from that
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
 	let runSetupEditor: boolean = true;
 	function setupEditor() {
-		if (!runSetupEditor) {
-			return;
-		}
+		// if (!runSetupEditor) {
+		// 	return;
+		// }
 
 		changeDelta = new Delta();
 
@@ -143,15 +178,9 @@
 				placeholder: 'Let your voice be heard...'
 			});
 
-			let chapterProperties = chapters[selectedChapterID].properties;
-			if (chapterProperties.content) {
-				let ops = JSON.parse(chapterProperties.content);
-				quill.setContents(new Delta(ops));
-			}
-
-			quill.on('text-change', updateChapterChange);
+			loadChapterDelta();
 		}
-		runSetupEditor = false;
+		// runSetupEditor = false;
 	}
 
 	/**
@@ -170,6 +199,11 @@
 	// Save the changes periodically
 	setInterval(async function () {
 		if (changeDelta.length() > 0) {
+			let deltaID = chapterResponses[selectedChapterID].chapter.properties.deltaID;
+			if (!deltaID) {
+				return;
+			}
+
 			// take a snapshot of current delta state.
 			// that is the one sent to the server
 			changeDeltaSnapshot = new Delta(changeDelta.ops);
@@ -177,9 +211,10 @@
 
 			// TODO: If the autosave fails, merge snapshot and change deltas
 			trpc($page)
-				.chapters.update.mutate({
-					id: selectedChapterID,
-					delta: JSON.stringify(changeDeltaSnapshot.ops)
+				.deltas.update.mutate({
+					id: deltaID,
+					chapterID: selectedChapterID,
+					ops: JSON.stringify(changeDeltaSnapshot.ops)
 				})
 				.then((chapterNodeResponse) => {
 					// Update the content to be one delta
@@ -189,20 +224,19 @@
 	}, autosaveInterval);
 
 	function updateChapterContent() {
-		let chapterProperties = chapters[selectedChapterID].properties;
+		let deltaProperties = chapterResponses[selectedChapterID].delta?.properties;
 		let chapterContentDelta: Delta = new Delta();
 
-		if (chapterProperties.content) {
-			let ops = JSON.parse(chapterProperties.content);
-			chapterContentDelta = new Delta(ops);
+		if (!deltaProperties) {
+			return;
 		}
+
+		let ops = JSON.parse(deltaProperties.ops);
+		chapterContentDelta = new Delta(ops);
 
 		// now update the content
 		let composedDelta = chapterContentDelta.compose(changeDelta);
-		chapters[selectedChapterID].properties.content = JSON.stringify(composedDelta.ops);
-
-		console.log('1 *' + chapters[selectedChapterID].properties.content);
-		console.log('2* ' + JSON.stringify(quill.getContents().ops));
+		deltaProperties.ops = JSON.stringify(composedDelta.ops);
 	}
 </script>
 
@@ -246,14 +280,14 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<ListBox>
-								{#each Object.entries(chapters) as [id, chapter]}
+								{#each Object.entries(chapterResponses) as [id, chapterResponse]}
 									<ListBoxItem
-										on:change={() => drawerItemSelected(chapter)}
+										on:change={() => drawerItemSelected(chapterResponse.chapter)}
 										bind:group={leftDrawerList}
 										name="chapter"
-										value={chapter.properties.id}
+										value={chapterResponse.chapter.properties.id}
 									>
-										<p class="line-clamp-1">{chapter.properties.title}</p>
+										<p class="line-clamp-1">{chapterResponse.chapter.properties.title}</p>
 									</ListBoxItem>
 								{/each}
 							</ListBox>
@@ -271,7 +305,7 @@
 			position="right"
 			class="md:!relative h-full !left-auto"
 		>
-			<div class="p-4 flex flex-col items-center">
+			<div class="h-3/4 p-4 flex flex-col items-center">
 				<LightSwitch />
 				<button
 					on:click={() => showChapterDetails()}
@@ -280,15 +314,15 @@
 				>
 					<Icon class="p-2" data={edit} scale={2.5} />
 				</button>
-				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-					<Icon class="p-2" data={trash} scale={2.5} />
-				</button>
+
 				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 					<Icon class="p-2" data={user} scale={2.5} />
 				</button>
 				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 					<Icon class="p-2" data={home} scale={2.5} />
 				</button>
+			</div>
+			<div class="h-1/4 p-4 flex flex-col-reverse items-center">
 				{#if changeDelta.length() > 0}
 					<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 						<Icon class="p-2" data={refresh} scale={2.5} />
@@ -298,6 +332,9 @@
 						<Icon class="p-2" data={check} scale={2.5} />
 					</button>
 				{/if}
+				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
+					<Icon class="p-2" data={trash} scale={2.5} />
+				</button>
 			</div>
 		</Drawer>
 	</svelte:fragment>
@@ -317,7 +354,7 @@
 						rows="4"
 						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
 						placeholder="Chapter Title"
-						bind:value={chapters[selectedChapterID].properties.title}
+						bind:value={chapterResponses[selectedChapterID].chapter.properties.title}
 					/>
 					<div class="w-full md:w-3/4" id="editor" />
 				</div>
@@ -329,7 +366,7 @@
 						<input
 							class="input"
 							type="text"
-							bind:value={chapters[selectedChapterID].properties.title}
+							bind:value={chapterResponses[selectedChapterID].chapter.properties.title}
 						/>
 						<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
 					</label>
@@ -338,7 +375,7 @@
 						Chapter Description
 						<textarea
 							class="textarea h-44 overflow-hidden"
-							bind:value={chapters[selectedChapterID].properties.description}
+							bind:value={chapterResponses[selectedChapterID].chapter.properties.description}
 						/>
 					</label>
 				</div>

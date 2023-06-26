@@ -3,7 +3,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { UserResponse } from '$lib/nodes/user';
-import { createUserSchema } from '$lib/trpc/schemas';
+import { create } from '$lib/trpc/schemas/users';
 import { supabaseAdmin } from '$lib/util/supabase';
 
 export const load = (async (event) => {
@@ -46,7 +46,7 @@ export const actions = {
 		const parsedFictional = JSON.parse(fictional as string);
 		const parsedNonFictional = JSON.parse(nonFictional as string);
 
-		const possibleFormData = createUserSchema.safeParse({
+		const possibleFormData = create.safeParse({
 			firstName,
 			lastName,
 			about,

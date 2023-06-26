@@ -56,7 +56,7 @@ describe('chapters', () => {
 
 		expect(chapter1Response.chapter.properties.title).toEqual(chapter1Title);
 		expect(chapter2Response.chapter.properties.title).toEqual(chapter2Title);
-		expect(storylineChapters[0].properties.title).toEqual(chapter1Title);
+		expect(storylineChapters[0].chapter.properties.title).toEqual(chapter1Title);
 	});
 
 	test('update chapters', async () => {
@@ -85,14 +85,10 @@ describe('chapters', () => {
 
 		let chapterUpdateResponse = await caller.chapters.update({
 			id: chapterCreateResponse.chapter.properties.id,
-			description: 'Updated chapter 1',
-			delta: '[{"insert": "This is the story of the best of us"}]'
+			description: 'Updated chapter 1'
 		});
 
 		console.log(chapterUpdateResponse);
 		expect(chapterUpdateResponse.chapter.properties.description).toEqual('Updated chapter 1');
-		expect(chapterUpdateResponse.chapter.properties.content).toEqual(
-			'[{"insert":"This is the story of the best of us"}]'
-		);
 	});
 });

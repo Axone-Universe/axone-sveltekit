@@ -30,10 +30,11 @@
 
 	async function loadChapters(storylineID: string) {
 		if (!storylines[storylineID].chapters) {
-			const chaptersResponse = await trpc($page).chapters.getAll.query({
+			const chapterResponses = await trpc($page).chapters.getAll.query({
 				storylineID: storylineID
 			});
-			storylines[storylineID].chapters = chaptersResponse as ChapterNode[];
+			const chapterNodes = chapterResponses.map((c) => c.chapter);
+			storylines[storylineID].chapters = chapterNodes as ChapterNode[];
 			activeStoryline = storylines[storylineID];
 		} else {
 			activeStoryline = storylines[storylineID];

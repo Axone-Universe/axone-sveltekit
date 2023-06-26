@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { trpc } from '$lib/trpc/client';
 import type { StorylineResponse } from '$lib/nodes/digital-products/storyline';
-import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
+import type { ChapterNode, ChapterResponse } from '$lib/nodes/digital-products/chapter';
 
 export const ssr = false;
 
@@ -23,12 +23,12 @@ export const load = (async (event) => {
 
 	const storylineChapters = (await trpc(event).chapters.getAll.query({
 		storylineID: storylineResponse.storyline.properties.id
-	})) as ChapterNode[];
+	})) as ChapterResponse[];
 
-	const chapters: { [key: string]: ChapterNode } = {};
-	storylineChapters.forEach((chapter) => {
-		chapters[chapter.properties.id] = chapter;
+	const chapterResponses: { [key: string]: ChapterResponse } = {};
+	storylineChapters.forEach((chapterResponse) => {
+		chapterResponses[chapterResponse.chapter.properties.id] = chapterResponse;
 	});
 
-	return { userAuthoredBookResponse, storylineResponse, chapters };
+	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
 }) satisfies PageServerLoad;

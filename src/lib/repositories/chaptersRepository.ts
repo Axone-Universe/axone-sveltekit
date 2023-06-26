@@ -3,7 +3,11 @@ import type { Node } from 'neo4j-driver';
 import type { StorylineChapterResponse } from '$lib/nodes/digital-products/storyline';
 import { Repository } from '$lib/repositories/repository';
 import { BookHasChapterRel } from '$lib/nodes/digital-products/book';
-import { ChapterPrecedesChapterRel, type ChapterNode } from '$lib/nodes/digital-products/chapter';
+import {
+	ChapterPrecedesChapterRel,
+	type ChapterNode,
+	type ChapterResponse
+} from '$lib/nodes/digital-products/chapter';
 
 export class ChaptersRepository extends Repository {
 	private _storylineID?: string;
@@ -17,7 +21,7 @@ export class ChaptersRepository extends Repository {
 		return this;
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<ChapterNode[]> {
+	async getAll(limit?: number, skip?: number): Promise<ChapterResponse[]> {
 		const query = `
             OPTIONAL MATCH
 				(storyline:Storyline ${this._storylineID ? `{id:'${this._storylineID}'}` : ``})-
@@ -39,15 +43,16 @@ export class ChaptersRepository extends Repository {
 		const result = await session.executeRead(query);
 
 		const resultNodes = result.records[0].get('chapters');
-		const chapters: ChapterNode[] = [];
+		const chapters: ChapterResponse[] = [];
 
 		if (resultNodes) {
 			resultNodes.forEach((node: ChapterNode) => {
-				chapters.push(node);
+				let chapterResponse = { chapter: node };
+				chapters.push(chapterResponse);
 			});
 		}
 
-		return new Promise<ChapterNode[]>((resolve) => {
+		return new Promise<ChapterResponse[]>((resolve) => {
 			resolve(chapters);
 		});
 	}
