@@ -8,8 +8,7 @@
 		ListBoxItem,
 		ListBox,
 		LightSwitch,
-		modalStore,
-		Modal
+		modalStore
 	} from '@skeletonlabs/skeleton';
 	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
 
@@ -17,6 +16,8 @@
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import Delta from 'quill-delta';
+	import { CommentsDelta } from '$lib/util/editor/delta';
+	import type Op from 'quill-delta/dist/Op';
 	import type { PageData } from './$types';
 
 	import Icon from 'svelte-awesome';
@@ -28,13 +29,15 @@
 		trash,
 		edit,
 		user,
-		home
+		comment
 	} from 'svelte-awesome/icons';
 	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 	import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
+	import CharacterModal from '$lib/components/character/CharacterModal.svelte';
 	import type { DeltaQuery } from '$lib/util/types';
+	import 'quill-comment';
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
@@ -44,7 +47,7 @@
 	 */
 	const drawerSettings: DrawerSettings = {
 		id: 'leftDrawer',
-		bgDrawer: 'bg-surface-50-900-token',
+		bgDrawer: 'bg-transparent',
 		height: 'h-full',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
@@ -84,6 +87,12 @@
 		modalStore.trigger(modalSettings);
 	};
 
+	let showCharacterDetails = () => {
+		modalComponent.ref = CharacterModal;
+		modalComponent.props = { storylineNode: storylineResponse.storyline };
+		modalStore.trigger(modalSettings);
+	};
+
 	/**
 	 * Quill Editor Settings
 	 */
@@ -91,11 +100,20 @@
 	let isEditor: boolean = true;
 	let isChapterDetails: boolean = false;
 	let quill: Quill;
+	let commentsDelta: CommentsDelta = new CommentsDelta();
+	let showComments: boolean = true;
 
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
 		['blockquote', { indent: '+1' }],
-		[{ align: '' }, { align: 'center' }, { align: 'right' }, { align: 'justify' }]
+		[
+			{ align: '' },
+			{ align: 'center' },
+			{ align: 'right' },
+			{ align: 'justify' },
+			'comments-add',
+			'comments-toggle'
+		]
 	];
 
 	beforeUpdate(() => {
@@ -111,20 +129,18 @@
 		}
 	});
 
-	// afterUpdate(() => {
-	// 	setupEditor();
-	// });
-
 	onMount(() => {
 		setupEditor();
 		toggleDrawer();
 	});
 
+	/**
+	 * Loads the delta of the selected chapter from the server
+	 */
 	function loadChapterDelta() {
 		let deltaID = chapterResponses[selectedChapterID].chapter.properties.deltaID;
 
 		quill.disable();
-		quill.setText('Loading...');
 
 		let trpcRequest;
 		if (deltaID) {
@@ -146,22 +162,82 @@
 			let ops = JSON.parse(opsJSON ? opsJSON : '[]');
 
 			quill.setContents(new Delta(ops));
-			quill.enable();
 
+			quill.on('selection-change', selectionChange);
 			quill.on('text-change', updateChapterChange);
+			commentsDelta = new CommentsDelta(ops);
+
+			quill.enable();
 		});
 	}
+
+	function toggleShowComments() {
+		showComments = !showComments;
+	}
+
+	function removeComment(id: string) {
+		let [index, length] = getRangeByID(id);
+		commentsDelta.removeComment(id, index, length, quill);
+		commentsDelta.comments = commentsDelta.comments;
+	}
+
+	/**
+	 * Updates existing comment by getting the blot from the quill Parchment
+	 * It then finds the range of the comment and updates the comment attribute values
+	 * @param id
+	 */
+	function submitComment(id: string) {
+		const comment = commentsDelta.comments[id].comment;
+
+		let [index, length] = getRangeByID(id);
+
+		commentsDelta.updateComment(index, length, quill, comment);
+	}
+
+	/**
+	 * Gets the range of the element with specified ID from the editor
+	 * @param id
+	 */
+	function getRangeByID(id: string): [number | null, number | null] {
+		// get the container with all the comments
+		let editor = document.getElementById('editor');
+
+		let commentSpan = editor?.querySelector(('#' + id).toString());
+
+		if (!commentSpan) {
+			return [null, null];
+		}
+
+		const blot = Quill.find(commentSpan);
+		let index = blot.offset(quill.scroll);
+		let length = blot.length();
+
+		return [index, length];
+	}
+
+	// TODO: show comment input for new comment
+	function commentAddClick() {
+		quill.getModule('comment').addComment(' ');
+	}
+
+	function commentServerTimestamp() {
+		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
+		return new Promise((resolve, reject) => {
+			let currentTimestamp = Math.round(new Date().getTime() / 1000);
+
+			resolve(currentTimestamp);
+		});
+	}
+
 	/**
 	 * Finds the editor element and creates a new Quill instance from that
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
-	let runSetupEditor: boolean = true;
 	function setupEditor() {
-		// if (!runSetupEditor) {
-		// 	return;
-		// }
-
 		changeDelta = new Delta();
+
+		let icons = Quill.import('ui/icons');
+		icons['comments-add'] = '<img src="/comments.svg"/>';
 
 		let container = document.getElementById('editor');
 		if (container) {
@@ -169,6 +245,13 @@
 				theme: 'bubble',
 				modules: {
 					toolbar: toolbarOptions,
+					comment: {
+						enabled: true,
+						commentAuthorId: 123,
+						commentAddOn: 'Author Name', // any additional info needed
+						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
+						commentTimestamp: commentServerTimestamp
+					},
 					history: {
 						delay: 1000,
 						maxStack: 500,
@@ -180,7 +263,6 @@
 
 			loadChapterDelta();
 		}
-		// runSetupEditor = false;
 	}
 
 	/**
@@ -194,6 +276,39 @@
 
 	function updateChapterChange(delta: Delta) {
 		changeDelta = changeDelta.compose(delta);
+		// check if new comment was added
+		let added = commentsDelta.delta(delta);
+		if (added) {
+			commentsDelta.comments = commentsDelta.comments;
+		}
+	}
+
+	function selectionChange(
+		range: { index: number; length: number },
+		oldRange: { index: number; length: number },
+		source: String
+	) {
+		if (!range) {
+			return;
+		}
+
+		let delta = quill.getContents(range.index, 1);
+
+		if (!commentsDelta.isComment(delta.ops[0])) {
+			return;
+		}
+
+		let commentId = delta.ops[0].attributes?.commentId;
+
+		if (!(commentId in commentsDelta.comments)) {
+			return;
+		}
+
+		// get the container with all the comments
+		let comments = document.getElementById('comments-container');
+
+		// focus on the textarea. it has the id of the comment
+		(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
 	}
 
 	// Save the changes periodically
@@ -237,11 +352,13 @@
 		// now update the content
 		let composedDelta = chapterContentDelta.compose(changeDelta);
 		deltaProperties.ops = JSON.stringify(composedDelta.ops);
+
+		console.log('delta ' + deltaProperties.ops);
 	}
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
+	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
 </svelte:head>
 
 <!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
@@ -253,13 +370,13 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full"
+			class="md:!relative h-full "
 		>
-			<div class="p-4 flex flex-col items-center">
+			<div class="p-4 flex flex-col items-center bg-surface-50-900-token h-full">
 				<Accordion>
 					<AccordionItem open>
 						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Front Matter</p>
+							<p class="text-lg font-bold">Storyline</p>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<ListBox>
@@ -269,7 +386,7 @@
 									name="medium"
 									value="copyright"
 								>
-									Copyright
+									{storylineResponse.storyline.properties.title}
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
@@ -301,40 +418,84 @@
 	<svelte:fragment slot="sidebarRight">
 		<Drawer
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
-			width="w-[60px] md:w-[80px]"
+			width="max-w-[80px]"
 			position="right"
 			class="md:!relative h-full !left-auto"
 		>
-			<div class="h-3/4 p-4 flex flex-col items-center">
-				<LightSwitch />
-				<button
-					on:click={() => showChapterDetails()}
-					type="button"
-					class="m-2 btn-icon bg-surface-200-700-token"
-				>
-					<Icon class="p-2" data={edit} scale={2.5} />
-				</button>
-
-				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-					<Icon class="p-2" data={user} scale={2.5} />
-				</button>
-				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-					<Icon class="p-2" data={home} scale={2.5} />
-				</button>
-			</div>
-			<div class="h-1/4 p-4 flex flex-col-reverse items-center">
-				{#if changeDelta.length() > 0}
-					<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-						<Icon class="p-2" data={refresh} scale={2.5} />
-					</button>
-				{:else}
-					<button type="button" class="m-2 btn-icon bg-success-300-600-token">
-						<Icon class="p-2" data={check} scale={2.5} />
-					</button>
+			<div class="flex h-full">
+				{#if showComments && Object.keys(commentsDelta.comments).length !== 0}
+					<div
+						id="comments-container"
+						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+					>
+						{#each Object.entries(commentsDelta.comments) as [id, comment]}
+							<div
+								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
+							>
+								<textarea
+									id={comment.id}
+									class="textarea text-sm h-20 resize-none overflow-hidden"
+									bind:value={commentsDelta.comments[id].comment}
+									required
+								/>
+								<footer class="modal-footer flex flex-col space-x-2 items-center">
+									<div>
+										<button on:click={() => removeComment(id)} class="chip variant-ghost-surface">
+											Cancel
+										</button>
+										<button
+											on:click={() => submitComment(id)}
+											class="chip variant-filled"
+											type="submit"
+										>
+											Save
+										</button>
+									</div>
+								</footer>
+							</div>
+						{/each}
+					</div>
 				{/if}
-				<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-					<Icon class="p-2" data={trash} scale={2.5} />
-				</button>
+				<div class="flex flex-col p-2 bg-surface-50-900-token">
+					<div class="h-3/4 flex flex-col items-center">
+						<LightSwitch />
+						<button
+							on:click={() => showChapterDetails()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
+							<Icon class="p-2" data={edit} scale={2.5} />
+						</button>
+						<button
+							on:click={() => toggleShowComments()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
+							<Icon class="p-2" data={comment} scale={2.5} />
+						</button>
+						<button
+							on:click={() => showCharacterDetails()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
+							<Icon class="p-2" data={user} scale={2.5} />
+						</button>
+					</div>
+					<div class="h-1/4 flex flex-col-reverse items-center">
+						{#if changeDelta.length() > 0}
+							<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
+								<Icon class="p-2" data={refresh} scale={2.5} spin />
+							</button>
+						{:else}
+							<button type="button" class="m-2 btn-icon bg-success-300-600-token">
+								<Icon class="p-2" data={check} scale={2.5} />
+							</button>
+						{/if}
+						<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
+							<Icon class="p-2" data={trash} scale={2.5} />
+						</button>
+					</div>
+				</div>
 			</div>
 		</Drawer>
 	</svelte:fragment>
