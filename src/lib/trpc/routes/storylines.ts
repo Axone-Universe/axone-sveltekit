@@ -1,9 +1,3 @@
-import { z } from 'zod';
-
-import {
-	BookBuilder,
-	type BookSubmittedToCampaignResponse
-} from '$lib/nodes/digital-products/book';
 import { StorylineBuilder } from '$lib/nodes/digital-products/storyline';
 import { StorylinesRepository } from '$lib/repositories/storyLinesRepository';
 import { auth } from '$lib/trpc/middleware/auth';
@@ -11,8 +5,6 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create } from '$lib/trpc/schemas/storylines';
 import { search } from '$lib/trpc/schemas/storylines';
-import { DBSession } from '$lib/db/session';
-import type { Genres } from '$lib/util/types';
 
 const storylinesRepo = new StorylinesRepository();
 
@@ -46,7 +38,7 @@ export const storylines = t.router({
 		.mutation(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
 
-			let storylineBuilder = new StorylineBuilder()
+			const storylineBuilder = new StorylineBuilder()
 				.userID(ctx.session.user.id)
 				.bookID(input.bookID)
 				.title(input.title)

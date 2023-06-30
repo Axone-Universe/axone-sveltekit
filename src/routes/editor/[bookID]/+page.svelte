@@ -28,8 +28,8 @@
 		check,
 		trash,
 		edit,
-		user,
-		comment
+		stickyNote,
+		dashcube
 	} from 'svelte-awesome/icons';
 	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 	import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
@@ -218,6 +218,8 @@
 	// TODO: show comment input for new comment
 	function commentAddClick() {
 		quill.getModule('comment').addComment(' ');
+		drawerStore.open(drawerSettings);
+		showComments = true;
 	}
 
 	function commentServerTimestamp() {
@@ -352,8 +354,6 @@
 		// now update the content
 		let composedDelta = chapterContentDelta.compose(changeDelta);
 		deltaProperties.ops = JSON.stringify(composedDelta.ops);
-
-		console.log('delta ' + deltaProperties.ops);
 	}
 </script>
 
@@ -441,7 +441,7 @@
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
 										<button on:click={() => removeComment(id)} class="chip variant-ghost-surface">
-											Cancel
+											Resolve
 										</button>
 										<button
 											on:click={() => submitComment(id)}
@@ -471,14 +471,14 @@
 							type="button"
 							class="m-2 btn-icon bg-surface-200-700-token"
 						>
-							<Icon class="p-2" data={comment} scale={2.5} />
+							<Icon class="p-2" data={dashcube} scale={2.5} />
 						</button>
 						<button
 							on:click={() => showCharacterDetails()}
 							type="button"
 							class="m-2 btn-icon bg-surface-200-700-token"
 						>
-							<Icon class="p-2" data={user} scale={2.5} />
+							<Icon class="p-2" data={stickyNote} scale={2.5} />
 						</button>
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">

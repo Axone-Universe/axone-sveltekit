@@ -193,8 +193,8 @@
 						</ul>
 					</nav>
 				</div>
+				<div class="arrow bg-surface-100-800-token" />
 			</div>
-			<div class="arrow bg-surface-100-800-token" />
 		</div>
 	</div>
 	<a
@@ -206,6 +206,10 @@
 	</a>
 	<svelte:fragment slot="trail">
 		<div class="flex gap-2 items-center">
+			<a href="/write" class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				><Icon data={pencil} />
+				<span class="hidden md:inline-block">Write</span>
+			</a>
 			<div class="lg:flex gap-2 hidden">
 				{#if data.session && data.session.user}
 					<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
