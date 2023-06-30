@@ -67,7 +67,7 @@ export const books = t.router({
 			const bookNode = await bookBuilder.build();
 
 			// Also create the default/main storyline
-			let storylineBuilder = new StorylineBuilder()
+			const storylineBuilder = new StorylineBuilder()
 				.userID(ctx.session.user.id)
 				.bookID(bookNode.book.properties.id)
 				.title(input.title)

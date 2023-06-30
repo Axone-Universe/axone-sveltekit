@@ -9,19 +9,23 @@ import { UserAuthoredBookRel } from '$lib/nodes/user';
 import { BookHasChapterRel } from './book';
 import type { StorylineChapterResponse } from './storyline';
 import type { NodeRelationship } from '$lib/util/types';
+import type { DeltaNode } from '../digital-assets/delta';
 
-interface ChapterProperties {
+export interface ChapterProperties {
 	id: string;
 	head: boolean;
 	prevChapterID?: string;
 	title?: string;
 	description?: string;
+	deltaID?: string;
 }
 
 export type ChapterNode = Node<Integer, ChapterProperties>;
 
 export interface ChapterResponse {
 	chapter: ChapterNode;
+	delta?: DeltaNode;
+	deltaOps?: string;
 }
 
 export const ChapterInStorylineRel: NodeRelationship = {
@@ -32,6 +36,11 @@ export const ChapterInStorylineRel: NodeRelationship = {
 export const ChapterPrecedesChapterRel: NodeRelationship = {
 	name: 'precedes',
 	label: 'PRECEDES'
+};
+
+export const ChapterHasDeltaRelationship: NodeRelationship = {
+	name: 'has_delta',
+	label: 'HAS_DELTA'
 };
 
 export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
@@ -47,6 +56,11 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 			id: randomUUID()
 		};
 		this.labels(['Chapter']);
+	}
+
+	id(id: string) {
+		this._chapterProperties.id = id;
+		return this;
 	}
 
 	title(title: string): ChapterBuilder {
@@ -78,6 +92,24 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 		this._chapterProperties.prevChapterID = prevChapterID;
 		this._chapterProperties.head = false;
 		return this;
+	}
+
+	async update(): Promise<ChapterResponse> {
+		if (!this._chapterProperties.id)
+			throw new Error('Must provide a chapterID to update the chapter.');
+
+		const properties = stringifyObject(this._chapterProperties);
+		const labels = this._labels.join(':');
+
+		const query = `
+            MATCH (chapter:${labels} {id: '${this._chapterProperties.id}'})
+            SET chapter += ${properties}
+            return chapter`;
+
+		const session = new DBSession();
+		const result = await session.executeWrite<ChapterResponse>(query);
+
+		return result.records[0].toObject();
 	}
 
 	async build(): Promise<StorylineChapterResponse> {

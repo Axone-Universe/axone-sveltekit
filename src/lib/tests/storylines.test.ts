@@ -88,11 +88,11 @@ describe('storylines', () => {
 		expect(chapter1Response.chapter.properties.title).toEqual(chapter1Title);
 		expect(chapter2_1Response.chapter.properties.title).toEqual(chapter2_1Title);
 
-		expect(storyline_1Chapters[0].properties.title).toEqual(chapter1Title);
-		expect(storyline_1Chapters[1].properties.title).toEqual(chapter2_1Title);
+		expect(storyline_1Chapters[0].chapter.properties.title).toEqual(chapter1Title);
+		expect(storyline_1Chapters[1].chapter.properties.title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
-		expect(storyline_2Chapters[0].properties.title).toEqual(chapter1Title);
-		expect(storyline_2Chapters[1].properties.title).toEqual(chapter2_2Title);
+		expect(storyline_2Chapters[0].chapter.properties.title).toEqual(chapter1Title);
+		expect(storyline_2Chapters[1].chapter.properties.title).toEqual(chapter2_2Title);
 	});
 });

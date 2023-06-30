@@ -33,7 +33,7 @@
 		use:emblaCarouselSvelte={{ options, plugins }}
 		on:emblaInit={onInit}
 	>
-		<div class="flex gap-4">
+		<div class="flex gap-4 p-2">
 			<slot />
 		</div>
 	</div>

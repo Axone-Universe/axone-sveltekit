@@ -18,10 +18,69 @@ body {
 	--theme-rounded-container: 8px;
 }
 
+.dark .card {
+	background-color: rgb(var(--color-surface-700));
+}
+
+.card {
+	background-color: rgb(var(--color-surface-300));
+}
+
 .dark .fill-logo {
 	fill: rgba(var(--theme-font-color-dark));
 }
 
 .fill-logo {
 	fill: rgba(var(--theme-font-color-base));
+}
+
+textarea::placeholder {
+	color: rgb(var(--color-surface-400));
+}
+
+/* Quill editor styling  */
+.editor-container {
+	font-family: 'Crimson Text', serif;
+}
+
+.ql-editor {
+	outline-style: solid !important;
+	outline-color: rgb(var(--color-surface-100)) !important;
+	font-family: 'Crimson Text', serif;
+}
+
+.dark .ql-editor {
+	outline-color: rgb(var(--color-surface-800)) !important;
+}
+
+.ql-editor.ql-blank::before {
+	color: rgb(var(--color-surface-400)) !important;
+}
+
+.ql-container {
+	font-size: 24px !important;
+}
+
+.ql-comments-toggle {
+	display: none !important;
+}
+
+.accordion-control {
+	background-color: rgb(var(--color-surface-200));
+}
+
+.dark .accordion-control {
+	background-color: rgb(var(--color-surface-700));
+}
+
+.custom-drawer {
+	background-color: rgb(var(--color-surface-400)) !important;
+}
+
+.dark [ql-comment] {
+	background-color: rgb(var(--color-primary-500) / 0.7) !important;
+}
+
+[ql-comment] {
+	background-color: rgb(var(--color-primary-500) / 0.5) !important;
 }

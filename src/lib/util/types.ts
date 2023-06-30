@@ -56,6 +56,12 @@ export interface CreateUser {
 	genres?: Genres;
 }
 
+export interface DeltaQuery {
+	id?: string;
+	chapterID: string;
+	ops?: string;
+}
+
 export interface CreateCampaign {
 	id?: string;
 	title: string;

@@ -5,6 +5,7 @@ import { campaigns } from '$lib/trpc/routes/campaigns';
 import { users } from '$lib/trpc/routes/users';
 import { storylines } from '$lib/trpc/routes/storylines';
 import { chapters } from '$lib/trpc/routes/chapters';
+import { deltas } from '$lib/trpc/routes/deltas';
 import { t } from '$lib/trpc/t';
 
 export const router = t.router({
@@ -12,7 +13,8 @@ export const router = t.router({
 	campaigns,
 	users,
 	storylines,
-	chapters
+	chapters,
+	deltas
 });
 
 export type Router = typeof router;

@@ -8,7 +8,8 @@ export const storylineQuerySchema = z.object({
 });
 
 export const search = z.object({
-	bookID: z.string().optional(),
+	bookID: z.string(),
+	storylineID: z.string().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
 	skip: z.number().optional()

@@ -1,9 +1,3 @@
-import { z } from 'zod';
-
-import {
-	BookBuilder,
-	type BookSubmittedToCampaignResponse
-} from '$lib/nodes/digital-products/book';
 import { StorylineBuilder } from '$lib/nodes/digital-products/storyline';
 import { StorylinesRepository } from '$lib/repositories/storyLinesRepository';
 import { auth } from '$lib/trpc/middleware/auth';
@@ -11,10 +5,8 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create } from '$lib/trpc/schemas/storylines';
 import { search } from '$lib/trpc/schemas/storylines';
-import { DBSession } from '$lib/db/session';
-import type { Genres } from '$lib/util/types';
 
-const storyLinesRepo = new StorylinesRepository();
+const storylinesRepo = new StorylinesRepository();
 
 export const storylines = t.router({
 	getAll: t.procedure
@@ -22,9 +14,19 @@ export const storylines = t.router({
 		.input(search.optional())
 		.query(async ({ input }) => {
 			if (input?.bookID) {
-				storyLinesRepo.bookId(input.bookID);
+				storylinesRepo.bookId(input.bookID);
 			}
-			const result = await storyLinesRepo.getAll(input?.limit, input?.skip);
+			const result = await storylinesRepo.getAll(input?.limit, input?.skip);
+
+			return result;
+		}),
+
+	getById: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input }) => {
+			storylinesRepo.bookId(input.bookID);
+			const result = await storylinesRepo.getById(input.storylineID);
 
 			return result;
 		}),
@@ -36,7 +38,7 @@ export const storylines = t.router({
 		.mutation(async ({ input, ctx }) => {
 			assert(ctx.session?.user.id);
 
-			let storylineBuilder = new StorylineBuilder()
+			const storylineBuilder = new StorylineBuilder()
 				.userID(ctx.session.user.id)
 				.bookID(input.bookID)
 				.title(input.title)
