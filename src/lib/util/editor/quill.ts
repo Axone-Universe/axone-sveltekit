@@ -9,7 +9,7 @@ export interface Comment {
 	timestamp: string;
 }
 
-export class CommentsDelta {
+export class QuillEditor {
 	comments: { [key: string]: Comment } = {};
 	ops: Op[] | undefined;
 
