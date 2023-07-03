@@ -99,8 +99,7 @@
 	let autosaveInterval = 5000;
 	let isEditor: boolean = true;
 	let isChapterDetails: boolean = false;
-	let quill: Quill;
-	let quillEditor: QuillEditor = new QuillEditor();
+	let quill: QuillEditor;
 	let showComments: boolean = true;
 
 	let toolbarOptions = [
@@ -165,7 +164,6 @@
 
 			quill.on('selection-change', selectionChange);
 			quill.on('text-change', updateChapterChange);
-			quillEditor = new QuillEditor(ops);
 
 			quill.enable();
 		});
@@ -176,9 +174,9 @@
 	}
 
 	function removeComment(id: string) {
-		let [index, length] = getRangeByID(id);
-		quillEditor.removeComment(id, index, length, quill);
-		quillEditor.comments = quillEditor.comments;
+		let editor = document.getElementById('editor');
+		quill.removeComment(id, editor);
+		quill.comments = quill.comments;
 	}
 
 	/**
@@ -187,35 +185,11 @@
 	 * @param id
 	 */
 	function submitComment(id: string) {
-		const comment = quillEditor.comments[id].comment;
-
-		let [index, length] = getRangeByID(id);
-
-		quillEditor.updateComment(index, length, quill, comment);
-	}
-
-	/**
-	 * Gets the range of the element with specified ID from the editor
-	 * @param id
-	 */
-	function getRangeByID(id: string): [number | null, number | null] {
-		// get the container with all the comments
+		const comment = quill.comments[id].comment;
 		let editor = document.getElementById('editor');
-
-		let element = editor?.querySelector(('#' + id).toString());
-
-		if (!element) {
-			return [null, null];
-		}
-
-		const blot = Quill.find(element);
-		let index = blot.offset(quill.scroll);
-		let length = blot.length();
-
-		return [index, length];
+		quill.updateComment(id, editor, comment);
 	}
 
-	// TODO: show comment input for new comment
 	function commentAddClick() {
 		quill.getModule('comment').addComment(' ');
 		drawerStore.open(drawerSettings);
@@ -243,7 +217,7 @@
 
 		let container = document.getElementById('editor');
 		if (container) {
-			quill = new Quill(container, {
+			quill = new QuillEditor(container, {
 				theme: 'bubble',
 				modules: {
 					toolbar: toolbarOptions,
@@ -279,9 +253,9 @@
 	function updateChapterChange(delta: Delta) {
 		changeDelta = changeDelta.compose(delta);
 		// check if new comment was added
-		let added = quillEditor.delta(delta);
+		let added = quill.delta(delta);
 		if (added) {
-			quillEditor.comments = quillEditor.comments;
+			quill.comments = quill.comments;
 		}
 	}
 
@@ -296,13 +270,13 @@
 
 		let delta = quill.getContents(range.index, 1);
 
-		if (!quillEditor.isComment(delta.ops[0])) {
+		if (!quill.isComment(delta.ops[0])) {
 			return;
 		}
 
 		let commentId = delta.ops[0].attributes?.commentId;
 
-		if (!(commentId in quillEditor.comments)) {
+		if (!(commentId in quill.comments)) {
 			return;
 		}
 
@@ -440,19 +414,19 @@
 			class="md:!relative h-full !left-auto"
 		>
 			<div class="flex h-full">
-				{#if showComments && Object.keys(quillEditor.comments).length !== 0}
+				{#if showComments && Object.keys(quill.comments).length !== 0}
 					<div
 						id="comments-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
 					>
-						{#each Object.entries(quillEditor.comments) as [id, comment]}
+						{#each Object.entries(quill.comments) as [id, comment]}
 							<div
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								<textarea
 									id={comment.id}
 									class="textarea text-sm h-20 resize-none overflow-hidden"
-									bind:value={quillEditor.comments[id].comment}
+									bind:value={quill.comments[id].comment}
 									required
 								/>
 								<footer class="modal-footer flex flex-col space-x-2 items-center">

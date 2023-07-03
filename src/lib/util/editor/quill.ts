@@ -1,6 +1,6 @@
 import type Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
-import type Quill from 'quill';
+import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
 
 export interface Comment {
 	id: string;
@@ -9,16 +9,23 @@ export interface Comment {
 	timestamp: string;
 }
 
-export class QuillEditor {
+export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	ops: Op[] | undefined;
 
-	constructor(ops?: Op[]) {
-		this.ops = ops;
-		this.intializeComments();
+	constructor(container: string | Element, options?: QuillOptionsStatic) {
+		super(container, options);
 	}
 
-	intializeComments() {
+	override setContents(delta: Delta, source?: Sources | undefined): Delta {
+		const resultDelta: Delta = super.setContents(delta, source);
+		this.intializeComments(delta);
+		return resultDelta;
+	}
+
+	intializeComments(delta: Delta) {
+		this.ops = delta.ops;
+
 		if (!this.ops) {
 			return;
 		}
@@ -67,27 +74,58 @@ export class QuillEditor {
 		return true;
 	}
 
-	updateComment(index: number | null, length: number | null, quill: Quill, comment: string) {
+	updateComment(id: string, editor: HTMLElement | null, comment: string) {
+		if (editor == null) {
+			return;
+		}
+
+		const [index, length] = this.getRangeByID(id, editor);
+
 		if (index === null || length === null) {
 			return;
 		}
-		const delta = quill.formatText(index, length, 'comment', comment, 'user');
+
+		const delta = this.formatText(index, length, 'comment', comment, 'user');
 		return delta;
 	}
 
-	removeComment(id: string, index: number | null, length: number | null, quill: Quill) {
+	removeComment(id: string, editor: HTMLElement | null) {
+		if (editor == null) {
+			return;
+		}
+
+		const [index, length] = this.getRangeByID(id, editor);
+
 		if (index === null || length === null) {
 			return;
 		}
-		quill.formatText(index, length, 'comment', false);
-		quill.formatText(index, length, 'commentAuthor', false);
-		quill.formatText(index, length, 'commentTimestamp', false);
-		quill.formatText(index, length, 'commentId', false);
+		this.formatText(index, length, 'comment', false);
+		this.formatText(index, length, 'commentAuthor', false);
+		this.formatText(index, length, 'commentTimestamp', false);
+		this.formatText(index, length, 'commentId', false);
 
 		delete this.comments[id];
 	}
 
 	getComments(): { [key: string]: Comment } {
 		return this.comments;
+	}
+
+	/**
+	 * Gets the range of the element with specified ID from the editor
+	 * @param id
+	 */
+	getRangeByID(id: string, editor: HTMLElement): [number | null, number | null] {
+		const element = editor?.querySelector(('#' + id).toString());
+
+		if (!element) {
+			return [null, null];
+		}
+
+		const blot = Quill.find(element);
+		const index = blot.offset(this.scroll);
+		const length = blot.length();
+
+		return [index, length];
 	}
 }
