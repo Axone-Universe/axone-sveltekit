@@ -1,7 +1,7 @@
 <script lang="ts">
 	import emblaCarouselSvelte from 'embla-carousel-svelte';
 	import type { EmblaPluginType, EmblaOptionsType, EmblaCarouselType } from 'embla-carousel-svelte';
-	import Container from '$lib/components/Container.svelte';
+	import Section from '$lib/components/Section.svelte';
 
 	import Icon from 'svelte-awesome';
 	import { arrowCircleRight, arrowCircleLeft } from 'svelte-awesome/icons';
@@ -24,7 +24,7 @@
 	};
 </script>
 
-<Container class="flex items-center w-full p-4">
+<Section class="flex items-center w-full p-4">
 	<button class="embla__button embla__next" on:click={scrollPrev}>
 		<Icon class="p-2" data={arrowCircleLeft} scale={3} />
 	</button>
@@ -40,4 +40,4 @@
 	<button class="embla__button embla__prev" on:click={scrollNext}>
 		<Icon class="p-2" data={arrowCircleRight} scale={3} />
 	</button>
-</Container>
+</Section>

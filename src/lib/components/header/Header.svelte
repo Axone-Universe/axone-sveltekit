@@ -82,7 +82,7 @@
 		id: 'example-3',
 		bgDrawer: 'bg-surface-100-800-token',
 		bgBackdrop: 'bg-gradient-to-tr from-indigo-500/50 via-purple-500/50 to-pink-500/50',
-		width: 'w-[280px] md:w-[480px]',
+		width: 'w-4/6 md:w-1/4',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
 	};
@@ -206,7 +206,9 @@
 	</a>
 	<svelte:fragment slot="trail">
 		<div class="flex gap-2 items-center">
-			<a href="/write" class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+			<a
+				href="/book/create"
+				class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 				><Icon data={pencil} />
 				<span class="hidden md:inline-block">Write</span>
 			</a>

@@ -2,14 +2,13 @@ import type { PageServerLoad } from './$types';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { trpc } from '$lib/trpc/client';
 import type { StorylineResponse } from '$lib/nodes/digital-products/storyline';
-import type { ChapterNode, ChapterResponse } from '$lib/nodes/digital-products/chapter';
+import type { ChapterResponse } from '$lib/nodes/digital-products/chapter';
 
 export const ssr = false;
 
 export const load = (async (event) => {
 	const bookID = event.params.bookID;
 	const storylineID = event.url.searchParams.get('storylineID');
-	const chapterID = event.url.searchParams.get('chapterID');
 
 	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
 		searchTerm: bookID,

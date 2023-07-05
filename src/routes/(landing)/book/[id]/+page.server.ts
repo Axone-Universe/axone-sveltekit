@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { trpc } from '$lib/trpc/client';
-import type { StorylineNode, StorylineResponse } from '$lib/nodes/digital-products/storyline';
+import type { StorylineResponse } from '$lib/nodes/digital-products/storyline';
 
 export const load = (async (event) => {
 	const userAuthoredBookResponse = (await trpc(event).books.getById.query({

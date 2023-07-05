@@ -26,7 +26,7 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 
-		const userResponse = await createUser(testSession);
+		await createUser(testSession);
 		const userAuthoredBookResponse = await createBook(testBookTitle);
 
 		let caller = router.createCaller({ session: null });
@@ -63,7 +63,7 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
 
-		const userResponse = await createUser(testSession);
+		await createUser(testSession);
 		const userAuthoredBookResponse = await createBook(testBookTitle);
 
 		// get the default storyline from created book
@@ -74,7 +74,7 @@ describe('chapters', () => {
 
 		// create chapter on default storyline
 		caller = router.createCaller({ session: testSession });
-		let chapterCreateResponse = await caller.chapters.create({
+		const chapterCreateResponse = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
 			storylineID: storylines[0].storyline.properties.id,
@@ -83,7 +83,7 @@ describe('chapters', () => {
 
 		expect(chapterCreateResponse.chapter.properties.description).toEqual('My chapter 1');
 
-		let chapterUpdateResponse = await caller.chapters.update({
+		const chapterUpdateResponse = await caller.chapters.update({
 			id: chapterCreateResponse.chapter.properties.id,
 			description: 'Updated chapter 1'
 		});

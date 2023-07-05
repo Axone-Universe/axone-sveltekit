@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 import {
 	BookBuilder,
 	type BookSubmittedToCampaignResponse
@@ -49,10 +47,8 @@ export const books = t.router({
 		.use(auth)
 		.input(create) // TODO: use createBook schema
 		.mutation(async ({ input, ctx }) => {
-			assert(ctx.session?.user.id);
-
 			let bookBuilder = new BookBuilder()
-				.userID(ctx.session.user.id)
+				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.description(input.description)
 				.imageURL(input.imageURL);
@@ -68,7 +64,7 @@ export const books = t.router({
 
 			// Also create the default/main storyline
 			const storylineBuilder = new StorylineBuilder()
-				.userID(ctx.session.user.id)
+				.userID(ctx.session!.user.id)
 				.bookID(bookNode.book.properties.id)
 				.title(input.title)
 				.main(true)
@@ -84,9 +80,7 @@ export const books = t.router({
 		.use(logger)
 		.use(auth)
 		.input(submitToCampaign) // TODO: use createBook schema
-		.mutation(async ({ input, ctx }) => {
-			assert(ctx.session?.user.id);
-
+		.mutation(async ({ input }) => {
 			const query = `
 				MATCH (book:Book) WHERE book.id='${input.bookID}'
 				MATCH (campaign:Campaign) WHERE campaign.id='${input.campaignID}'
