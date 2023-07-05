@@ -33,4 +33,19 @@ export class UsersRepository extends Repository {
 			resolve(count);
 		});
 	}
+
+	getById(
+		searchTerm?: string | undefined,
+		limit?: number | undefined,
+		skip?: number | undefined
+	): Promise<unknown> {
+		throw new Error('Method not implemented.');
+	}
+	getByTitle(
+		searchTerm?: string | undefined,
+		limit?: number | undefined,
+		skip?: number | undefined
+	): Promise<unknown[]> {
+		throw new Error('Method not implemented.');
+	}
 }

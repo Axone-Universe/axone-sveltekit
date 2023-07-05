@@ -57,7 +57,7 @@ dependencies:
     version: 1.2.0
   trpc-sveltekit:
     specifier: ^3.5.8
-    version: 3.5.8(@sveltejs/adapter-node@1.2.4)(@trpc/client@10.27.1)(@trpc/server@10.27.1)(@types/ws@8.5.4)(ws@8.13.0)
+    version: 3.5.8(@sveltejs/adapter-node@1.3.1)(@trpc/client@10.27.1)(@trpc/server@10.27.1)(@types/ws@8.5.5)(ws@8.13.0)
   zod:
     specifier: ^3.21.4
     version: 3.21.4
@@ -459,8 +459,8 @@ packages:
   /@polka/url@1.0.0-next.21:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
 
-  /@rollup/plugin-commonjs@24.1.0(rollup@3.23.0):
-    resolution: {integrity: sha512-eSL45hjhCWI0jCCXcNtLVqM5N1JlBGvlFfY0m6oOYnLCJ6N0qEXoZql4sY2MOUArzhH4SA/qBpTxvvZp2Sc+DQ==}
+  /@rollup/plugin-commonjs@25.0.2(rollup@3.26.1):
+    resolution: {integrity: sha512-NGTwaJxIO0klMs+WSFFtBP7b9TdTJ3K76HZkewT8/+yHzMiUGVQgaPtLQxNVYIgT5F7lxkEyVID+yS3K7bhCow==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       rollup: ^2.68.0||^3.0.0
@@ -468,16 +468,16 @@ packages:
       rollup:
         optional: true
     dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.23.0)
+      '@rollup/pluginutils': 5.0.2(rollup@3.26.1)
       commondir: 1.0.1
       estree-walker: 2.0.2
       glob: 8.1.0
       is-reference: 1.2.1
       magic-string: 0.27.0
-      rollup: 3.23.0
+      rollup: 3.26.1
     dev: false
 
-  /@rollup/plugin-json@6.0.0(rollup@3.23.0):
+  /@rollup/plugin-json@6.0.0(rollup@3.26.1):
     resolution: {integrity: sha512-i/4C5Jrdr1XUarRhVu27EEwjt4GObltD7c+MkCIpO2QIbojw8MUs+CCTqOphQi3Qtg1FLmYt+l+6YeoIf51J7w==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -486,12 +486,12 @@ packages:
       rollup:
         optional: true
     dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.23.0)
-      rollup: 3.23.0
+      '@rollup/pluginutils': 5.0.2(rollup@3.26.1)
+      rollup: 3.26.1
     dev: false
 
-  /@rollup/plugin-node-resolve@15.0.2(rollup@3.23.0):
-    resolution: {integrity: sha512-Y35fRGUjC3FaurG722uhUuG8YHOJRJQbI6/CkbRkdPotSpDj9NtIN85z1zrcyDcCQIW4qp5mgG72U+gJ0TAFEg==}
+  /@rollup/plugin-node-resolve@15.1.0(rollup@3.26.1):
+    resolution: {integrity: sha512-xeZHCgsiZ9pzYVgAo9580eCGqwh/XCEUM9q6iQfGNocjgkufHAqC3exA+45URvhiYV8sBF9RlBai650eNs7AsA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       rollup: ^2.78.0||^3.0.0
@@ -499,13 +499,13 @@ packages:
       rollup:
         optional: true
     dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.23.0)
+      '@rollup/pluginutils': 5.0.2(rollup@3.26.1)
       '@types/resolve': 1.20.2
       deepmerge: 4.3.1
       is-builtin-module: 3.2.1
       is-module: 1.0.0
       resolve: 1.22.2
-      rollup: 3.23.0
+      rollup: 3.26.1
     dev: false
 
   /@rollup/pluginutils@4.2.1:
@@ -516,7 +516,7 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@rollup/pluginutils@5.0.2(rollup@3.23.0):
+  /@rollup/pluginutils@5.0.2(rollup@3.26.1):
     resolution: {integrity: sha512-pTd9rIsP92h+B6wWwFbW8RkZv4hiR/xKsqre4SIuAOaOEQRxi0lqLke9k2/7WegC85GgUs9pjmOjCUi3In4vwA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -528,7 +528,7 @@ packages:
       '@types/estree': 1.0.1
       estree-walker: 2.0.2
       picomatch: 2.3.1
-      rollup: 3.23.0
+      rollup: 3.26.1
     dev: false
 
   /@skeletonlabs/skeleton@1.5.1:
@@ -576,26 +576,26 @@ packages:
       - encoding
     dev: false
 
-  /@supabase/gotrue-js@2.27.1:
-    resolution: {integrity: sha512-rewbfKTC9DZNnPy4rRpr5ViBXre55wEXPWOueh/ZgwunR1TGmntRcraIM6SDKrP6iRD6ucx325a467uZ5U+KWg==}
+  /@supabase/gotrue-js@2.39.0:
+    resolution: {integrity: sha512-Fhro0zcglqKAJRLeGGompySUwx74RM/CE1ICd/7R2qhpE7qWDiTM0f2s6+qK5YQnu7akHnIIvSn9NAN9MuTOqw==}
     dependencies:
       cross-fetch: 3.1.6
     transitivePeerDependencies:
       - encoding
     dev: false
 
-  /@supabase/postgrest-js@1.6.1:
-    resolution: {integrity: sha512-WDBUPOCOwcZonaCwEodwdA8hwWYOiXroDF9vWGxZxKAnuSVE2Ieci/kvhR4EsWvgGST2h90LRowgO+msXe8+fA==}
+  /@supabase/postgrest-js@1.7.1:
+    resolution: {integrity: sha512-xPRYLaZrkLbXNlzmHW6Wtf9hmcBLjjI5xUz2zj8oE2hgXGaYoZBBkpN9bmW9i17Z1f6Ujxa942AqK439XOA36A==}
     dependencies:
       cross-fetch: 3.1.6
     transitivePeerDependencies:
       - encoding
     dev: false
 
-  /@supabase/realtime-js@2.7.2:
-    resolution: {integrity: sha512-Fi6xAl5PUkqnjl3wo4rdcQIbMG3+yTRX1aUZe/yfvTG84RMvmCXJ1yN6MmafVLeZpU1xkaz5Vx4L0tnHcLiy6w==}
+  /@supabase/realtime-js@2.7.3:
+    resolution: {integrity: sha512-c7TzL81sx2kqyxsxcDduJcHL9KJdCOoKimGP6lQSqiZKX42ATlBZpWbyy9KFGFBjAP4nyopMf5JhPi2ZH9jyNw==}
     dependencies:
-      '@types/phoenix': 1.5.6
+      '@types/phoenix': 1.6.0
       '@types/websocket': 1.0.5
       websocket: 1.0.34
     transitivePeerDependencies:
@@ -614,9 +614,9 @@ packages:
     resolution: {integrity: sha512-omkgSWL1HwnpXZZy+yshFLx/qqxwk9kx9jbRM6IHNEylKrH/sz6JX7rGyIOmN9niDxMRjsCu1nwuBhD6IiF2xg==}
     dependencies:
       '@supabase/functions-js': 2.1.1
-      '@supabase/gotrue-js': 2.27.1
-      '@supabase/postgrest-js': 1.6.1
-      '@supabase/realtime-js': 2.7.2
+      '@supabase/gotrue-js': 2.39.0
+      '@supabase/postgrest-js': 1.7.1
+      '@supabase/realtime-js': 2.7.3
       '@supabase/storage-js': 2.5.1
       cross-fetch: 3.1.6
     transitivePeerDependencies:
@@ -633,16 +633,16 @@ packages:
       import-meta-resolve: 3.0.0
     dev: true
 
-  /@sveltejs/adapter-node@1.2.4(@sveltejs/kit@1.18.0):
-    resolution: {integrity: sha512-TNnhS+OKRZ9RKnC+ho5mlE2FJquI61i0v7yOXxBUSU3LAoYH2kwVVL8P8ecjefmZ8BOfM1V54pBnDODBU5CEaA==}
+  /@sveltejs/adapter-node@1.3.1(@sveltejs/kit@1.18.0):
+    resolution: {integrity: sha512-A0VgRQDCDPzdLNoiAbcOxGw4zT1Mc+n1LwT1OmO350R7WxrEqdMUChPPOd1iMfIDWlP4ie6E2d/WQf5es2d4Zw==}
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@rollup/plugin-commonjs': 24.1.0(rollup@3.23.0)
-      '@rollup/plugin-json': 6.0.0(rollup@3.23.0)
-      '@rollup/plugin-node-resolve': 15.0.2(rollup@3.23.0)
+      '@rollup/plugin-commonjs': 25.0.2(rollup@3.26.1)
+      '@rollup/plugin-json': 6.0.0(rollup@3.26.1)
+      '@rollup/plugin-node-resolve': 15.1.0(rollup@3.26.1)
       '@sveltejs/kit': 1.18.0(svelte@3.59.1)(vite@4.3.8)
-      rollup: 3.23.0
+      rollup: 3.26.1
     dev: false
 
   /@sveltejs/adapter-vercel@2.4.3(@sveltejs/kit@1.18.0):
@@ -784,8 +784,12 @@ packages:
   /@types/node@20.2.3:
     resolution: {integrity: sha512-pg9d0yC4rVNWQzX8U7xb4olIOFuuVL9za3bzMT2pu2SU0SNEi66i2qrvhE2qt0HvkhuCaWJu7pLNOt/Pj8BIrw==}
 
-  /@types/phoenix@1.5.6:
-    resolution: {integrity: sha512-e7jZ6I9uyRGsg7MNwQcarmBvRlbGb9DibbocE9crVnxqsy6C23RMxLWbJ2CQ3vgCW7taoL1L+F02EcjA6ld7XA==}
+  /@types/node@20.3.3:
+    resolution: {integrity: sha512-wheIYdr4NYML61AjC8MKj/2jrR/kDQri/CIpVoZwldwhnIrD/j9jIU5bJ8yBKuB2VhpFV7Ab6G2XkBjv9r9Zzw==}
+    dev: false
+
+  /@types/phoenix@1.6.0:
+    resolution: {integrity: sha512-qwfpsHmFuhAS/dVd4uBIraMxRd56vwBUYQGZ6GpXnFuM2XMRFJbIyruFKKlW2daQliuYZwe0qfn/UjFCDKic5g==}
     dev: false
 
   /@types/pug@2.0.6:
@@ -814,13 +818,13 @@ packages:
   /@types/websocket@1.0.5:
     resolution: {integrity: sha512-NbsqiNX9CnEfC1Z0Vf4mE1SgAJ07JnRYcNex7AJ9zAVzmiGHmjKFEk7O4TJIsgv2B1sLEb6owKFZrACwdYngsQ==}
     dependencies:
-      '@types/node': 20.2.3
+      '@types/node': 20.3.3
     dev: false
 
-  /@types/ws@8.5.4:
-    resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
+  /@types/ws@8.5.5:
+    resolution: {integrity: sha512-lwhs8hktwxSjf9UaZ9tG5M03PGogvFaH8gUgLNbN9HKIg0dvv6q+gkSuJ8HN4/VbyxkuLzCjlN7GquQ0gUJfIg==}
     dependencies:
-      '@types/node': 20.2.3
+      '@types/node': 20.3.3
     dev: false
 
   /@typescript-eslint/eslint-plugin@5.59.7(@typescript-eslint/parser@5.59.7)(eslint@8.41.0)(typescript@5.0.4):
@@ -2785,6 +2789,14 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
+  /rollup@3.26.1:
+    resolution: {integrity: sha512-I5gJCSpSMr3U9wv4D5YA8g7w7cj3eaSDeo7t+JcaFQOmoOUBgu4K9iMp8k3EZnwbJrjQxUMSKxMyB8qEQzzaSg==}
+    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: false
+
   /run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
@@ -3165,7 +3177,7 @@ packages:
   /tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
-  /trpc-sveltekit@3.5.8(@sveltejs/adapter-node@1.2.4)(@trpc/client@10.27.1)(@trpc/server@10.27.1)(@types/ws@8.5.4)(ws@8.13.0):
+  /trpc-sveltekit@3.5.8(@sveltejs/adapter-node@1.3.1)(@trpc/client@10.27.1)(@trpc/server@10.27.1)(@types/ws@8.5.5)(ws@8.13.0):
     resolution: {integrity: sha512-Mnes8ZpmvqDi1A0aHlpjQtUUT1lIs+IiDtGwFW8s7NwzFrYsgdx0jxNDpnyuY1GVMVeQlul9ZqZQyHLeoX2tqg==}
     peerDependencies:
       '@sveltejs/adapter-node': ^1.2.4
@@ -3174,10 +3186,10 @@ packages:
       '@types/ws': ^8.5.4
       ws: ^8.13.0
     dependencies:
-      '@sveltejs/adapter-node': 1.2.4(@sveltejs/kit@1.18.0)
+      '@sveltejs/adapter-node': 1.3.1(@sveltejs/kit@1.18.0)
       '@trpc/client': 10.27.1(@trpc/server@10.27.1)
       '@trpc/server': 10.27.1
-      '@types/ws': 8.5.4
+      '@types/ws': 8.5.5
       ws: 8.13.0
     dev: false
 

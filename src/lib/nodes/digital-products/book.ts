@@ -12,12 +12,13 @@ import { UserAuthoredBookRel } from '$lib/nodes/user';
 import type { NodeRelationship } from '$lib/util/types';
 import type { ChapterNode } from './chapter';
 
-interface BookProperties {
+export interface BookProperties {
 	id: string;
 	title?: string;
 	description?: string;
 	imageURL?: string;
 	genres?: string[];
+	tags?: string[];
 }
 
 export type BookNode = Node<Integer, BookProperties>;
@@ -111,7 +112,7 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
 
 		const properties = stringifyObject(this._bookProperties);
-		let genreNodes = stringifyObject(this._bookProperties.genres, {
+		const genreNodes = stringifyObject(this._bookProperties.genres, {
 			transform: (object, property, originalResult) => {
 				return `(:Genre {name:${originalResult}})`;
 			}
@@ -136,6 +137,7 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 			RETURN user, authored, book
 		`;
 
+		console.log(query);
 		const session = new DBSession();
 		const result = await session.executeWrite<UserAuthoredBookResponse>(query);
 

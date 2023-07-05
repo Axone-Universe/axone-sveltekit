@@ -62,6 +62,15 @@ export interface DeltaQuery {
 	ops?: string;
 }
 
+export interface BookProperties {
+	id: string;
+	title: string;
+	description: string;
+	imageURL: string;
+	genres: Genres;
+	tags: string[];
+}
+
 export interface CreateCampaign {
 	id?: string;
 	title: string;

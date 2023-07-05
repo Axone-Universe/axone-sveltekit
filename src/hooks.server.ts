@@ -37,19 +37,28 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 	} else {
 		const users = await userRepo.get(session.user.id);
+
+		// if the user is not created yet in the DB, create the user
+		if (
+			users.length === 0 &&
+			event.url.pathname !== '/profile/create' &&
+			event.url.pathname !== '/trpc/users.create'
+		) {
+			console.log('** red ' + event.url.pathname);
+			throw redirect(303, '/profile/create');
+		}
+
 		// User if the user is logged in and coming from the landing page, go to the homepage
 		if (event.url.pathname === '/') {
 			throw redirect(303, '/home');
-		} else if (
-			users.length === 0 &&
-			(event.url.pathname === '/profile/edit' ||
-				event.url.pathname === `/profile/${session.user.id}`)
-		) {
-			throw redirect(303, '/profile/create');
-		} else if (users.length === 1 && event.url.pathname === '/profile/create') {
+		}
+
+		if (users.length === 1 && event.url.pathname === '/profile/create') {
 			// user already has a profile - go to it instead of creating one
 			throw redirect(303, `/profile/${session.user.id}`);
-		} else if (event.url.pathname === '/login' || event.url.pathname === '/sign-up') {
+		}
+
+		if (event.url.pathname === '/login' || event.url.pathname === '/sign-up') {
 			// user already logged in - redirect to home page
 			throw redirect(303, '/');
 		}

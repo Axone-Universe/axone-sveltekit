@@ -26,12 +26,9 @@ export const users = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			// session should always be there since auth would have passed by now
-			// but have to check anyway otherwise Typescript complains
-			if (!ctx.session?.user.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-			let userBuilder = await new UserBuilder()
-				.id(ctx.session.user.id)
+			console.log('create ues');
+			let userBuilder = new UserBuilder()
+				.id(ctx.session!.user.id)
 				.firstName(input.firstName)
 				.lastName(input.lastName);
 

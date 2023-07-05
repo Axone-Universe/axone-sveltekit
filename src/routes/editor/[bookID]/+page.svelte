@@ -310,6 +310,9 @@
 				.then((chapterNodeResponse) => {
 					// Update the content to be one delta
 					updateChapterContent();
+				})
+				.catch(() => {
+					alert('bad response');
 				});
 		}
 	}, autosaveInterval);
