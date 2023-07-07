@@ -34,6 +34,10 @@ export const chapters = t.router({
 				chapterBuilder.description(input.description);
 			}
 
+			if (input?.title) {
+				chapterBuilder.title(input.title);
+			}
+
 			const chapterNode = chapterBuilder.update();
 			return chapterNode;
 		}),

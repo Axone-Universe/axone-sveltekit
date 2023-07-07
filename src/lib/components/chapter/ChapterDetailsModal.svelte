@@ -71,12 +71,17 @@
 		trpc($page)
 			.chapters.update.mutate({
 				id: chapterNode.properties.id,
+				title: chapterProperties.title,
 				description: chapterProperties.description
 			})
 			.then((chapterNodeResponse) => {
-				chapterNode.properties = chapterNodeResponse.chapter.properties;
+				chapterNode = chapterNodeResponse.chapter as ChapterNode;
 				toastMessage = 'Sunccessfully Saved';
 				toastBackground = 'bg-success-500';
+
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(chapterNode) : '';
+				}
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -90,11 +95,13 @@
 	}
 </script>
 
-<form class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
-	<header class="text-2xl font-bold text-center">{chapterProperties.title}</header>
-	<div class="modal-form border border-surface-500 p-4 space-y-4 rounded-container-token">
+<form
+	on:submit|preventDefault={submit}
+	class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}
+>
+	<div class="modal-form p-4 space-y-4 rounded-container-token">
 		<label>
-			Chapter Title
+			* Chapter Title
 
 			<input
 				class="input"
@@ -105,7 +112,7 @@
 			/>
 		</label>
 		<label>
-			*Chapter Description
+			* Chapter Description
 			<textarea
 				class="textarea h-44 overflow-hidden"
 				bind:value={chapterProperties.description}
@@ -114,7 +121,7 @@
 		</label>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">
-		<button on:click={closeModal} class="btn variant-ghost-surface">Cancel</button>
-		<button on:click={submit} class="btn variant-filled" type="submit">Save</button>
+		<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
+		<button class="btn variant-filled" type="submit">Save</button>
 	</footer>
 </form>

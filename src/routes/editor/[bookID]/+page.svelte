@@ -82,18 +82,16 @@
 		component: modalComponent,
 		response: (chapterNode: ChapterNode) => {
 			// Update the UI
-
 			let chapterID = chapterNode.properties.id;
-			selectedChapterNode = chapterNode;
+			leftDrawerList = chapterID;
 
 			if (chapterResponses[chapterID]) {
-				chapterResponses[chapterID].chapter = selectedChapterNode;
+				chapterResponses[chapterID].chapter = chapterNode;
 			} else {
-				chapterResponses[chapterID] = { chapter: selectedChapterNode };
-				setupEditor();
+				chapterResponses[chapterID] = { chapter: chapterNode };
 			}
 
-			leftDrawerList = selectedChapterNode.properties.id;
+			selectedChapterNode = chapterNode;
 			chapterResponses = chapterResponses;
 		}
 	};
@@ -110,7 +108,7 @@
 	};
 
 	let createChapter = () => {
-		let chapterProperties = { id: '', head: true, title: 'New Chapter', description: '' };
+		let chapterProperties = { id: '', head: true, title: '', description: '' };
 		let newChapterNode = new Node<Integer, ChapterProperties>(
 			new Integer(0),
 			[],
@@ -174,6 +172,12 @@
 				selectedChapterNode = chapterResponses[chapterID].chapter;
 			}
 			leftDrawerList = selectedChapterNode?.properties.id;
+		}
+	});
+
+	afterUpdate(() => {
+		if (!quill) {
+			setupEditor();
 		}
 	});
 
@@ -571,6 +575,7 @@
 						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
 						placeholder="Chapter Title"
 						bind:value={selectedChapterNode.properties.title}
+						disabled
 					/>
 					<div class="w-full md:w-3/4" id="editor" />
 				</div>
