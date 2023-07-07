@@ -42,7 +42,7 @@
 			<p class="text-sm lg:text-lg font-bold line-clamp-1">{bookData.book.properties.title}</p>
 		</div>
 	</header>
-	<div class="">
+	<div class="min-w-7/8">
 		<button on:click={showModal}>
 			<img
 				src={bookData.book.properties.imageURL}
@@ -52,7 +52,7 @@
 		</button>
 	</div>
 	<hr class="opacity-50" />
-	<footer class="p-4 flex justify-start items-center space-x-4">
+	<footer class="p-2 flex justify-start items-center space-x-4">
 		{#if bookData.user.properties.imageURL !== undefined}
 			<Avatar src={bookData.user.properties.imageURL} width="w-10" rounded="rounded-full" />
 		{:else}
@@ -60,7 +60,7 @@
 				<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />
 			</div>
 		{/if}
-		<div class="overflow-hidden flex-auto flex items-center">
+		<div class="overflow-hidden w-2/6 flex-auto flex items-center">
 			<p class="text-sm line-clamp-1">
 				{bookData.user.properties.firstName}
 				{bookData.user.properties.lastName}

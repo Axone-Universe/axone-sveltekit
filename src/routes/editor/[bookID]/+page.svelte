@@ -11,19 +11,20 @@
 		modalStore
 	} from '@skeletonlabs/skeleton';
 	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
-
 	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import Delta from 'quill-delta';
 	import { QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
+	import { Integer } from 'neo4j-driver';
+	import { Node } from 'neo4j-driver';
 
 	import Icon from 'svelte-awesome';
 	import {
 		chevronLeft,
 		chevronRight,
-		refresh,
+		plus,
 		spinner,
 		check,
 		trash,
@@ -31,7 +32,7 @@
 		stickyNote,
 		dashcube
 	} from 'svelte-awesome/icons';
-	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
+	import type { ChapterNode, ChapterProperties } from '$lib/nodes/digital-products/chapter';
 	import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -61,12 +62,12 @@
 		}
 	}
 
-	let selectedChapterID: string;
+	let selectedChapterNode: ChapterNode;
 	let leftDrawerList = 'copyright';
 
 	function drawerItemSelected(chapter?: ChapterNode) {
 		if (chapter) {
-			selectedChapterID = chapter.properties.id;
+			selectedChapterNode = chapterResponses[chapter.properties.id].chapter;
 			setupEditor();
 		}
 	}
@@ -78,12 +79,58 @@
 	let modalSettings: ModalSettings = {
 		type: 'component',
 		// Pass the component directly:
-		component: modalComponent
+		component: modalComponent,
+		response: (chapterNode: ChapterNode) => {
+			// Update the UI
+			let chapterID = chapterNode.properties.id;
+			leftDrawerList = chapterID;
+
+			if (chapterResponses[chapterID]) {
+				chapterResponses[chapterID].chapter = chapterNode;
+			} else {
+				chapterResponses[chapterID] = { chapter: chapterNode };
+			}
+
+			selectedChapterNode = chapterNode;
+			chapterResponses = chapterResponses;
+		}
 	};
 
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
-		modalComponent.props = { chapterNode: chapterResponses[selectedChapterID].chapter };
+		modalComponent.props = {
+			chapterNode: selectedChapterNode,
+			bookID: bookData.book.properties.id,
+			storylineID: storylineResponse.storyline.properties.id
+		};
+
+		modalStore.trigger(modalSettings);
+	};
+
+	let createChapter = () => {
+		let chapterProperties = { id: '', head: true, title: '', description: '' };
+		let newChapterNode = new Node<Integer, ChapterProperties>(
+			new Integer(0),
+			[],
+			chapterProperties,
+			undefined
+		);
+
+		let prevChapterID = '';
+
+		// Object (dictionary) keys are ordered largely by when the key was added
+		if (Object.keys(chapterResponses).length !== 0) {
+			prevChapterID = Object.keys(chapterResponses).pop()!;
+		}
+
+		modalComponent.ref = ChapterDetailsModal;
+		modalComponent.props = {
+			chapterNode: newChapterNode,
+			bookID: bookData.book.properties.id,
+			storylineID: storylineResponse.storyline.properties.id,
+			prevChapterID: prevChapterID
+		};
+
 		modalStore.trigger(modalSettings);
 	};
 
@@ -97,10 +144,8 @@
 	 * Quill Editor Settings
 	 */
 	let autosaveInterval = 5000;
-	let isEditor: boolean = true;
-	let isChapterDetails: boolean = false;
 	let quill: QuillEditor;
-	let showComments: boolean = true;
+	let showComments: boolean = false;
 
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
@@ -117,14 +162,22 @@
 
 	beforeUpdate(() => {
 		let chapterID = $page.url.searchParams.get('chapterID');
-		// Set selectedChapterID to be from the url parameter
-		if (!selectedChapterID) {
+
+		// Set selectedChapterNode to be from the url parameter
+		if (!selectedChapterNode) {
 			if (chapterID) {
-				selectedChapterID = chapterResponses[chapterID].chapter.properties.id;
-			} else {
-				selectedChapterID = Object.keys(chapterResponses)[0];
+				selectedChapterNode = chapterResponses[chapterID].chapter;
+			} else if (Object.keys(chapterResponses).length !== 0) {
+				chapterID = Object.keys(chapterResponses)[0];
+				selectedChapterNode = chapterResponses[chapterID].chapter;
 			}
-			leftDrawerList = selectedChapterID;
+			leftDrawerList = selectedChapterNode?.properties.id;
+		}
+	});
+
+	afterUpdate(() => {
+		if (!quill) {
+			setupEditor();
 		}
 	});
 
@@ -137,7 +190,7 @@
 	 * Loads the delta of the selected chapter from the server
 	 */
 	function loadChapterDelta() {
-		let deltaID = chapterResponses[selectedChapterID].chapter.properties.deltaID;
+		let deltaID = selectedChapterNode.properties.deltaID;
 
 		quill.disable();
 
@@ -148,13 +201,13 @@
 			});
 		} else {
 			trpcRequest = trpc($page).deltas.create.mutate({
-				chapterID: selectedChapterID
+				chapterID: selectedChapterNode.properties.id
 			});
 		}
 
 		trpcRequest.then((deltaResponse) => {
-			chapterResponses[selectedChapterID].delta = deltaResponse.delta as DeltaNode;
-			chapterResponses[selectedChapterID].chapter.properties.deltaID =
+			chapterResponses[selectedChapterNode.properties.id].delta = deltaResponse.delta as DeltaNode;
+			chapterResponses[selectedChapterNode.properties.id].chapter.properties.deltaID =
 				deltaResponse.delta.properties.id;
 
 			let opsJSON = deltaResponse.delta.properties.ops;
@@ -230,8 +283,7 @@
 					},
 					history: {
 						delay: 1000,
-						maxStack: 500,
-						userOnly: true
+						maxStack: 500
 					}
 				},
 				placeholder: 'Let your voice be heard...'
@@ -290,7 +342,7 @@
 	// Save the changes periodically
 	setInterval(async function () {
 		if (changeDelta.length() > 0) {
-			let deltaID = chapterResponses[selectedChapterID].chapter.properties.deltaID;
+			let deltaID = selectedChapterNode.properties.deltaID;
 			if (!deltaID) {
 				return;
 			}
@@ -304,7 +356,7 @@
 			trpc($page)
 				.deltas.update.mutate({
 					id: deltaID,
-					chapterID: selectedChapterID,
+					chapterID: selectedChapterNode.properties.id,
 					ops: JSON.stringify(changeDeltaSnapshot.ops)
 				})
 				.then((chapterNodeResponse) => {
@@ -318,7 +370,7 @@
 	}, autosaveInterval);
 
 	function updateChapterContent() {
-		let deltaProperties = chapterResponses[selectedChapterID].delta?.properties;
+		let deltaProperties = chapterResponses[selectedChapterNode.properties.id].delta?.properties;
 		let chapterContentDelta: Delta = new Delta();
 
 		if (!deltaProperties) {
@@ -361,6 +413,7 @@
 									on:change={() => drawerItemSelected()}
 									bind:group={leftDrawerList}
 									name="medium"
+									class="soft-listbox"
 									value="book"
 								>
 									{bookData.book.properties.title}
@@ -378,6 +431,7 @@
 									on:change={() => drawerItemSelected()}
 									bind:group={leftDrawerList}
 									name="medium"
+									class="soft-listbox"
 									value="copyright"
 								>
 									{storylineResponse.storyline.properties.title}
@@ -396,6 +450,7 @@
 										on:change={() => drawerItemSelected(chapterResponse.chapter)}
 										bind:group={leftDrawerList}
 										name="chapter"
+										class="soft-listbox"
 										value={chapterResponse.chapter.properties.id}
 									>
 										<p class="line-clamp-1">{chapterResponse.chapter.properties.title}</p>
@@ -453,26 +508,35 @@
 				<div class="flex flex-col p-2 bg-surface-50-900-token">
 					<div class="h-3/4 flex flex-col items-center">
 						<LightSwitch />
+						{#if selectedChapterNode}
+							<button
+								on:click={() => showChapterDetails()}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={edit} scale={2.5} />
+							</button>
+							<button
+								on:click={() => toggleShowComments()}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={dashcube} scale={2.5} />
+							</button>
+							<button
+								on:click={() => showCharacterDetails()}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={stickyNote} scale={2.5} />
+							</button>
+						{/if}
 						<button
-							on:click={() => showChapterDetails()}
+							on:click={() => createChapter()}
 							type="button"
 							class="m-2 btn-icon bg-surface-200-700-token"
 						>
-							<Icon class="p-2" data={edit} scale={2.5} />
-						</button>
-						<button
-							on:click={() => toggleShowComments()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={dashcube} scale={2.5} />
-						</button>
-						<button
-							on:click={() => showCharacterDetails()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={stickyNote} scale={2.5} />
+							<Icon class="p-2" data={plus} scale={2.5} />
 						</button>
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
@@ -494,54 +558,36 @@
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="default">
-		<div class="flex h-full w-full">
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{/if}
-			</div>
-			{#if isEditor}
+		{#if selectedChapterNode}
+			<div class="flex h-full w-full">
+				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
+					{#if $drawerStore.open}
+						<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
+					{:else}
+						<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
+					{/if}
+				</div>
+
 				<div class="editor-container py-10 flex flex-col w-full items-center">
 					<textarea
 						id="message"
 						rows="4"
 						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
 						placeholder="Chapter Title"
-						bind:value={chapterResponses[selectedChapterID].chapter.properties.title}
+						bind:value={selectedChapterNode.properties.title}
+						disabled
 					/>
 					<div class="w-full md:w-3/4" id="editor" />
 				</div>
-			{/if}
-			{#if isChapterDetails}
-				<div class="w-full p-10 space-y-10 chapter-details-container">
-					<label>
-						*Chapter Title
-						<input
-							class="input"
-							type="text"
-							bind:value={chapterResponses[selectedChapterID].chapter.properties.title}
-						/>
-						<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
-					</label>
 
-					<label>
-						Chapter Description
-						<textarea
-							class="textarea h-44 overflow-hidden"
-							bind:value={chapterResponses[selectedChapterID].chapter.properties.description}
-						/>
-					</label>
+				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
+					{#if $drawerStore.open}
+						<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
+					{:else}
+						<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
+					{/if}
 				</div>
-			{/if}
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{/if}
 			</div>
-		</div>
+		{/if}
 	</svelte:fragment>
 </AppShell>

@@ -49,8 +49,8 @@
 
 <Section class="bg-surface-50-900-token flex items-center">
 	<Container>
-		<div class="text-center max-w-[700px]">
-			<p>
+		<div class="text-center max-w-[700px] p-8">
+			<p class="tracking-wide leading-8">
 				<i
 					>"Great discoveries and improvements invariably involve the cooperation of many minds. I
 					may be given credit for having blazed the trail, but when I look at the subsequent
