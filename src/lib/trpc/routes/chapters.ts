@@ -7,7 +7,6 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/chapters';
 import { search } from '$lib/trpc/schemas/chapters';
-import type { Genres } from '$lib/util/types';
 
 const chaptersRepo = new ChaptersRepository();
 
@@ -28,8 +27,8 @@ export const chapters = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input, ctx }) => {
-			let chapterBuilder = new ChapterBuilder().id(input.id);
+		.mutation(async ({ input }) => {
+			const chapterBuilder = new ChapterBuilder().id(input.id);
 
 			if (input?.description) {
 				chapterBuilder.description(input.description);
@@ -44,10 +43,8 @@ export const chapters = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			assert(ctx.session?.user.id);
-
-			let chapterBuilder = new ChapterBuilder()
-				.userID(ctx.session.user.id)
+			const chapterBuilder = new ChapterBuilder()
+				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.bookID(input.bookID)
 				.storylineID(input.storylineID)

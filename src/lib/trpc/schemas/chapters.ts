@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { genres } from './shared';
 
 export const create = z.object({
 	title: z.string(),

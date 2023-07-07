@@ -25,7 +25,7 @@
 		supabase.storage
 			.from('book-covers')
 			.upload(imageFile.name, imageFile)
-			.then((response) => {
+			.then((response: { data: { path: any }; error: { statusCode: any } }) => {
 				if (response.data) {
 					let urlData = supabase.storage.from('book-covers').getPublicUrl(response.data.path);
 					createBookData(urlData.data.publicUrl);
