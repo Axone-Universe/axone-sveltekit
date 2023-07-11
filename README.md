@@ -30,13 +30,22 @@ npm run dev -- --open
 ### Running Tests
 
 To run the tests:
+
 ```bash
 npm test
 ```
+
+To run a certain fixture:
+
+```bash
+pnpm vitest chapters
+```
+
 To view console logs you must put empty lines under the log you want to view:
+
 ```javascript
-console.log("Please show this log")
-console.log("\n")
+console.log('Please show this log');
+console.log('\n');
 ```
 
 ### Neo4j local Setup
@@ -53,12 +62,19 @@ To use a local neo4j instance follow the steps below:
 - To add an admin, open neo4j browser through the desktop admin.
 - Then on the left-hand menu on the databases tab, change DB to 'system'
 - Then run this query:
+
 ```
 CALL dbms.security.createUser('axone-admin', 'password');
 CALL dbms.security.addRoleToUser('admin', 'axone-admin');
 ```
+
 - To test, start a DBMS and use 'bolt://localhost:7687' as the url
   - The password and db-user can be left blank because authentication is diabled
+
+Install APOC plugin to use it's stored procedures
+
+- After creating your database, go to the Manage screen, and then the Plugins tab.
+- Click Install in the APOC box and wait until you see the "Installed" message.
 
 ## Building
 

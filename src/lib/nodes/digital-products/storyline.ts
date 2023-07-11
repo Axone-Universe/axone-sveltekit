@@ -54,10 +54,10 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
 	private _parentStorylineID?: string;
 	private _branchOffChapterID?: string;
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._storylineProperties = {
-			id: randomUUID(),
+			id: id ? id : randomUUID(),
 			main: false
 		};
 		this.labels(['Storyline']);
@@ -136,7 +136,9 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
                 OPTIONAL MATCH 
                     (parentStoryline:Storyline {id:'${this._parentStorylineID}'})-
                         [:${BookHasChapterRel.label}]->
-                    (headChapter:Chapter {head: true})
+                    (headChapter:Chapter)
+				WHERE 
+					NOT EXISTS(()-[:${ChapterPrecedesChapterRel.label}]->(headChapter))
                 OPTIONAL MATCH p = 
                     (headChapter)-
                         [:${ChapterPrecedesChapterRel.label}*0..]->
@@ -149,8 +151,6 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
 						}
             RETURN book, storyline
 		`;
-
-		console.log(query);
 
 		const session = new DBSession();
 		const result = await session.executeWrite<BookHasStorylineResponse>(query);

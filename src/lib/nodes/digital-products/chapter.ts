@@ -10,11 +10,10 @@ import { BookHasChapterRel } from './book';
 import type { StorylineChapterResponse } from './storyline';
 import type { NodeRelationship } from '$lib/util/types';
 import type { DeltaNode } from '../digital-assets/delta';
+import type { Stats } from 'neo4j-driver-core';
 
 export interface ChapterProperties {
 	id: string;
-	head: boolean;
-	prevChapterID?: string;
 	title?: string;
 	description?: string;
 	deltaID?: string;
@@ -45,22 +44,17 @@ export const ChapterHasDeltaRelationship: NodeRelationship = {
 
 export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	private readonly _chapterProperties: ChapterProperties;
+	private _prevChapterID?: string;
 	private _userID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._chapterProperties = {
-			head: true,
-			id: randomUUID()
+			id: id ? id : randomUUID()
 		};
 		this.labels(['Chapter']);
-	}
-
-	id(id: string) {
-		this._chapterProperties.id = id;
-		return this;
 	}
 
 	title(title: string): ChapterBuilder {
@@ -89,15 +83,55 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	}
 
 	prevChapterID(prevChapterID: string) {
-		this._chapterProperties.prevChapterID = prevChapterID;
-		this._chapterProperties.head = false;
+		this._prevChapterID = prevChapterID;
 		return this;
 	}
 
-	async update(): Promise<ChapterResponse> {
-		if (!this._chapterProperties.id)
-			throw new Error('Must provide a chapterID to update the chapter.');
+	/**
+	 * Don't use DETACH DELETE
+	 * Always delete/redirect relationships by name then delete the node.
+	 * @returns
+	 */
+	async delete(): Promise<Stats> {
+		const labels = this._labels.join(':');
 
+		// order matters here. DISTINCT seems not to work inside APOC procedures
+		// first redirect the relationships and then do the deletions
+		const query = `
+            MATCH (chapter:${labels} {id: '${this._chapterProperties.id}'})
+			OPTIONAL MATCH (prevChapter:${labels})-[prevChapter_rel:${ChapterPrecedesChapterRel.label}]->(chapter)
+			OPTIONAL MATCH (nextChapter:${labels})<-[nextChapter_rel:${ChapterPrecedesChapterRel.label}]-(chapter)
+
+			WITH DISTINCT chapter, prevChapter_rel, nextChapter, nextChapter_rel
+			CALL apoc.do.when(
+				prevChapter_rel IS NOT NULL AND nextChapter IS NOT NULL,
+				'
+					CALL apoc.refactor.to(prevChapter_rel, nextChapter) YIELD output RETURN output
+				',
+				'
+					DELETE prevChapter_rel RETURN NULL
+				',
+				{prevChapter_rel:prevChapter_rel, nextChapter:nextChapter}
+			)
+			YIELD value
+			
+			MATCH (user)-[user_rel:${UserAuthoredBookRel.label}]->(chapter)
+			MATCH (storyline)-[storyline_rel:${BookHasChapterRel.label}]->(chapter)
+            MATCH (book)-[book_rel:${BookHasChapterRel.label}]->(chapter)
+			OPTIONAL MATCH (chapter)-[delta_rel:${ChapterHasDeltaRelationship.label}]->(delta)
+
+			DELETE user_rel, storyline_rel, book_rel, nextChapter_rel, delta_rel
+			DELETE delta, chapter`;
+
+		const session = new DBSession();
+		const result = await session.executeWrite(query);
+
+		console.log(query);
+		const stats = result.summary.updateStatistics.updates();
+		return stats;
+	}
+
+	async update(): Promise<ChapterResponse> {
 		const properties = stringifyObject(this._chapterProperties);
 		const labels = this._labels.join(':');
 
@@ -131,10 +165,10 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 			MERGE (storyline)-[:${BookHasChapterRel.label} {created:true}]->(chapter)
             MERGE (book)-[:${BookHasChapterRel.label}]->(chapter)
             ${
-							this._chapterProperties.prevChapterID
+							this._prevChapterID
 								? `
                 WITH storyline, chapter
-                MATCH (prevChapter:Chapter {id:'${this._chapterProperties.prevChapterID}'})
+                MATCH (prevChapter:Chapter {id:'${this._prevChapterID}'})
                 MERGE (prevChapter)-[${ChapterPrecedesChapterRel.name}:${ChapterPrecedesChapterRel.label}]->(chapter)`
 								: ''
 						}

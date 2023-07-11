@@ -26,7 +26,8 @@ export class ChaptersRepository extends Repository {
             OPTIONAL MATCH
 				(storyline:Storyline ${this._storylineID ? `{id:'${this._storylineID}'}` : ``})-
 					[:${BookHasChapterRel.label}]->
-				(headChapter:Chapter {head: true})
+				(headChapter:Chapter) 
+				WHERE NOT EXISTS(()-[:${ChapterPrecedesChapterRel.label}]->(headChapter))
 			OPTIONAL MATCH 
 				p = (headChapter)-
 						[:${ChapterPrecedesChapterRel.label}*0..]->
@@ -47,7 +48,7 @@ export class ChaptersRepository extends Repository {
 
 		if (resultNodes) {
 			resultNodes.forEach((node: ChapterNode) => {
-				let chapterResponse = { chapter: node };
+				const chapterResponse = { chapter: node };
 				chapters.push(chapterResponse);
 			});
 		}

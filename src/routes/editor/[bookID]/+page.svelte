@@ -39,6 +39,7 @@
 	import CharacterModal from '$lib/components/character/CharacterModal.svelte';
 	import type { DeltaQuery } from '$lib/util/types';
 	import 'quill-comment';
+	import type { Stats } from 'neo4j-driver-core';
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
@@ -81,10 +82,15 @@
 		// Pass the component directly:
 		component: modalComponent,
 		response: (chapterNode: ChapterNode) => {
+			if (!chapterNode) {
+				return;
+			}
+
 			// Update the UI
 			let chapterID = chapterNode.properties.id;
 			leftDrawerList = chapterID;
 
+			// afterUpdate() will run the setup editor
 			if (chapterResponses[chapterID]) {
 				chapterResponses[chapterID].chapter = chapterNode;
 			} else {
@@ -134,7 +140,54 @@
 		modalStore.trigger(modalSettings);
 	};
 
-	let showCharacterDetails = () => {
+	let deleteChapter = () => {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: selectedChapterNode.properties.title,
+			body: 'Are you sure you wish to delete this chapter?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.chapters.delete.mutate({
+							id: selectedChapterNode.properties.id
+						})
+						.then((response: Stats) => {
+							if (response.nodesDeleted !== 0) {
+								let deletedID = selectedChapterNode.properties.id;
+								let chapterIDs = Object.keys(chapterResponses);
+								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
+
+								if (nextIndex >= chapterIDs.length) {
+									nextIndex = 0;
+								}
+
+								let selectedChapterID = chapterIDs[nextIndex];
+								leftDrawerList = selectedChapterID;
+
+								// delete the node first
+								delete chapterResponses[deletedID];
+
+								// give next node if it's available
+								selectedChapterNode = chapterResponses[selectedChapterID]?.chapter;
+
+								chapterResponses = chapterResponses;
+
+								// setup the editor
+								setupEditor();
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	};
+
+	let showChapterNotes = () => {
 		modalComponent.ref = CharacterModal;
 		modalComponent.props = { storylineNode: storylineResponse.storyline };
 		modalStore.trigger(modalSettings);
@@ -165,18 +218,23 @@
 
 		// Set selectedChapterNode to be from the url parameter
 		if (!selectedChapterNode) {
-			if (chapterID) {
-				selectedChapterNode = chapterResponses[chapterID].chapter;
-			} else if (Object.keys(chapterResponses).length !== 0) {
+			if (!chapterID && Object.keys(chapterResponses).length !== 0) {
 				chapterID = Object.keys(chapterResponses)[0];
+			}
+
+			if (chapterID && chapterID in chapterResponses) {
 				selectedChapterNode = chapterResponses[chapterID].chapter;
 			}
+
 			leftDrawerList = selectedChapterNode?.properties.id;
 		}
 	});
 
 	afterUpdate(() => {
-		if (!quill) {
+		// if delta is not yet loaded then the editor has not yet been set
+		// we can't check only quill here because when we delete for instance,
+		//		quill will set but new selected chapter not loaded
+		if (selectedChapterNode && !selectedChapterNode.properties.deltaID) {
 			setupEditor();
 		}
 	});
@@ -524,20 +582,13 @@
 								<Icon class="p-2" data={dashcube} scale={2.5} />
 							</button>
 							<button
-								on:click={() => showCharacterDetails()}
+								on:click={() => showChapterNotes()}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={stickyNote} scale={2.5} />
 							</button>
 						{/if}
-						<button
-							on:click={() => createChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={plus} scale={2.5} />
-						</button>
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						{#if changeDelta.length() > 0}
@@ -549,8 +600,19 @@
 								<Icon class="p-2" data={check} scale={2.5} />
 							</button>
 						{/if}
-						<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
+						<button
+							on:click={() => deleteChapter()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
 							<Icon class="p-2" data={trash} scale={2.5} />
+						</button>
+						<button
+							on:click={() => createChapter()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
+							<Icon class="p-2" data={plus} scale={2.5} />
 						</button>
 					</div>
 				</div>

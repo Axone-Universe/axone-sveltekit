@@ -28,7 +28,7 @@ export const chapters = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input }) => {
-			const chapterBuilder = new ChapterBuilder().id(input.id);
+			const chapterBuilder = new ChapterBuilder(input.id);
 
 			if (input?.description) {
 				chapterBuilder.description(input.description);
@@ -61,5 +61,15 @@ export const chapters = t.router({
 			const bookNode = await chapterBuilder.build();
 
 			return bookNode;
+		}),
+
+	delete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input }) => {
+			const chapterBuilder = new ChapterBuilder(input.id);
+			const response = await chapterBuilder.delete();
+			return response;
 		})
 });

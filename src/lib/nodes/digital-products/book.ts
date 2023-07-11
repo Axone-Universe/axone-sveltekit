@@ -74,10 +74,10 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 	private readonly _bookProperties: BookProperties;
 	private readonly _userID: { id?: string };
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._bookProperties = {
-			id: randomUUID()
+			id: id ? id : randomUUID()
 		};
 		this.labels(['Book']);
 		this._userID = {};
@@ -137,7 +137,6 @@ export class BookBuilder extends NodeBuilder<UserAuthoredBookResponse> {
 			RETURN user, authored, book
 		`;
 
-		console.log(query);
 		const session = new DBSession();
 		const result = await session.executeWrite<UserAuthoredBookResponse>(query);
 
