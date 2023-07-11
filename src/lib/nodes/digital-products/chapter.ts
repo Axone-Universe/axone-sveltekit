@@ -14,8 +14,6 @@ import type { Stats } from 'neo4j-driver-core';
 
 export interface ChapterProperties {
 	id: string;
-	head: boolean;
-	prevChapterID?: string;
 	title?: string;
 	description?: string;
 	deltaID?: string;
@@ -46,6 +44,7 @@ export const ChapterHasDeltaRelationship: NodeRelationship = {
 
 export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	private readonly _chapterProperties: ChapterProperties;
+	private _prevChapterID?: string;
 	private _userID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
@@ -53,7 +52,6 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	constructor(id?: string) {
 		super();
 		this._chapterProperties = {
-			head: true,
 			id: id ? id : randomUUID()
 		};
 		this.labels(['Chapter']);
@@ -85,8 +83,7 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	}
 
 	prevChapterID(prevChapterID: string) {
-		this._chapterProperties.prevChapterID = prevChapterID;
-		this._chapterProperties.head = false;
+		this._prevChapterID = prevChapterID;
 		return this;
 	}
 
@@ -107,11 +104,13 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 
 			WITH DISTINCT chapter, prevChapter_rel, nextChapter, nextChapter_rel
 			CALL apoc.do.when(
-				prevChapter_rel IS NOT NULL,
+				prevChapter_rel IS NOT NULL AND nextChapter IS NOT NULL,
 				'
 					CALL apoc.refactor.to(prevChapter_rel, nextChapter) YIELD output RETURN output
 				',
-				'',
+				'
+					DELETE prevChapter_rel RETURN NULL
+				',
 				{prevChapter_rel:prevChapter_rel, nextChapter:nextChapter}
 			)
 			YIELD value
@@ -127,6 +126,7 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 		const session = new DBSession();
 		const result = await session.executeWrite(query);
 
+		console.log(query);
 		const stats = result.summary.updateStatistics.updates();
 		return stats;
 	}
@@ -165,10 +165,10 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 			MERGE (storyline)-[:${BookHasChapterRel.label} {created:true}]->(chapter)
             MERGE (book)-[:${BookHasChapterRel.label}]->(chapter)
             ${
-							this._chapterProperties.prevChapterID
+							this._prevChapterID
 								? `
                 WITH storyline, chapter
-                MATCH (prevChapter:Chapter {id:'${this._chapterProperties.prevChapterID}'})
+                MATCH (prevChapter:Chapter {id:'${this._prevChapterID}'})
                 MERGE (prevChapter)-[${ChapterPrecedesChapterRel.name}:${ChapterPrecedesChapterRel.label}]->(chapter)`
 								: ''
 						}

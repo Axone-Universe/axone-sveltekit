@@ -122,7 +122,7 @@ describe('chapters', () => {
 			prevChapterID: chapter1Response.chapter.properties.id
 		});
 
-		await caller.chapters.create({
+		const chapter3Response = await caller.chapters.create({
 			title: chapter3Title,
 			description: 'My chapter 3',
 			storylineID: storylines[0].storyline.properties.id,
@@ -134,12 +134,22 @@ describe('chapters', () => {
 			id: chapter2Response.chapter.properties.id
 		});
 
-		const storylineChapters = await caller.chapters.getAll({
+		let storylineChapters = await caller.chapters.getAll({
 			storylineID: storylines[0].storyline.properties.id
 		});
 
-		console.log(storylineChapters);
 		expect(storylineChapters.length).toEqual(2);
 		expect(chapter2DeleteResponse.nodesDeleted).toEqual(1);
+
+		const chapter3DeleteResponse = await caller.chapters.delete({
+			id: chapter3Response.chapter.properties.id
+		});
+
+		storylineChapters = await caller.chapters.getAll({
+			storylineID: storylines[0].storyline.properties.id
+		});
+
+		expect(storylineChapters.length).toEqual(1);
+		expect(chapter3DeleteResponse.nodesDeleted).toEqual(1);
 	});
 });
