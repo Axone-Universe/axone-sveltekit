@@ -81,6 +81,10 @@
 		// Pass the component directly:
 		component: modalComponent,
 		response: (chapterNode: ChapterNode) => {
+			if (!chapterNode) {
+				return;
+			}
+
 			// Update the UI
 			let chapterID = chapterNode.properties.id;
 			leftDrawerList = chapterID;
@@ -134,7 +138,7 @@
 		modalStore.trigger(modalSettings);
 	};
 
-	let showCharacterDetails = () => {
+	let showChapterNotes = () => {
 		modalComponent.ref = CharacterModal;
 		modalComponent.props = { storylineNode: storylineResponse.storyline };
 		modalStore.trigger(modalSettings);
@@ -524,20 +528,13 @@
 								<Icon class="p-2" data={dashcube} scale={2.5} />
 							</button>
 							<button
-								on:click={() => showCharacterDetails()}
+								on:click={() => showChapterNotes()}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={stickyNote} scale={2.5} />
 							</button>
 						{/if}
-						<button
-							on:click={() => createChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={plus} scale={2.5} />
-						</button>
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						{#if changeDelta.length() > 0}
@@ -551,6 +548,13 @@
 						{/if}
 						<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 							<Icon class="p-2" data={trash} scale={2.5} />
+						</button>
+						<button
+							on:click={() => createChapter()}
+							type="button"
+							class="m-2 btn-icon bg-surface-200-700-token"
+						>
+							<Icon class="p-2" data={plus} scale={2.5} />
 						</button>
 					</div>
 				</div>

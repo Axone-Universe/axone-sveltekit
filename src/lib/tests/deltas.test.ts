@@ -32,7 +32,7 @@ describe('deltas', () => {
 
 		// create chapter on default storyline
 		caller = router.createCaller({ session: testSession });
-		let chapterCreateResponse = await caller.chapters.create({
+		const chapterCreateResponse = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
 			storylineID: storylines[0].storyline.properties.id,
@@ -41,11 +41,11 @@ describe('deltas', () => {
 
 		expect(chapterCreateResponse.chapter.properties.description).toEqual('My chapter 1');
 
-		let deltaCreateResponse = await caller.deltas.create({
+		const deltaCreateResponse = await caller.deltas.create({
 			chapterID: chapterCreateResponse.chapter.properties.id
 		});
 
-		let deltaUpdateResponse = await caller.deltas.update({
+		const deltaUpdateResponse = await caller.deltas.update({
 			id: deltaCreateResponse.delta.properties.id,
 			chapterID: chapterCreateResponse.chapter.properties.id,
 			ops: '[{"insert": "This is the story of the best of us"}]'

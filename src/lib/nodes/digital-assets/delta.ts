@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-import type { Node, Integer, Relationship } from 'neo4j-driver';
+import type { Node, Integer } from 'neo4j-driver';
 import stringifyObject from 'stringify-object';
 
 import { DBSession } from '$lib/db/session';
@@ -23,18 +23,13 @@ export class DeltaBuilder extends NodeBuilder<DeltaResponse> {
 	private _chapterID?: string;
 	private readonly _deltaProperties: DeltaProperties;
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._deltaProperties = {
-			id: randomUUID(),
+			id: id ? id : randomUUID(),
 			ops: '[]'
 		};
 		this.labels(['Delta']);
-	}
-
-	id(id: string) {
-		this._deltaProperties.id = id;
-		return this;
 	}
 
 	chapterID(chapterID: string) {
@@ -52,8 +47,8 @@ export class DeltaBuilder extends NodeBuilder<DeltaResponse> {
 	 * @param delta
 	 */
 	async delta(id: string, ops: string) {
-		let deltaOps = JSON.parse(ops);
-		let delta = new Delta(deltaOps);
+		const deltaOps = JSON.parse(ops);
+		const delta = new Delta(deltaOps);
 
 		const labels = this._labels.join(':');
 
@@ -69,12 +64,12 @@ export class DeltaBuilder extends NodeBuilder<DeltaResponse> {
 		const currentOpsJSON = deltaResponse.delta.properties.ops;
 
 		// convert current ops to a delta
-		let currentOps = JSON.parse(currentOpsJSON ? currentOpsJSON : '[]');
-		let currentDelta = new Delta(currentOps);
+		const currentOps = JSON.parse(currentOpsJSON ? currentOpsJSON : '[]');
+		const currentDelta = new Delta(currentOps);
 
 		// merge the 2 deltas
-		let newDelta = currentDelta.compose(delta);
-		let newOpsJSON = JSON.stringify(newDelta.ops);
+		const newDelta = currentDelta.compose(delta);
+		const newOpsJSON = JSON.stringify(newDelta.ops);
 
 		this._deltaProperties.ops = newOpsJSON;
 		return this;

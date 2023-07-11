@@ -91,4 +91,55 @@ describe('chapters', () => {
 		console.log(chapterUpdateResponse);
 		expect(chapterUpdateResponse.chapter.properties.description).toEqual('Updated chapter 1');
 	});
+
+	test('delete chapters', async () => {
+		const testBookTitle = 'My Book';
+		const chapter1Title = 'Chapter 1';
+		const chapter2Title = 'Chapter 2';
+		const chapter3Title = 'Chapter 3';
+
+		await createUser(testSession);
+		const userAuthoredBookResponse = await createBook(testBookTitle);
+
+		let caller = router.createCaller({ session: null });
+		const storylines = await caller.storylines.getAll({
+			bookID: userAuthoredBookResponse.book.properties.id
+		});
+
+		caller = router.createCaller({ session: testSession });
+		const chapter1Response = await caller.chapters.create({
+			title: chapter1Title,
+			description: 'My chapter 1',
+			storylineID: storylines[0].storyline.properties.id,
+			bookID: userAuthoredBookResponse.book.properties.id
+		});
+
+		const chapter2Response = await caller.chapters.create({
+			title: chapter2Title,
+			description: 'My chapter 2',
+			storylineID: storylines[0].storyline.properties.id,
+			bookID: userAuthoredBookResponse.book.properties.id,
+			prevChapterID: chapter1Response.chapter.properties.id
+		});
+
+		await caller.chapters.create({
+			title: chapter3Title,
+			description: 'My chapter 3',
+			storylineID: storylines[0].storyline.properties.id,
+			bookID: userAuthoredBookResponse.book.properties.id,
+			prevChapterID: chapter2Response.chapter.properties.id
+		});
+
+		const chapter2DeleteResponse = await caller.chapters.delete({
+			id: chapter2Response.chapter.properties.id
+		});
+
+		const storylineChapters = await caller.chapters.getAll({
+			storylineID: storylines[0].storyline.properties.id
+		});
+
+		console.log(storylineChapters);
+		expect(storylineChapters.length).toEqual(2);
+		expect(chapter2DeleteResponse.nodesDeleted).toEqual(1);
+	});
 });

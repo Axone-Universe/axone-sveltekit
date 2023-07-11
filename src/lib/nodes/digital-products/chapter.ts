@@ -10,6 +10,7 @@ import { BookHasChapterRel } from './book';
 import type { StorylineChapterResponse } from './storyline';
 import type { NodeRelationship } from '$lib/util/types';
 import type { DeltaNode } from '../digital-assets/delta';
+import type { Stats } from 'neo4j-driver-core';
 
 export interface ChapterProperties {
 	id: string;
@@ -49,18 +50,13 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 	private _bookID?: string;
 	private _storylineID?: string;
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._chapterProperties = {
 			head: true,
-			id: randomUUID()
+			id: id ? id : randomUUID()
 		};
 		this.labels(['Chapter']);
-	}
-
-	id(id: string) {
-		this._chapterProperties.id = id;
-		return this;
 	}
 
 	title(title: string): ChapterBuilder {
@@ -94,10 +90,48 @@ export class ChapterBuilder extends NodeBuilder<StorylineChapterResponse> {
 		return this;
 	}
 
-	async update(): Promise<ChapterResponse> {
-		if (!this._chapterProperties.id)
-			throw new Error('Must provide a chapterID to update the chapter.');
+	/**
+	 * Don't use DETACH DELETE
+	 * Always delete/redirect relationships by name then delete the node.
+	 * @returns
+	 */
+	async delete(): Promise<Stats> {
+		const labels = this._labels.join(':');
 
+		// order matters here. DISTINCT seems not to work inside APOC procedures
+		// first redirect the relationships and then do the deletions
+		const query = `
+            MATCH (chapter:${labels} {id: '${this._chapterProperties.id}'})
+			OPTIONAL MATCH (prevChapter:${labels})-[prevChapter_rel:${ChapterPrecedesChapterRel.label}]->(chapter)
+			OPTIONAL MATCH (nextChapter:${labels})<-[nextChapter_rel:${ChapterPrecedesChapterRel.label}]-(chapter)
+
+			WITH DISTINCT chapter, prevChapter_rel, nextChapter, nextChapter_rel
+			CALL apoc.do.when(
+				prevChapter_rel IS NOT NULL,
+				'
+					CALL apoc.refactor.to(prevChapter_rel, nextChapter) YIELD output RETURN output
+				',
+				'',
+				{prevChapter_rel:prevChapter_rel, nextChapter:nextChapter}
+			)
+			YIELD value
+			
+			MATCH (user)-[user_rel:${UserAuthoredBookRel.label}]->(chapter)
+			MATCH (storyline)-[storyline_rel:${BookHasChapterRel.label}]->(chapter)
+            MATCH (book)-[book_rel:${BookHasChapterRel.label}]->(chapter)
+			OPTIONAL MATCH (chapter)-[delta_rel:${ChapterHasDeltaRelationship.label}]->(delta)
+
+			DELETE user_rel, storyline_rel, book_rel, nextChapter_rel, delta_rel
+			DELETE delta, chapter`;
+
+		const session = new DBSession();
+		const result = await session.executeWrite(query);
+
+		const stats = result.summary.updateStatistics.updates();
+		return stats;
+	}
+
+	async update(): Promise<ChapterResponse> {
 		const properties = stringifyObject(this._chapterProperties);
 		const labels = this._labels.join(':');
 

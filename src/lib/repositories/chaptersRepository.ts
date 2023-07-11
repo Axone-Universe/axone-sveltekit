@@ -47,7 +47,7 @@ export class ChaptersRepository extends Repository {
 
 		if (resultNodes) {
 			resultNodes.forEach((node: ChapterNode) => {
-				let chapterResponse = { chapter: node };
+				const chapterResponse = { chapter: node };
 				chapters.push(chapterResponse);
 			});
 		}
