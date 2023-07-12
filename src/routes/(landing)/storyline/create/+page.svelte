@@ -133,14 +133,20 @@
 			<!-- ... -->
 		</Accordion>
 	</div>
-	<div class="card p-4 h-full space-y-4 md:w-4/6">
+	<form on:submit|preventDefault={createStoryline} class="card p-4 h-full space-y-4 md:w-4/6">
 		<label>
-			Storyline Title
-			<input class="input" type="text" bind:value={storyline.title} placeholder="Untitled Book" />
+			* Storyline Title
+			<input
+				class="input"
+				type="text"
+				bind:value={storyline.title}
+				placeholder="Untitled Book"
+				required
+			/>
 		</label>
 		<label>
-			Description
-			<textarea class="textarea h-44 overflow-hidden" bind:value={storyline.description} />
+			* Description
+			<textarea class="textarea h-44 overflow-hidden" bind:value={storyline.description} required />
 		</label>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
@@ -168,8 +174,7 @@
 
 		<div class="flex flex-col sm:flex-row gap-4">
 			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" on:click={createStoryline}>Create Storyline</button
-			>
+			<button class="btn variant-filled-primary" type="submit">Create Storyline</button>
 		</div>
-	</div>
+	</form>
 </Container>

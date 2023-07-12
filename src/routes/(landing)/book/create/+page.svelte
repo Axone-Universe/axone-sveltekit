@@ -22,6 +22,11 @@
 	const { supabase } = data;
 
 	async function createBook() {
+		if (!imageFile) {
+			createBookData(null);
+			return;
+		}
+
 		// save the book-cover first
 		supabase.storage
 			.from('book-covers')
@@ -40,7 +45,7 @@
 							break;
 						}
 						default: {
-							//statements;
+							createBookData('');
 							break;
 						}
 					}
@@ -54,8 +59,10 @@
 			});
 	}
 
-	async function createBookData(imageURL: string) {
-		book.imageURL = imageURL;
+	async function createBookData(imageURL: string | null) {
+		if (imageURL) {
+			book.imageURL = imageURL;
+		}
 		trpc($page)
 			.books.create.mutate(book)
 			.then(async (bookResponse) => {
@@ -121,14 +128,21 @@
 			</div>
 		</footer>
 	</div>
-	<div class="card p-4 space-y-4 md:w-full">
+
+	<form on:submit|preventDefault={createBook} class="card p-4 space-y-4 md:w-full">
 		<label>
-			Book Title
-			<input class="input" type="text" bind:value={book.title} placeholder="Untitled Book" />
+			* Book Title
+			<input
+				class="input"
+				type="text"
+				bind:value={book.title}
+				placeholder="Untitled Book"
+				required
+			/>
 		</label>
 		<label>
-			Description
-			<textarea class="textarea h-44 overflow-hidden" bind:value={book.description} />
+			* Description
+			<textarea class="textarea h-44 overflow-hidden" bind:value={book.description} required />
 		</label>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
@@ -156,7 +170,7 @@
 
 		<div class="flex flex-col sm:flex-row gap-4">
 			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" on:click={createBook}>Create Book</button>
+			<button class="btn variant-filled-primary" type="submit">Create Book</button>
 		</div>
-	</div>
+	</form>
 </Container>

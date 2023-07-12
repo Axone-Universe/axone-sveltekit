@@ -60,10 +60,12 @@ export class ChaptersRepository extends Repository {
 		let longestPath: Record;
 
 		resultRecords.forEach((record) => {
-			const pathLength = record.get('chapters').length;
-			if (pathLength > longestPathLength) {
-				longestPathLength = pathLength;
-				longestPath = record.get('chapters');
+			if (record.get('chapters')) {
+				const pathLength = record.get('chapters').length;
+				if (pathLength > longestPathLength) {
+					longestPathLength = pathLength;
+					longestPath = record.get('chapters');
+				}
 			}
 		});
 

@@ -6,6 +6,7 @@
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { writable, type Writable } from 'svelte/store';
+	import { onMount } from 'svelte';
 
 	import Logo from '$lib/assets/logo.svelte';
 	import { popup } from '../../util/popup/popup';
@@ -90,6 +91,10 @@
 	function openDrawer() {
 		drawerStore.open(drawerSettings);
 	}
+
+	onMount(() => {
+		drawerStore.close();
+	});
 
 	/**
 	 * Logout event handler
