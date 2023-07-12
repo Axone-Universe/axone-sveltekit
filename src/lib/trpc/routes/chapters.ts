@@ -8,16 +8,21 @@ import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/chapters';
 import { search } from '$lib/trpc/schemas/chapters';
 
-const chaptersRepo = new ChaptersRepository();
-
 export const chapters = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
 		.query(async ({ input }) => {
+			const chaptersRepo = new ChaptersRepository();
+
 			if (input?.storylineID) {
 				chaptersRepo.storylineID(input.storylineID);
 			}
+
+			if (input?.toChapterID) {
+				chaptersRepo.toChapterID(input.toChapterID);
+			}
+
 			const result = await chaptersRepo.getAll(input?.limit, input?.skip);
 
 			return result;
@@ -38,7 +43,7 @@ export const chapters = t.router({
 				chapterBuilder.title(input.title);
 			}
 
-			const chapterNode = chapterBuilder.update();
+			const chapterNode = await chapterBuilder.update();
 			return chapterNode;
 		}),
 

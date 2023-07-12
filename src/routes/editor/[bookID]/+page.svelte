@@ -153,7 +153,7 @@
 						.chapters.delete.mutate({
 							id: selectedChapterNode.properties.id
 						})
-						.then((response: Stats) => {
+						.then((response) => {
 							if (response.nodesDeleted !== 0) {
 								let deletedID = selectedChapterNode.properties.id;
 								let chapterIDs = Object.keys(chapterResponses);

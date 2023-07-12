@@ -50,13 +50,21 @@ describe('chapters', () => {
 			prevChapterID: chapter1Response.chapter.properties.id
 		});
 
-		const storylineChapters = await caller.chapters.getAll({
+		let storylineChapters = await caller.chapters.getAll({
 			storylineID: storylines[0].storyline.properties.id
 		});
 
 		expect(chapter1Response.chapter.properties.title).toEqual(chapter1Title);
 		expect(chapter2Response.chapter.properties.title).toEqual(chapter2Title);
 		expect(storylineChapters[0].chapter.properties.title).toEqual(chapter1Title);
+
+		// Get up to a certain point
+		storylineChapters = await caller.chapters.getAll({
+			storylineID: storylines[0].storyline.properties.id,
+			toChapterID: chapter1Response.chapter.properties.id
+		});
+
+		expect(storylineChapters.length).toEqual(1);
 	});
 
 	test('update chapters', async () => {

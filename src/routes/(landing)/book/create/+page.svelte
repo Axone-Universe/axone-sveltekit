@@ -8,6 +8,7 @@
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { PageData } from './$types';
+	import type { StorageError } from '$lib/util/types';
 
 	const bookPropertyBuilder = new BookPropertyBuilder();
 	const book = bookPropertyBuilder.getProperties();
@@ -21,17 +22,22 @@
 	const { supabase } = data;
 
 	async function createBook() {
+		if (!imageFile) {
+			createBookData(null);
+			return;
+		}
+
 		// save the book-cover first
 		supabase.storage
 			.from('book-covers')
 			.upload(imageFile.name, imageFile)
-			.then((response: { data: { path: any }; error: { statusCode: any } }) => {
+			.then((response: StorageError) => {
 				if (response.data) {
 					let urlData = supabase.storage.from('book-covers').getPublicUrl(response.data.path);
 					createBookData(urlData.data.publicUrl);
 				} else {
 					let message = 'Error uploading book cover';
-					switch (response.error.statusCode!) {
+					switch (response.error.statusCode) {
 						case '409': {
 							message = 'Image already exists';
 							let urlData = supabase.storage.from('book-covers').getPublicUrl(imageFile.name);
@@ -39,7 +45,7 @@
 							break;
 						}
 						default: {
-							//statements;
+							createBookData('');
 							break;
 						}
 					}
@@ -53,8 +59,10 @@
 			});
 	}
 
-	async function createBookData(imageURL: string) {
-		book.imageURL = imageURL;
+	async function createBookData(imageURL: string | null) {
+		if (imageURL) {
+			book.imageURL = imageURL;
+		}
 		trpc($page)
 			.books.create.mutate(book)
 			.then(async (bookResponse) => {
@@ -100,7 +108,7 @@
 <Container
 	class="flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row md:mx-40 xl:mx-96"
 >
-	<div class="card mx-2 w-5/6 md:w-full aspect-[10/17] h-fit pb-2 card-hover">
+	<div class="card mx-2 w-5/6 md:w-2/6 aspect-[10/17] h-fit pb-2 card-hover">
 		<div class="h-[87%]">
 			<button>
 				<img
@@ -120,14 +128,21 @@
 			</div>
 		</footer>
 	</div>
-	<div class="card p-4 space-y-4">
+
+	<form on:submit|preventDefault={createBook} class="card p-4 space-y-4 md:w-full">
 		<label>
-			Book Title
-			<input class="input" type="text" bind:value={book.title} placeholder="Untitled Book" />
+			* Book Title
+			<input
+				class="input"
+				type="text"
+				bind:value={book.title}
+				placeholder="Untitled Book"
+				required
+			/>
 		</label>
 		<label>
-			Description
-			<textarea class="textarea h-44 overflow-hidden" bind:value={book.description} />
+			* Description
+			<textarea class="textarea h-44 overflow-hidden" bind:value={book.description} required />
 		</label>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
@@ -155,7 +170,7 @@
 
 		<div class="flex flex-col sm:flex-row gap-4">
 			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" on:click={createBook}>Create Book</button>
+			<button class="btn variant-filled-primary" type="submit">Create Book</button>
 		</div>
-	</div>
+	</form>
 </Container>

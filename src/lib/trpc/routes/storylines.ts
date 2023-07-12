@@ -36,10 +36,8 @@ export const storylines = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			assert(ctx.session?.user.id);
-
 			const storylineBuilder = new StorylineBuilder()
-				.userID(ctx.session.user.id)
+				.userID(ctx.session!.user.id)
 				.bookID(input.bookID)
 				.title(input.title)
 				.description(input.description);

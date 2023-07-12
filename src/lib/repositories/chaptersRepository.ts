@@ -1,5 +1,5 @@
 import { DBSession } from '$lib/db/session';
-import type { Node } from 'neo4j-driver';
+import type { Record } from 'neo4j-driver';
 import type { StorylineChapterResponse } from '$lib/nodes/digital-products/storyline';
 import { Repository } from '$lib/repositories/repository';
 import { BookHasChapterRel } from '$lib/nodes/digital-products/book';
@@ -11,6 +11,7 @@ import {
 
 export class ChaptersRepository extends Repository {
 	private _storylineID?: string;
+	private _toChapterID?: string;
 
 	constructor() {
 		super();
@@ -21,6 +22,18 @@ export class ChaptersRepository extends Repository {
 		return this;
 	}
 
+	toChapterID(toChapterID: string): ChaptersRepository {
+		this._toChapterID = toChapterID;
+		return this;
+	}
+
+	/**
+	 * You must specify the chapter to end on otherwise all sub-paths for the storyline will be returned
+	 * In the where statement, we end at the leaf chapter or a specified _toChapterID
+	 * @param limit
+	 * @param skip
+	 * @returns
+	 */
 	async getAll(limit?: number, skip?: number): Promise<ChapterResponse[]> {
 		const query = `
             OPTIONAL MATCH
@@ -31,10 +44,9 @@ export class ChaptersRepository extends Repository {
 			OPTIONAL MATCH 
 				p = (headChapter)-
 						[:${ChapterPrecedesChapterRel.label}*0..]->
-					(chapter:Chapter)
-			WHERE 
-				NOT EXISTS((chapter)-[:${ChapterPrecedesChapterRel.label}]->())
-				AND EXISTS((storyline)-[:${BookHasChapterRel.label}]-(chapter))
+					(tailChapter)
+				WHERE EXISTS((storyline)-[:${BookHasChapterRel.label}]->(tailChapter))
+				${this._toChapterID ? `AND tailChapter.id ='${this._toChapterID}'` : ``}
 			RETURN nodes(p) as chapters
 			${skip ? `SKIP ${skip}` : ''}
 			${limit ? `LIMIT ${limit}` : ''}
@@ -43,11 +55,24 @@ export class ChaptersRepository extends Repository {
 		const session = new DBSession();
 		const result = await session.executeRead(query);
 
-		const resultNodes = result.records[0].get('chapters');
+		const resultRecords = result.records;
+		let longestPathLength = 0;
+		let longestPath: Record;
+
+		resultRecords.forEach((record) => {
+			if (record.get('chapters')) {
+				const pathLength = record.get('chapters').length;
+				if (pathLength > longestPathLength) {
+					longestPathLength = pathLength;
+					longestPath = record.get('chapters');
+				}
+			}
+		});
+
 		const chapters: ChapterResponse[] = [];
 
-		if (resultNodes) {
-			resultNodes.forEach((node: ChapterNode) => {
+		if (longestPath!) {
+			longestPath.forEach((node: ChapterNode) => {
 				const chapterResponse = { chapter: node };
 				chapters.push(chapterResponse);
 			});

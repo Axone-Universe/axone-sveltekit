@@ -44,7 +44,7 @@
 	}
 </script>
 
-<Container>
+<Container class="mx-4  md:mx-40 xl:mx-96">
 	<Stepper on:complete={submit}>
 		<Step locked={userInfo.firstName.length === 0 || userInfo.lastName.length === 0}>
 			<svelte:fragment slot="header">Basic Information</svelte:fragment>
@@ -69,7 +69,7 @@
 		</Step>
 		<Step>
 			<svelte:fragment slot="header">Genre Preferences</svelte:fragment>
-			<div class="flex flex-wrap gap-2">
+			<div class="flex flex-wrap gap-4 space-x-4">
 				{#each Object.keys(userInfo.genres) as genre}
 					<span
 						class="chip {userInfo.genres[genre] ? 'variant-filled' : 'variant-soft'}"

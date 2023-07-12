@@ -70,6 +70,17 @@ export interface BookProperties {
 	genres: Genres;
 	tags: string[];
 }
+export interface StorylineProperties {
+	id: string;
+	bookID: string;
+	title: string;
+	description: string;
+	imageURL: string;
+	genres: Genres;
+	tags: string[];
+	parentStorylineID?: string;
+	branchOffChapterID?: string;
+}
 
 export interface CreateCampaign {
 	id?: string;
@@ -92,3 +103,7 @@ export interface NodeRelationship {
 	name: string;
 	label: string;
 }
+
+export type StorageError =
+	| { data: { path: string }; error: null }
+	| { data: null; error: { name: string; statusCode?: string } };

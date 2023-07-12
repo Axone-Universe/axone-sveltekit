@@ -4,8 +4,8 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import Icon from 'svelte-awesome';
-	import { arrowDown, plus, leanpub, star } from 'svelte-awesome/icons';
-	import { beforeUpdate, afterUpdate } from 'svelte';
+	import { caretDown, plus, leanpub, star } from 'svelte-awesome/icons';
+	import { afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
 	import Container from '$lib/components/Container.svelte';
@@ -101,11 +101,11 @@
 			</div>
 			<div class="flex justify-end w-2/5">
 				<button
-					class="btn variant-filled line-clamp-1 w-full justify-between"
+					class="btn variant-filled space-x-12 line-clamp-1 w-full justify-between"
 					use:popup={popupCombobox}
 				>
 					<span class="capitalize text-sm">{comboboxValue ?? 'Story Lines'}</span>
-					<Icon class="p-2" data={arrowDown} scale={2} />
+					<Icon data={caretDown} scale={1} />
 				</button>
 
 				<div class="card w-48 shadow-xl py-2" data-popup="popupCombobox">
@@ -142,7 +142,7 @@
 							</div>
 						</div>
 						<div class="flex flex-col justify-between items-center">
-							<p class="w-full line-clamp-3">
+							<p class="w-full font-thin line-clamp-2">
 								{chapter.properties.description}
 							</p>
 							<div class="btn-group variant-filled">
@@ -156,7 +156,12 @@
 									href="/editor/{bookData.book.properties.id}?storylineID={activeStoryline.storyline
 										.properties.id}&chapterID={chapter.properties.id}">Edit</a
 								>
-								<button>+</button>
+								<a
+									class="button"
+									href="/storyline/create?bookID={bookData.book.properties
+										.id}&parentStorylineID={activeStoryline.storyline.properties
+										.id}&chapterID={chapter.properties.id}">+</a
+								>
 							</div>
 						</div>
 

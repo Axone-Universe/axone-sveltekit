@@ -152,6 +152,7 @@ export class StorylineBuilder extends NodeBuilder<BookHasStorylineResponse> {
             RETURN book, storyline
 		`;
 
+		console.log(query);
 		const session = new DBSession();
 		const result = await session.executeWrite<BookHasStorylineResponse>(query);
 
