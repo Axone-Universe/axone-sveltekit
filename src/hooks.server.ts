@@ -44,7 +44,6 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			event.url.pathname !== '/profile/create' &&
 			event.url.pathname !== '/trpc/users.create'
 		) {
-			console.log('** red ' + event.url.pathname);
 			throw redirect(303, '/profile/create');
 		}
 
