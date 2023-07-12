@@ -8,6 +8,7 @@
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { PageData } from './$types';
+	import type { StorageError } from '$lib/util/types';
 
 	const bookPropertyBuilder = new BookPropertyBuilder();
 	const book = bookPropertyBuilder.getProperties();
@@ -25,13 +26,13 @@
 		supabase.storage
 			.from('book-covers')
 			.upload(imageFile.name, imageFile)
-			.then((response: { data: { path: any }; error: { statusCode: any } }) => {
+			.then((response: StorageError) => {
 				if (response.data) {
 					let urlData = supabase.storage.from('book-covers').getPublicUrl(response.data.path);
 					createBookData(urlData.data.publicUrl);
 				} else {
 					let message = 'Error uploading book cover';
-					switch (response.error.statusCode!) {
+					switch (response.error.statusCode) {
 						case '409': {
 							message = 'Image already exists';
 							let urlData = supabase.storage.from('book-covers').getPublicUrl(imageFile.name);
@@ -100,7 +101,7 @@
 <Container
 	class="flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row md:mx-40 xl:mx-96"
 >
-	<div class="card mx-2 w-5/6 md:w-full aspect-[10/17] h-fit pb-2 card-hover">
+	<div class="card mx-2 w-5/6 md:w-2/6 aspect-[10/17] h-fit pb-2 card-hover">
 		<div class="h-[87%]">
 			<button>
 				<img
@@ -120,7 +121,7 @@
 			</div>
 		</footer>
 	</div>
-	<div class="card p-4 space-y-4">
+	<div class="card p-4 space-y-4 md:w-full">
 		<label>
 			Book Title
 			<input class="input" type="text" bind:value={book.title} placeholder="Untitled Book" />
