@@ -211,14 +211,14 @@
 	</a>
 	<svelte:fragment slot="trail">
 		<div class="flex gap-2 items-center">
-			<a
-				href="/book/create"
-				class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-				><Icon data={pencil} />
-				<span class="hidden md:inline-block">Write</span>
-			</a>
 			<div class="lg:flex gap-2 hidden">
 				{#if data.session && data.session.user}
+					<a
+						href="/book/create"
+						class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+						><Icon data={pencil} />
+						<span class="hidden md:inline-block">Write</span>
+					</a>
 					<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
 					<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a
 					>
