@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { genres } from './shared';
 
-import type { CreateUser } from '$lib/util/types';
+import type { UserProperties } from '$lib/util/types';
 
 export const create = z.object({
 	firstName: z.string().min(1),
@@ -15,4 +15,4 @@ export const create = z.object({
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
 	genres: genres.optional()
-}) satisfies z.ZodType<CreateUser>;
+}) satisfies z.ZodType<UserProperties>;
