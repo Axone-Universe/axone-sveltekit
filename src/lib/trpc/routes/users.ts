@@ -21,6 +21,14 @@ export const users = t.router({
 			return result;
 		}),
 
+	getById: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input }) => {
+			const result = await usersRepo.getById(input.searchTerm);
+
+			return result;
+		}),
 	create: t.procedure
 		.use(logger)
 		.use(auth)

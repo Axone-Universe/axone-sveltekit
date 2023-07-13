@@ -41,7 +41,7 @@ export interface Genres {
 	'Travel Guides': boolean;
 }
 
-export interface CreateUser {
+export interface UserProperties {
 	firstName: string;
 	lastName: string;
 	id?: string;

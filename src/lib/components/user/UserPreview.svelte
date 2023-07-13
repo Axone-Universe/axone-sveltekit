@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CreateUser } from '$lib/util/types';
+	import type { UserProperties } from '$lib/util/types';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { user, book, edit, pencil } from 'svelte-awesome/icons';
 
-	export let userData: CreateUser;
+	export let userData: UserProperties;
 
 	let customClass = '';
 	export { customClass as class };

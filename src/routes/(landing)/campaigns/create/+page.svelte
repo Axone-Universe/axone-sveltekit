@@ -76,7 +76,7 @@
 	}
 </script>
 
-<Container>
+<Container class="mx-4  md:mx-40 xl:mx-96">
 	<div class="card p-4 space-y-4">
 		<label>
 			Campaign title

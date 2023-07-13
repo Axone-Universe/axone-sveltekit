@@ -34,13 +34,25 @@ export class UsersRepository extends Repository {
 		});
 	}
 
-	getById(
-		searchTerm?: string | undefined,
-		limit?: number | undefined,
-		skip?: number | undefined
-	): Promise<unknown> {
-		throw new Error('Method not implemented.');
+	async getById(id?: string): Promise<UserResponse> {
+		const query = `
+			MATCH (user:User {id: '${id}'})
+			RETURN user
+		`;
+
+		const session = new DBSession();
+		const result = await session.executeRead<UserResponse>(query);
+
+		let user: UserResponse;
+		if (result.records.length > 0) {
+			user = result.records[0].toObject();
+		}
+
+		return new Promise<UserResponse>((resolve) => {
+			resolve(user);
+		});
 	}
+
 	getByTitle(
 		searchTerm?: string | undefined,
 		limit?: number | undefined,
