@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 import { ChapterBuilder } from '$lib/nodes/digital-products/chapter';
 import { ChaptersRepository } from '$lib/repositories/chaptersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
