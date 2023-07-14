@@ -3,12 +3,10 @@
 
 	import defaultUserImage from '$lib/assets/default-user.png';
 	import Container from '$lib/components/Container.svelte';
-	import type { UserProperties } from '$lib/util/types';
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { GenresBuilder } from '$lib/util/genres';
 	import { UserPropertyBuilder } from '$lib/util/users';
 
 	export let data: PageData;
