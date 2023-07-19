@@ -55,7 +55,7 @@ npm i -g run-rs
 In a separate terminal run
 
 ```bash
-sudo run-rs --mongod
+sudo run-rs --mongod --dbpath ./rs-data
 ```
 
 ## Testing
