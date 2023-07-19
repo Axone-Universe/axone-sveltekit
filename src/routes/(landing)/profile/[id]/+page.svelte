@@ -16,23 +16,13 @@
 	export let data: PageData;
 	export let { userNode } = data;
 
+	const userGenres = userNode.genres as unknown as Record<string, boolean>;
+	const userLabels = userNode.labels as unknown as Record<string, boolean>;
+
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
 	// TODO: get from bucket
 	let profileImage = defaultUserImage;
-
-	function userVariant(label: string) {
-		switch (label) {
-			case 'Writer':
-				return 'variant-filled-primary';
-			case 'Editor':
-				return 'variant-filled-secondary';
-			case 'Illustrator':
-				return 'variant-filled-tertiary';
-			default:
-				return 'variant-filled';
-		}
-	}
 </script>
 
 <Container class="my-8 w-full flex justify-center">
@@ -42,27 +32,31 @@
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
 				<div class="flex flex-col gap-1">
 					<h3 class="flex items-center gap-2">
-						{userNode.properties.firstName}
-						{userNode.properties.lastName}
+						{userNode.firstName}
+						{userNode.lastName}
 						{#if viewerIsUser}
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						{/if}
 					</h3>
 					<div class="flex gap-2 flex-wrap">
-						{#each userNode.labels as label}
-							{#if label !== 'User'}
-								<div class={`chip ${userVariant(label)}`}>{label}</div>
-							{/if}
-						{/each}
+						{#if userNode.labels}
+							{#each Object.keys(userLabels) as label}
+								{#if userLabels[label]}
+									<div class="chip variant-filled">{label}</div>
+								{:else}
+									<div class="chip">{label}</div>
+								{/if}
+							{/each}
+						{/if}
 					</div>
 					<div class="flex gap-2">
-						{#if userNode.properties.facebook}
+						{#if userNode.facebook}
 							<Icon data={facebookIcon} scale={2} />
 						{/if}
-						{#if userNode.properties.instagram}
+						{#if userNode.instagram}
 							<Icon data={instagramIcon} scale={2} />
 						{/if}
-						{#if userNode.properties.twitter}
+						{#if userNode.twitter}
 							<Icon data={twitterIcon} scale={2} />
 						{/if}
 					</div>
@@ -79,8 +73,8 @@
 			<h2 class="mb-4">About</h2>
 			<div class="card p-4">
 				<p>
-					{userNode.properties.about
-						? userNode.properties.about
+					{userNode.about
+						? userNode.about
 						: 'Apparently, this user is really boring and did not say anything for their About section.'}
 				</p>
 			</div>
@@ -90,11 +84,15 @@
 			<h2 class="mb-4">Genre Preferences</h2>
 			<div class="gap-4 w-full">
 				<div class="card p-4">
-					{#if userNode.properties.genres}
+					{#if userNode.genres}
 						<div class="flex gap-2 flex-wrap">
-							{#each userNode.properties.genres as genre}
-								<div class="chip variant-filled">{genre}</div>
-							{/each}
+							{#if userGenres.genres}
+								{#each Object.keys(userGenres) as genre}
+									{#if userGenres[genre]}
+										<div class="chip variant-filled">{genre}</div>
+									{/if}
+								{/each}
+							{/if}
 						</div>
 					{:else}
 						<div class="chip variant-soft">None</div>

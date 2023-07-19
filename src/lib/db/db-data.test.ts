@@ -2,11 +2,18 @@ import { beforeAll } from 'vitest';
 
 import { router } from '$lib/trpc/router';
 import { GenresBuilder } from '$lib/util/genres';
-import { cleanUpDatabase, createUser, testSession, testUser } from '$lib/util/testing/testing';
+import {
+	cleanUpDatabase,
+	connectDatabase,
+	createUser,
+	testSession,
+	testUser
+} from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
 
 beforeAll(async () => {
+	await connectDatabase();
 	await cleanUpDatabase();
 });
 
@@ -52,8 +59,8 @@ describe('db test data', () => {
 		const userResponses = await caller.users.list();
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a.user.properties.id).sort()).toEqual(
-			[userResponse1.user.properties.id, userResponse2.user.properties.id].sort()
+		expect(userResponses.map((a) => a._id).sort()).toEqual(
+			[userResponse1._id, userResponse2._id].sort()
 		);
 	});
 
@@ -76,7 +83,7 @@ describe('db test data', () => {
 		const chapter2_2Title = 'Echoes from Megadrones';
 
 		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse1.book.properties.id
+			bookID: userAuthoredBookResponse1._id
 		});
 
 		caller = router.createCaller({ session: testSession1 });
@@ -89,8 +96,8 @@ describe('db test data', () => {
 				As Samantha's invention catches the attention of powerful factions and sparks a race for control, 
 				she finds herself at the center of a perilous adventure where the boundaries of reality blur and the 
 				fate of the universe hangs in the balance.`,
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse1.book.properties.id
+			storylineID: storylines[0]._id,
+			bookID: userAuthoredBookResponse1._id
 		});
 
 		caller = router.createCaller({ session: testSession2 });
@@ -102,9 +109,9 @@ describe('db test data', () => {
 				imaginations—an ancient civilization on the brink of extinction, struggling to preserve their knowledge and 
 				existence. Samantha and her team must unravel the secrets of the planet and confront the enigmatic forces at 
 				play if they hope to survive and bring hope to a dying world.`,
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse1.book.properties.id,
-			prevChapterID: chapter1Response.chapter.properties.id
+			storylineID: storylines[0].id,
+			bookID: userAuthoredBookResponse1._id,
+			prevChapterID: chapter1Response._id
 		});
 
 		const chapter3_1Response = await caller.chapters.create({
@@ -115,18 +122,18 @@ describe('db test data', () => {
 				team must gather their wits and allies to stop the Dark Nexus before it's too late. In a battle that spans 
 				across dimensions, Samantha realizes the true extent of her invention's capabilities and the responsibility 
 				she holds in shaping the destiny of humanity.`,
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse1.book.properties.id,
-			prevChapterID: chapter2_1Response.chapter.properties.id
+			storylineID: storylines[0].id,
+			bookID: userAuthoredBookResponse1._id,
+			prevChapterID: chapter2_1Response._id
 		});
 
 		// Create a new storyline
 		const storyline2 = await caller.storylines.create({
 			title: 'Storyline 1',
 			description: 'Storyline 1',
-			bookID: userAuthoredBookResponse1.book.properties.id,
-			parentStorylineID: storylines[0].storyline.properties.id,
-			branchOffChapterID: chapter1Response.chapter.properties.id
+			bookID: userAuthoredBookResponse1._id,
+			parentStorylineID: storylines[0]._id,
+			branchOffChapterID: chapter1Response._id
 		});
 
 		const chapter2_2Response = await caller.chapters.create({
@@ -137,16 +144,16 @@ describe('db test data', () => {
 			imaginations—an ancient civilization on the brink of extinction, struggling to preserve their knowledge and 
 			existence. Samantha and her team must unravel the secrets of the planet and confront the enigmatic forces at 
 			play if they hope to survive and bring hope to a dying world.`,
-			storylineID: storyline2.storyline.properties.id,
-			bookID: userAuthoredBookResponse1.book.properties.id,
-			prevChapterID: chapter1Response.chapter.properties.id
+			storylineID: storyline2._id,
+			bookID: userAuthoredBookResponse1._id,
+			prevChapterID: chapter1Response._id
 		});
 
-		expect(bookResponses.map((a) => a.book.properties.id).sort()).toEqual(
+		expect(bookResponses.map((a) => a._id).sort()).toEqual(
 			[
-				userAuthoredBookResponse1.book.properties.id,
-				userAuthoredBookResponse2.book.properties.id,
-				userAuthoredBookResponse3.book.properties.id
+				userAuthoredBookResponse1._id,
+				userAuthoredBookResponse2._id,
+				userAuthoredBookResponse3._id
 			].sort()
 		);
 	});

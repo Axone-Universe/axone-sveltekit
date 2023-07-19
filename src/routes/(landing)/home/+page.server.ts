@@ -1,11 +1,12 @@
 import type { PageServerLoad } from './$types';
-import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 import { trpc } from '$lib/trpc/client';
+import type { HydratedDocument } from 'mongoose';
+import type { BookProperties } from '$lib/shared/book';
 
 export const load = (async (event) => {
 	const userAuthoredBookResponses = (await trpc(event).books.getAll.query({
 		limit: 10
-	})) as UserAuthoredBookResponse[];
+	})) as HydratedDocument<BookProperties>[];
 
 	return { userAuthoredBookResponses };
 }) satisfies PageServerLoad;

@@ -1,42 +1,35 @@
-import { DBSession } from '$lib/db/session';
-import type { Node } from 'neo4j-driver';
+import { Delta } from '$lib/models/delta';
 import { Repository } from '$lib/repositories/repository';
-import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
+import type { DeltaProperties } from '$lib/shared/delta';
+import type { HydratedDocument } from 'mongoose';
 
 export class DeltasRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async getById(id?: string): Promise<DeltaResponse> {
-		const query = `
-			MATCH (delta:Delta {id: '${id}'})
-			RETURN delta
-		`;
+	async getById(id?: string): Promise<HydratedDocument<DeltaProperties>> {
+		const delta = await Delta.findById(id);
 
-		const session = new DBSession();
-		const result = await session.executeRead<DeltaResponse>(query);
-
-		let delta: DeltaResponse;
-		if (result.records.length > 0) {
-			delta = result.records[0].toObject();
-		}
-
-		return new Promise<DeltaResponse>((resolve) => {
+		return new Promise<HydratedDocument<DeltaProperties>>((resolve) => {
 			resolve(delta);
 		});
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<DeltaNode[]> {
+	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {
 		throw new Error('not Implemented');
 	}
 
-	async getByTitle(title?: string, limit?: number, skip?: number): Promise<DeltaResponse[]> {
+	async getByTitle(
+		title?: string,
+		limit?: number,
+		skip?: number
+	): Promise<HydratedDocument<DeltaProperties>[]> {
 		throw new Error('not Implemented');
 	}
 
 	async count(): Promise<number> {
-		const count = await this._count('Storyline');
+		const count = await Delta.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);

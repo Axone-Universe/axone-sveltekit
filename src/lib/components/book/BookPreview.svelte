@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { UserAuthoredBookResponse } from '$lib/nodes/user';
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import BookModal from './BookModal.svelte';
 
@@ -8,11 +7,16 @@
 
 	import Icon from 'svelte-awesome';
 	import { user, star } from 'svelte-awesome/icons';
+	import type { HydratedDocument } from 'mongoose';
+	import type { BookProperties } from '$lib/shared/book';
+	import type { UserProperties } from '$lib/shared/user';
 
-	export let bookData: UserAuthoredBookResponse;
+	export let bookData: HydratedDocument<BookProperties>;
 
 	let customClass = '';
 	export { customClass as class };
+
+	const bookUser = bookData.user as unknown as HydratedDocument<UserProperties>;
 
 	const modalComponent: ModalComponent = {
 		// Pass a reference to your custom component
@@ -39,22 +43,18 @@
 >
 	<header>
 		<div class="flex p-2 items-center">
-			<p class="text-sm lg:text-lg font-bold line-clamp-1">{bookData.book.properties.title}</p>
+			<p class="text-sm lg:text-lg font-bold line-clamp-1">{bookData.title}</p>
 		</div>
 	</header>
 	<div class="min-w-7/8">
 		<button on:click={showModal}>
-			<img
-				src={bookData.book.properties.imageURL}
-				class="object-cover w-full aspect-[7/8]"
-				alt="Post"
-			/>
+			<img src={bookData.imageURL} class="object-cover w-full aspect-[7/8]" alt="Post" />
 		</button>
 	</div>
 	<hr class="opacity-50" />
 	<footer class="p-2 flex justify-start items-center space-x-4">
-		{#if bookData.user.properties.imageURL !== undefined}
-			<Avatar src={bookData.user.properties.imageURL} width="w-10" rounded="rounded-full" />
+		{#if bookUser.imageURL}
+			<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />
 		{:else}
 			<div class="overflow-hidden rounded-full">
 				<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />
@@ -62,8 +62,8 @@
 		{/if}
 		<div class="overflow-hidden w-2/6 flex-auto flex items-center">
 			<p class="text-sm line-clamp-1">
-				{bookData.user.properties.firstName}
-				{bookData.user.properties.lastName}
+				{bookUser.firstName}
+				{bookUser.lastName}
 			</p>
 		</div>
 		<div class="overflow-hidden flex-auto flex items-center">

@@ -2,9 +2,10 @@ import { error, fail } from '@sveltejs/kit';
 
 import type { Actions, PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
-import type { UserResponse } from '$lib/nodes/user';
 import { create } from '$lib/trpc/schemas/users';
 import { supabaseAdmin } from '$lib/util/supabase';
+import type { HydratedDocument } from 'mongoose';
+import type { UserProperties } from '$lib/shared/user';
 
 export const load = (async (event) => {
 	const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
@@ -13,9 +14,9 @@ export const load = (async (event) => {
 		// check if user has a profile
 		const userResponse = (await trpc(event).users.list.query({
 			searchTerm: event.params.id
-		})) as UserResponse[];
+		})) as HydratedDocument<UserProperties>[];
 		if (userResponse.length === 1) {
-			const userNode = userResponse[0].user;
+			const userNode = userResponse[0];
 			return { userNode };
 		}
 	}

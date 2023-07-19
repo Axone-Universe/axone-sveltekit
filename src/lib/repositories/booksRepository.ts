@@ -1,26 +1,22 @@
-import { DBSession } from '$lib/db/session';
-import type { UserAuthoredBookResponse } from '$lib/nodes/user';
+import type { BookProperties } from '$lib/shared/book';
 import { Repository } from '$lib/repositories/repository';
+import type { HydratedDocument } from 'mongoose';
+import { Book } from '$lib/models/book';
 
 export class BooksRepository extends Repository {
-	async getAll(limit?: number, skip?: number): Promise<UserAuthoredBookResponse[]> {
-		const query = `
-			MATCH (book:Book)<-[authored:AUTHORED]-(user:User)
-			RETURN user, authored, book
-			ORDER BY book.title
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<BookProperties>[]> {
+		let query = Book.find();
 
-		const session = new DBSession();
-		const result = await session.executeRead<UserAuthoredBookResponse>(query);
+		if (skip) {
+			query = query.skip(skip);
+		}
 
-		const books: UserAuthoredBookResponse[] = [];
-		result.records.forEach((record) => {
-			books.push(record.toObject());
-		});
+		if (limit) {
+			query = query.limit(limit);
+		}
 
-		return new Promise<UserAuthoredBookResponse[]>((resolve) => {
+		const books = (await query) as HydratedDocument<BookProperties>[];
+		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
 			resolve(books);
 		});
 	}
@@ -29,51 +25,34 @@ export class BooksRepository extends Repository {
 		title?: string,
 		limit?: number,
 		skip?: number
-	): Promise<UserAuthoredBookResponse[]> {
-		const query = `
-			MATCH (book:Book)<-[authored:AUTHORED]-(user:User)
-			${title ? `WHERE book.title = '${title}'` : ''}
-			RETURN user, authored, book
-			ORDER BY book.title
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	): Promise<HydratedDocument<BookProperties>[]> {
+		let query = Book.find({ title: title });
 
-		const session = new DBSession();
-		const result = await session.executeRead<UserAuthoredBookResponse>(query);
+		if (skip) {
+			query = query.skip(skip);
+		}
 
-		const books: UserAuthoredBookResponse[] = [];
-		result.records.forEach((record) => {
-			books.push(record.toObject());
-		});
+		if (limit) {
+			query = query.limit(limit);
+		}
 
-		return new Promise<UserAuthoredBookResponse[]>((resolve) => {
+		const books = await query;
+
+		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
 			resolve(books);
 		});
 	}
 
-	async getById(id?: string): Promise<unknown> {
-		const query = `
-			MATCH (book:Book)<-[authored:AUTHORED]-(user:User)
-			${id ? `WHERE book.id = '${id}'` : ''}
-			RETURN user, authored, book
-		`;
+	async getById(id?: string): Promise<HydratedDocument<BookProperties>> {
+		const book = await Book.findById(id);
 
-		const session = new DBSession();
-		const result = await session.executeRead<UserAuthoredBookResponse>(query);
-
-		let book: UserAuthoredBookResponse;
-		if (result.records.length > 0) {
-			book = result.records[0].toObject();
-		}
-
-		return new Promise<UserAuthoredBookResponse>((resolve) => {
+		return new Promise<HydratedDocument<BookProperties>>((resolve) => {
 			resolve(book);
 		});
 	}
 
 	async count(): Promise<number> {
-		const count = await this._count('Book');
+		const count = await Book.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);

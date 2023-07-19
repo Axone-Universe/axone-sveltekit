@@ -2,7 +2,8 @@ import { redirect } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
-import type { UserResponse } from '$lib/nodes/user';
+import type { HydratedDocument } from 'mongoose';
+import type { UserProperties } from '$lib/shared/user';
 
 export const load = (async (event) => {
 	const session = await event.locals.getSession();
@@ -11,7 +12,7 @@ export const load = (async (event) => {
 		// check if user has a profile
 		const userResponse = (await trpc(event).users.getById.query({
 			searchTerm: session.user.id
-		})) as UserResponse;
+		})) as HydratedDocument<UserProperties>;
 
 		return { userResponse };
 	} else {

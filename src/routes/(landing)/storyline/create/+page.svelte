@@ -15,32 +15,35 @@
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { PageData } from './$types';
-	import type { ChapterNode } from '$lib/nodes/digital-products/chapter';
 	import { StorylinePropertyBuilder } from '$lib/util/storylines';
-	import { afterUpdate } from 'svelte';
+	import { onMount } from 'svelte';
+	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { HydratedDocument } from 'mongoose';
 
 	const storylinePropertyBuilder = new StorylinePropertyBuilder();
 	const storyline = storylinePropertyBuilder.getProperties();
 	const genres = storyline.genres as unknown as Record<string, boolean>;
+	let bookGenres: Record<string, boolean>;
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
-	afterUpdate(() => {
+	onMount(() => {
 		// fill storyline genres with book ones
-		let bookGenres = bookData.book.properties.genres!;
+		bookGenres = bookData.genres! as unknown as Record<string, boolean>;
 		let chapterID = $page.url.searchParams.get('chapterID')!;
 
-		for (let bookGenre of bookGenres) {
-			genres[bookGenre] = true;
+		for (let genre of Object.keys(bookGenres)) {
+			genres[genre] = bookGenres[genre];
 		}
 
-		storyline.bookID = bookData.book.properties.id;
-		storyline.parentStorylineID = storylineResponse.storyline.properties.id;
+		storyline.bookID = bookData._id;
+		storyline.parentStorylineID = storylineResponse._id;
 		storyline.branchOffChapterID = chapterID;
 	});
 
 	async function createStoryline() {
+		console.log(storyline);
 		trpc($page)
 			.storylines.create.mutate(storyline)
 			.then(async (storylineResponse) => {
@@ -51,20 +54,25 @@
 				toastStore.trigger(t);
 
 				await goto(
-					`/editor/${bookData.book.properties.id}?storylineID=${storylineResponse.storyline.properties.id}`
+					`/editor/${bookData._id}?storylineID=${
+						(storylineResponse as HydratedDocument<ChapterProperties>)._id
+					}`
 				);
 			});
 	}
 
 	function filter(genre: string) {
+		if (bookGenres[genre]) {
+			return;
+		}
 		genres[genre] = !genres[genre];
 	}
 
 	let leftDrawerList: string;
-	let selectedChapterNode: ChapterNode;
-	function drawerItemSelected(chapter?: ChapterNode) {
+	let selectedChapterNode: HydratedDocument<ChapterProperties>;
+	function drawerItemSelected(chapter?: HydratedDocument<ChapterProperties>) {
 		if (chapter) {
-			selectedChapterNode = chapterResponses[chapter.properties.id].chapter;
+			selectedChapterNode = chapterResponses[chapter._id];
 		}
 	}
 </script>
@@ -87,7 +95,7 @@
 							class="soft-listbox"
 							value="book"
 						>
-							{bookData.book.properties.title}
+							{bookData.title}
 						</ListBoxItem>
 					</ListBox>
 				</svelte:fragment>
@@ -105,7 +113,7 @@
 							class="soft-listbox"
 							value="copyright"
 						>
-							{storylineResponse.storyline.properties.title}
+							{storylineResponse.title}
 						</ListBoxItem>
 					</ListBox>
 				</svelte:fragment>
@@ -118,13 +126,13 @@
 					<ListBox>
 						{#each Object.entries(chapterResponses) as [id, chapterResponse]}
 							<ListBoxItem
-								on:change={() => drawerItemSelected(chapterResponse.chapter)}
+								on:change={() => drawerItemSelected(chapterResponse)}
 								bind:group={leftDrawerList}
 								name="chapter"
 								class="soft-listbox"
-								value={chapterResponse.chapter.properties.id}
+								value={chapterResponse._id}
 							>
-								<p class="line-clamp-1">{chapterResponse.chapter.properties.title}</p>
+								<p class="line-clamp-1">{chapterResponse.title}</p>
 							</ListBoxItem>
 						{/each}
 					</ListBox>

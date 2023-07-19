@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserProperties } from '$lib/util/types';
+	import type { UserProperties } from '$lib/shared/user';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
@@ -9,6 +9,8 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const userLabels = userData.labels as unknown as Record<string, boolean>;
 </script>
 
 <div
@@ -36,23 +38,14 @@
 	<hr class="opacity-50" />
 	<footer class="p-4 flex justify-center items-center space-x-4">
 		<div class="flex justify-center space-x-2">
-			{#if userData.userWriterChecked}
-				<span class="chip variant-filled"
-					><Icon data={book} scale={1} />
-					<span>Writer</span></span
-				>
-			{/if}
-			{#if userData.userEditorChecked}
-				<span class="chip variant-filled"
-					><Icon data={edit} scale={1} />
-					<span>Editor</span></span
-				>
-			{/if}
-			{#if userData.userIllustratorChecked}
-				<span class="chip variant-filled"
-					><Icon data={pencil} scale={1} />
-					<span>Illustrator</span></span
-				>
+			{#if userData.labels}
+				{#each Object.keys(userLabels) as label}
+					{#if userLabels[label]}
+						<div class="chip variant-filled">{label}</div>
+					{:else}
+						<div class="chip">{label}</div>
+					{/if}
+				{/each}
 			{/if}
 		</div>
 	</footer>
