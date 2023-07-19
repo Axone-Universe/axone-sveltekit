@@ -7,28 +7,30 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import type { UserProperties } from '$lib/util/types';
 	import { onMount, beforeUpdate } from 'svelte';
 	import { UserPropertyBuilder } from '$lib/util/users';
+	import type { UserProperties } from '$lib/shared/user';
 
 	export let data: PageData;
 	const { session, userResponse } = data;
 	const aboutMaxLength = 500;
 
 	const userPropertyBuilder = new UserPropertyBuilder();
-	let userProperties = userPropertyBuilder.getProperties();
-	let genres = userProperties.genres as unknown as Record<string, boolean>;
+	let genres = userResponse.genres as unknown as Record<string, boolean>;
+	let labels = userResponse.labels as unknown as Record<string, boolean>;
+	userResponse.about = userResponse.about ? userResponse.about : '';
 
 	let email = session?.user.email;
 	let password = '';
 	let confirmPassword = '';
 
 	let profileImage = defaultUserImage;
-	$: remaining = aboutMaxLength - userProperties.about!.length;
+
+	$: remaining = aboutMaxLength - userResponse.about!.length;
 
 	onMount(() => {
-		userProperties = userPropertyBuilder.createProperties(userResponse.user);
-		genres = userProperties.genres as unknown as Record<string, boolean>;
+		genres = userResponse.genres as unknown as Record<string, boolean>;
+		labels = userResponse.labels as unknown as Record<string, boolean>;
 	});
 
 	async function submit() {
@@ -36,7 +38,7 @@
 			// TODO: update user info
 		}
 
-		await trpc($page).users.create.mutate(userProperties);
+		await trpc($page).users.update.mutate(userResponse as UserProperties);
 
 		// all good, redirect to newly-created profile
 		await goto(`/profile/${session?.user.id}`);
@@ -50,13 +52,13 @@
 			<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
 			<label>
 				*First name
-				<input class="input" type="text" bind:value={userProperties.firstName} />
+				<input class="input" type="text" bind:value={userResponse.firstName} />
 				<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
 			</label>
 
 			<label>
 				*Last name
-				<input class="input" type="text" bind:value={userProperties.lastName} />
+				<input class="input" type="text" bind:value={userResponse.lastName} />
 				<!-- {#if lastNameError}<p class="text-error-500">Last name is required.</p>{/if} -->
 			</label>
 
@@ -77,7 +79,7 @@
 
 			<label>
 				About
-				<textarea class="textarea" bind:value={userProperties.about} />
+				<textarea class="textarea" bind:value={userResponse.about} />
 			</label>
 			<div class="text-sm">Characters left: {remaining}</div>
 		</Step>
@@ -106,36 +108,35 @@
 				are important for determining how we can provide you exposure should you be looking to
 				collaborate on the platform.
 			</div>
-			<label class="flex items-center space-x-2">
-				<input class="checkbox" type="checkbox" bind:checked={userProperties.userWriterChecked} />
-				<p>Writer - I want to write content whether for myself or in collaboration with others.</p>
-			</label>
-			<label class="flex items-center space-x-2">
-				<input class="checkbox" type="checkbox" bind:checked={userProperties.userEditorChecked} />
-				<p>Editor - I want to help other writers edit their work to uphold high standards.</p>
-			</label>
-			<label class="flex items-center space-x-2">
-				<input
-					class="checkbox"
-					type="checkbox"
-					bind:checked={userProperties.userIllustratorChecked}
-				/>
-				<p>Illustrator - I want to create illustrative content for written work by writers.</p>
-			</label>
+			<div class="flex-col items-center space-y-4">
+				{#each Object.keys(labels) as label}
+					<div>
+						<span
+							class="chip {labels[label] ? 'variant-filled' : 'variant-soft'}"
+							on:click={() => {
+								labels[label] = !labels[label];
+							}}
+							on:keypress
+						>
+							<span>{label}</span>
+						</span>
+					</div>
+				{/each}
+			</div>
 		</Step>
 		<Step>
 			<svelte:fragment slot="header">Social Media</svelte:fragment>
 			<label>
 				Facebook profile link
-				<input class="input" type="text" bind:value={userProperties.facebook} />
+				<input class="input" type="text" bind:value={userResponse.facebook} />
 			</label>
 			<label>
 				Instagram handle
-				<input class="input" type="text" bind:value={userProperties.instagram} />
+				<input class="input" type="text" bind:value={userResponse.instagram} />
 			</label>
 			<label>
 				Twitter handle
-				<input class="input" type="text" bind:value={userProperties.twitter} />
+				<input class="input" type="text" bind:value={userResponse.twitter} />
 			</label>
 		</Step>
 	</Stepper>

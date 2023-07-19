@@ -1,27 +1,27 @@
-import { DBSession } from '$lib/db/session';
-import type { CampaignResponse } from '$lib/nodes/campaigns/campaign';
+import type { CampaignProperties } from '$lib/shared/campaign';
 import { Repository } from '$lib/repositories/repository';
+import type { HydratedDocument } from 'mongoose';
+import { Campaign } from '$lib/models/campaign';
 
 export class CampaignsRepository extends Repository {
-	async get(title?: string, limit?: number, skip?: number): Promise<CampaignResponse[]> {
-		const query = `
-			MATCH (campaign:Campaign)
-			${title ? `WHERE campaign.title = '${title}'` : ''}
-			RETURN campaign
-			ORDER BY campaign.title
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	async get(
+		title?: string,
+		limit?: number,
+		skip?: number
+	): Promise<HydratedDocument<CampaignProperties>[]> {
+		let query = Campaign.find(title ? { title: title } : {});
 
-		const session = new DBSession();
-		const result = await session.executeRead<CampaignResponse>(query);
+		if (skip) {
+			query = query.skip(skip);
+		}
 
-		const campaigns: CampaignResponse[] = [];
-		result.records.forEach((record) => {
-			campaigns.push(record.toObject());
-		});
+		if (limit) {
+			query = query.limit(limit);
+		}
 
-		return new Promise<CampaignResponse[]>((resolve) => {
+		const campaigns = await query;
+
+		return new Promise<HydratedDocument<CampaignProperties>[]>((resolve) => {
 			resolve(campaigns);
 		});
 	}
@@ -30,7 +30,7 @@ export class CampaignsRepository extends Repository {
 	// We can get the count from the length of the array that is returned from get() assuming
 	// we always get all. But good to have this method just in case.
 	async count(): Promise<number> {
-		const count = await this._count('Campaign');
+		const count = await Campaign.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);

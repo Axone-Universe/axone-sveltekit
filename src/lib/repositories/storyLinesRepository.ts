@@ -1,8 +1,7 @@
-import { DBSession } from '$lib/db/session';
-import type { BookStorylineResponse } from '$lib/nodes/digital-products/book';
+import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
-import { BookHasStorylineRel } from '$lib/nodes/digital-products/book';
-import type { StorylineResponse } from '$lib/nodes/digital-products/storyline';
+import type { StorylineProperties } from '$lib/shared/storyline';
+import type { Document, HydratedDocument } from 'mongoose';
 
 export class StorylinesRepository extends Repository {
 	private _bookID?: string;
@@ -16,25 +15,20 @@ export class StorylinesRepository extends Repository {
 		return this;
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<StorylineResponse[]> {
-		const query = `
-            MATCH   (book:Book)-[:${BookHasStorylineRel.label}]->
-                    (storyline:Storyline)
-            ${this._bookID ? `WHERE book.id='${this._bookID}'` : ``}
-			RETURN storyline
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<StorylineProperties>[]> {
+		let query = Storyline.find(this._bookID ? { book: this._bookID } : {});
 
-		const session = new DBSession();
-		const result = await session.executeRead<StorylineResponse>(query);
+		if (skip) {
+			query = query.skip(skip);
+		}
 
-		const storylines: StorylineResponse[] = [];
-		result.records.forEach((record) => {
-			storylines.push(record.toObject());
-		});
+		if (limit) {
+			query = query.limit(limit);
+		}
 
-		return new Promise<StorylineResponse[]>((resolve) => {
+		const storylines = await query;
+
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storylines);
 		});
 	}
@@ -43,34 +37,28 @@ export class StorylinesRepository extends Repository {
 		title?: string,
 		limit?: number,
 		skip?: number
-	): Promise<BookStorylineResponse[]> {
+	): Promise<HydratedDocument<StorylineProperties>[]> {
 		throw new Error('not Implemented');
 	}
 
-	async getById(id?: string): Promise<StorylineResponse> {
-		const query = `
-            MATCH   (book:Book)-[:${BookHasStorylineRel.label}]->
-                    (storyline:Storyline)
-            WHERE book.id='${this._bookID}' AND
-			${id ? ` storyline.id='${id}'` : ` storyline.main=true`}
-			RETURN storyline
-		`;
+	async getById(id?: string): Promise<HydratedDocument<StorylineProperties>> {
+		let query;
 
-		const session = new DBSession();
-		const result = await session.executeRead<StorylineResponse>(query);
+		if (!id) {
+			query = Storyline.findOne({ main: true, book: this._bookID });
+		} else {
+			query = await Storyline.findById(id);
+		}
 
-		let storyline: StorylineResponse;
-		result.records.forEach((record) => {
-			storyline = record.toObject();
-		});
+		const storyline = await query;
 
-		return new Promise<StorylineResponse>((resolve) => {
+		return new Promise<HydratedDocument<StorylineProperties>>((resolve) => {
 			resolve(storyline);
 		});
 	}
 
 	async count(): Promise<number> {
-		const count = await this._count('Book');
+		const count = await Storyline.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);

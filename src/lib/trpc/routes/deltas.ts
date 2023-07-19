@@ -1,11 +1,9 @@
-import { z } from 'zod';
-
 import { auth } from '$lib/trpc/middleware/auth';
 import { DeltasRepository } from '$lib/repositories/deltasRepository';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { update, search, create } from '$lib/trpc/schemas/deltas';
-import { DeltaBuilder, type DeltaResponse } from '$lib/nodes/digital-assets/delta';
+import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 
 const deltasRepo = new DeltasRepository();
 
@@ -27,6 +25,8 @@ export const deltas = t.router({
 		.query(async ({ input }) => {
 			const result = await deltasRepo.getById(input.id);
 
+			console.log('** 1 serv setting edtior ');
+
 			return result;
 		}),
 
@@ -41,7 +41,7 @@ export const deltas = t.router({
 				await deltaBuilder.delta(input.id, input.ops);
 			}
 
-			const deltaResponse: DeltaResponse = await deltaBuilder.update();
+			const deltaResponse = await deltaBuilder.update();
 
 			return deltaResponse;
 		})

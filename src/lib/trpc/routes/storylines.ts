@@ -1,4 +1,4 @@
-import { StorylineBuilder } from '$lib/nodes/digital-products/storyline';
+import { StorylineBuilder } from '$lib/documents/digital-products/storyline';
 import { StorylinesRepository } from '$lib/repositories/storyLinesRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';

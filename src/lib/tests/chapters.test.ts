@@ -1,6 +1,11 @@
 import { router } from '$lib/trpc/router';
 import { GenresBuilder } from '$lib/util/genres';
-import { cleanUpDatabase, createUser, testSession } from '$lib/util/testing/testing';
+import {
+	connectTestDatabase,
+	cleanUpDatabase,
+	createUser,
+	testSession
+} from '$lib/util/testing/testing';
 
 const createBook = async (title: string) => {
 	const caller = router.createCaller({ session: testSession });
@@ -16,6 +21,10 @@ const createBook = async (title: string) => {
 	});
 };
 
+beforeAll(async () => {
+	await connectTestDatabase();
+});
+
 describe('chapters', () => {
 	beforeEach(async () => {
 		await cleanUpDatabase();
@@ -27,41 +36,41 @@ describe('chapters', () => {
 		const chapter2Title = 'Chapter 2';
 
 		await createUser(testSession);
-		const userAuthoredBookResponse = await createBook(testBookTitle);
+		const bookResponse = await createBook(testBookTitle);
 
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse.book.properties.id
+			bookID: bookResponse._id
 		});
 
 		caller = router.createCaller({ session: testSession });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id
 		});
 
 		const chapter2Response = await caller.chapters.create({
 			title: chapter2Title,
 			description: 'My chapter 2',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id,
-			prevChapterID: chapter1Response.chapter.properties.id
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id,
+			prevChapterID: chapter1Response._id
 		});
 
 		let storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].storyline.properties.id
+			storylineID: storylines[0]._id
 		});
 
-		expect(chapter1Response.chapter.properties.title).toEqual(chapter1Title);
-		expect(chapter2Response.chapter.properties.title).toEqual(chapter2Title);
-		expect(storylineChapters[0].chapter.properties.title).toEqual(chapter1Title);
+		expect(chapter1Response.title).toEqual(chapter1Title);
+		expect(chapter2Response.title).toEqual(chapter2Title);
+		expect(storylineChapters[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
 		storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].storyline.properties.id,
-			toChapterID: chapter1Response.chapter.properties.id
+			storylineID: storylines[0].id,
+			toChapterID: chapter1Response._id
 		});
 
 		expect(storylineChapters.length).toEqual(1);
@@ -72,12 +81,12 @@ describe('chapters', () => {
 		const testBookTitle = 'My Book';
 
 		await createUser(testSession);
-		const userAuthoredBookResponse = await createBook(testBookTitle);
+		const bookResponse = await createBook(testBookTitle);
 
 		// get the default storyline from created book
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse.book.properties.id
+			bookID: bookResponse._id
 		});
 
 		// create chapter on default storyline
@@ -85,19 +94,19 @@ describe('chapters', () => {
 		const chapterCreateResponse = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id
 		});
 
-		expect(chapterCreateResponse.chapter.properties.description).toEqual('My chapter 1');
+		expect(chapterCreateResponse.description).toEqual('My chapter 1');
 
 		const chapterUpdateResponse = await caller.chapters.update({
-			id: chapterCreateResponse.chapter.properties.id,
+			id: chapterCreateResponse._id,
 			description: 'Updated chapter 1'
 		});
 
 		console.log(chapterUpdateResponse);
-		expect(chapterUpdateResponse.chapter.properties.description).toEqual('Updated chapter 1');
+		expect(chapterUpdateResponse.description).toEqual('Updated chapter 1');
 	});
 
 	test('delete chapters', async () => {
@@ -107,57 +116,57 @@ describe('chapters', () => {
 		const chapter3Title = 'Chapter 3';
 
 		await createUser(testSession);
-		const userAuthoredBookResponse = await createBook(testBookTitle);
+		const bookResponse = await createBook(testBookTitle);
 
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse.book.properties.id
+			bookID: bookResponse._id
 		});
 
 		caller = router.createCaller({ session: testSession });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id
 		});
 
 		const chapter2Response = await caller.chapters.create({
 			title: chapter2Title,
 			description: 'My chapter 2',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id,
-			prevChapterID: chapter1Response.chapter.properties.id
+			storylineID: storylines[0].id,
+			bookID: bookResponse.id,
+			prevChapterID: chapter1Response._id
 		});
 
 		const chapter3Response = await caller.chapters.create({
 			title: chapter3Title,
 			description: 'My chapter 3',
-			storylineID: storylines[0].storyline.properties.id,
-			bookID: userAuthoredBookResponse.book.properties.id,
-			prevChapterID: chapter2Response.chapter.properties.id
+			storylineID: storylines[0].id,
+			bookID: bookResponse.id,
+			prevChapterID: chapter2Response._id
 		});
 
 		const chapter2DeleteResponse = await caller.chapters.delete({
-			id: chapter2Response.chapter.properties.id
+			id: chapter2Response._id
 		});
 
 		let storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].storyline.properties.id
+			storylineID: storylines[0].id
 		});
 
 		expect(storylineChapters.length).toEqual(2);
-		expect(chapter2DeleteResponse.nodesDeleted).toEqual(1);
+		expect(chapter2DeleteResponse.deletedCount).toEqual(1);
 
 		const chapter3DeleteResponse = await caller.chapters.delete({
-			id: chapter3Response.chapter.properties.id
+			id: chapter3Response._id
 		});
 
 		storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].storyline.properties.id
+			storylineID: storylines[0].id
 		});
 
 		expect(storylineChapters.length).toEqual(1);
-		expect(chapter3DeleteResponse.nodesDeleted).toEqual(1);
+		expect(chapter3DeleteResponse.deletedCount).toEqual(1);
 	});
 });

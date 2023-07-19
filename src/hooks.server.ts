@@ -7,10 +7,16 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { createContext } from '$lib/trpc/context';
 import { router } from '$lib/trpc/router';
 import { sequence } from '@sveltejs/kit/hooks';
+import { startMongo } from '$lib/db/mongo';
 
 const userRepo = new UsersRepository();
 
 const supabaseHandle: Handle = async ({ event, resolve }) => {
+	/**
+	 * Create the DB connection
+	 */
+	startMongo();
+
 	event.locals.supabase = createSupabaseServerClient({
 		supabaseUrl: PUBLIC_SUPABASE_URL,
 		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,

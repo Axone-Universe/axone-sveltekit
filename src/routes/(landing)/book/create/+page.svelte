@@ -9,6 +9,8 @@
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { PageData } from './$types';
 	import type { StorageError } from '$lib/util/types';
+	import type { BookProperties } from '$lib/shared/book';
+	import type { HydratedDocument } from 'mongoose';
 
 	const bookPropertyBuilder = new BookPropertyBuilder();
 	const book = bookPropertyBuilder.getProperties();
@@ -65,13 +67,13 @@
 		}
 		trpc($page)
 			.books.create.mutate(book)
-			.then(async (bookResponse) => {
+			.then((bookResponse) => {
 				const t: ToastSettings = {
 					message: 'Book created successfully',
 					background: 'variant-filled-primary'
 				};
 				toastStore.trigger(t);
-				await goto(`/editor/${bookResponse?.book.properties.id}`);
+				goto(`/editor/${(bookResponse as HydratedDocument<BookProperties>)._id}`);
 			});
 	}
 

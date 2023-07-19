@@ -1,15 +1,11 @@
-import { DBSession } from '$lib/db/session';
-import type { Record } from 'neo4j-driver';
-import type { StorylineChapterResponse } from '$lib/nodes/digital-products/storyline';
+import { Chapter } from '$lib/models/chapter';
+import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
-import { BookHasChapterRel } from '$lib/nodes/digital-products/book';
-import {
-	ChapterPrecedesChapterRel,
-	type ChapterNode,
-	type ChapterResponse
-} from '$lib/nodes/digital-products/chapter';
+import type { ChapterProperties } from '$lib/shared/chapter';
+import type { HydratedDocument } from 'mongoose';
 
 export class ChaptersRepository extends Repository {
+	// TODO: repository should not have specific id's?
 	private _storylineID?: string;
 	private _toChapterID?: string;
 
@@ -34,51 +30,27 @@ export class ChaptersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async getAll(limit?: number, skip?: number): Promise<ChapterResponse[]> {
-		const query = `
-            OPTIONAL MATCH
-				(storyline:Storyline ${this._storylineID ? `{id:'${this._storylineID}'}` : ``})-
-					[:${BookHasChapterRel.label}]->
-				(headChapter:Chapter) 
-				WHERE NOT EXISTS(()-[:${ChapterPrecedesChapterRel.label}]->(headChapter))
-			OPTIONAL MATCH 
-				p = (headChapter)-
-						[:${ChapterPrecedesChapterRel.label}*0..]->
-					(tailChapter)
-				WHERE EXISTS((storyline)-[:${BookHasChapterRel.label}]->(tailChapter))
-				${this._toChapterID ? `AND tailChapter.id ='${this._toChapterID}'` : ``}
-			RETURN nodes(p) as chapters
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<ChapterProperties>[]> {
+		let chapters: HydratedDocument<ChapterProperties>[] = [];
 
-		const session = new DBSession();
-		const result = await session.executeRead(query);
+		if (this._storylineID) {
+			const storyline = await Storyline.findById(this._storylineID).populate('chapters');
 
-		const resultRecords = result.records;
-		let longestPathLength = 0;
-		let longestPath: Record;
+			const storylineChapters = storyline.chapters;
 
-		resultRecords.forEach((record) => {
-			if (record.get('chapters')) {
-				const pathLength = record.get('chapters').length;
-				if (pathLength > longestPathLength) {
-					longestPathLength = pathLength;
-					longestPath = record.get('chapters');
+			if (!this._toChapterID) {
+				chapters = storylineChapters;
+			} else {
+				for (const chapter of storylineChapters) {
+					chapters.push(chapter);
+					if (chapter._id === this._toChapterID) {
+						break;
+					}
 				}
 			}
-		});
-
-		const chapters: ChapterResponse[] = [];
-
-		if (longestPath!) {
-			longestPath.forEach((node: ChapterNode) => {
-				const chapterResponse = { chapter: node };
-				chapters.push(chapterResponse);
-			});
 		}
 
-		return new Promise<ChapterResponse[]>((resolve) => {
+		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
 			resolve(chapters);
 		});
 	}
@@ -87,7 +59,7 @@ export class ChaptersRepository extends Repository {
 		title?: string,
 		limit?: number,
 		skip?: number
-	): Promise<StorylineChapterResponse[]> {
+	): Promise<HydratedDocument<ChapterProperties>[]> {
 		throw new Error('not Implemented');
 	}
 
@@ -96,7 +68,7 @@ export class ChaptersRepository extends Repository {
 	}
 
 	async count(): Promise<number> {
-		const count = await this._count('Storyline');
+		const count = await Chapter.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);

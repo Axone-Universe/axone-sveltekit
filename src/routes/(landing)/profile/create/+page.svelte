@@ -16,6 +16,7 @@
 	const userPropertyBuilder = new UserPropertyBuilder();
 	const userProperties = userPropertyBuilder.getProperties();
 	const genres = userProperties.genres as unknown as Record<string, boolean>;
+	const labels = userProperties.labels as unknown as Record<string, boolean>;
 
 	let profileImage = defaultUserImage;
 
@@ -35,7 +36,12 @@
 
 <Container class="mx-4  md:mx-40 xl:mx-96">
 	<Stepper on:complete={submit}>
-		<Step locked={userProperties.firstName.length === 0 || userProperties.lastName.length === 0}>
+		<Step
+			locked={!userProperties.firstName ||
+				userProperties.firstName.length === 0 ||
+				!userProperties.lastName ||
+				userProperties.lastName.length === 0}
+		>
 			<svelte:fragment slot="header">Basic Information</svelte:fragment>
 			<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
 			<label>
@@ -80,22 +86,21 @@
 				are important for determining how we can provide you exposure should you be looking to
 				collaborate on the platform.
 			</div>
-			<label class="flex items-center space-x-2">
-				<input class="checkbox" type="checkbox" bind:checked={userProperties.userWriterChecked} />
-				<p>Writer - I want to write content whether for myself or in collaboration with others.</p>
-			</label>
-			<label class="flex items-center space-x-2">
-				<input class="checkbox" type="checkbox" bind:checked={userProperties.userEditorChecked} />
-				<p>Editor - I want to help other writers edit their work to uphold high standards.</p>
-			</label>
-			<label class="flex items-center space-x-2">
-				<input
-					class="checkbox"
-					type="checkbox"
-					bind:checked={userProperties.userIllustratorChecked}
-				/>
-				<p>Illustrator - I want to create illustrative content for written work by writers.</p>
-			</label>
+			<div class="flex-col items-center space-y-4">
+				{#each Object.keys(labels) as label}
+					<div>
+						<span
+							class="chip {labels[label] ? 'variant-filled' : 'variant-soft'}"
+							on:click={() => {
+								labels[label] = !labels[label];
+							}}
+							on:keypress
+						>
+							<span>{label}</span>
+						</span>
+					</div>
+				{/each}
+			</div>
 		</Step>
 		<Step>
 			<svelte:fragment slot="header">Social Media</svelte:fragment>

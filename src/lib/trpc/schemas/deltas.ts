@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import type { DeltaQuery } from '$lib/util/types';
-import { genres } from './shared';
 
 export const update = z.object({
 	id: z.string(),

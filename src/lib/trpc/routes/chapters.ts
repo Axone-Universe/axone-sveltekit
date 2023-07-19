@@ -1,4 +1,4 @@
-import { ChapterBuilder } from '$lib/nodes/digital-products/chapter';
+import { ChapterBuilder } from '$lib/documents/digital-products/chapter';
 import { ChaptersRepository } from '$lib/repositories/chaptersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -61,9 +61,9 @@ export const chapters = t.router({
 				chapterBuilder.prevChapterID(input.prevChapterID);
 			}
 
-			const bookNode = await chapterBuilder.build();
+			const chapterNode = await chapterBuilder.build();
 
-			return bookNode;
+			return chapterNode;
 		}),
 
 	delete: t.procedure

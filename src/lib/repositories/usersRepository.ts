@@ -1,54 +1,43 @@
-import { DBSession } from '$lib/db/session';
-import type { UserResponse } from '$lib/nodes/user';
+import { User } from '$lib/models/user';
 import { Repository } from '$lib/repositories/repository';
+import type { UserProperties } from '$lib/shared/user';
+import type { HydratedDocument } from 'mongoose';
 
 export class UsersRepository extends Repository {
-	async get(uid?: string, limit?: number, skip?: number): Promise<UserResponse[]> {
-		const query = `
-			MATCH (user:User) 
-			${uid ? `WHERE user.id = '${uid}'` : ''}
-			RETURN user
-			ORDER BY user.name
-			${skip ? `SKIP ${skip}` : ''}
-			${limit ? `LIMIT ${limit}` : ''}
-		`;
+	async get(
+		uid?: string,
+		limit?: number,
+		skip?: number
+	): Promise<HydratedDocument<UserProperties>[]> {
+		let query = User.find(uid ? { _id: uid } : {});
 
-		const session = new DBSession();
-		const result = await session.executeRead<UserResponse>(query);
+		if (skip) {
+			query = query.skip(skip);
+		}
 
-		const users: UserResponse[] = [];
-		result.records.forEach((record) => {
-			users.push(record.toObject());
-		});
+		if (limit) {
+			query = query.limit(limit);
+		}
 
-		return new Promise<UserResponse[]>((resolve) => {
+		const users = await query;
+
+		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
 			resolve(users);
 		});
 	}
 
 	async count(): Promise<number> {
-		const count = await this._count('User');
+		const count = await User.count();
 
 		return new Promise<number>((resolve) => {
 			resolve(count);
 		});
 	}
 
-	async getById(id?: string): Promise<UserResponse> {
-		const query = `
-			MATCH (user:User {id: '${id}'})
-			RETURN user
-		`;
+	async getById(id?: string): Promise<HydratedDocument<UserProperties>> {
+		const user = await User.findById(id);
 
-		const session = new DBSession();
-		const result = await session.executeRead<UserResponse>(query);
-
-		let user: UserResponse;
-		if (result.records.length > 0) {
-			user = result.records[0].toObject();
-		}
-
-		return new Promise<UserResponse>((resolve) => {
+		return new Promise<HydratedDocument<UserProperties>>((resolve) => {
 			resolve(user);
 		});
 	}

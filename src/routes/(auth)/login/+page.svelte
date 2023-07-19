@@ -6,7 +6,8 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
-	import type { UserResponse } from '$lib/nodes/user';
+	import type { HydratedDocument } from 'mongoose';
+	import type { UserProperties } from '$lib/shared/user';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -51,8 +52,8 @@
 			if (supabaseResponse.data.user) {
 				const users = (await trpc($page).users.list.query({
 					searchTerm: supabaseResponse.data.user.id
-				})) as UserResponse[];
-				if (users.length === 1 && users[0].user.properties.id === supabaseResponse.data.user.id) {
+				})) as HydratedDocument<UserProperties>[];
+				if (users.length === 1 && users[0]._id === supabaseResponse.data.user.id) {
 					// user already created profile - go to home page (later change to app home page)
 					await goto('/');
 				} else {

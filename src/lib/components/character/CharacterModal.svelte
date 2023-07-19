@@ -1,31 +1,5 @@
 <script lang="ts">
-	import {
-		AppShell,
-		Drawer,
-		drawerStore,
-		Accordion,
-		AccordionItem,
-		ListBoxItem,
-		ListBox,
-		LightSwitch,
-		modalStore,
-		Modal
-	} from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
-
-	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
-	import { trpc } from '$lib/trpc/client';
-	import Quill from 'quill';
-	import Delta from 'quill-delta';
-
-	import Icon from 'svelte-awesome';
-	import { chevronLeft } from 'svelte-awesome/icons';
-	import { page } from '$app/stores';
-	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
-	import type { DeltaQuery } from '$lib/util/types';
-	import type { StorylineNode } from '$lib/nodes/digital-products/storyline';
-
-	export let storylineNode: StorylineNode;
+	import { Accordion, AccordionItem, ListBoxItem, ListBox } from '@skeletonlabs/skeleton';
 
 	let customClass = '';
 	export { customClass as class };

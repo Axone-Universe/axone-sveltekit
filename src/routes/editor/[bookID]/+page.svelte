@@ -17,8 +17,7 @@
 	import Delta from 'quill-delta';
 	import { QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
-	import { Integer } from 'neo4j-driver';
-	import { Node } from 'neo4j-driver';
+	import type { HydratedDocument } from 'mongoose';
 
 	import Icon from 'svelte-awesome';
 	import {
@@ -32,14 +31,13 @@
 		stickyNote,
 		dashcube
 	} from 'svelte-awesome/icons';
-	import type { ChapterNode, ChapterProperties } from '$lib/nodes/digital-products/chapter';
-	import type { DeltaNode, DeltaResponse } from '$lib/nodes/digital-assets/delta';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import CharacterModal from '$lib/components/character/CharacterModal.svelte';
-	import type { DeltaQuery } from '$lib/util/types';
 	import 'quill-comment';
-	import type { Stats } from 'neo4j-driver-core';
+	import type { DeltaProperties } from '$lib/shared/delta';
+	import type Op from 'quill-delta/dist/Op';
+	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
@@ -63,12 +61,12 @@
 		}
 	}
 
-	let selectedChapterNode: ChapterNode;
+	let selectedChapterNode: HydratedDocument<ChapterProperties>;
 	let leftDrawerList = 'copyright';
 
-	function drawerItemSelected(chapter?: ChapterNode) {
+	function drawerItemSelected(chapter?: HydratedDocument<ChapterProperties>) {
 		if (chapter) {
-			selectedChapterNode = chapterResponses[chapter.properties.id].chapter;
+			selectedChapterNode = chapterResponses[chapter._id];
 			setupEditor();
 		}
 	}
@@ -81,21 +79,17 @@
 		type: 'component',
 		// Pass the component directly:
 		component: modalComponent,
-		response: (chapterNode: ChapterNode) => {
+		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
 			if (!chapterNode) {
 				return;
 			}
 
 			// Update the UI
-			let chapterID = chapterNode.properties.id;
+			let chapterID = chapterNode._id;
 			leftDrawerList = chapterID;
 
 			// afterUpdate() will run the setup editor
-			if (chapterResponses[chapterID]) {
-				chapterResponses[chapterID].chapter = chapterNode;
-			} else {
-				chapterResponses[chapterID] = { chapter: chapterNode };
-			}
+			chapterResponses[chapterID] = chapterNode;
 
 			selectedChapterNode = chapterNode;
 			chapterResponses = chapterResponses;
@@ -106,21 +100,17 @@
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
 			chapterNode: selectedChapterNode,
-			bookID: bookData.book.properties.id,
-			storylineID: storylineResponse.storyline.properties.id
+			bookID: bookData._id,
+			storylineID: storylineResponse._id
 		};
 
 		modalStore.trigger(modalSettings);
 	};
 
 	let createChapter = () => {
-		let chapterProperties = { id: '', head: true, title: '', description: '' };
-		let newChapterNode = new Node<Integer, ChapterProperties>(
-			new Integer(0),
-			[],
-			chapterProperties,
-			undefined
-		);
+		let chapterProperties = new ChapterPropertyBuilder().getProperties();
+		let newChapterNode: HydratedDocument<ChapterProperties> =
+			chapterProperties as HydratedDocument<ChapterProperties>;
 
 		let prevChapterID = '';
 
@@ -132,8 +122,8 @@
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
 			chapterNode: newChapterNode,
-			bookID: bookData.book.properties.id,
-			storylineID: storylineResponse.storyline.properties.id,
+			bookID: bookData._id,
+			storylineID: storylineResponse._id,
 			prevChapterID: prevChapterID
 		};
 
@@ -144,18 +134,18 @@
 		const modal: ModalSettings = {
 			type: 'confirm',
 			// Data
-			title: selectedChapterNode.properties.title,
+			title: selectedChapterNode.title,
 			body: 'Are you sure you wish to delete this chapter?',
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
 					trpc($page)
 						.chapters.delete.mutate({
-							id: selectedChapterNode.properties.id
+							id: selectedChapterNode._id
 						})
 						.then((response) => {
-							if (response.nodesDeleted !== 0) {
-								let deletedID = selectedChapterNode.properties.id;
+							if (response.deletedCount !== 0) {
+								let deletedID = selectedChapterNode._id;
 								let chapterIDs = Object.keys(chapterResponses);
 								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
 
@@ -170,7 +160,7 @@
 								delete chapterResponses[deletedID];
 
 								// give next node if it's available
-								selectedChapterNode = chapterResponses[selectedChapterID]?.chapter;
+								selectedChapterNode = chapterResponses[selectedChapterID];
 
 								chapterResponses = chapterResponses;
 
@@ -189,7 +179,7 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = CharacterModal;
-		modalComponent.props = { storylineNode: storylineResponse.storyline };
+		modalComponent.props = { storylineNode: storylineResponse };
 		modalStore.trigger(modalSettings);
 	};
 
@@ -223,10 +213,10 @@
 			}
 
 			if (chapterID && chapterID in chapterResponses) {
-				selectedChapterNode = chapterResponses[chapterID].chapter;
+				selectedChapterNode = chapterResponses[chapterID];
 			}
 
-			leftDrawerList = selectedChapterNode?.properties.id;
+			leftDrawerList = selectedChapterNode?._id;
 		}
 	});
 
@@ -234,7 +224,10 @@
 		// if delta is not yet loaded then the editor has not yet been set
 		// we can't check only quill here because when we delete for instance,
 		//		quill will set but new selected chapter not loaded
-		if (selectedChapterNode && !selectedChapterNode.properties.deltaID) {
+		if (
+			selectedChapterNode &&
+			(!selectedChapterNode.delta || typeof selectedChapterNode.delta === 'string')
+		) {
 			setupEditor();
 		}
 	});
@@ -247,37 +240,52 @@
 	/**
 	 * Loads the delta of the selected chapter from the server
 	 */
+
 	function loadChapterDelta() {
-		let deltaID = selectedChapterNode.properties.deltaID;
+		let delta = selectedChapterNode.delta;
 
 		quill.disable();
 
-		let trpcRequest;
-		if (deltaID) {
-			trpcRequest = trpc($page).deltas.getById.query({
-				id: deltaID
-			});
+		if (delta) {
+			if (typeof delta === 'string') {
+				trpc($page)
+					.deltas.getById.query({
+						id: delta as string
+					})
+					.then((deltaResponse) => {
+						setQuillContents(deltaResponse);
+					});
+			} else {
+				setQuillContents(delta);
+			}
 		} else {
-			trpcRequest = trpc($page).deltas.create.mutate({
-				chapterID: selectedChapterNode.properties.id
-			});
+			trpc($page)
+				.deltas.create.mutate({
+					chapterID: selectedChapterNode._id
+				})
+				.then((deltaResponse) => {
+					setQuillContents(deltaResponse);
+				});
+		}
+	}
+
+	function setQuillContents(deltaResponse: unknown) {
+		if (quill.isEnabled()) {
+			return;
 		}
 
-		trpcRequest.then((deltaResponse) => {
-			chapterResponses[selectedChapterNode.properties.id].delta = deltaResponse.delta as DeltaNode;
-			chapterResponses[selectedChapterNode.properties.id].chapter.properties.deltaID =
-				deltaResponse.delta.properties.id;
+		chapterResponses[selectedChapterNode._id].delta =
+			deltaResponse as HydratedDocument<DeltaProperties>;
 
-			let opsJSON = deltaResponse.delta.properties.ops;
-			let ops = JSON.parse(opsJSON ? opsJSON : '[]');
+		let opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
+		let ops = opsJSON ? opsJSON : [];
 
-			quill.setContents(new Delta(ops));
+		quill.setContents(new Delta(ops as Op[]));
 
-			quill.on('selection-change', selectionChange);
-			quill.on('text-change', updateChapterChange);
+		quill.on('selection-change', selectionChange);
+		quill.on('text-change', updateChapterChange);
 
-			quill.enable();
-		});
+		quill.enable();
 	}
 
 	function toggleShowComments() {
@@ -362,6 +370,7 @@
 
 	function updateChapterChange(delta: Delta) {
 		changeDelta = changeDelta.compose(delta);
+
 		// check if new comment was added
 		let added = quill.delta(delta);
 		if (added) {
@@ -400,9 +409,11 @@
 	// Save the changes periodically
 	setInterval(async function () {
 		if (changeDelta.length() > 0) {
-			let deltaID = selectedChapterNode.properties.deltaID;
-			if (!deltaID) {
-				return;
+			let deltaID: string;
+			if (typeof selectedChapterNode.delta === 'string') {
+				deltaID = selectedChapterNode.delta as string;
+			} else {
+				deltaID = (selectedChapterNode.delta as HydratedDocument<DeltaProperties>)._id;
 			}
 
 			// take a snapshot of current delta state.
@@ -414,7 +425,7 @@
 			trpc($page)
 				.deltas.update.mutate({
 					id: deltaID,
-					chapterID: selectedChapterNode.properties.id,
+					chapterID: selectedChapterNode._id,
 					ops: JSON.stringify(changeDeltaSnapshot.ops)
 				})
 				.then((chapterNodeResponse) => {
@@ -427,20 +438,24 @@
 		}
 	}, autosaveInterval);
 
+	/**
+	 * Updates the client side delta to be the same as server side after the saved changes
+	 */
 	function updateChapterContent() {
-		let deltaProperties = chapterResponses[selectedChapterNode.properties.id].delta?.properties;
+		let delta = chapterResponses[selectedChapterNode._id]
+			.delta as HydratedDocument<DeltaProperties>;
 		let chapterContentDelta: Delta = new Delta();
 
-		if (!deltaProperties) {
+		if (!delta) {
 			return;
 		}
 
-		let ops = JSON.parse(deltaProperties.ops);
-		chapterContentDelta = new Delta(ops);
+		let ops = delta.ops;
+		chapterContentDelta = new Delta(ops as Op[]);
 
 		// now update the content
-		let composedDelta = chapterContentDelta.compose(changeDelta);
-		deltaProperties.ops = JSON.stringify(composedDelta.ops);
+		let composedDelta = chapterContentDelta.compose(changeDeltaSnapshot);
+		delta.ops = composedDelta.ops;
 	}
 </script>
 
@@ -474,7 +489,7 @@
 									class="soft-listbox"
 									value="book"
 								>
-									{bookData.book.properties.title}
+									{bookData.title}
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
@@ -492,7 +507,7 @@
 									class="soft-listbox"
 									value="copyright"
 								>
-									{storylineResponse.storyline.properties.title}
+									{storylineResponse.title}
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
@@ -505,13 +520,13 @@
 							<ListBox>
 								{#each Object.entries(chapterResponses) as [id, chapterResponse]}
 									<ListBoxItem
-										on:change={() => drawerItemSelected(chapterResponse.chapter)}
+										on:change={() => drawerItemSelected(chapterResponse)}
 										bind:group={leftDrawerList}
 										name="chapter"
 										class="soft-listbox"
-										value={chapterResponse.chapter.properties.id}
+										value={chapterResponse._id}
 									>
-										<p class="line-clamp-1">{chapterResponse.chapter.properties.title}</p>
+										<p class="line-clamp-1">{chapterResponse.title}</p>
 									</ListBoxItem>
 								{/each}
 							</ListBox>
@@ -636,7 +651,7 @@
 						rows="4"
 						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
 						placeholder="Chapter Title"
-						bind:value={selectedChapterNode.properties.title}
+						bind:value={selectedChapterNode.title}
 						disabled
 					/>
 					<div class="w-full md:w-3/4" id="editor" />

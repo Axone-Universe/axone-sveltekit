@@ -146,10 +146,10 @@
 			<UserPreview
 				class="embla__slide"
 				userData={{
+					_id: '',
 					firstName: 'Takunda',
 					lastName: 'Chirema',
-					userWriterChecked: true,
-					userEditorChecked: true,
+					labels: { Writer: false, Illustrator: false, Editor: true },
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about: '"Axone has allowed me to publish and monetize my unfinished book"'
 				}}
@@ -157,10 +157,10 @@
 			<UserPreview
 				class="embla__slide"
 				userData={{
+					_id: '',
 					firstName: 'Lindi',
 					lastName: 'Kers',
-					userWriterChecked: true,
-					userIllustratorChecked: true,
+					labels: { Writer: false, Illustrator: false, Editor: true },
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
 						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
@@ -169,9 +169,10 @@
 			<UserPreview
 				class="embla__slide"
 				userData={{
+					_id: '',
 					firstName: 'Danae',
 					lastName: 'Bouwer',
-					userWriterChecked: true,
+					labels: { Writer: false, Illustrator: false, Editor: true },
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
 						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'

@@ -1,6 +1,13 @@
 import { router } from '$lib/trpc/router';
 import { GenresBuilder } from '$lib/util/genres';
-import { cleanUpDatabase, createUser, testSession } from '$lib/util/testing/testing';
+import type { HydratedDocument } from 'mongoose';
+import {
+	connectTestDatabase,
+	cleanUpDatabase,
+	createUser,
+	testSession
+} from '$lib/util/testing/testing';
+import type { UserProperties } from '$lib/shared/user';
 
 const createBook = async (title: string) => {
 	const caller = router.createCaller({ session: testSession });
@@ -16,6 +23,10 @@ const createBook = async (title: string) => {
 	});
 };
 
+beforeAll(async () => {
+	await connectTestDatabase();
+});
+
 describe('books', () => {
 	beforeEach(async () => {
 		await cleanUpDatabase();
@@ -24,16 +35,18 @@ describe('books', () => {
 	test('create book', async () => {
 		const testBookTitle = 'My Book';
 		const userResponse = await createUser(testSession);
-		const userAuthoredBookResponse = await createBook(testBookTitle);
+		const bookResponse = await createBook(testBookTitle);
 
 		const caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse.book.properties.id
+			bookID: bookResponse._id
 		});
 
-		expect(userAuthoredBookResponse.book.properties.title).toEqual(testBookTitle);
-		expect(userAuthoredBookResponse.user.properties.id).toEqual(userResponse.user.properties.id);
-		expect(storylines[0].storyline.properties.title).toEqual(testBookTitle);
+		expect(bookResponse.title).toEqual(testBookTitle);
+		expect((bookResponse.user as unknown as HydratedDocument<UserProperties>)!._id).toEqual(
+			userResponse._id
+		);
+		expect(storylines[0].title).toEqual(testBookTitle);
 	});
 
 	test('get all books', async () => {
@@ -41,19 +54,15 @@ describe('books', () => {
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
 		const testBookTitle3 = 'My Book 3';
-		const userAuthoredBookResponse1 = await createBook(testBookTitle1);
-		const userAuthoredBookResponse2 = await createBook(testBookTitle2);
-		const userAuthoredBookResponse3 = await createBook(testBookTitle3);
+		const bookResponse1 = await createBook(testBookTitle1);
+		const bookResponse2 = await createBook(testBookTitle2);
+		const bookResponse3 = await createBook(testBookTitle3);
 
 		const caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.getAll();
 
-		expect(bookResponses.map((a) => a.book.properties.id).sort()).toEqual(
-			[
-				userAuthoredBookResponse1.book.properties.id,
-				userAuthoredBookResponse2.book.properties.id,
-				userAuthoredBookResponse3.book.properties.id
-			].sort()
+		expect(bookResponses.map((a) => a._id).sort()).toEqual(
+			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
 		);
 	});
 
@@ -61,13 +70,13 @@ describe('books', () => {
 		await createUser(testSession);
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
-		const userAuthoredBookResponse = await createBook(testBookTitle1);
+		const bookResponse = await createBook(testBookTitle1);
 		await createBook(testBookTitle2);
 
 		const caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.getByTitle({ searchTerm: testBookTitle1 });
 
 		expect(bookResponses.length).toEqual(1);
-		expect(bookResponses.pop()?.book).toEqual(userAuthoredBookResponse.book);
+		expect(bookResponses.pop()?._id).toEqual(bookResponse._id);
 	});
 });

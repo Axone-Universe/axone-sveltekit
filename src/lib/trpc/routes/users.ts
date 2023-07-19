@@ -1,13 +1,10 @@
-import { TRPCError } from '@trpc/server';
-
-import { UserBuilder } from '$lib/nodes/user';
+import { UserBuilder } from '$lib/documents/user';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create } from '$lib/trpc/schemas/users';
+import { create, update } from '$lib/trpc/schemas/users';
 import { search } from '$lib/trpc/schemas/shared';
-import type { Genres } from '$lib/util/types';
 
 const usersRepo = new UsersRepository();
 
@@ -29,39 +26,46 @@ export const users = t.router({
 
 			return result;
 		}),
-	create: t.procedure
+	update: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(create)
+		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			console.log('create ues');
-			let userBuilder = new UserBuilder()
-				.id(ctx.session!.user.id)
-				.firstName(input.firstName)
-				.lastName(input.lastName);
+			let userBuilder = new UserBuilder(ctx.session!.user.id)
+				.firstName(input.firstName!)
+				.lastName(input.lastName!);
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
+			if (input.genres) userBuilder = userBuilder.genres(input.genres);
+			if (input.labels) userBuilder = userBuilder.labels(input.labels);
 
-			if (input.genres) {
-				const genres = Object.keys(input.genres).filter(
-					(key) => (input.genres as Genres)[key as keyof Genres]
-				);
-				if (genres.length > 0) userBuilder = userBuilder.genres(genres);
-			}
+			const user = await userBuilder.update();
 
-			const labels = ['User'];
-			if (input.userWriterChecked) labels.push('Writer');
-			if (input.userEditorChecked) labels.push('Editor');
-			if (input.userIllustratorChecked) labels.push('Illustrator');
+			return user;
+		}),
+	create: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(create)
+		.mutation(async ({ input, ctx }) => {
+			let userBuilder = new UserBuilder(ctx.session!.user.id)
+				.firstName(input.firstName!)
+				.lastName(input.lastName!);
 
-			userBuilder = userBuilder.labels(labels);
+			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
+			if (input.about) userBuilder = userBuilder.about(input.about);
+			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
+			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
+			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
+			if (input.genres) userBuilder = userBuilder.genres(input.genres);
+			if (input.labels) userBuilder = userBuilder.labels(input.labels);
 
-			const userNode = await userBuilder.build();
+			const user = await userBuilder.build();
 
-			return userNode;
+			return user;
 		})
 });

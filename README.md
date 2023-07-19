@@ -25,6 +25,39 @@ npm run dev
 npm run dev -- --open
 ```
 
+## MongoDB local setup
+
+To use a local mongodb instance follow the steps below:
+
+### Mac
+
+On Mac use homebrew. If not installed install it.
+
+Add the mongodb repo to homebrew
+
+```bash
+brew tap mongodb/brew
+```
+
+Install community mongodb
+
+```bash
+brew install mongodb-community@6.0
+```
+
+We use transactions for DB consistency. For this a mongodb replica set is required
+To use replica sets install the package run-rs globally
+
+```bash
+npm i -g run-rs
+```
+
+In a separate terminal run
+
+```bash
+sudo run-rs --mongod
+```
+
 ## Testing
 
 ### Running Tests
@@ -47,34 +80,6 @@ To view console logs you must put empty lines under the log you want to view:
 console.log('Please show this log');
 console.log('\n');
 ```
-
-### Neo4j local Setup
-
-To use a local neo4j instance follow the steps below:
-
-- Download the desktop version of neo4j.
-- Create a new project, then a new DBMS.
-- You then must start the DBMS and it will give an option to add a DB.
-  - Create a DB
-- Set auth to disabled for testing purposes.
-  - On the DBMS menu click on settings.
-  - Then set dbms.security.auth_enabled=false
-- To add an admin, open neo4j browser through the desktop admin.
-- Then on the left-hand menu on the databases tab, change DB to 'system'
-- Then run this query:
-
-```
-CALL dbms.security.createUser('axone-admin', 'password');
-CALL dbms.security.addRoleToUser('admin', 'axone-admin');
-```
-
-- To test, start a DBMS and use 'bolt://localhost:7687' as the url
-  - The password and db-user can be left blank because authentication is diabled
-
-Install APOC plugin to use it's stored procedures
-
-- After creating your database, go to the Manage screen, and then the Plugins tab.
-- Click Install in the APOC box and wait until you see the "Installed" message.
 
 ## Building
 

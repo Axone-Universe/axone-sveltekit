@@ -4,7 +4,7 @@ import { t } from '$lib/trpc/t';
 import { create } from '$lib/trpc/schemas/campaigns';
 import { search } from '$lib/trpc/schemas/shared';
 import { CampaignsRepository } from '$lib/repositories/campaignsRepository';
-import { CampaignBuilder } from '$lib/nodes/campaigns/campaign';
+import { CampaignBuilder } from '$lib/documents/campaigns/campaign';
 
 const campaignsRepo = new CampaignsRepository();
 
