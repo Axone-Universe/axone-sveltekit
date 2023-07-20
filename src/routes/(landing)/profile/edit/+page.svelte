@@ -8,7 +8,7 @@
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
 	import { onMount, beforeUpdate } from 'svelte';
-	import { UserPropertyBuilder } from '$lib/util/users';
+	import { UserPropertyBuilder } from '$lib/shared/user';
 	import type { UserProperties } from '$lib/shared/user';
 
 	export let data: PageData;

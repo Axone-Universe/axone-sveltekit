@@ -1,7 +1,7 @@
 import { beforeAll } from 'vitest';
 
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/util/genres';
+import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
 	connectDatabase,
@@ -131,9 +131,9 @@ describe('db test data', () => {
 		const storyline2 = await caller.storylines.create({
 			title: 'Storyline 1',
 			description: 'Storyline 1',
-			bookID: userAuthoredBookResponse1._id,
-			parentStorylineID: storylines[0]._id,
-			branchOffChapterID: chapter1Response._id
+			book: userAuthoredBookResponse1._id,
+			parent: storylines[0]._id,
+			parentChapter: chapter1Response._id
 		});
 
 		const chapter2_2Response = await caller.chapters.create({

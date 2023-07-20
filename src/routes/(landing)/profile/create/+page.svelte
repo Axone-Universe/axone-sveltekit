@@ -7,7 +7,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { UserPropertyBuilder } from '$lib/util/users';
+	import { UserPropertyBuilder } from '$lib/shared/user';
 
 	export let data: PageData;
 	const { session } = data;

@@ -186,7 +186,7 @@
 	/**
 	 * Quill Editor Settings
 	 */
-	let autosaveInterval = 5000;
+	let autosaveInterval = 3000;
 	let quill: QuillEditor;
 	let showComments: boolean = false;
 

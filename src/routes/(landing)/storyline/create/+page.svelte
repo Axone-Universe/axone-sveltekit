@@ -15,7 +15,7 @@
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { PageData } from './$types';
-	import { StorylinePropertyBuilder } from '$lib/util/storylines';
+	import { StorylinePropertyBuilder } from '$lib/shared/storyline';
 	import { onMount } from 'svelte';
 	import type { ChapterProperties } from '$lib/shared/chapter';
 	import type { HydratedDocument } from 'mongoose';
@@ -37,9 +37,9 @@
 			genres[genre] = bookGenres[genre];
 		}
 
-		storyline.bookID = bookData._id;
-		storyline.parentStorylineID = storylineResponse._id;
-		storyline.branchOffChapterID = chapterID;
+		storyline.book = bookData._id;
+		storyline.parent = storylineResponse._id;
+		storyline.parentChapter = chapterID;
 	});
 
 	async function createStoryline() {

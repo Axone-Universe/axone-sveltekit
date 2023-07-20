@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
-	import { BookPropertyBuilder } from '$lib/util/books';
+	import { BookPropertyBuilder } from '$lib/shared/book';
 	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';

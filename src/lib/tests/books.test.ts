@@ -1,5 +1,5 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/util/genres';
+import { GenresBuilder } from '$lib/shared/genres';
 import type { HydratedDocument } from 'mongoose';
 import {
 	connectTestDatabase,

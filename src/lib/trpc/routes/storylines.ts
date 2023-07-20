@@ -36,14 +36,13 @@ export const storylines = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder()
-				.userID(ctx.session!.user.id)
-				.bookID(input.bookID)
-				.title(input.title)
-				.description(input.description);
+			const storylineBuilder = new StorylineBuilder().userID(ctx.session!.user.id);
 
-			if (input?.parentStorylineID) storylineBuilder.parentStorylineID(input.parentStorylineID);
-			if (input?.branchOffChapterID) storylineBuilder.branchOffChapterID(input.branchOffChapterID);
+			if (input?.book) storylineBuilder.bookID(input.book as string);
+			if (input?.title) storylineBuilder.title(input.title);
+			if (input?.description) storylineBuilder.description(input.description);
+			if (input?.parent) storylineBuilder.parentStorylineID(input.parent);
+			if (input?.parentChapter) storylineBuilder.branchOffChapterID(input.parentChapter);
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
 
 			const storylineNode = await storylineBuilder.build();
