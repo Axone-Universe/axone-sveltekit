@@ -30,7 +30,5 @@ export const load = (async (event) => {
 		chapterResponses[chapterResponse._id] = chapterResponse;
 	});
 
-	console.log('*** ed se');
-	console.log(storylineResponse);
 	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
 }) satisfies PageServerLoad;

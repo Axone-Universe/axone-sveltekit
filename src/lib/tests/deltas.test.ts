@@ -1,5 +1,5 @@
+import { GenresBuilder } from '$lib/shared/genres';
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/util/genres';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,

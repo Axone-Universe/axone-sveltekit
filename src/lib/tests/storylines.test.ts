@@ -1,5 +1,5 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/util/genres';
+import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
@@ -77,9 +77,9 @@ describe('storylines', () => {
 		const storyline2 = await caller.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
-			bookID: bookResponse._id,
-			parentStorylineID: storylines[0]._id,
-			branchOffChapterID: chapter1Response._id
+			book: bookResponse._id,
+			parent: storylines[0]._id,
+			parentChapter: chapter1Response._id
 		});
 
 		const chapter2_2Response = await caller.chapters.create({

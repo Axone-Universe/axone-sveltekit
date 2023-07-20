@@ -16,10 +16,10 @@ export const search = z.object({
 });
 
 export const create = z.object({
-	title: z.string(),
-	description: z.string(),
-	bookID: z.string(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	book: z.unknown().optional(),
 	imageURL: z.string().optional(),
-	parentStorylineID: z.string().optional(),
-	branchOffChapterID: z.string().optional()
+	parent: z.string().optional(),
+	parentChapter: z.string().optional()
 });
