@@ -42,6 +42,44 @@
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
+	onMount(() => {
+		toggleDrawer();
+	});
+
+	/**
+	 * Set up selected chapter before the DOM is updated.
+	 * The DOM will use that data to render elements
+	 */
+	beforeUpdate(() => {
+		let chapterID = $page.url.searchParams.get('chapterID');
+
+		// Set selectedChapterNode to be from the url parameter
+		if (!selectedChapterNode) {
+			if (!chapterID && Object.keys(chapterResponses).length !== 0) {
+				chapterID = Object.keys(chapterResponses)[0];
+			}
+
+			if (chapterID && chapterID in chapterResponses) {
+				selectedChapterNode = chapterResponses[chapterID];
+			}
+
+			leftDrawerList = selectedChapterNode?._id;
+		}
+	});
+
+	/**
+	 * After the DOM update setup the editor and populate it with the selected chapter DELTA.
+	 * SetupEditor fetches the delta to populate itself as part of its logic
+	 */
+	afterUpdate(() => {
+		if (
+			selectedChapterNode &&
+			(!selectedChapterNode.delta || typeof selectedChapterNode.delta === 'string')
+		) {
+			setupEditor();
+		}
+	});
+
 	/**
 	 * Drawer settings
 	 */
@@ -186,7 +224,7 @@
 	/**
 	 * Quill Editor Settings
 	 */
-	let autosaveInterval = 3000;
+	let autosaveInterval = 2000;
 	let quill: QuillEditor;
 	let showComments: boolean = false;
 
@@ -202,40 +240,6 @@
 			'comments-toggle'
 		]
 	];
-
-	beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		// Set selectedChapterNode to be from the url parameter
-		if (!selectedChapterNode) {
-			if (!chapterID && Object.keys(chapterResponses).length !== 0) {
-				chapterID = Object.keys(chapterResponses)[0];
-			}
-
-			if (chapterID && chapterID in chapterResponses) {
-				selectedChapterNode = chapterResponses[chapterID];
-			}
-
-			leftDrawerList = selectedChapterNode?._id;
-		}
-	});
-
-	afterUpdate(() => {
-		// if delta is not yet loaded then the editor has not yet been set
-		// we can't check only quill here because when we delete for instance,
-		//		quill will set but new selected chapter not loaded
-		if (
-			selectedChapterNode &&
-			(!selectedChapterNode.delta || typeof selectedChapterNode.delta === 'string')
-		) {
-			setupEditor();
-		}
-	});
-
-	onMount(() => {
-		setupEditor();
-		toggleDrawer();
-	});
 
 	/**
 	 * Loads the delta of the selected chapter from the server

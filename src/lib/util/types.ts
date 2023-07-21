@@ -1,32 +1,10 @@
-import type { Genres } from '$lib/documents/genres/genres';
-
 export interface DeltaQuery {
 	id?: string;
 	chapterID: string;
 	ops?: string;
 }
 
-export interface BookProperties {
-	id: string;
-	title: string;
-	description: string;
-	imageURL: string;
-	genres: Genres;
-	tags: string[];
-}
-export interface StorylineProperties {
-	id: string;
-	bookID: string;
-	title: string;
-	description: string;
-	imageURL: string;
-	genres: Genres;
-	tags: string[];
-	parentStorylineID?: string;
-	branchOffChapterID?: string;
-}
-
-export interface CreateCampaign {
+export interface CampaignProperties {
 	id?: string;
 	title: string;
 	organizer: { name: string; link: string };
