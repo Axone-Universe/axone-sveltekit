@@ -66,16 +66,6 @@
 				Email address
 				<input name="firstName" class="input" type="text" bind:value={email} />
 			</label>
-			<div class="flex gap-4">
-				<label>
-					New Password
-					<input name="lastName" class="input" type="password" bind:value={password} />
-				</label>
-				<label>
-					Confirm new Password
-					<input name="lastName" class="input" type="password" bind:value={confirmPassword} />
-				</label>
-			</div>
 
 			<label>
 				About
