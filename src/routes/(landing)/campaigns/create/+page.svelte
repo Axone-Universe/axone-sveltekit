@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
-	import type { CreateCampaign } from '$lib/util/types';
+	import type { CampaignProperties } from '$lib/util/types';
 	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
 	import { format } from 'date-fns';
 	import { Icon } from 'svelte-awesome';
@@ -13,7 +13,7 @@
 	let currentEndDate: string;
 	let currentDateEvent: string;
 
-	const campaign: CreateCampaign = {
+	const campaign: CampaignProperties = {
 		title: '',
 		organizer: { name: '', link: '' },
 		dates: [],

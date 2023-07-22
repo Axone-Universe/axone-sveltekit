@@ -1,5 +1,5 @@
 import type { CampaignResponse } from '$lib/documents/campaigns/campaign';
-import type { CreateCampaign } from '$lib/util/types';
+import type { CampaignProperties } from '$lib/util/types';
 
 export function preprocessCampaigns(campaignResponses: CampaignResponse[]) {
 	return campaignResponses.map((campaign) => {
@@ -19,6 +19,6 @@ export function preprocessCampaigns(campaignResponses: CampaignResponse[]) {
 			...campaign.campaign.properties,
 			organizer,
 			dates
-		} as CreateCampaign;
+		} as CampaignProperties;
 	});
 }

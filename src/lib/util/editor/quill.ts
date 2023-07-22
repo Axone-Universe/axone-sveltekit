@@ -1,6 +1,14 @@
-import type Delta from 'quill-delta';
+import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
 import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
+import type { HydratedDocument } from 'mongoose';
+import type { ChapterProperties } from '$lib/shared/chapter';
+import { trpc } from '$lib/trpc/client';
+import type { Page } from '@sveltejs/kit';
+import type { DeltaProperties } from '$lib/shared/delta';
+import { writable } from 'svelte/store';
+
+export const changeDelta = writable<Delta>(new Delta());
 
 export interface Comment {
 	id: string;
@@ -12,15 +20,211 @@ export interface Comment {
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	ops: Op[] | undefined;
+	page: Page;
+	chapter: HydratedDocument<ChapterProperties> | undefined;
 
-	constructor(container: string | Element, options?: QuillOptionsStatic) {
+	/**
+	 * Track changes which can be saved on the server
+	 * Should only be changed through the store NOT directly
+	 */
+	changeDelta = new Delta();
+	changeDeltaSnapshot: Delta | undefined;
+
+	quillObject = this;
+
+	constructor(
+		container: string | Element,
+		chapter: HydratedDocument<ChapterProperties>,
+		page: Page,
+		options?: QuillOptionsStatic
+	) {
 		super(container, options);
+		this.chapter = chapter;
+		this.page = page;
+		// changeDelta.update(() => new Delta());
+		changeDelta.subscribe((changeDelta) => {
+			this.changeDelta = changeDelta;
+		});
+		this.getChapterDelta();
 	}
 
+	saveDelta() {
+		if (this.changeDelta && this.changeDelta.length() > 0) {
+			console.log('saving delta 2');
+			let deltaID: string;
+			if (typeof this.chapter?.delta === 'string') {
+				deltaID = this.chapter?.delta as string;
+			} else {
+				deltaID = (this.chapter?.delta as HydratedDocument<DeltaProperties>)._id;
+			}
+
+			console.log('saving ' + this.chapter?.title);
+			// take a snapshot of current delta state.
+			// that is the one sent to the server
+			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
+			changeDelta.update(() => new Delta());
+			console.log('saving delta 3');
+			// TODO: If the autosave fails, merge snapshot and change deltas
+			trpc(this.page)
+				.deltas.update.mutate({
+					id: deltaID,
+					chapterID: this.chapter!._id,
+					ops: JSON.stringify(this.changeDeltaSnapshot.ops)
+				})
+				.then((chapterNodeResponse) => {
+					// Update the content to be one delta
+					this.updateChapterContent();
+				})
+				.catch(() => {
+					alert('bad response');
+				});
+		}
+	}
+
+	/**
+	 * Updates the chapter delta to be the same as server side after the saved changes
+	 */
+	updateChapterContent() {
+		const delta = this.chapter!.delta as HydratedDocument<DeltaProperties>;
+		let chapterContentDelta: Delta = new Delta();
+
+		if (!delta) {
+			return;
+		}
+
+		const ops = delta.ops;
+		chapterContentDelta = new Delta(ops as Op[]);
+
+		// now update the content
+		const composedDelta = chapterContentDelta.compose(this.changeDeltaSnapshot!);
+		delta.ops = composedDelta.ops;
+	}
+
+	async getChapterDelta(): Promise<HydratedDocument<ChapterProperties>> {
+		const delta = this.chapter!.delta;
+
+		this.disable();
+
+		console.log('get ch d');
+		if (delta) {
+			if (typeof delta === 'string') {
+				const deltaResponse = await trpc(this.page).deltas.getById.query({
+					id: delta as string
+				});
+				this.setChapterContents(
+					this.chapter!,
+					deltaResponse as HydratedDocument<ChapterProperties>
+				);
+			} else {
+				this.setChapterContents(this.chapter!, delta as HydratedDocument<ChapterProperties>);
+			}
+		} else {
+			await trpc(this.page)
+				.deltas.create.mutate({
+					chapterID: this.chapter!._id
+				})
+				.then((deltaResponse) => {
+					this.setChapterContents(
+						this.chapter!,
+						deltaResponse as HydratedDocument<ChapterProperties>
+					);
+				});
+		}
+
+		return this.chapter!;
+	}
+
+	/**
+	 * Sets the delta contents of a chapter response on the quill element
+	 * @param deltaResponse
+	 * @returns
+	 */
+	setChapterContents(
+		chapter: HydratedDocument<ChapterProperties>,
+		deltaResponse: HydratedDocument<DeltaProperties>
+	) {
+		if (this.isEnabled()) {
+			return;
+		}
+
+		chapter.delta = deltaResponse;
+
+		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
+		const ops = opsJSON ? opsJSON : [];
+
+		console.log(ops);
+		this.setContents(new Delta(ops as Op[]));
+
+		this.on('selection-change', this.selectionChange.bind(this));
+		this.on('text-change', this.textChange.bind(this));
+
+		this.enable();
+	}
+
+	/**
+	 * Set contents renders the Delta on our quill editor
+	 * We override and setup the comments after the super class call
+	 * @param delta
+	 * @param source
+	 * @returns
+	 */
 	override setContents(delta: Delta, source?: Sources | undefined): Delta {
 		const resultDelta: Delta = super.setContents(delta, source);
 		this.intializeComments(delta);
 		return resultDelta;
+	}
+
+	/**
+	 * Check if the selection is a comment
+	 * If it's a comment, focus on the comment element in the UI
+	 * @param range
+	 * @param oldRange
+	 * @param source
+	 * @returns
+	 */
+	selectionChange(
+		range: { index: number; length: number },
+		oldRange: { index: number; length: number },
+		source: string
+	) {
+		if (!range) {
+			return;
+		}
+
+		const delta = this.getContents(range.index, 1);
+
+		if (!this.isComment(delta.ops[0])) {
+			return;
+		}
+
+		const commentId = delta.ops[0].attributes?.commentId;
+
+		if (!(commentId in this.comments)) {
+			return;
+		}
+
+		// get the container with all the comments
+		const comments = document.getElementById('comments-container');
+
+		// focus on the textarea. it has the id of the comment
+		(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
+	}
+
+	/**
+	 * Checks whether the history has changed and updates the chapter deltas
+	 * 1. Double maxStack when its about to fill up
+	 * 2. Update the chapter's deltas to be the history stack's one
+	 */
+
+	textChange(delta: Delta) {
+		changeDelta.update(() => this.changeDelta.compose(delta));
+
+		// check if new comment was added
+		const added = this.delta(delta);
+		if (added) {
+			// eslint-disable-next-line no-self-assign
+			this.comments = this.comments;
+		}
 	}
 
 	intializeComments(delta: Delta) {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { CreateCampaign } from '$lib/util/types';
+import type { CampaignProperties } from '$lib/util/types';
 
 export const create = z.object({
 	title: z.string(),
@@ -14,4 +14,4 @@ export const create = z.object({
 	submissionCriteria: z.string(),
 	rewards: z.string(),
 	previewText: z.string()
-}) satisfies z.ZodType<CreateCampaign>;
+}) satisfies z.ZodType<CampaignProperties>;

@@ -14,7 +14,6 @@
 	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
-	import Delta from 'quill-delta';
 	import { QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
@@ -35,12 +34,46 @@
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import CharacterModal from '$lib/components/character/CharacterModal.svelte';
 	import 'quill-comment';
-	import type { DeltaProperties } from '$lib/shared/delta';
-	import type Op from 'quill-delta/dist/Op';
 	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
+	import { changeDelta } from '$lib/util/editor/quill';
 
 	export let data: PageData;
-	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
+	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
+
+	onMount(() => {
+		toggleDrawer();
+	});
+
+	/**
+	 * Set up selected chapter before the DOM is updated.
+	 * The DOM will use that data to render elements
+	 */
+	beforeUpdate(() => {
+		let chapterID = $page.url.searchParams.get('chapterID');
+
+		// Set selectedChapterNode to be from the url parameter
+		if (!selectedChapterNode) {
+			if (!chapterID && Object.keys(chapterResponses).length !== 0) {
+				chapterID = Object.keys(chapterResponses)[0];
+			}
+
+			if (chapterID && chapterID in chapterResponses) {
+				selectedChapterNode = chapterResponses[chapterID];
+			}
+
+			leftDrawerList = selectedChapterNode?._id;
+		}
+	});
+
+	/**
+	 * Being USED after a chapter add
+	 * We cannot update after return of modal result because the editor and the chapter node are out of sync
+	 */
+	afterUpdate(() => {
+		if (!quill || quill.chapter!._id !== selectedChapterNode._id) {
+			setupEditor();
+		}
+	});
 
 	/**
 	 * Drawer settings
@@ -67,7 +100,6 @@
 	function drawerItemSelected(chapter?: HydratedDocument<ChapterProperties>) {
 		if (chapter) {
 			selectedChapterNode = chapterResponses[chapter._id];
-			setupEditor();
 		}
 	}
 
@@ -186,9 +218,15 @@
 	/**
 	 * Quill Editor Settings
 	 */
-	let autosaveInterval = 3000;
 	let quill: QuillEditor;
 	let showComments: boolean = false;
+	let deltaChange;
+
+	// Subscribe to the quill changeDelta to see if delta has changed
+	changeDelta.subscribe((value) => {
+		deltaChange = value;
+		quill.comments = quill.comments;
+	});
 
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
@@ -203,91 +241,6 @@
 		]
 	];
 
-	beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		// Set selectedChapterNode to be from the url parameter
-		if (!selectedChapterNode) {
-			if (!chapterID && Object.keys(chapterResponses).length !== 0) {
-				chapterID = Object.keys(chapterResponses)[0];
-			}
-
-			if (chapterID && chapterID in chapterResponses) {
-				selectedChapterNode = chapterResponses[chapterID];
-			}
-
-			leftDrawerList = selectedChapterNode?._id;
-		}
-	});
-
-	afterUpdate(() => {
-		// if delta is not yet loaded then the editor has not yet been set
-		// we can't check only quill here because when we delete for instance,
-		//		quill will set but new selected chapter not loaded
-		if (
-			selectedChapterNode &&
-			(!selectedChapterNode.delta || typeof selectedChapterNode.delta === 'string')
-		) {
-			setupEditor();
-		}
-	});
-
-	onMount(() => {
-		setupEditor();
-		toggleDrawer();
-	});
-
-	/**
-	 * Loads the delta of the selected chapter from the server
-	 */
-
-	function loadChapterDelta() {
-		let delta = selectedChapterNode.delta;
-
-		quill.disable();
-
-		if (delta) {
-			if (typeof delta === 'string') {
-				trpc($page)
-					.deltas.getById.query({
-						id: delta as string
-					})
-					.then((deltaResponse) => {
-						setQuillContents(deltaResponse);
-					});
-			} else {
-				setQuillContents(delta);
-			}
-		} else {
-			trpc($page)
-				.deltas.create.mutate({
-					chapterID: selectedChapterNode._id
-				})
-				.then((deltaResponse) => {
-					setQuillContents(deltaResponse);
-				});
-		}
-	}
-
-	function setQuillContents(deltaResponse: unknown) {
-		if (quill.isEnabled()) {
-			return;
-		}
-
-		chapterResponses[selectedChapterNode._id].delta =
-			deltaResponse as HydratedDocument<DeltaProperties>;
-
-		let opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
-		let ops = opsJSON ? opsJSON : [];
-
-		quill.setContents(new Delta(ops as Op[]));
-
-		quill.on('selection-change', selectionChange);
-		quill.on('text-change', updateChapterChange);
-
-		quill.enable();
-	}
-
 	function toggleShowComments() {
 		showComments = !showComments;
 	}
@@ -295,7 +248,6 @@
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
-		quill.comments = quill.comments;
 	}
 
 	/**
@@ -328,22 +280,22 @@
 	 * Finds the editor element and creates a new Quill instance from that
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
+	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
 	function setupEditor() {
-		changeDelta = new Delta();
-
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
 
 		let container = document.getElementById('editor');
 		if (container) {
-			quill = new QuillEditor(container, {
+			container.innerHTML = '';
+			quill = new QuillEditor(container, selectedChapterNode, $page, {
 				theme: 'bubble',
 				modules: {
 					toolbar: toolbarOptions,
 					comment: {
 						enabled: true,
-						commentAuthorId: 123,
-						commentAddOn: 'Author Name', // any additional info needed
+						commentAuthorId: session?.user.id,
+						commentAddOn: session?.user.email, // any additional info needed
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
 					},
@@ -355,107 +307,9 @@
 				placeholder: 'Let your voice be heard...'
 			});
 
-			loadChapterDelta();
+			clearInterval(saveDeltaInterval);
+			saveDeltaInterval = setInterval(quill.saveDelta.bind(quill), 2000);
 		}
-	}
-
-	/**
-	 * Checks whether the history has changed and updates the chapter deltas
-	 * 1. Double maxStack when its about to fill up
-	 * 2. Update the chapter's deltas to be the history stack's one
-	 */
-
-	var changeDelta = new Delta();
-	var changeDeltaSnapshot: Delta;
-
-	function updateChapterChange(delta: Delta) {
-		changeDelta = changeDelta.compose(delta);
-
-		// check if new comment was added
-		let added = quill.delta(delta);
-		if (added) {
-			quill.comments = quill.comments;
-		}
-	}
-
-	function selectionChange(
-		range: { index: number; length: number },
-		oldRange: { index: number; length: number },
-		source: String
-	) {
-		if (!range) {
-			return;
-		}
-
-		let delta = quill.getContents(range.index, 1);
-
-		if (!quill.isComment(delta.ops[0])) {
-			return;
-		}
-
-		let commentId = delta.ops[0].attributes?.commentId;
-
-		if (!(commentId in quill.comments)) {
-			return;
-		}
-
-		// get the container with all the comments
-		let comments = document.getElementById('comments-container');
-
-		// focus on the textarea. it has the id of the comment
-		(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
-	}
-
-	// Save the changes periodically
-	setInterval(async function () {
-		if (changeDelta.length() > 0) {
-			let deltaID: string;
-			if (typeof selectedChapterNode.delta === 'string') {
-				deltaID = selectedChapterNode.delta as string;
-			} else {
-				deltaID = (selectedChapterNode.delta as HydratedDocument<DeltaProperties>)._id;
-			}
-
-			// take a snapshot of current delta state.
-			// that is the one sent to the server
-			changeDeltaSnapshot = new Delta(changeDelta.ops);
-			changeDelta = new Delta();
-
-			// TODO: If the autosave fails, merge snapshot and change deltas
-			trpc($page)
-				.deltas.update.mutate({
-					id: deltaID,
-					chapterID: selectedChapterNode._id,
-					ops: JSON.stringify(changeDeltaSnapshot.ops)
-				})
-				.then((chapterNodeResponse) => {
-					// Update the content to be one delta
-					updateChapterContent();
-				})
-				.catch(() => {
-					alert('bad response');
-				});
-		}
-	}, autosaveInterval);
-
-	/**
-	 * Updates the client side delta to be the same as server side after the saved changes
-	 */
-	function updateChapterContent() {
-		let delta = chapterResponses[selectedChapterNode._id]
-			.delta as HydratedDocument<DeltaProperties>;
-		let chapterContentDelta: Delta = new Delta();
-
-		if (!delta) {
-			return;
-		}
-
-		let ops = delta.ops;
-		chapterContentDelta = new Delta(ops as Op[]);
-
-		// now update the content
-		let composedDelta = chapterContentDelta.compose(changeDeltaSnapshot);
-		delta.ops = composedDelta.ops;
 	}
 </script>
 
@@ -606,7 +460,7 @@
 						{/if}
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
-						{#if changeDelta.length() > 0}
+						{#if deltaChange.length() > 0}
 							<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
 								<Icon class="p-2" data={spinner} scale={2.5} pulse />
 							</button>
