@@ -78,13 +78,24 @@ textarea::placeholder {
 }
 
 .dark [ql-comment] {
-	background-color: rgb(var(--color-primary-500) / 0.7) !important;
+	background-color: rgb(var(--comment-bg-color) / 0.7) !important;
 }
 
 [ql-comment] {
-	background-color: rgb(var(--color-primary-500) / 0.5) !important;
+	background-color: rgb(var(--comment-bg-color) / 0.5) !important;
 }
 
+/* Global Styling */
+
+.dark .icon-info {
+	fill: rgb(var(--color-surface-300)) !important;
+}
+
+.icon-info {
+	fill: rgb(var(--color-surface-600)) !important;
+}
+
+/* For list boxes to have background color before being selected */
 [aria-selected='false'].soft-listbox {
 	background-color: rgb(var(--color-primary-500) / 0.1) !important;
 }

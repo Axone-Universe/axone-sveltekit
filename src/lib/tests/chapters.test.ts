@@ -35,7 +35,7 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 
-		await createUser(testSession);
+		const user = await createUser(testSession);
 		const bookResponse = await createBook(testBookTitle);
 
 		let caller = router.createCaller({ session: null });
@@ -65,6 +65,7 @@ describe('chapters', () => {
 
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2Response.title).toEqual(chapter2Title);
+		expect(chapter2Response.user).toEqual(user._id);
 		expect(storylineChapters[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
