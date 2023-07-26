@@ -42,8 +42,6 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	storylineID(storylineID: string): ChapterBuilder {
 		this._storylineID = storylineID;
 
-		this._chapterProperties.user = storylineID;
-
 		return this;
 	}
 

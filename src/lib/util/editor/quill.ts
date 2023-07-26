@@ -17,6 +17,10 @@ export interface Comment {
 	timestamp: string;
 }
 
+export interface QuillOptions extends QuillOptionsStatic {
+	reader?: boolean;
+}
+
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	ops: Op[] | undefined;
@@ -31,12 +35,13 @@ export class QuillEditor extends Quill {
 	changeDeltaSnapshot: Delta | undefined;
 
 	quillObject = this;
+	reader = false;
 
 	constructor(
 		container: string | Element,
 		chapter: HydratedDocument<ChapterProperties>,
 		page: Page,
-		options?: QuillOptionsStatic
+		options?: QuillOptions
 	) {
 		super(container, options);
 		this.chapter = chapter;
@@ -46,6 +51,10 @@ export class QuillEditor extends Quill {
 			this.changeDelta = changeDelta;
 		});
 		this.getChapterDelta();
+		if (options?.reader) {
+			this.reader = true;
+			this.disable();
+		}
 	}
 
 	saveDelta() {
@@ -143,10 +152,6 @@ export class QuillEditor extends Quill {
 		chapter: HydratedDocument<ChapterProperties>,
 		deltaResponse: HydratedDocument<DeltaProperties>
 	) {
-		if (this.isEnabled()) {
-			return;
-		}
-
 		chapter.delta = deltaResponse;
 
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
@@ -158,7 +163,7 @@ export class QuillEditor extends Quill {
 		this.on('selection-change', this.selectionChange.bind(this));
 		this.on('text-change', this.textChange.bind(this));
 
-		this.enable();
+		this.reader ? this.disable() : this.enable();
 	}
 
 	/**

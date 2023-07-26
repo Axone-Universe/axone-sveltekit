@@ -12,7 +12,6 @@
 	} from '@skeletonlabs/skeleton';
 	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
 	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
-	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import { QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
@@ -22,20 +21,15 @@
 	import {
 		chevronLeft,
 		chevronRight,
-		plus,
-		spinner,
-		check,
-		trash,
-		edit,
+		infoCircle,
 		stickyNote,
 		dashcube
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
-	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
-	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
-	import { changeDelta } from '$lib/util/editor/quill';
+	import type { ChapterProperties } from '$lib/shared/chapter';
+	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 
 	export let data: PageData;
@@ -117,22 +111,7 @@
 	let modalSettings: ModalSettings = {
 		type: 'component',
 		// Pass the component directly:
-		component: modalComponent,
-		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
-			if (!chapterNode) {
-				return;
-			}
-
-			// Update the UI
-			let chapterID = chapterNode._id;
-			leftDrawerList = chapterID;
-
-			// afterUpdate() will run the setup editor
-			chapterResponses[chapterID] = chapterNode;
-
-			selectedChapterNode = chapterNode;
-			chapterResponses = chapterResponses;
-		}
+		component: modalComponent
 	};
 
 	let showChapterDetails = () => {
@@ -146,76 +125,6 @@
 		modalStore.trigger(modalSettings);
 	};
 
-	let createChapter = () => {
-		let chapterProperties = new ChapterPropertyBuilder().getProperties();
-		let newChapterNode: HydratedDocument<ChapterProperties> =
-			chapterProperties as HydratedDocument<ChapterProperties>;
-
-		let prevChapterID = '';
-
-		// Object (dictionary) keys are ordered largely by when the key was added
-		if (Object.keys(chapterResponses).length !== 0) {
-			prevChapterID = Object.keys(chapterResponses).pop()!;
-		}
-
-		modalComponent.ref = ChapterDetailsModal;
-		modalComponent.props = {
-			chapterNode: newChapterNode,
-			bookID: bookData._id,
-			storylineID: storylineResponse._id,
-			prevChapterID: prevChapterID
-		};
-
-		modalStore.trigger(modalSettings);
-	};
-
-	let deleteChapter = () => {
-		const modal: ModalSettings = {
-			type: 'confirm',
-			// Data
-			title: selectedChapterNode.title,
-			body: 'Are you sure you wish to delete this chapter?',
-			// TRUE if confirm pressed, FALSE if cancel pressed
-			response: (r: boolean) => {
-				if (r) {
-					trpc($page)
-						.chapters.delete.mutate({
-							id: selectedChapterNode._id
-						})
-						.then((response) => {
-							if (response.deletedCount !== 0) {
-								let deletedID = selectedChapterNode._id;
-								let chapterIDs = Object.keys(chapterResponses);
-								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
-
-								if (nextIndex >= chapterIDs.length) {
-									nextIndex = 0;
-								}
-
-								let selectedChapterID = chapterIDs[nextIndex];
-								leftDrawerList = selectedChapterID;
-
-								// delete the node first
-								delete chapterResponses[deletedID];
-
-								// give next node if it's available
-								selectedChapterNode = chapterResponses[selectedChapterID];
-
-								chapterResponses = chapterResponses;
-
-								// setup the editor
-								setupEditor();
-							}
-						})
-						.catch((error) => {
-							console.log(error);
-						});
-				}
-			}
-		};
-		modalStore.trigger(modal);
-	};
-
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
 		modalComponent.props = { storylineNode: storylineResponse };
@@ -227,70 +136,26 @@
 	 */
 	let quill: QuillEditor;
 	let showComments: boolean = false;
-	let deltaChange;
 
-	// Subscribe to the quill changeDelta to see if delta has changed
-	changeDelta.subscribe((value) => {
-		deltaChange = value;
-		quill.comments = quill.comments;
-	});
+	let toolbarOptions = [['comments-add', 'comments-toggle']];
 
-	let toolbarOptions = [
-		['bold', 'italic', 'underline', 'strike'],
-		['blockquote', { indent: '+1' }],
-		[
-			{ align: '' },
-			{ align: 'center' },
-			{ align: 'right' },
-			{ align: 'justify' },
-			'comments-add',
-			'comments-toggle'
-		]
-	];
-
-	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
+	let commentBgColor = '';
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}`;
 
 	function toggleShowComments() {
 		showComments = !showComments;
-	}
 
-	function removeComment(id: string) {
-		let editor = document.getElementById('editor');
-		quill.removeComment(id, editor);
-	}
-
-	/**
-	 * Updates existing comment by getting the blot from the quill Parchment
-	 * It then finds the range of the comment and updates the comment attribute values
-	 * @param id
-	 */
-	function submitComment(id: string) {
-		const comment = quill.comments[id].comment;
-		let editor = document.getElementById('editor');
-		quill.updateComment(id, editor, comment);
-	}
-
-	function commentAddClick() {
-		quill.getModule('comment').addComment(' ');
-		drawerStore.open(drawerSettings);
-		showComments = true;
-	}
-
-	function commentServerTimestamp() {
-		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
-		return new Promise((resolve, reject) => {
-			let currentTimestamp = Math.round(new Date().getTime() / 1000);
-
-			resolve(currentTimestamp);
-		});
+		if (showComments) {
+			commentBgColor = 'var(--color-primary-500)';
+		} else {
+			commentBgColor = '';
+		}
 	}
 
 	/**
 	 * Finds the editor element and creates a new Quill instance from that
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
-	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
 	function setupEditor() {
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
@@ -299,27 +164,18 @@
 		if (container) {
 			container.innerHTML = '';
 			quill = new QuillEditor(container, selectedChapterNode, $page, {
-				reader: false,
+				reader: true,
 				theme: 'bubble',
 				modules: {
 					toolbar: toolbarOptions,
 					comment: {
 						enabled: true,
 						commentAuthorId: session?.user.id,
-						commentAddOn: session?.user.email, // any additional info needed
-						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
-						commentTimestamp: commentServerTimestamp
-					},
-					history: {
-						delay: 1000,
-						maxStack: 500
+						commentAddOn: session?.user.email
 					}
 				},
-				placeholder: 'Let your voice be heard...'
+				placeholder: 'Coming soon...'
 			});
-
-			clearInterval(saveDeltaInterval);
-			saveDeltaInterval = setInterval(quill.saveDelta.bind(quill), 2000);
 		}
 	}
 </script>
@@ -327,8 +183,6 @@
 <svelte:head>
 	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
 </svelte:head>
-
-<!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <AppShell class="editor-shell">
@@ -424,21 +278,8 @@
 									class="textarea text-sm h-20 resize-none overflow-hidden"
 									bind:value={quill.comments[id].comment}
 									required
+									disabled
 								/>
-								<footer class="modal-footer flex flex-col space-x-2 items-center">
-									<div>
-										<button on:click={() => removeComment(id)} class="chip variant-ghost-surface">
-											Resolve
-										</button>
-										<button
-											on:click={() => submitComment(id)}
-											class="chip variant-filled"
-											type="submit"
-										>
-											Save
-										</button>
-									</div>
-								</footer>
 							</div>
 						{/each}
 					</div>
@@ -452,7 +293,7 @@
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
-								<Icon class="p-2" data={edit} scale={2.5} />
+								<Icon class="p-2" data={infoCircle} scale={2.5} />
 							</button>
 							<button
 								on:click={() => toggleShowComments()}
@@ -469,31 +310,6 @@
 								<Icon class="p-2" data={stickyNote} scale={2.5} />
 							</button>
 						{/if}
-					</div>
-					<div class="h-1/4 flex flex-col-reverse items-center">
-						{#if deltaChange.length() > 0}
-							<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-								<Icon class="p-2" data={spinner} scale={2.5} pulse />
-							</button>
-						{:else}
-							<button type="button" class="m-2 btn-icon bg-success-300-600-token">
-								<Icon class="p-2" data={check} scale={2.5} />
-							</button>
-						{/if}
-						<button
-							on:click={() => deleteChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={trash} scale={2.5} />
-						</button>
-						<button
-							on:click={() => createChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={plus} scale={2.5} />
-						</button>
 					</div>
 				</div>
 			</div>

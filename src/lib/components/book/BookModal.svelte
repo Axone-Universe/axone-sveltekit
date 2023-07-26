@@ -72,7 +72,7 @@
 		<footer class="p-4 flex flex-col items-center space-x-4">
 			<div class="btn-group variant-filled">
 				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
-				<a on:click={closeModal} class="button" href="#/">Read</a>
+				<a on:click={closeModal} class="button" href="/reader/{bookData._id}">Read</a>
 				<button>+</button>
 			</div>
 		</footer>
