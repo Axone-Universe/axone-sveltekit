@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  mongo1:
+    hostname: mongo1
+    image: mongo:latest
+    expose:
+      - 27017
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - 'localhost:0.0.0.0'
+    restart: always
+    command: bash -c "mkdir -p /data/db && mongod --bind_ip 0.0.0.0 --replSet rs0"
+  mongoinit:
+    image: mongo:latest
+    # this container will exit after executing the command
+    restart: 'no'
+    depends_on:
+      - mongo1
+    command: >
+      mongosh --host mongo1:27017 --eval 
+      '
+      config = {
+      "_id" : "rs0",
+      "members" : [
+        {
+          "_id" : 0,
+          "host" : "localhost:27017"
+        }
+      ]
+      };
+      rs.initiate(config);
+      '
