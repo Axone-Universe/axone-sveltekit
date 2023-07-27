@@ -1,31 +1,36 @@
 # create-svelte
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## Running The Project
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+Clone this repository then run npm install
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+npm install
 ```
 
-## Developing
+## Environment Variables
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Setup the environmental variables by copying the .env-copy into a .env file
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+cp .env-copy .env
 ```
 
-## MongoDB local setup
+## MongoDB docker setup: Recommended
+
+Run the MongoDB server through docker-compose
+
+```bash
+sudo docker-compose up -d
+```
+
+To stop the container run
+
+```bash
+sudo docker-compose down
+```
+
+## MongoDB manual setup
 
 To use a local mongodb instance follow the steps below:
 
@@ -62,10 +67,18 @@ sudo run-rs --mongod --dbpath ./rs-data
 
 ### Running Tests
 
-To run the tests:
+To run tests first run the MongoDB server above
+
+After that run the commands below
 
 ```bash
 npm test
+```
+
+To populate UI testing data run:
+
+```bash
+pnpm test-data
 ```
 
 To run a certain fixture:
@@ -79,6 +92,17 @@ To view console logs you must put empty lines under the log you want to view:
 ```javascript
 console.log('Please show this log');
 console.log('\n');
+```
+
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
 ## Building
