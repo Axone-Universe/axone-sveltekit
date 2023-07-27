@@ -9,6 +9,8 @@ services:
       - 27017:27017
     extra_hosts:
       - 'localhost:0.0.0.0'
+    volumes:
+      - /data/db
     restart: always
     command: bash -c "mkdir -p /data/db && mongod --bind_ip 0.0.0.0 --replSet rs0"
   mongoinit:

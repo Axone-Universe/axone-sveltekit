@@ -27,7 +27,7 @@ sudo docker-compose up -d
 To stop the container run
 
 ```bash
-sudo docker-compose down
+sudo docker-compose stop
 ```
 
 ## MongoDB manual setup
