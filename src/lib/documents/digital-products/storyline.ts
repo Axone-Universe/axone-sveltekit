@@ -66,6 +66,10 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
+	properties() {
+		return this._storylineProperties;
+	}
+
 	/**
 	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters
 	 *      UP TO the branch-off chapter which should be specified as well.

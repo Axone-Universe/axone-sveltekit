@@ -1,5 +1,4 @@
 import { BookBuilder } from '$lib/documents/digital-products/book';
-import { StorylineBuilder } from '$lib/documents/digital-products/storyline';
 import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -40,7 +39,7 @@ export const books = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(create) // TODO: use createBook schema
+		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder()
 				.userID(ctx.session!.user.id)
@@ -53,17 +52,6 @@ export const books = t.router({
 			}
 
 			const bookNode = await bookBuilder.build();
-
-			// Also create the default/main storyline
-			const storylineBuilder = new StorylineBuilder()
-				.userID(ctx.session!.user.id)
-				.bookID(bookNode._id)
-				.title(input.title)
-				.main(true)
-				.description(input.description)
-				.imageURL(input.imageURL);
-
-			await storylineBuilder.build();
 
 			return bookNode;
 		}),
