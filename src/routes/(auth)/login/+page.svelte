@@ -93,10 +93,19 @@
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
 		<h1>Login</h1>
 
-		<button on:click={signInWithGoogle}> google</button>
-		<button on:click={signInWithLinkedIn}> linkedin</button>
+		<button on:click={signInWithGoogle}
+			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150">
+    		<img class="w-6 h-6" src="/brand_logo/Google__G__Logo.svg.png" loading="lazy" alt="google logo">
+    		<span class="text-white">Login with Google</span>
+		</button>
+		
+		<button on:click={signInWithLinkedIn}
+			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150">
+    		<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo">
+    		<span class="text-white">Login with linkedin</span>
+		</button>
 
-		or
+		<div class="justify-center text-center text-xl">or</div>
 
 
 		<form class="flex flex-col items-end gap-4">

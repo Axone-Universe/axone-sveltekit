@@ -14,6 +14,32 @@
 		confirmPassword: ''
 	};
 
+
+
+	async function signUpWithLinkedIn() {
+  		const { data, error } = await supabase.auth.signInWithOAuth({
+    		provider: 'linkedin',
+    	})	
+
+		if(error){
+			console.log("Error : " + error);
+		}else{
+			console.log("Authenticated");
+		}
+	}
+
+	async function signUpWithGoogle() {
+  		const { data, error } = await supabase.auth.signInWithOAuth({
+    		provider: 'google',
+    	})	
+
+		if(error){
+			console.log("Error : " + error);
+		}else{
+			console.log("Authenticated");
+		}
+	}
+
 	const onSubmit = async () => {
 		if (formData.password != formData.confirmPassword) {
 			console.log("Passwords don't match!");
@@ -51,6 +77,18 @@
 <Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
 		<h1>Sign Up</h1>
+
+		<button on:click={signUpWithGoogle}
+			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150">
+    		<img class="w-6 h-6" src="/brand_logo/Google__G__Logo.svg.png" loading="lazy" alt="google logo">
+    		<span class="text-white">Sign Up with Google</span>
+		</button>
+		<button on:click={signUpWithLinkedIn}
+			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-variant-filled-primary hover:text-slate-900 hover:shadow transition duration-150">
+    		<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo">
+    		<span class="text-white">Sign Up with linkedin</span>
+		</button>
+
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
 				<span>Email</span>
