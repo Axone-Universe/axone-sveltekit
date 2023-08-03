@@ -17,6 +17,30 @@
 		password: ''
 	};
 
+	async function signInWithLinkedIn() {
+  		const { data, error } = await supabase.auth.signInWithOAuth({
+    		provider: 'linkedin',
+    	})	
+
+		if(error){
+			console.log("Error : " + error);
+		}else{
+			console.log("Authenticated");
+		}
+	}
+
+	async function signInWithGoogle() {
+  		const { data, error } = await supabase.auth.signInWithOAuth({
+    		provider: 'google',
+    	})	
+
+		if(error){
+			console.log("Error : " + error);
+		}else{
+			console.log("Authenticated");
+		}
+	}
+
 	const onSubmit = async () => {
 		const supabaseResponse = await supabase.auth.signInWithPassword({
 			email: formData.email,
@@ -68,6 +92,13 @@
 <Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
 		<h1>Login</h1>
+
+		<button on:click={signInWithGoogle}> google</button>
+		<button on:click={signInWithLinkedIn}> linkedin</button>
+
+		or
+
+
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
 				<span>Email</span>
