@@ -84,10 +84,12 @@
     		<span class="text-white">Sign Up with Google</span>
 		</button>
 		<button on:click={signUpWithLinkedIn}
-			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-variant-filled-primary hover:text-slate-900 hover:shadow transition duration-150">
+			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:text-slate-900 hover:shadow transition duration-150">
     		<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo">
     		<span class="text-white">Sign Up with linkedin</span>
 		</button>
+
+		<div class="justify-center text-center text-xl">or</div>
 
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
