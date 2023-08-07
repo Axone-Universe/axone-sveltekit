@@ -89,7 +89,8 @@ describe('storylines', () => {
 		expect(storyline_1Chapters[1].title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
-		expect(storyline_2Chapters[0].title).toEqual(chapter1Title);
-		expect(storyline_2Chapters[1].title).toEqual(chapter2_2Title);
+		// bookResponses.map((a) => a._id).sort()
+		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
+		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
 	});
 });

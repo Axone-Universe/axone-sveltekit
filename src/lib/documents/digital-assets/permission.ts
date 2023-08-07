@@ -55,7 +55,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): DeltaBuilder {
+	sessionUserID(sessionUserID: string): PermissionBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
 	}
@@ -67,16 +67,12 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 		const document = await this.parentDocument();
 
-		if (document === null) {
-			throw new Error('Document for permission not found.');
-		}
-
 		document.permissions.id(this._permissionProperties._id).permission =
 			this._permissionProperties.permission;
 
 		await document.save();
 
-		return document.permissions.id(this._permissionProperties._id);
+		return document!.permissions!.id(this._permissionProperties._id);
 	}
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
@@ -88,10 +84,6 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 		const document = await this.parentDocument();
 
-		if (document === null) {
-			throw new Error('Document for permission not found.');
-		}
-
 		document.permissions.id(this._permissionProperties._id).deleteOne();
 		await document?.save();
 
@@ -99,11 +91,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 	}
 
 	async parentDocument() {
-		let document:
-			| null
-			| HydratedDocument<BookProperties>
-			| HydratedDocument<StorylineProperties>
-			| HydratedDocument<ChapterProperties>;
+		let document: any;
 		switch (this._documentType) {
 			case BookLabel: {
 				document = await Book.findById(this._documentID, null, {
@@ -128,6 +116,21 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 			}
 		}
 
+		/** validate document */
+		if (document === null) {
+			throw new Error('Document for permission not found.');
+		}
+
+		const documentOwnerID = typeof document.user === 'string' ? document.user : document.user?._id;
+
+		if (documentOwnerID !== this._sessionUserID) {
+			throw new Error('Unauthorized to modify the permission.');
+		}
+
+		if (document.permissions === undefined) {
+			throw new Error('Document has no permissions.');
+		}
+
 		return document;
 	}
 
@@ -140,17 +143,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 		const document = await this.parentDocument();
 
-		if (document === null) {
-			throw new Error('Document for permission not found.');
-		}
-
-		const documentOwnerID = typeof document.user === 'string' ? document.user : document.user?._id;
-
-		if (documentOwnerID !== this._sessionUserID) {
-			throw new Error('Unauthorized to add permission.');
-		}
-
-		document!.permissions.push(this._permissionProperties);
+		document.permissions.push(this._permissionProperties);
 		await document.save();
 
 		return document.permissions.id(this._permissionProperties._id);

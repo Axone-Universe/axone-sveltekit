@@ -44,15 +44,7 @@ export class ChaptersRepository extends Repository {
 			});
 
 			// We don't populate storyline because we must set the session user for the middleware
-			const storylineChapters = await Chapter.find(
-				{
-					_id: { $in: storyline.chapters }
-				},
-				null,
-				{
-					userID: session?.user.id
-				}
-			);
+			const storylineChapters = storyline.chapters;
 
 			if (!this._toChapterID) {
 				chapters = storylineChapters;

@@ -60,7 +60,7 @@ export class StorylinesRepository extends Repository {
 				userID: session?.user.id
 			});
 		} else {
-			query = await Storyline.findById(id, null, { userID: session?.user.id });
+			query = Storyline.findById(id, null, { userID: session?.user.id });
 		}
 
 		const storyline = await query;

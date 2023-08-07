@@ -24,7 +24,5 @@ export const load = (async (event) => {
 		storylines[storylineResponse._id] = storylineResponse;
 	});
 
-	console.log(activeStoryline);
-
 	return { bookData, storylines, activeStoryline };
 }) satisfies PageServerLoad;

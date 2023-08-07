@@ -95,8 +95,12 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		// get the parent chapter ids
 		// we assume they are already sorted in correct order by the push
 		if (this._parentStorylineID) {
-			const parentStoryline = await Storyline.findById(this._parentStorylineID);
-			for (const chapterID of parentStoryline.chapters) {
+			const parentStoryline = await Storyline.findById(this._parentStorylineID, null, {
+				userID: this._userID
+			});
+			for (const chapter of parentStoryline.chapters) {
+				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
+
 				storyline.chapters.push(chapterID);
 				if (chapterID === this._branchOffChapterID) {
 					break;
