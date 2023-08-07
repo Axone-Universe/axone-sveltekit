@@ -1,5 +1,4 @@
 import { BookBuilder } from '$lib/documents/digital-products/book';
-import { StorylineBuilder } from '$lib/documents/digital-products/storyline';
 import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
@@ -7,14 +6,13 @@ import { t } from '$lib/trpc/t';
 import { create, submitToCampaign } from '$lib/trpc/schemas/books';
 import { search } from '$lib/trpc/schemas/shared';
 
-const booksRepo = new BooksRepository();
-
 export const books = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
-			const result = await booksRepo.getAll(input?.limit, input?.skip);
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+			const result = await booksRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -22,8 +20,14 @@ export const books = t.router({
 	getByTitle: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
-			const result = await booksRepo.getByTitle(input?.searchTerm, input?.limit, input?.skip);
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+			const result = await booksRepo.getByTitle(
+				ctx.session!,
+				input?.searchTerm,
+				input?.limit,
+				input?.skip
+			);
 
 			return result;
 		}),
@@ -31,8 +35,9 @@ export const books = t.router({
 	getById: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
-			const result = await booksRepo.getById(input?.searchTerm);
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+			const result = await booksRepo.getById(ctx.session, input?.searchTerm);
 
 			return result;
 		}),
@@ -40,7 +45,7 @@ export const books = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(create) // TODO: use createBook schema
+		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder()
 				.userID(ctx.session!.user.id)
@@ -54,17 +59,6 @@ export const books = t.router({
 
 			const bookNode = await bookBuilder.build();
 
-			// Also create the default/main storyline
-			const storylineBuilder = new StorylineBuilder()
-				.userID(ctx.session!.user.id)
-				.bookID(bookNode._id)
-				.title(input.title)
-				.main(true)
-				.description(input.description)
-				.imageURL(input.imageURL);
-
-			await storylineBuilder.build();
-
 			return bookNode;
 		}),
 
@@ -72,7 +66,7 @@ export const books = t.router({
 		.use(logger)
 		.use(auth)
 		.input(submitToCampaign) // TODO: use createBook schema
-		.mutation(async ({ input }) => {
+		.mutation(async () => {
 			throw new Error('not Implemented');
 		})
 });

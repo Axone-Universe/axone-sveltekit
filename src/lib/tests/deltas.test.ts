@@ -1,25 +1,13 @@
-import { GenresBuilder } from '$lib/shared/genres';
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createBook,
+	createTestSession,
+	testUserOne,
+	createChapter
 } from '$lib/util/testing/testing';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -33,34 +21,34 @@ describe('deltas', () => {
 	test('update deltas', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
+		const testUserOneSession = createTestSession(testUserOne);
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		// get the default storyline from created book
-		let caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
 		// create chapter on default storyline
-		caller = router.createCaller({ session: testSession });
-		const chapterCreateResponse = await caller.chapters.create({
-			title: chapter1Title,
-			description: 'My chapter 1',
-			storylineID: storylines[0]._id,
-			bookID: bookResponse._id
-		});
+		const createChapterResponse = await createChapter(
+			testUserOneSession,
+			chapter1Title,
+			'My chapter 1',
+			storylines[0]
+		);
 
-		expect(chapterCreateResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.description).toEqual('My chapter 1');
 
 		const deltaCreateResponse = await caller.deltas.create({
-			chapterID: chapterCreateResponse._id
+			chapterID: createChapterResponse._id
 		});
 
 		const deltaUpdateResponse = await caller.deltas.update({
 			id: deltaCreateResponse._id,
-			chapterID: chapterCreateResponse._id,
+			chapterID: createChapterResponse._id,
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 

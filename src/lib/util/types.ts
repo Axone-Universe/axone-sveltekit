@@ -1,9 +1,3 @@
-export interface DeltaQuery {
-	id?: string;
-	chapterID: string;
-	ops?: string;
-}
-
 export interface CampaignProperties {
 	id?: string;
 	title: string;

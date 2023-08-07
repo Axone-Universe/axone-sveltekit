@@ -2,6 +2,7 @@ import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
 import type { ChapterProperties } from '$lib/shared/chapter';
+import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 
 export class ChaptersRepository extends Repository {
@@ -30,12 +31,19 @@ export class ChaptersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<ChapterProperties>[]> {
+	async getAll(
+		session: Session | null,
+		limit?: number,
+		skip?: number
+	): Promise<HydratedDocument<ChapterProperties>[]> {
 		let chapters: HydratedDocument<ChapterProperties>[] = [];
 
 		if (this._storylineID) {
-			const storyline = await Storyline.findById(this._storylineID).populate('chapters');
+			const storyline = await Storyline.findById(this._storylineID, null, {
+				userID: session?.user.id
+			});
 
+			// We don't populate storyline because we must set the session user for the middleware
 			const storylineChapters = storyline.chapters;
 
 			if (!this._toChapterID) {
@@ -56,6 +64,7 @@ export class ChaptersRepository extends Repository {
 	}
 
 	async getByTitle(
+		session: Session,
 		title?: string,
 		limit?: number,
 		skip?: number
@@ -63,7 +72,7 @@ export class ChaptersRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
-	async getById(id?: string): Promise<unknown> {
+	async getById(session: Session, id?: string): Promise<unknown> {
 		throw new Error('not Implemented');
 	}
 

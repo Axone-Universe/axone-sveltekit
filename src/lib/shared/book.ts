@@ -1,6 +1,7 @@
 import type { HydratedDocument } from 'mongoose';
 import { GenresBuilder, type Genres } from './genres';
 import type { UserProperties } from './user';
+import type { PermissionProperties } from './permission';
 
 export const label = 'Book';
 
@@ -11,6 +12,7 @@ export interface BookProperties {
 	description?: string;
 	imageURL?: string;
 	tags?: string[];
+	permissions?: HydratedDocument<PermissionProperties>[];
 	genres?: Genres;
 }
 

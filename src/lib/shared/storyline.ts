@@ -3,6 +3,7 @@ import type { ChapterProperties } from './chapter';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import { GenresBuilder, type Genres } from './genres';
+import type { PermissionProperties } from './permission';
 
 export const label = 'Storyline';
 
@@ -13,6 +14,7 @@ export interface StorylineProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	title?: string;
 	chapters?: string[] | HydratedDocument<ChapterProperties>[];
+	permissions?: HydratedDocument<PermissionProperties>[];
 	description?: string;
 	imageURL?: string;
 	tags?: string[];

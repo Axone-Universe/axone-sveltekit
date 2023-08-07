@@ -1,25 +1,12 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createBook,
+	createTestSession,
+	testUserOne
 } from '$lib/util/testing/testing';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -37,15 +24,16 @@ describe('storylines', () => {
 		const chapter3_1Title = 'Chapter 3_1';
 		const chapter2_2Title = 'Chapter 2_2';
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		const testUserOneSession = createTestSession(testUserOne);
+		await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
-		let caller = router.createCaller({ session: null });
+		let caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: testUserOneSession });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
@@ -101,7 +89,8 @@ describe('storylines', () => {
 		expect(storyline_1Chapters[1].title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
-		expect(storyline_2Chapters[0].title).toEqual(chapter1Title);
-		expect(storyline_2Chapters[1].title).toEqual(chapter2_2Title);
+		// bookResponses.map((a) => a._id).sort()
+		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
+		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
 	});
 });

@@ -75,7 +75,6 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		const user = new User(this._userProperties);
 		await user.save();
 
-		console.log('*** added user *');
 		console.log(this._userProperties._id);
 		console.log(user._id);
 
