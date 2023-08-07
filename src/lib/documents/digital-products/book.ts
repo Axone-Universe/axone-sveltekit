@@ -11,6 +11,7 @@ import { StorylineBuilder } from './storyline';
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
 	private readonly _userID: { id?: string };
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -47,6 +48,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 	genres(genres: Genres) {
 		this._bookProperties.genres = genres;
+		return this;
+	}
+
+	sessionUserID(sessionUserID: string): BookBuilder {
+		this._sessionUserID = sessionUserID;
 		return this;
 	}
 

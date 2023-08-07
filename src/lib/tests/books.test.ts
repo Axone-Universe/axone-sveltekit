@@ -23,10 +23,12 @@ describe('books', () => {
 
 	test('create book', async () => {
 		const testBookTitle = 'My Book';
-		const userResponse = await createDBUser(createTestSession(testUserOne));
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
+		const testUserOneSession = createTestSession(testUserOne);
 
-		const caller = router.createCaller({ session: null });
+		const userResponse = await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+
+		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});

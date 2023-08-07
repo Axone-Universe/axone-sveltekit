@@ -1,6 +1,7 @@
 import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
 import type { StorylineProperties } from '$lib/shared/storyline';
+import type { Session } from '@supabase/supabase-js';
 import type { Document, HydratedDocument } from 'mongoose';
 
 export class StorylinesRepository extends Repository {
@@ -15,8 +16,14 @@ export class StorylinesRepository extends Repository {
 		return this;
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<StorylineProperties>[]> {
-		let query = Storyline.find(this._bookID ? { book: this._bookID } : {});
+	async getAll(
+		session: Session | null,
+		limit?: number,
+		skip?: number
+	): Promise<HydratedDocument<StorylineProperties>[]> {
+		let query = Storyline.find(this._bookID ? { book: this._bookID } : {}, null, {
+			userID: session?.user.id
+		});
 
 		if (skip) {
 			query = query.skip(skip);
@@ -34,6 +41,7 @@ export class StorylinesRepository extends Repository {
 	}
 
 	async getByTitle(
+		session: Session | null,
 		title?: string,
 		limit?: number,
 		skip?: number
@@ -41,13 +49,18 @@ export class StorylinesRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
-	async getById(id?: string): Promise<HydratedDocument<StorylineProperties>> {
+	async getById(
+		session: Session | null,
+		id?: string
+	): Promise<HydratedDocument<StorylineProperties>> {
 		let query;
 
 		if (!id) {
-			query = Storyline.findOne({ main: true, book: this._bookID });
+			query = Storyline.findOne({ main: true, book: this._bookID }, null, {
+				userID: session?.user.id
+			});
 		} else {
-			query = await Storyline.findById(id);
+			query = await Storyline.findById(id, null, { userID: session?.user.id });
 		}
 
 		const storyline = await query;

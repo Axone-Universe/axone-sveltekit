@@ -24,15 +24,16 @@ describe('storylines', () => {
 		const chapter3_1Title = 'Chapter 3_1';
 		const chapter2_2Title = 'Chapter 2_2';
 
-		await createDBUser(createTestSession(testUserOne));
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
+		const testUserOneSession = createTestSession(testUserOne);
+		await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
-		let caller = router.createCaller({ session: null });
+		let caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: createTestSession(testUserOne) });
+		caller = router.createCaller({ session: testUserOneSession });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',

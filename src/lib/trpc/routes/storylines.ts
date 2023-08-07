@@ -12,11 +12,11 @@ export const storylines = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			if (input?.bookID) {
 				storylinesRepo.bookId(input.bookID);
 			}
-			const result = await storylinesRepo.getAll(input?.limit, input?.skip);
+			const result = await storylinesRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -24,9 +24,9 @@ export const storylines = t.router({
 	getById: t.procedure
 		.use(logger)
 		.input(search)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			storylinesRepo.bookId(input.bookID);
-			const result = await storylinesRepo.getById(input.storylineID);
+			const result = await storylinesRepo.getById(ctx.session, input.storylineID);
 
 			return result;
 		}),

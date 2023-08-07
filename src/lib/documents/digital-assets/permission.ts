@@ -13,8 +13,8 @@ import { Storyline } from '$lib/models/storyline';
 export class PermissionBuilder extends DocumentBuilder<HydratedDocument<PermissionProperties>> {
 	private _documentID?: string;
 	private _documentType: string | undefined;
-	private _permissionSetterID: string | undefined; // The ID of the user setting the permission
 	private readonly _permissionProperties: PermissionProperties;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -36,7 +36,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 	}
 
 	permissionSetterID(permissionSetterID: string): PermissionBuilder {
-		this._permissionSetterID = permissionSetterID;
+		this._sessionUserID = permissionSetterID;
 		return this;
 	}
 
@@ -55,9 +55,14 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		return this;
 	}
 
+	sessionUserID(sessionUserID: string): DeltaBuilder {
+		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
 	async update(): Promise<HydratedDocument<PermissionProperties>> {
 		if (!this._documentID) throw new Error('Must provide a documentID to update the permission.');
-		if (!this._permissionSetterID)
+		if (!this._sessionUserID)
 			throw new Error('Must provide a the permission setter to update the permission.');
 
 		const document = await this.parentDocument();
@@ -76,7 +81,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		if (!this._documentID) throw new Error('Must provide a documentID to delete the permission.');
-		if (!this._permissionSetterID)
+		if (!this._sessionUserID)
 			throw new Error('Must provide a the permission setter to delete the permission.');
 
 		const result = {};
@@ -102,19 +107,19 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		switch (this._documentType) {
 			case BookLabel: {
 				document = await Book.findById(this._documentID, null, {
-					userID: this._permissionSetterID
+					userID: this._sessionUserID
 				});
 				break;
 			}
 			case StorylineLabel: {
 				document = await Storyline.findById(this._documentID, null, {
-					userID: this._permissionSetterID
+					userID: this._sessionUserID
 				});
 				break;
 			}
 			case ChapterLabel: {
 				document = await Chapter.findById(this._documentID, null, {
-					userID: this._permissionSetterID
+					userID: this._sessionUserID
 				});
 				break;
 			}
@@ -128,7 +133,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	async build(): Promise<HydratedDocument<PermissionProperties>> {
 		if (!this._documentID) throw new Error('Must provide a documentID to build the permission.');
-		if (!this._permissionSetterID)
+		if (!this._sessionUserID)
 			throw new Error('Must provide a the permission setter to build the permission.');
 		if (!this._documentType)
 			throw new Error('Must provide a document type to build the permission.');
@@ -141,7 +146,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 		const documentOwnerID = typeof document.user === 'string' ? document.user : document.user?._id;
 
-		if (documentOwnerID !== this._permissionSetterID) {
+		if (documentOwnerID !== this._sessionUserID) {
 			throw new Error('Unauthorized to add permission.');
 		}
 

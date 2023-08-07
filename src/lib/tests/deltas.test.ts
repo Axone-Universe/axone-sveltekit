@@ -1,4 +1,3 @@
-import { GenresBuilder } from '$lib/shared/genres';
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,

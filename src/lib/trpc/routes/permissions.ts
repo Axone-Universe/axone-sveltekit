@@ -3,7 +3,6 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { update, create } from '$lib/trpc/schemas/permissions';
 import { PermissionBuilder } from '$lib/documents/digital-assets/permission';
-import type { Permissions } from '$lib/shared/permission';
 
 export const permissions = t.router({
 	create: t.procedure
@@ -12,7 +11,7 @@ export const permissions = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const permissionBuilder = new PermissionBuilder()
-				.permissionSetterID(ctx.session!.user.id)
+				.sessionUserID(ctx.session!.user.id)
 				.documentID(input.documentID)
 				.documentType(input.documentType)
 				.permission(input.permission);
@@ -31,7 +30,7 @@ export const permissions = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const permissionsBuilder = new PermissionBuilder(input._id)
-				.permissionSetterID(ctx.session!.user.id)
+				.sessionUserID(ctx.session!.user.id)
 				.documentID(input.documentID)
 				.documentType(input.documentType);
 
@@ -45,7 +44,7 @@ export const permissions = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const permissionsBuilder = new PermissionBuilder(input._id)
-				.permissionSetterID(ctx.session!.user.id)
+				.sessionUserID(ctx.session!.user.id)
 				.documentID(input.documentID)
 				.documentType(input.documentType);
 
