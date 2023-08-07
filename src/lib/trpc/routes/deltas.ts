@@ -5,8 +5,6 @@ import { t } from '$lib/trpc/t';
 import { update, search, create } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 
-const deltasRepo = new DeltasRepository();
-
 export const deltas = t.router({
 	create: t.procedure
 		.use(logger)
@@ -23,6 +21,7 @@ export const deltas = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input }) => {
+			const deltasRepo = new DeltasRepository();
 			const result = await deltasRepo.getById(input.id);
 
 			console.log('** 1 serv setting edtior ');

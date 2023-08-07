@@ -1,27 +1,16 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genres';
 import type { HydratedDocument } from 'mongoose';
 import {
 	connectTestDatabase,
 	cleanUpDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createTestSession,
+	testUserOne,
+	testUserTwo,
+	testUserThree,
+	createBook
 } from '$lib/util/testing/testing';
 import type { UserProperties } from '$lib/shared/user';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -34,8 +23,8 @@ describe('books', () => {
 
 	test('create book', async () => {
 		const testBookTitle = 'My Book';
-		const userResponse = await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		const userResponse = await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		const caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
@@ -50,13 +39,17 @@ describe('books', () => {
 	});
 
 	test('get all books', async () => {
-		await createUser(testSession);
+		await createDBUser(createTestSession(testUserOne));
+		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(testUserThree));
+
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
 		const testBookTitle3 = 'My Book 3';
-		const bookResponse1 = await createBook(testBookTitle1);
-		const bookResponse2 = await createBook(testBookTitle2);
-		const bookResponse3 = await createBook(testBookTitle3);
+
+		const bookResponse1 = await createBook(createTestSession(testUserOne), testBookTitle1);
+		const bookResponse2 = await createBook(createTestSession(testUserTwo), testBookTitle2);
+		const bookResponse3 = await createBook(createTestSession(testUserThree), testBookTitle3);
 
 		const caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.getAll();
@@ -67,11 +60,11 @@ describe('books', () => {
 	});
 
 	test('get single book', async () => {
-		await createUser(testSession);
+		await createDBUser(createTestSession(testUserOne));
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
-		const bookResponse = await createBook(testBookTitle1);
-		await createBook(testBookTitle2);
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle1);
+		await createBook(createTestSession(testUserOne), testBookTitle2);
 
 		const caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.getByTitle({ searchTerm: testBookTitle1 });

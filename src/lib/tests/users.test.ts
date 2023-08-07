@@ -2,10 +2,10 @@ import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,
 	cleanUpDatabase,
-	createUser,
-	testSession,
-	testUser,
-	testUserInfo
+	createDBUser,
+	createTestSession,
+	testUserOne,
+	testUserTwo
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
@@ -18,26 +18,20 @@ describe('users', () => {
 	});
 
 	test('create user', async () => {
-		const userResponse = await createUser(testSession);
+		const testSessionOne = createTestSession(testUserOne);
+		const userResponse = await createDBUser(testSessionOne);
 
-		expect(userResponse._id).toEqual(testSession.user.id);
-		expect(userResponse.firstName).toEqual(testUserInfo.firstName);
-		expect(userResponse.lastName).toEqual(testUserInfo.lastName);
+		expect(userResponse._id).toEqual(testSessionOne.user.id);
+		expect(userResponse.firstName).toEqual(testUserOne.user_metadata.firstName);
+		expect(userResponse.lastName).toEqual(testUserOne.user_metadata.lastName);
 	});
 
 	test('get all users', async () => {
-		const testUser1 = { ...testUser };
-		testUser1.id = '1';
-		const testSession1 = { ...testSession };
-		testSession1.user = testUser1;
+		const testSessionOne = createTestSession(testUserOne);
+		const testSessionTwo = createTestSession(testUserTwo);
 
-		const testUser2 = { ...testUser };
-		testUser2.id = '2';
-		const testSession2 = { ...testSession };
-		testSession2.user = testUser2;
-
-		const userResponse1 = await createUser(testSession1);
-		const userResponse2 = await createUser(testSession2);
+		const userResponse1 = await createDBUser(testSessionOne);
+		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
 		const userResponses = await caller.users.list();
@@ -49,18 +43,11 @@ describe('users', () => {
 	});
 
 	test('get single user', async () => {
-		const testUser1 = { ...testUser };
-		testUser1.id = '1';
-		const testSession1 = { ...testSession };
-		testSession1.user = testUser1;
+		const testSessionOne = createTestSession(testUserOne);
+		const testSessionTwo = createTestSession(testUserTwo);
 
-		const testUser2 = { ...testUser };
-		testUser2.id = '2';
-		const testSession2 = { ...testSession };
-		testSession2.user = testUser2;
-
-		const userResponse = await createUser(testSession1);
-		await createUser(testSession2);
+		const userResponse = await createDBUser(testSessionOne);
+		await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
 		const userResponses = await caller.users.list({ searchTerm: userResponse._id });

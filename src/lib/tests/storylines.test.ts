@@ -1,25 +1,12 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createBook,
+	createTestSession,
+	testUserOne
 } from '$lib/util/testing/testing';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -37,15 +24,15 @@ describe('storylines', () => {
 		const chapter3_1Title = 'Chapter 3_1';
 		const chapter2_2Title = 'Chapter 2_2';
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',

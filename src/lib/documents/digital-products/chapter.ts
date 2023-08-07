@@ -10,7 +10,6 @@ import { Storyline } from '$lib/models/storyline';
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
 	private _prevChapterID?: string;
-	private _userID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
 
@@ -32,10 +31,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	userID(userID: string): ChapterBuilder {
-		this._userID = userID;
-
 		this._chapterProperties.user = userID;
-
 		return this;
 	}
 

@@ -4,16 +4,18 @@ import { router } from '$lib/trpc/router';
 import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
-	connectDatabase,
-	createUser,
-	testSession,
-	testUser
+	connectDevDatabase,
+	createDBUser,
+	createTestSession,
+	testUserOne,
+	testUserTwo,
+	testUserThree
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
 
 beforeAll(async () => {
-	await connectDatabase();
+	await connectDevDatabase();
 	await cleanUpDatabase();
 });
 
@@ -25,7 +27,7 @@ const createBook = async (title: string, testSession: Session) => {
 	genres.genre('Adventure');
 	genres.genre('Science Fiction');
 
-	return await caller.books.create({
+	const book = await caller.books.create({
 		title: title,
 		description:
 			'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness, it was the spring of hope, it was the winter of despair.',
@@ -33,45 +35,45 @@ const createBook = async (title: string, testSession: Session) => {
 		imageURL:
 			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
 	});
+
+	// set public permissions
+	await caller.permissions.create({
+		documentID: book._id,
+		documentType: 'Book',
+		permission: 'view',
+		public: true
+	});
+
+	return book;
 };
 
 describe('db test data', () => {
-	const testUser1 = { ...testUser };
-	testUser1.id = '1';
-	const testSession1 = { ...testSession };
-	testSession1.user = testUser1;
-
-	const testUser2 = { ...testUser };
-	testUser2.id = '2';
-	const testSession2 = { ...testSession };
-	testSession2.user = testUser2;
-
-	const testUser3 = { ...testUser };
-	testUser2.id = '3';
-	const testSession3 = { ...testSession };
-	testSession3.user = testUser3;
+	const testSessionOne = createTestSession(testUserOne);
+	const testSessionTwo = createTestSession(testUserTwo);
+	const testSessionThree = createTestSession(testUserThree);
 
 	test('create users', async () => {
-		const userResponse1 = await createUser(testSession1);
-		const userResponse2 = await createUser(testSession2);
+		const userResponse1 = await createDBUser(testSessionOne);
+		const userResponse2 = await createDBUser(testSessionTwo);
+		const userResponse3 = await createDBUser(testSessionThree);
 
 		const caller = router.createCaller({ session: null });
 		const userResponses = await caller.users.list();
 
 		// compare sorted arrays to ignore element position differences (if any)
 		expect(userResponses.map((a) => a._id).sort()).toEqual(
-			[userResponse1._id, userResponse2._id].sort()
+			[userResponse1._id, userResponse2._id, userResponse3._id].sort()
 		);
 	});
 
 	test('create books', async () => {
-		await createUser(testSession);
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
 		const testBookTitle3 = 'My Book 3';
-		const userAuthoredBookResponse1 = await createBook(testBookTitle1, testSession1);
-		const userAuthoredBookResponse2 = await createBook(testBookTitle2, testSession2);
-		const userAuthoredBookResponse3 = await createBook(testBookTitle3, testSession3);
+
+		const userAuthoredBookResponse1 = await createBook(testBookTitle1, testSessionOne);
+		const userAuthoredBookResponse2 = await createBook(testBookTitle2, testSessionTwo);
+		const userAuthoredBookResponse3 = await createBook(testBookTitle3, testSessionThree);
 
 		let caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.getAll();
@@ -86,7 +88,7 @@ describe('db test data', () => {
 			bookID: userAuthoredBookResponse1._id
 		});
 
-		caller = router.createCaller({ session: testSession1 });
+		caller = router.createCaller({ session: testSessionOne });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: `In a not-too-distant future, Dr. Samantha Walker, a brilliant physicist, 
@@ -100,7 +102,7 @@ describe('db test data', () => {
 			bookID: userAuthoredBookResponse1._id
 		});
 
-		caller = router.createCaller({ session: testSession2 });
+		caller = router.createCaller({ session: testSessionTwo });
 		const chapter2_1Response = await caller.chapters.create({
 			title: chapter2_1Title,
 			description: `While testing the limits of her quantum device, Samantha accidentally picks up a mysterious distress signal 

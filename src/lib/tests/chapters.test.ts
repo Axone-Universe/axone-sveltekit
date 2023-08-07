@@ -1,25 +1,12 @@
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genres';
 import {
 	connectTestDatabase,
 	cleanUpDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createTestSession,
+	testUserOne,
+	createBook
 } from '$lib/util/testing/testing';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -35,15 +22,15 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 
-		const user = await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		const user = await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
@@ -81,8 +68,8 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		// get the default storyline from created book
 		let caller = router.createCaller({ session: null });
@@ -91,7 +78,7 @@ describe('chapters', () => {
 		});
 
 		// create chapter on default storyline
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
 		const chapterCreateResponse = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
@@ -116,15 +103,15 @@ describe('chapters', () => {
 		const chapter2Title = 'Chapter 2';
 		const chapter3Title = 'Chapter 3';
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		let caller = router.createCaller({ session: null });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',

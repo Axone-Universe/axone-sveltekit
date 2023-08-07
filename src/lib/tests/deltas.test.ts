@@ -3,23 +3,11 @@ import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
-	createUser,
-	testSession
+	createDBUser,
+	createBook,
+	createTestSession,
+	testUserOne
 } from '$lib/util/testing/testing';
-
-const createBook = async (title: string) => {
-	const caller = router.createCaller({ session: testSession });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-
-	return await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: ''
-	});
-};
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -34,8 +22,8 @@ describe('deltas', () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
 
-		await createUser(testSession);
-		const bookResponse = await createBook(testBookTitle);
+		await createDBUser(createTestSession(testUserOne));
+		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
 
 		// get the default storyline from created book
 		let caller = router.createCaller({ session: null });
@@ -44,7 +32,7 @@ describe('deltas', () => {
 		});
 
 		// create chapter on default storyline
-		caller = router.createCaller({ session: testSession });
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
 		const chapterCreateResponse = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
