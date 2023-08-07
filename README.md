@@ -18,7 +18,9 @@ cp .env-copy .env
 
 ## MongoDB docker setup: Recommended
 
-Run the MongoDB server through docker-compose
+Install docker desktop first for your machine https://docs.docker.com/engine/install/
+
+Run the MongoDB server through docker-compose.
 
 ```bash
 sudo docker-compose up -d

@@ -6,7 +6,7 @@ import type { Session } from '@supabase/supabase-js';
 
 export class BooksRepository extends Repository {
 	async getAll(
-		session: Session,
+		session: Session | null,
 		limit?: number,
 		skip?: number
 	): Promise<HydratedDocument<BookProperties>[]> {
@@ -27,7 +27,7 @@ export class BooksRepository extends Repository {
 	}
 
 	async getByTitle(
-		session: Session,
+		session: Session | null,
 		title?: string,
 		limit?: number,
 		skip?: number
@@ -49,7 +49,7 @@ export class BooksRepository extends Repository {
 		});
 	}
 
-	async getById(session: Session, id?: string): Promise<HydratedDocument<BookProperties>> {
+	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
 		const book = await Book.findById(id, null, { userID: session?.user.id });
 
 		return new Promise<HydratedDocument<BookProperties>>((resolve) => {

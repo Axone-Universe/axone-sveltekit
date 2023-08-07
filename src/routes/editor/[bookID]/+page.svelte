@@ -37,6 +37,7 @@
 	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
 	import { changeDelta } from '$lib/util/editor/quill';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
+	import { onDestroy } from 'svelte';
 
 	export let data: PageData;
 	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
@@ -75,6 +76,11 @@
 			setupEditor();
 		}
 	});
+
+	/**
+	 * To avoid memory leaks clear the interval
+	 */
+	onDestroy(() => clearInterval(saveDeltaInterval));
 
 	/**
 	 * Drawer settings

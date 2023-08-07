@@ -1,6 +1,6 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { router } from '$lib/trpc/router';
-import mongoose from 'mongoose';
+import mongoose, { type HydratedDocument } from 'mongoose';
 import { GenresBuilder } from '$lib/shared/genres';
 
 import {
@@ -13,6 +13,7 @@ import {
 	MONGO_USER,
 	MONGO_DB
 } from '$env/static/private';
+import type { StorylineProperties } from '$lib/shared/storyline';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -86,6 +87,34 @@ export async function createBook(session: Session, title: string) {
 	});
 
 	return book;
+}
+
+export async function createChapter(
+	session: Session,
+	title: string,
+	description: string,
+	storyline: HydratedDocument<StorylineProperties>,
+	prevChapterID?: string
+) {
+	const caller = router.createCaller({ session: session });
+
+	const chapter = await caller.chapters.create({
+		title: title,
+		description: description,
+		storylineID: storyline._id,
+		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
+		prevChapterID: prevChapterID
+	});
+
+	// set public permissions
+	await caller.permissions.create({
+		documentID: chapter._id,
+		documentType: 'Chapter',
+		permission: 'edit',
+		public: true
+	});
+
+	return chapter;
 }
 
 /**

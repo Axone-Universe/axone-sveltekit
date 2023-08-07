@@ -5,7 +5,8 @@ import {
 	createDBUser,
 	createTestSession,
 	testUserOne,
-	createBook
+	createBook,
+	createChapter
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
@@ -22,29 +23,29 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 
-		const user = await createDBUser(createTestSession(testUserOne));
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
+		const testUserOneSession = createTestSession(testUserOne);
+		const user = await createDBUser(testUserOneSession);
 
-		let caller = router.createCaller({ session: null });
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+
+		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		caller = router.createCaller({ session: createTestSession(testUserOne) });
-		const chapter1Response = await caller.chapters.create({
-			title: chapter1Title,
-			description: 'My chapter 1',
-			storylineID: storylines[0]._id,
-			bookID: bookResponse._id
-		});
-
-		const chapter2Response = await caller.chapters.create({
-			title: chapter2Title,
-			description: 'My chapter 2',
-			storylineID: storylines[0]._id,
-			bookID: bookResponse._id,
-			prevChapterID: chapter1Response._id
-		});
+		const chapter1Response = await createChapter(
+			testUserOneSession,
+			chapter1Title,
+			'My chapter 1',
+			storylines[0]
+		);
+		const chapter2Response = await createChapter(
+			testUserOneSession,
+			chapter2Title,
+			'My chapter 2',
+			storylines[0],
+			chapter1Response._id
+		);
 
 		let storylineChapters = await caller.chapters.getAll({
 			storylineID: storylines[0]._id
@@ -68,23 +69,23 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
 
-		await createDBUser(createTestSession(testUserOne));
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
+		const testUserOneSession = createTestSession(testUserOne);
+
+		await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		// get the default storyline from created book
-		let caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
-		// create chapter on default storyline
-		caller = router.createCaller({ session: createTestSession(testUserOne) });
-		const chapterCreateResponse = await caller.chapters.create({
-			title: chapter1Title,
-			description: 'My chapter 1',
-			storylineID: storylines[0]._id,
-			bookID: bookResponse._id
-		});
+		const chapterCreateResponse = await createChapter(
+			testUserOneSession,
+			chapter1Title,
+			'My chapter 1',
+			storylines[0]
+		);
 
 		expect(chapterCreateResponse.description).toEqual('My chapter 1');
 
@@ -102,38 +103,40 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 		const chapter3Title = 'Chapter 3';
+		const testUserOneSession = createTestSession(testUserOne);
 
-		await createDBUser(createTestSession(testUserOne));
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle);
+		await createDBUser(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
-		let caller = router.createCaller({ session: null });
+		let caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
 		caller = router.createCaller({ session: createTestSession(testUserOne) });
-		const chapter1Response = await caller.chapters.create({
-			title: chapter1Title,
-			description: 'My chapter 1',
-			storylineID: storylines[0]._id,
-			bookID: bookResponse._id
-		});
 
-		const chapter2Response = await caller.chapters.create({
-			title: chapter2Title,
-			description: 'My chapter 2',
-			storylineID: storylines[0].id,
-			bookID: bookResponse.id,
-			prevChapterID: chapter1Response._id
-		});
+		const chapter1Response = await createChapter(
+			testUserOneSession,
+			chapter1Title,
+			'My chapter 1',
+			storylines[0]
+		);
 
-		const chapter3Response = await caller.chapters.create({
-			title: chapter3Title,
-			description: 'My chapter 3',
-			storylineID: storylines[0].id,
-			bookID: bookResponse.id,
-			prevChapterID: chapter2Response._id
-		});
+		const chapter2Response = await createChapter(
+			testUserOneSession,
+			chapter2Title,
+			'My chapter 2',
+			storylines[0],
+			chapter1Response._id
+		);
+
+		const chapter3Response = await createChapter(
+			testUserOneSession,
+			chapter3Title,
+			'My chapter 3',
+			storylines[0],
+			chapter2Response._id
+		);
 
 		const chapter2DeleteResponse = await caller.chapters.delete({
 			id: chapter2Response._id

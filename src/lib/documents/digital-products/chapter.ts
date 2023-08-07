@@ -12,6 +12,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	private _prevChapterID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -54,13 +55,20 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
+	sessionUserID(sessionUserID: string): ChapterBuilder {
+		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
 
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const chapter = await Chapter.findById(this._chapterProperties._id);
+			const chapter = await Chapter.findById(this._chapterProperties._id, null, {
+				userID: this._sessionUserID
+			});
 
 			const children = chapter.children;
 			if (children && children.length !== 0) {
@@ -75,7 +83,10 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			}
 
-			result = await Chapter.deleteOne({ _id: this._chapterProperties._id }, { session });
+			result = await Chapter.deleteOne(
+				{ _id: this._chapterProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
 
 			return result;
 		});
@@ -106,12 +117,16 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		await session.withTransaction(async () => {
 			await chapter.save({ session });
 
-			const storyline = await Storyline.findById(this._storylineID);
+			const storyline = await Storyline.findById(this._storylineID, null, {
+				userID: this._chapterProperties.user
+			});
 			storyline.chapters.push(chapter._id);
 			await storyline.save({ session });
 
 			if (this._prevChapterID) {
-				const prevChapter = await Chapter.findById(this._prevChapterID);
+				const prevChapter = await Chapter.findById(this._prevChapterID, null, {
+					userID: this._chapterProperties.user
+				});
 				prevChapter.children.push(chapter._id);
 				await prevChapter.save({ session });
 			}

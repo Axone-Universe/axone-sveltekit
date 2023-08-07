@@ -12,7 +12,7 @@ export const books = t.router({
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getAll(ctx.session!, input?.limit, input?.skip);
+			const result = await booksRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -37,7 +37,7 @@ export const books = t.router({
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getById(ctx.session!, input?.searchTerm);
+			const result = await booksRepo.getById(ctx.session, input?.searchTerm);
 
 			return result;
 		}),

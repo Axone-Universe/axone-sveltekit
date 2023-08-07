@@ -2,7 +2,12 @@ import { label, type BookProperties } from '$lib/shared/book';
 import mongoose, { Schema, model } from 'mongoose';
 import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
-import { permissionSchema } from './permission';
+import {
+	addDeletePermissionFilter,
+	addReadPermissionFilter,
+	addUpdatePermissionFilter,
+	permissionSchema
+} from './permission';
 
 export const bookSchema = new Schema<BookProperties>({
 	_id: { type: String, required: true },
@@ -19,21 +24,7 @@ bookSchema.pre(['find', 'findOne'], function (next) {
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	let permissionFilter = {};
-
-	// We'll only get books with public permissions
-	if (!userID) {
-		permissionFilter = { permissions: { $elemMatch: { public: true } } };
-	} else {
-		permissionFilter = {
-			$or: [
-				{ user: userID },
-				{ permissions: { $elemMatch: { $or: [{ public: true }, { user: userID }] } } }
-			]
-		};
-	}
-
-	const updatedFilter = { $and: [filter, permissionFilter] };
+	const updatedFilter = addReadPermissionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	populate(this);
@@ -44,16 +35,7 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	let permissionFilter = {};
-
-	// We'll only get books with public permissions
-	if (!userID) {
-		throw new Error('Unknown user requesting delete');
-	}
-
-	permissionFilter = { user: userID };
-
-	const updatedFilter = { $and: [filter, permissionFilter] };
+	const updatedFilter = addDeletePermissionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -65,28 +47,9 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		let permissionFilter = {};
-
-		// We'll only get books with public permissions
-		if (!userID) {
-			permissionFilter = { permissions: { $elemMatch: { public: true, permission: 'edit' } } };
-		} else {
-			permissionFilter = {
-				$or: [
-					{ user: userID },
-					{
-						permissions: {
-							$elemMatch: { $or: [{ public: true }, { user: userID, permission: 'edit' }] }
-						}
-					}
-				]
-			};
-		}
-
-		const updatedFilter = { $and: [filter, permissionFilter] };
+		const updatedFilter = addUpdatePermissionFilter(userID, filter);
 		this.setQuery(updatedFilter);
 
-		populate(this);
 		next();
 	}
 );

@@ -33,8 +33,10 @@ export const deltas = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input }) => {
-			const deltaBuilder = new DeltaBuilder(input.id).chapterID(input.chapterID);
+		.mutation(async ({ input, ctx }) => {
+			const deltaBuilder = new DeltaBuilder(input.id)
+				.chapterID(input.chapterID)
+				.sessionUserID(ctx.session!.user.id);
 
 			if (input.ops) {
 				await deltaBuilder.delta(input.id, input.ops);

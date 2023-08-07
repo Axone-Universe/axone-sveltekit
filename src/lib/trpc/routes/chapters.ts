@@ -10,7 +10,7 @@ export const chapters = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
 			if (input?.storylineID) {
@@ -21,7 +21,7 @@ export const chapters = t.router({
 				chaptersRepo.toChapterID(input.toChapterID);
 			}
 
-			const result = await chaptersRepo.getAll(input?.limit, input?.skip);
+			const result = await chaptersRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -70,8 +70,8 @@ export const chapters = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input }) => {
-			const chapterBuilder = new ChapterBuilder(input.id);
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
 			const response = await chapterBuilder.delete();
 			return response;
 		})
