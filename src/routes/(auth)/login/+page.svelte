@@ -22,11 +22,20 @@
     		provider: 'linkedin',
     	})	
 
+		let t: ToastSettings = {
+			message: `Successfully logged in. Welcome!`,
+			background: 'variant-filled-primary',
+			autohide: true
+		};
+
 		if(error){
-			console.log("Error : " + error);
-		}else{
-			console.log("Authenticated");
+			t = {
+					message: `Something wrong happened. Please try logging in later.`,
+					background: 'variant-filled-error',
+					autohide: true
+				};
 		}
+		toastStore.trigger(t);
 	}
 
 	async function signInWithGoogle() {
@@ -34,11 +43,20 @@
     		provider: 'google',
     	})	
 
+		let t: ToastSettings = {
+			message: `Successfully logged in. Welcome!`,
+			background: 'variant-filled-primary',
+			autohide: true
+		};
+
 		if(error){
-			console.log("Error : " + error);
-		}else{
-			console.log("Authenticated");
+			t = {
+					message: `Something wrong happened. Please try logging in later.`,
+					background: 'variant-filled-error',
+					autohide: true
+				};
 		}
+		toastStore.trigger(t);
 	}
 
 	const onSubmit = async () => {
@@ -91,7 +109,7 @@
 
 <Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
-		<h1>Login</h1>
+		<h1 class="text-center">Login</h1>
 
 		<button on:click={signInWithGoogle}
 			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150">
@@ -109,19 +127,21 @@
 
 
 		<form class="flex flex-col items-end gap-4">
-			<label class="label w-full">
+			<label class="label w-full text-center">
 				<span>Email</span>
 				<input class="input" type="email" bind:value={formData.email} />
 			</label>
-			<label class="label w-full">
+			<label class="label w-full  text-center">
 				<span>Password</span>
 				<input class="input" type="password" bind:value={formData.password} />
 			</label>
-			<a class="underline text-xs" href="/sign-up">Don't have an account?</a>
-			<a class="underline text-xs" href="/password/forgot">Forgot your password?</a>
+			<div class="w-full text-center">
+				<a class="underline text-xs" href="/sign-up">Don't have an account?</a>
+				<a class="underline text-xs" href="/password/forgot">Forgot your password?</a>
+			</div>
 		</form>
 
-		<footer class="flex justify-end">
+		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
 			<button class="btn variant-filled-primary" on:click={onSubmit}>Login</button>
 		</footer>
