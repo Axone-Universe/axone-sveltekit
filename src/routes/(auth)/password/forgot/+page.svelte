@@ -39,7 +39,7 @@
 
 <Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
-		<h1>Forgot Password</h1>
+		<h1 class="text-center">Forgot Password</h1>
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
 				<span>Email</span>
@@ -47,7 +47,7 @@
 			</label>
 		</form>
 
-		<footer class="flex justify-end">
+		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
 			<button class="btn variant-filled-primary" on:click={onSubmit}>Send email</button>
 		</footer>

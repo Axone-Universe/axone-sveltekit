@@ -86,7 +86,7 @@
 
 <Container class="flex h-full justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
-		<h1>Sign Up</h1>
+		<h1 class="text-center">Sign Up</h1>
 
 		<button on:click={signUpWithGoogle}
 			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150">
@@ -114,11 +114,13 @@
 				<span>Confirm password</span>
 				<input class="input" type="password" bind:value={formData.confirmPassword} />
 			</label>
-			<a class="underline text-xs" href="/login">Already have an account?</a>
-			<a class="underline text-xs" href="/password/forgot">Forgot your password?</a>
+			<div class="w-full text-center" >
+				<a class="underline text-xs" href="/login">Already have an account?</a>
+				<a class="underline text-xs" href="/password/forgot">Forgot your password?</a>
+			</div>
 		</form>
 
-		<footer class="flex justify-end">
+		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
 			<button class="btn variant-filled-primary" on:click={onSubmit}>Sign up</button>
 		</footer>

@@ -120,11 +120,11 @@
 
 
 		<form class="flex flex-col items-end gap-4">
-			<label class="label w-full text-center">
+			<label class="label w-full">
 				<span>Email</span>
 				<input class="input" type="email" bind:value={formData.email} />
 			</label>
-			<label class="label w-full  text-center">
+			<label class="label w-full">
 				<span>Password</span>
 				<input class="input" type="password" bind:value={formData.password} />
 			</label>
