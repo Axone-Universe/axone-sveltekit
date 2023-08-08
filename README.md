@@ -77,11 +77,13 @@ After that run the commands below
 npm test
 ```
 
-To populate UI testing data run:
+To populate UI testing data run the command below. It will populate a separate DB from the normal tests.
 
 ```bash
 pnpm test-data
 ```
+
+NB: If you change the schema, re-run test-data AND restart the dev server
 
 To run a certain fixture:
 

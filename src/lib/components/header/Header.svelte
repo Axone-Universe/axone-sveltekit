@@ -43,6 +43,7 @@
 	const readPopupBox: PopupSettings = popupSettings('readPopupBox');
 	const collaboratePopupBox: PopupSettings = popupSettings('collaboratePopupBox');
 	const creatorsPopupBox: PopupSettings = popupSettings('creatorsPopupBox');
+	const profilePopupBox: PopupSettings = popupSettings('profilePopupBox');
 
 	const readMenuList = [
 		{ url: '/genres/sci-fi', label: 'Sci-Fi' },
@@ -219,9 +220,32 @@
 						><Icon data={pencil} />
 						<span class="hidden md:inline-block">Write</span>
 					</a>
-					<button class="btn variant-filled-primary" on:click={onLogoutButtonClick}>Logout</button>
-					<a class="btn variant-filled-primary" href={`/profile/${data.session.user.id}`}>Profile</a
-					>
+
+					<div>
+						<button
+							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+							use:popup={profilePopupBox}
+						>
+							<Icon data={user} />
+							<p class="w-[100px] text-ellipsis line-clamp-1 md:inline-block">
+								{data.session.user.email}
+							</p>
+							<Icon data={caretDown} />
+						</button>
+
+						<div class="card p-4 shadow-xl" data-popup="profilePopupBox">
+							<div class="grid grid-cols-1">
+								<a class="btn hover:variant-soft-primary" href={`/profile/${data.session.user.id}`}
+									>Profile</a
+								>
+								<hr class="!my-2 variant-fill-primary" />
+								<button class="btn hover:variant-soft-primary" on:click={onLogoutButtonClick}
+									>Logout</button
+								>
+							</div>
+							<div class="arrow bg-surface-100-800-token" />
+						</div>
+					</div>
 				{:else}
 					<a class="btn variant-filled-primary" href="/login"> Login </a>
 				{/if}
