@@ -21,11 +21,16 @@
     		provider: 'linkedin',
     	})	
 
-		if(error){
-			console.log("Error : " + error);
-		}else{
-			console.log("Authenticated");
+		let t: ToastSettings = {
+			message: `Something wrong happened. Please try logging in later.`,
+			background: 'variant-filled-error',
+			autohide: true
+		};
+
+		if(await error){
+			toastStore.trigger(t);
 		}
+		
 	}
 
 	async function signUpWithGoogle() {
@@ -33,11 +38,16 @@
     		provider: 'google',
     	})	
 
-		if(error){
-			console.log("Error : " + error);
-		}else{
-			console.log("Authenticated");
+		let t: ToastSettings = {
+			message: `Something wrong happened. Please try logging in later.`,
+			background: 'variant-filled-error',
+			autohide: true
+		};
+
+		if(await error){
+			toastStore.trigger(t);
 		}
+		
 	}
 
 	const onSubmit = async () => {

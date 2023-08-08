@@ -23,19 +23,15 @@
     	})	
 
 		let t: ToastSettings = {
-			message: `Successfully logged in. Welcome!`,
-			background: 'variant-filled-primary',
+			message: `Something wrong happened. Please try logging in later.`,
+			background: 'variant-filled-error',
 			autohide: true
 		};
 
-		if(error){
-			t = {
-					message: `Something wrong happened. Please try logging in later.`,
-					background: 'variant-filled-error',
-					autohide: true
-				};
+		if(await error){
+			toastStore.trigger(t);
 		}
-		toastStore.trigger(t);
+		
 	}
 
 	async function signInWithGoogle() {
@@ -44,19 +40,15 @@
     	})	
 
 		let t: ToastSettings = {
-			message: `Successfully logged in. Welcome!`,
-			background: 'variant-filled-primary',
+			message: `Something wrong happened. Please try logging in later.`,
+			background: 'variant-filled-error',
 			autohide: true
 		};
 
-		if(error){
-			t = {
-					message: `Something wrong happened. Please try logging in later.`,
-					background: 'variant-filled-error',
-					autohide: true
-				};
+		if(await error){
+			toastStore.trigger(t);
 		}
-		toastStore.trigger(t);
+		
 	}
 
 	const onSubmit = async () => {
@@ -86,6 +78,7 @@
 					autohide: true
 				};
 			}
+
 			console.log(supabaseResponse.error);
 			toastStore.trigger(t);
 		} else {
