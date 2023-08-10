@@ -11,15 +11,21 @@ import {
 	MONGO_PASSWORD,
 	MONGO_URL,
 	MONGO_USER,
-	MONGO_DB
+	MONGO_DB,
+	TEST_USER_ID,
+	TEST_USER_FIRST_NAME,
+	TEST_USER_LAST_NAME
 } from '$env/static/private';
 import type { StorylineProperties } from '$lib/shared/storyline';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
-	id: '1',
+	id: TEST_USER_ID ? TEST_USER_ID : '1',
 	email: 'user_one@test.com',
-	user_metadata: { firstName: 'user', lastName: 'one' },
+	user_metadata: {
+		firstName: TEST_USER_FIRST_NAME ? TEST_USER_FIRST_NAME : 'user',
+		lastName: TEST_USER_LAST_NAME ? TEST_USER_LAST_NAME : 'one'
+	},
 	app_metadata: {},
 	aud: '',
 	created_at: ''
