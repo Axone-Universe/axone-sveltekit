@@ -325,7 +325,7 @@
 				<ul class="list">
 					{#if data.session && data.session.user}
 						<li>
-							<button class="w-full" on:click={onLogoutButtonClick}>Logout</button>
+							<button class="w-full" on:click={onLogoutButtonClick}>okkk</button>
 						</li>
 						<li>
 							<a class="w-full" href={`/profile/${data.session.user.id}`}>Profile</a>
