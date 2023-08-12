@@ -15,6 +15,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import { QuillEditor } from '$lib/util/editor/quill';
+	import '$lib/util/editor/quill.illustration';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 
@@ -306,11 +307,6 @@
 				modules: {
 					toolbar: {
 						container: toolbarOptions,
-						handlers: {
-							'illustrations-add': () => {
-								console.log("DEBUG: Illustrations Add Clicked")
-							}
-						}
 					},
 					comment: {
 						enabled: true,
@@ -318,6 +314,14 @@
 						commentAddOn: session?.user.email, // any additional info needed
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
+					},
+					quillIllustration: {
+						illustrationAuthorId: session?.user.id,
+						illustrationAddOn: session?.user.email, // any additional info needed
+						illustrationAddClick: () => {
+							console.log("DEBUG: Illustrations Add Clicked")
+						}, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
+						illustrationTimestamp: commentServerTimestamp
 					},
 					history: {
 						delay: 1000,
