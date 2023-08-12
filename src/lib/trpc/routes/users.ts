@@ -37,6 +37,7 @@ export const users = t.router({
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
+			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
@@ -58,6 +59,7 @@ export const users = t.router({
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
+			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);

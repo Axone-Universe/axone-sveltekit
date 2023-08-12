@@ -14,6 +14,7 @@ export const userSchema = new Schema<UserProperties>({
 	lastName: String,
 	about: String,
 	imageURL: String,
+	email: String,
 	facebook: String,
 	instagram: String,
 	twitter: String,

@@ -10,11 +10,11 @@ export const load = (async (event) => {
 
 	if (session && session.user.id) {
 		// check if user has a profile
-		const userResponse = (await trpc(event).users.getById.query({
+		const userProperties = (await trpc(event).users.getById.query({
 			searchTerm: session.user.id
 		})) as HydratedDocument<UserProperties>;
 
-		return { userResponse };
+		return { userProperties };
 	} else {
 		throw redirect(303, '/login');
 	}
