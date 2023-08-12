@@ -18,7 +18,8 @@ cp .env-copy .env
 
 ## MongoDB docker setup: Recommended
 
-Install docker desktop first for your machine https://docs.docker.com/engine/install/
+Install docker desktop first for your machine:
+https://docs.docker.com/engine/install/
 
 Run the MongoDB server through docker-compose.
 
@@ -31,6 +32,9 @@ To stop the container run
 ```bash
 sudo docker-compose stop
 ```
+
+You can install MongoDB Compass GUI to view DBs and Collections:
+https://www.mongodb.com/try/download/compass
 
 ## MongoDB manual setup
 
@@ -77,11 +81,16 @@ After that run the commands below
 npm test
 ```
 
-To populate UI testing data run:
+To populate UI testing data run the command below. It will populate a separate DB from the normal tests.
+
+NB: You can fill data for your supabase user by filling the TEST_USER_ID, TEST_USER_FIRST_NAME and TEST_USER_LAST_NAME in the .env
+The TEST_USER_ID is found by checking your DB after a normal login. It's easier to check with 'MongoDB Compass' installed.
 
 ```bash
 pnpm test-data
 ```
+
+NB: If you change the schema, re-run test-data AND restart the dev server
 
 To run a certain fixture:
 
