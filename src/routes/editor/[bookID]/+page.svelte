@@ -244,8 +244,9 @@
 			{ align: 'right' },
 			{ align: 'justify' },
 			'comments-add',
-			'comments-toggle'
-		]
+			'comments-toggle',
+			'illustrations-add',
+		],
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
@@ -294,6 +295,7 @@
 	function setupEditor() {
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
+		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
 
 		let container = document.getElementById('editor');
 		if (container) {
@@ -302,7 +304,14 @@
 				reader: false,
 				theme: 'bubble',
 				modules: {
-					toolbar: toolbarOptions,
+					toolbar: {
+						container: toolbarOptions,
+						handlers: {
+							'illustrations-add': () => {
+								console.log("DEBUG: Illustrations Add Clicked")
+							}
+						}
+					},
 					comment: {
 						enabled: true,
 						commentAuthorId: session?.user.id,
