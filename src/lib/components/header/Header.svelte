@@ -242,6 +242,10 @@
 								<button class="btn hover:variant-soft-primary" on:click={onLogoutButtonClick}
 									>Logout</button
 								>
+								<hr class="!my-2 variant-fill-primary" />
+								<a class="btn hover:variant-soft-primary" href={`/user/studio/${data.session.user.id}`}
+									>Author Studio</a
+								>
 							</div>
 							<div class="arrow bg-surface-100-800-token" />
 						</div>
@@ -288,7 +292,7 @@
 		</section>
 		<section hidden={selectedTile != 2} class="m-4 col-span-2">
 			<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
-				Collaborate
+				Collaboratei
 			</div>
 			<hr class="my-3 opacity-50" />
 			<nav class="list-nav">
@@ -325,7 +329,7 @@
 				<ul class="list">
 					{#if data.session && data.session.user}
 						<li>
-							<button class="w-full" on:click={onLogoutButtonClick}>okkk</button>
+							<button class="w-full" on:click={onLogoutButtonClick}>Logout</button>
 						</li>
 						<li>
 							<a class="w-full" href={`/profile/${data.session.user.id}`}>Profile</a>
