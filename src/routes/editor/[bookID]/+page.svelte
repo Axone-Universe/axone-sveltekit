@@ -236,6 +236,7 @@
 	changeDelta.subscribe((value) => {
 		deltaChange = value;
 		quill.comments = quill.comments;
+		quill.illustrations = quill.illustrations;
 	});
 
 	let toolbarOptions = [
@@ -256,14 +257,14 @@
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}`;
 
 	function toggleShowComments() {
-		if (showIllustrations) {
+		if (showIllustrations && !showComments) {
 			toggleShowIllustrations();
 		}
 		showComments = !showComments;
 	}
 
 	function toggleShowIllustrations() {
-		if (showComments) {
+		if (showComments && !showIllustrations) {
 			toggleShowComments();
 		}
 		showIllustrations = !showIllustrations;
@@ -272,6 +273,11 @@
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
+	}
+
+	function removeIllustration(id: string) {
+		let editor = document.getElementById('editor');
+		quill.removeIllustration(id, editor);
 	}
 
 	/**
@@ -305,7 +311,7 @@
 			caption: 'test caption'
 		});
 		drawerStore.open(drawerSettings);
-		//showComments = true;
+		showIllustrations = true;
 	}
 
 	function commentServerTimestamp() {
@@ -313,6 +319,14 @@
 		return new Promise((resolve, reject) => {
 			let currentTimestamp = Math.round(new Date().getTime() / 1000);
 
+			resolve(currentTimestamp);
+		});
+	}
+
+	function illustrationServerTimestamp() {
+		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
+		return new Promise((resolve, reject) => {
+			let currentTimestamp = Math.round(new Date().getTime() / 1000);
 			resolve(currentTimestamp);
 		});
 	}
@@ -350,7 +364,7 @@
 						illustrationAuthorId: session?.user.id,
 						illustrationAddOn: session?.user.email, // any additional info needed
 						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
-						illustrationTimestamp: commentServerTimestamp
+						illustrationTimestamp: illustrationServerTimestamp
 					},
 					history: {
 						delay: 1000,
@@ -485,6 +499,42 @@
 						{/each}
 					</div>
 				{/if}
+
+				{#if showIllustrations && Object.keys(quill.illustrations).length !== 0}
+					<div
+							id="illustrations-container"
+							class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+					>
+						{#each Object.entries(quill.illustrations) as [id, illustration]}
+							<div
+									class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
+							>
+								<textarea
+										id={illustration.id}
+										class="textarea text-sm h-20 resize-none overflow-hidden"
+										bind:value={quill.illustrations[id].illustration.caption}
+										required
+								/>
+
+								<footer class="modal-footer flex flex-col space-x-2 items-center">
+									<div>
+										<button on:click={() => removeIllustration(id)} class="chip variant-ghost-surface">
+											Resolve
+										</button>
+										<button
+												on:click={() => submitIllustration(id)}
+												class="chip variant-filled"
+												type="submit"
+										>
+											Save
+										</button>
+									</div>
+								</footer>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
 				<div class="flex flex-col p-2 bg-surface-50-900-token">
 					<div class="h-3/4 flex flex-col items-center">
 						<LightSwitch />
