@@ -18,30 +18,31 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 import Quill, {RangeStatic} from "quill";
 import Delta from "quill-delta";
-import Attributor from "parchment/src/attributor/attributor";
 import Scope from "parchment/src/scope"
 
-const IllustrationAttr: Attributor = new Attributor('illustration', 'ql-illustration', {
+const Parchment = Quill.import('parchment');
+
+const IllustrationAttr = new Parchment.Attributor.Attribute('illustration', 'ql-illustration', {
     scope: Scope.INLINE
 });
 
-const IllustrationAuthorAttr: Attributor = new Attributor('illustrationAuthor', 'ql-illustration-author', {
+const IllustrationAuthorAttr = new Parchment.Attributor.Attribute('illustrationAuthor', 'ql-illustration-author', {
     scope: Scope.INLINE
 });
 
-const IllustrationTimestampAttr: Attributor = new Attributor('illustrationTimestamp', 'ql-illustration-timestamp', {
+const IllustrationTimestampAttr = new Parchment.Attributor.Attribute('illustrationTimestamp', 'ql-illustration-timestamp', {
     scope: Scope.INLINE
 });
 
-const IllustrationId: Attributor = new Attributor('illustrationId', 'id', {
+const IllustrationId = new Parchment.Attributor.Attribute('illustrationId', 'id', {
     scope: Scope.INLINE
 });
 
-const IllustrationAddOnAttr: Attributor = new Attributor('illustrationAddOn', 'ql-illustration-addon', {
+const IllustrationAddOnAttr = new Parchment.Attributor.Attribute('illustrationAddOn', 'ql-illustration-addon', {
     scope: Scope.INLINE
 });
 
-type Callback = ((illustration: Illustration) => void) | (() => void)
+type Callback = ((illustration: IllustrationObject) => void) | (() => void)
 interface QuillIllustrationOptions {
     illustrationAuthorId: string,
     color: string,
@@ -52,7 +53,7 @@ interface QuillIllustrationOptions {
     illustrationAddOn: string, // additional info
 }
 
-interface Illustration {
+export interface IllustrationObject {
     src: string,
     alt: string,
     caption: string,
@@ -65,7 +66,7 @@ let currentTimestamp: number;
 class QuillIllustration {
 
     isEnabled: boolean;
-    
+
 
     constructor(ql: Quill, opt: QuillIllustrationOptions) {
         quill = ql;
@@ -87,7 +88,7 @@ class QuillIllustration {
         Quill.register(IllustrationTimestampAttr, true);
         Quill.register(IllustrationAddOnAttr, true);
 
-        // this.addIllustrationStyle(options.color);
+        this.addIllustrationStyle(options.color);
 
         const illustrationAddClick = options.illustrationAddClick;
         const illustrationsClick = options.illustrationsClick;
@@ -106,16 +107,16 @@ class QuillIllustration {
             });
             const illustrationToggleBtn = document.querySelector('button.ql-illustrations-toggle');
 
-            /*// eslint-disable-next-line @typescript-eslint/no-this-alias
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const illustrationObj = this;
-            illustrationToggleBtn.addEventListener('click', function() {
+            illustrationToggleBtn?.addEventListener('click', function() {
                 // toggle on/off authorship colors
                 illustrationObj.enable(!illustrationObj.isEnabled);
 
                 if (illustrationsClick) {
                     illustrationsClick();
                 }
-            });*/
+            });
 
             const addIllustrationBtn = document.querySelector('button.ql-illustrations-add');
             addIllustrationBtn!.addEventListener('click', () => {
@@ -152,11 +153,14 @@ class QuillIllustration {
 
     }
 
-    addIllustration(illustration: Illustration): void{
+    addIllustration(illustration: IllustrationObject): void{
 
         if (!illustration) {
             return; // cannot work without illustration
         }
+
+        console.log("DEBUG: addIllustration called. Illustration:", illustration);
+        console.log("DEBUG: addIllustration called. Options", options);
 
         // selection could be removed when this callback gets called, so store it first
         if (range) quill.formatText(range.index, range.length, 'illustrationAuthor', options.illustrationAuthorId, 'user');
@@ -171,7 +175,7 @@ class QuillIllustration {
                 quill.formatText(range.index, range.length, 'illustrationTimestamp', utcSeconds, 'user');
                 quill.formatText(range.index, range.length, 'illustrationId', 'ql-illustration-' + options.illustrationAuthorId + '-' + utcSeconds, 'user');
 
-                quill.formatText(range.index, range.length, 'illustration', illustration, 'user');
+                quill.formatText(range.index, range.length, 'illustration', JSON.stringify(illustration), 'user');
             }
         });
     }
@@ -186,23 +190,24 @@ class QuillIllustration {
         this.isEnabled = false;
     }
 
-/*    addIllustrationStyle(color: string) {
+    addIllustrationStyle(color: string) {
         const css = ".ql-illustrations [ql-illustration] { " + "background-color:" + color + "; }\n";
         this.addStyle(css);
     }
 
+    styleElement: HTMLStyleElement | null = null;
     addStyle(css: string) {
         if(!this.styleElement) {
             this.styleElement = document.createElement('style');
             this.styleElement.type = 'text/css';
             this.styleElement.classList.add('ql-illustrations-style'); // in case for some manipulation
-            this.styleElement.classList.add('ql-illustrations-style-'+options.authorId); // in case for some manipulation
+            this.styleElement.classList.add('ql-illustrations-style-'+options.illustrationAuthorId); // in case for some manipulation
             document.documentElement.getElementsByTagName('head')[0].appendChild(this.styleElement);
         }
 
         this.styleElement.innerHTML = css; // bug fix
-        // this.styleElement.sheet.insertRule(css, 0);
-    }*/
+        this.styleElement.sheet!.insertRule(css, 0);
+    }
 
 }
 
