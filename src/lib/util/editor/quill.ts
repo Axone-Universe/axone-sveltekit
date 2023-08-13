@@ -7,6 +7,7 @@ import { trpc } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { writable } from 'svelte/store';
+import type { IllustrationObject } from './quill.illustration';
 
 export const changeDelta = writable<Delta>(new Delta());
 
@@ -17,12 +18,20 @@ export interface Comment {
 	timestamp: string;
 }
 
+export interface Illustration {
+	id: string;
+	illustration: IllustrationObject;
+	author: string;
+	timestamp: string;
+}
+
 export interface QuillOptions extends QuillOptionsStatic {
 	reader?: boolean;
 }
 
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
+	illustrations: { [key: string]: Illustration } = {};
 	ops: Op[] | undefined;
 	page: Page;
 	chapter: HydratedDocument<ChapterProperties> | undefined;
@@ -180,7 +189,7 @@ export class QuillEditor extends Quill {
 	}
 
 	/**
-	 * Check if the selection is a comment
+	 * Check if the selection is a comment or illustration
 	 * If it's a comment, focus on the comment element in the UI
 	 * @param range
 	 * @param oldRange
@@ -225,10 +234,17 @@ export class QuillEditor extends Quill {
 		changeDelta.update(() => this.changeDelta.compose(delta));
 
 		// check if new comment was added
-		const added = this.delta(delta);
-		if (added) {
+		const added: {
+			comment: boolean;
+			illustration: boolean;
+		} = this.delta(delta);
+		if (added.comment) {
 			// eslint-disable-next-line no-self-assign
 			this.comments = this.comments;
+		}
+		if (added.illustration){
+			// eslint-disable-next-line no-self-assign
+			this.illustrations = this.illustrations;
 		}
 	}
 
@@ -241,18 +257,27 @@ export class QuillEditor extends Quill {
 
 		this.ops.forEach((op) => {
 			this.addComment(op);
+			this.addIllustration(op);
 		});
 	}
 
-	delta(delta: Delta): boolean {
+	delta(delta: Delta): {
+		comment: boolean;
+		illustration: boolean;
+	} {
 		const ops = delta.ops;
 		let commentAdded = false;
+		let illustrationAdded = false;
 
 		ops.forEach((op) => {
 			commentAdded = this.addComment(op);
+			illustrationAdded = this.addIllustration(op);
 		});
 
-		return commentAdded;
+		return {
+			comment: commentAdded,
+			illustration: illustrationAdded
+		};
 	}
 
 	addComment(op: Op): boolean {
@@ -271,12 +296,40 @@ export class QuillEditor extends Quill {
 		return true;
 	}
 
+	addIllustration(op: Op): boolean {
+		if (!this.isIllustration(op)) {
+			return false;
+		}
+
+		const illustration: Illustration = {
+			id: op?.attributes?.illustrationId,
+			illustration: op?.attributes?.illustrationf,
+			author: op?.attributes?.commentAuthor,
+			timestamp: op?.attributes?.commentTimestamp
+		};
+
+		this.illustrations[illustration.id] = illustration;
+		return true;
+	}
+
 	isComment(op: Op): boolean {
 		if (!op.attributes) {
 			return false;
 		}
 
 		if (!op.attributes['commentId']) {
+			return false;
+		}
+
+		return true;
+	}
+
+	isIllustration(op: Op): boolean {
+		if (!op.attributes) {
+			return false;
+		}
+
+		if (!op.attributes['illustrationId']) {
 			return false;
 		}
 
@@ -295,6 +348,21 @@ export class QuillEditor extends Quill {
 		}
 
 		const delta = this.formatText(index, length, 'comment', comment, 'user');
+		return delta;
+	}
+
+	updateIllustration(id: string, editor: HTMLElement | null, illustrationObject: IllustrationObject) {
+		if (editor == null) {
+			return;
+		}
+
+		const [index, length] = this.getRangeByID(id, editor);
+
+		if (index === null || length === null) {
+			return;
+		}
+
+		const delta = this.formatText(index, length, 'illustration', illustrationObject, 'user');
 		return delta;
 	}
 
