@@ -254,7 +254,8 @@
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
-	$: cssVarStyles = `--comment-bg-color:${commentBgColor}`;
+	$: illustrationBgColor = showIllustrations ? 'var(--color-primary-500)' : '';
+	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
 
 	function toggleShowComments() {
 		if (showIllustrations && !showComments) {
@@ -268,6 +269,8 @@
 			toggleShowComments();
 		}
 		showIllustrations = !showIllustrations;
+		// if (showIllustrations) quill.getModule('quillIllustration').addIllustrationStyle('green')
+		// else quill.getModule('quillIllustration').addIllustrationStyle('transparent')
 	}
 
 	function removeComment(id: string) {
@@ -360,7 +363,7 @@
 					},
 					quillIllustration: {
 						enabled: true,
-						color: "RGB(15, 186, 129)",
+						color: 'transparent',
 						illustrationAuthorId: session?.user.id,
 						illustrationAddOn: session?.user.email, // any additional info needed
 						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
