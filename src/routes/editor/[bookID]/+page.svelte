@@ -1,43 +1,42 @@
 <script lang="ts">
+	import type {DrawerSettings, ModalComponent, ModalSettings} from '@skeletonlabs/skeleton';
 	import {
+		Accordion,
+		AccordionItem,
 		AppShell,
 		Drawer,
 		drawerStore,
-		Accordion,
-		AccordionItem,
-		ListBoxItem,
-		ListBox,
 		LightSwitch,
+		ListBox,
+		ListBoxItem,
 		modalStore
 	} from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
-	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
-	import { trpc } from '$lib/trpc/client';
+	import {afterUpdate, beforeUpdate, onMount} from 'svelte';
+	import {trpc} from '$lib/trpc/client';
 	import Quill from 'quill';
-	import { QuillEditor } from '$lib/util/editor/quill';
+	import {changeDelta, QuillEditor} from '$lib/util/editor/quill';
 	import '$lib/util/editor/quill.illustration';
-	import type { PageData } from './$types';
-	import type { HydratedDocument } from 'mongoose';
+	import type {PageData} from './$types';
+	import type {HydratedDocument} from 'mongoose';
 
 	import Icon from 'svelte-awesome';
 	import {
+		check,
 		chevronLeft,
 		chevronRight,
+		dashcube,
+		edit,
+		image,
 		plus,
 		spinner,
-		check,
-		trash,
-		edit,
 		stickyNote,
-		dashcube,
-		image,
+		trash,
 	} from 'svelte-awesome/icons';
-	import { page } from '$app/stores';
+	import {page} from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
-	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
-	import { changeDelta } from '$lib/util/editor/quill';
+	import {type ChapterProperties, ChapterPropertyBuilder} from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 
 	export let data: PageData;
@@ -317,6 +316,32 @@
 		showIllustrations = true;
 	}
 
+	function chooseIllustration(event: MouseEvent){
+		const imageElementId = (event.target as HTMLImageElement).id;
+		const illustrationId = imageElementId.substring(imageElementId.indexOf('-') + 1);
+		document.getElementById(`file-${illustrationId}`)?.click()
+	}
+
+	function replaceIllustrationSrc(event: Event) {
+		const inputElement = event.target as HTMLInputElement;
+		const inputElementId = inputElement.id;
+		const illustrationId = inputElementId.substring(inputElementId.indexOf('-') + 1);
+		const file = inputElement.files?.[0];
+
+		if (!file) {
+			return; // No file selected
+		}
+
+		const imageElement = document.getElementById(`src-${illustrationId}`) as HTMLImageElement;
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			if (e.target?.result) {
+				imageElement.src = e.target.result as string;
+			}
+		};
+		reader.readAsDataURL(file);
+	}
+
 	function commentServerTimestamp() {
 		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
 		return new Promise((resolve, reject) => {
@@ -514,14 +539,22 @@
 							>
 								<img
 										id={`src-${illustration.id}`}
-										class="h-40 resize-none"
+										class="h-40 resize-none rounded-md mb-2"
 										alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
 										src={quill.illustrations[id].illustration.src}
+										on:click={chooseIllustration}
+								>
+								<input
+										type="file"
+										id={`file-${illustration.id}`}
+										class="hidden"
+										accept="image/png, image/jpeg, image/gif, image/svg"
+										on:change={replaceIllustrationSrc}
 								>
 								<input
 										id={`caption-${illustration.id}`}
 										type="text"
-										class="input text-sm h-6 mb-1 resize-none overflow-hidden"
+										class="input text-sm h-6 mb-2 resize-none overflow-hidden"
 										bind:value={quill.illustrations[id].illustration.caption}
 								>
 
