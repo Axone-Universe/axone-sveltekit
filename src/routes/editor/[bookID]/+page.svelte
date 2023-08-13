@@ -29,7 +29,8 @@
 		trash,
 		edit,
 		stickyNote,
-		dashcube
+		dashcube,
+		image,
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -228,6 +229,7 @@
 	 */
 	let quill: QuillEditor;
 	let showComments: boolean = false;
+	let showIllustrations: boolean = false;
 	let deltaChange;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
@@ -254,7 +256,17 @@
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}`;
 
 	function toggleShowComments() {
+		if (showIllustrations) {
+			toggleShowIllustrations();
+		}
 		showComments = !showComments;
+	}
+
+	function toggleShowIllustrations() {
+		if (showComments) {
+			toggleShowComments();
+		}
+		showIllustrations = !showIllustrations;
 	}
 
 	function removeComment(id: string) {
@@ -490,6 +502,13 @@
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={dashcube} scale={2.5} />
+							</button>
+							<button
+									on:click={() => toggleShowIllustrations()}
+									type="button"
+									class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={image} scale={2.5} />
 							</button>
 							<button
 								on:click={() => showChapterNotes()}
