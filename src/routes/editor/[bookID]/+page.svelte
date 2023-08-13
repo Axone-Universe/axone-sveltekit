@@ -273,10 +273,27 @@
 		quill.updateComment(id, editor, comment);
 	}
 
+	function submitIllustration(id: string) {
+		const illustration = quill.illustrations[id].illustration;
+		let editor = document.getElementById('editor');
+		quill.updateIllustration(id, editor, illustration);
+	}
+
 	function commentAddClick() {
 		quill.getModule('comment').addComment(' ');
 		drawerStore.open(drawerSettings);
 		showComments = true;
+	}
+
+	function illustrationAddClick() {
+		// TODO: remove test data
+		quill.getModule('quillIllustration').addIllustration({
+			src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png',
+			alt: 'test alt',
+			caption: 'test caption'
+		});
+		drawerStore.open(drawerSettings);
+		//showComments = true;
 	}
 
 	function commentServerTimestamp() {
@@ -316,11 +333,11 @@
 						commentTimestamp: commentServerTimestamp
 					},
 					quillIllustration: {
+						enabled: true,
+						color: "RGB(15, 186, 129)",
 						illustrationAuthorId: session?.user.id,
 						illustrationAddOn: session?.user.email, // any additional info needed
-						illustrationAddClick: () => {
-							console.log("DEBUG: Illustrations Add Clicked")
-						}, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
+						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
 						illustrationTimestamp: commentServerTimestamp
 					},
 					history: {
