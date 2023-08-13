@@ -512,17 +512,23 @@
 							<div
 									class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
-								<textarea
-										id={illustration.id}
-										class="textarea text-sm h-20 resize-none overflow-hidden"
+								<img
+										id={`src-${illustration.id}`}
+										class="h-40 resize-none"
+										alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
+										src={quill.illustrations[id].illustration.src}
+								>
+								<input
+										id={`caption-${illustration.id}`}
+										type="text"
+										class="input text-sm h-6 mb-1 resize-none overflow-hidden"
 										bind:value={quill.illustrations[id].illustration.caption}
-										required
-								/>
+								>
 
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
 										<button on:click={() => removeIllustration(id)} class="chip variant-ghost-surface">
-											Resolve
+											Remove
 										</button>
 										<button
 												on:click={() => submitIllustration(id)}
