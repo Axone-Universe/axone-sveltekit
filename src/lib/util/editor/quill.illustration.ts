@@ -19,6 +19,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 import Quill, {RangeStatic} from "quill";
 import Delta from "quill-delta";
 import Scope from "parchment/src/scope"
+import type {QuillEditor} from "$lib/util/editor/quill";
 
 const Parchment = Quill.import('parchment');
 
@@ -59,16 +60,16 @@ export interface IllustrationObject {
     caption: string,
 }
 
-let quill: Quill;
+let quill: QuillEditor;
 let options: QuillIllustrationOptions;
 let range: RangeStatic | null;
-let currentTimestamp: number;
+
 class QuillIllustration {
 
     isEnabled: boolean;
 
 
-    constructor(ql: Quill, opt: QuillIllustrationOptions) {
+    constructor(ql: QuillEditor, opt: QuillIllustrationOptions) {
         quill = ql;
         options = opt;
 
@@ -158,9 +159,6 @@ class QuillIllustration {
         if (!illustration) {
             return; // cannot work without illustration
         }
-
-        console.log("DEBUG: addIllustration called. Illustration:", illustration);
-        console.log("DEBUG: addIllustration called. Options", options);
 
         // selection could be removed when this callback gets called, so store it first
         if (range) quill.formatText(range.index, range.length, 'illustrationAuthor', options.illustrationAuthorId, 'user');
