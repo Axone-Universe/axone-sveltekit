@@ -208,6 +208,7 @@ export class QuillEditor extends Quill {
 	/**
 	 * Check if the selection is a comment or illustration
 	 * If it's a comment, focus on the comment element in the UI
+	 * If it's an illustration, focus on the illustration element in the UI
 	 * @param range
 	 * @param oldRange
 	 * @param source
@@ -224,21 +225,30 @@ export class QuillEditor extends Quill {
 
 		const delta = this.getContents(range.index, 1);
 
-		if (!this.isComment(delta.ops[0])) {
+		if (!this.isComment(delta.ops[0]) && !this.isIllustration(delta.ops[0])) {
 			return;
 		}
 
-		const commentId = delta.ops[0].attributes?.commentId;
-
-		if (!(commentId in this.comments)) {
-			return;
+		if (delta.ops[0].attributes?.commentId) {
+			const commentId = delta.ops[0].attributes?.commentId;
+			if (!(commentId in this.comments)) {
+				return;
+			}
+			// get the container with all the comments
+			const comments = document.getElementById('comments-container');
+			// focus on the textarea. it has the id of the comment
+			(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
+		} else if (delta.ops[0].attributes?.illustrationId) {
+			const illustrationId = delta.ops[0].attributes?.illustrationId;
+			if (!(illustrationId in this.illustrations)) {
+				return;
+			}
+			// get the container with all the illustrations
+			const illustrations = document.getElementById('illustrations-container');
+			// focus on the caption input. id = "caption-" + illustrationId
+			(illustrations?.querySelector(('#caption-' + illustrationId).toString()) as HTMLElement).focus();
 		}
 
-		// get the container with all the comments
-		const comments = document.getElementById('comments-container');
-
-		// focus on the textarea. it has the id of the comment
-		(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
 	}
 
 	/**
