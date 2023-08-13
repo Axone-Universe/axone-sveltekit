@@ -79,9 +79,17 @@ export class QuillEditor extends Quill {
 			console.log('saving ' + this.chapter?.title);
 			// take a snapshot of current delta state.
 			// that is the one sent to the server
+
+			this.changeDelta.ops.forEach((op: Op) => {
+				if (op.attributes && op.attributes.illustration && typeof op.attributes.illustration === 'object') {
+					op.attributes.illustration = JSON.stringify(op.attributes.illustration as string);
+				}
+			})
+
+
 			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
 			changeDelta.update(() => new Delta());
-			console.log('saving delta 3');
+			console.log('saving delta 3', this.changeDeltaSnapshot.ops);
 			// TODO: If the autosave fails, merge snapshot and change deltas
 			trpc(this.page)
 				.deltas.update.mutate({
@@ -93,7 +101,7 @@ export class QuillEditor extends Quill {
 					// Update the content to be one delta
 					this.updateChapterContent();
 				})
-				.catch(() => {
+				.catch((e) => {
 					alert('bad response');
 				});
 		}
@@ -111,6 +119,7 @@ export class QuillEditor extends Quill {
 		}
 
 		const ops = delta.ops;
+
 		chapterContentDelta = new Delta(ops as Op[]);
 
 		// now update the content
@@ -166,7 +175,14 @@ export class QuillEditor extends Quill {
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
 		const ops = opsJSON ? opsJSON : [];
 
-		console.log(ops);
+		console.log("loading ops", ops);
+
+		//Parse the illustrations to JavaScript objects
+		(ops as Op[]).forEach((op) => {
+			if (op.attributes && op.attributes.illustration && (typeof op.attributes.illustration) === 'string') {
+				op.attributes.illustration = JSON.parse(op.attributes.illustration as string);
+			}
+		})
 		this.setContents(new Delta(ops as Op[]));
 
 		this.on('selection-change', this.selectionChange.bind(this));
@@ -185,6 +201,7 @@ export class QuillEditor extends Quill {
 	override setContents(delta: Delta, source?: Sources | undefined): Delta {
 		const resultDelta: Delta = super.setContents(delta, source);
 		this.intializeComments(delta);
+		this.initializeIllustrations(delta);
 		return resultDelta;
 	}
 
@@ -257,6 +274,17 @@ export class QuillEditor extends Quill {
 
 		this.ops.forEach((op) => {
 			this.addComment(op);
+		});
+	}
+
+	initializeIllustrations(delta: Delta) {
+		this.ops = delta.ops;
+
+		if (!this.ops) {
+			return;
+		}
+
+		this.ops.forEach((op) => {
 			this.addIllustration(op);
 		});
 	}
@@ -301,9 +329,13 @@ export class QuillEditor extends Quill {
 			return false;
 		}
 
+		const defaultIllustration: IllustrationObject = {
+			alt: "", caption: "", src: ""
+		}
+
 		const illustration: Illustration = {
 			id: op?.attributes?.illustrationId,
-			illustration: op?.attributes?.illustrationf,
+			illustration: op?.attributes?.illustration || defaultIllustration,
 			author: op?.attributes?.commentAuthor,
 			timestamp: op?.attributes?.commentTimestamp
 		};
@@ -362,7 +394,7 @@ export class QuillEditor extends Quill {
 			return;
 		}
 
-		const delta = this.formatText(index, length, 'illustration', illustrationObject, 'user');
+		const delta = this.formatText(index, length, 'illustration', JSON.stringify(illustrationObject), 'user');
 		return delta;
 	}
 
@@ -382,6 +414,24 @@ export class QuillEditor extends Quill {
 		this.formatText(index, length, 'commentId', false);
 
 		delete this.comments[id];
+	}
+
+	removeIllustration(id: string, editor: HTMLElement | null) {
+		if (editor == null) {
+			return;
+		}
+
+		const [index, length] = this.getRangeByID(id, editor);
+
+		if (index === null || length === null) {
+			return;
+		}
+		this.formatText(index, length, 'illustration', false);
+		this.formatText(index, length, 'illustrationAuthor', false);
+		this.formatText(index, length, 'illustrationTimestamp', false);
+		this.formatText(index, length, 'illustrationId', false);
+
+		delete this.illustrations[id];
 	}
 
 	getComments(): { [key: string]: Comment } {
