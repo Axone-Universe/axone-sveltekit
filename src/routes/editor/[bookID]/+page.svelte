@@ -293,7 +293,7 @@
 		quill.updateComment(id, editor, comment);
 	}
 
-	function submitIllustration(id: string) {
+	function submitIllustration(event: Event, id: string) {
 		const illustration = quill.illustrations[id].illustration;
 		let editor = document.getElementById('editor');
 		quill.updateIllustration(id, editor, illustration);
@@ -564,7 +564,7 @@
 											Remove
 										</button>
 										<button
-												on:click={() => submitIllustration(id)}
+												on:click={(event) => submitIllustration(event, id)}
 												class="chip variant-filled"
 												type="submit"
 										>
