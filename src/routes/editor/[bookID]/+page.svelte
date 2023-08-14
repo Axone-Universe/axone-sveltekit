@@ -15,6 +15,7 @@
 	import {trpc} from '$lib/trpc/client';
 	import Quill from 'quill';
 	import {changeDelta, QuillEditor} from '$lib/util/editor/quill';
+	import type { Illustration } from '$lib/util/editor/quill'
 	import '$lib/util/editor/quill.illustration';
 	import type {PageData} from './$types';
 	import type {HydratedDocument} from 'mongoose';
@@ -38,6 +39,7 @@
 	import 'quill-comment';
 	import {type ChapterProperties, ChapterPropertyBuilder} from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
+	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
 
 	export let data: PageData;
 	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
@@ -322,6 +324,29 @@
 		document.getElementById(`file-${illustrationId}`)?.click()
 	}
 
+	function showIllustrationModal(illustration: Illustration){
+		const modalComponent: ModalComponent = {
+			// Pass a reference to your custom component
+			ref: IllustrationModal,
+			// Add the component properties as key/value pairs
+			props: {
+				illustration: illustration,
+				uploadClick: uploadIllustration
+			},
+		};
+
+		const modal: ModalSettings = {
+			type: 'component',
+			// Pass the component directly:
+			component: modalComponent,
+		};
+		modalStore.trigger(modal);
+	}
+
+	function uploadIllustration (file: File) {
+		return true
+	}
+
 	function replaceIllustrationSrc(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
 		const inputElementId = inputElement.id;
@@ -542,7 +567,7 @@
 										class="h-40 resize-none rounded-md mb-2"
 										alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
 										src={quill.illustrations[id].illustration.src}
-										on:click={chooseIllustration}
+										on:click={() => showIllustrationModal(illustration)}
 								>
 								<input
 										type="file"
