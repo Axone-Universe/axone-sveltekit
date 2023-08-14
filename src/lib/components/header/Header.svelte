@@ -243,7 +243,7 @@
 									>Logout</button
 								>
 								<hr class="!my-2 variant-fill-primary" />
-								<a class="btn hover:variant-soft-primary" href={`/user/studio/${data.session.user.id}`}
+								<a class="btn hover:variant-soft-primary" href={`/user/studio/${data.session.user.id}/books`}
 									>Author Studio</a
 								>
 

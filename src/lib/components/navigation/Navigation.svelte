@@ -13,9 +13,9 @@
 <nav class="list-nav p-4">
 	<div>
        
-		<a href={`${currentPlace}/books`} on:click={drawerClose} >Books</a>
-		<a href={`${currentPlace}/chapters`} on:click={drawerClose}>Chapters</a>
-		<a href={`${currentPlace}/storylines`} on:click={drawerClose}>Storylines</a>
+		<a href={`../${currentPlace}/books`} on:click={drawerClose} >Books</a>
+		<a href={`../${currentPlace}/chapters`} on:click={drawerClose}>Chapters</a>
+		<a href={`../${currentPlace}/storylines`} on:click={drawerClose}>Storylines</a>
 	</div>
 	
 </nav>
