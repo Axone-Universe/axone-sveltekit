@@ -11,11 +11,5 @@ export abstract class Repository {
 		limit?: number,
 		skip?: number
 	): Promise<unknown>;
-	abstract getByTitle(
-		session: Session,
-		searchTerm?: string,
-		limit?: number,
-		skip?: number
-	): Promise<unknown[]>;
 	abstract count(): Promise<number>;
 }

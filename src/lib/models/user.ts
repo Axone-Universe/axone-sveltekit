@@ -22,4 +22,6 @@ export const userSchema = new Schema<UserProperties>({
 	labels: usersSchemaProperties
 });
 
+userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
+
 export const User = mongoose.models[label] || model<UserProperties>(label, userSchema);

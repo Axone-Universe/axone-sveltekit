@@ -5,6 +5,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
+	import ManagePermissions from '../permissions/ManagePermissions.svelte';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
 	export let bookID: string;
@@ -114,6 +115,11 @@
 				required
 			/>
 		</label>
+
+		<div>
+			Permissions
+			<ManagePermissions documentType="chapter" permissionedDocument={chapterNode} />
+		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">
 		<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>

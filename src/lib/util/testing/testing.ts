@@ -159,11 +159,12 @@ export async function cleanUpDatabase() {
 export const createDBUser = async (session: Session) => {
 	const caller = router.createCaller({ session });
 
-	const supabaseUserDetails = session.user.user_metadata;
+	const supabaseUser = session.user;
 	const userDetails = {
 		_id: '',
-		firstName: supabaseUserDetails.firstName,
-		lastName: supabaseUserDetails.lastName
+		firstName: supabaseUser.user_metadata.firstName,
+		lastName: supabaseUser.user_metadata.lastName,
+		email: session.user.email
 	};
 	return await caller.users.create(userDetails);
 };
