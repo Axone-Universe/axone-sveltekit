@@ -247,9 +247,7 @@
 									>Author Studio</a
 								>
 
-								<a class="btn hover:variant-soft-primary" href={`/user/studio/${data.session.user.id}/books`}
-									>books page test</a
-								>
+								
 							
 							</div>
 							<div class="arrow bg-surface-100-800-token" />

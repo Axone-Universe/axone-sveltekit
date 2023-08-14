@@ -42,6 +42,16 @@ export const books = t.router({
 			return result;
 		}),
 
+	getBooksByUserID: t.procedure
+		.use(logger)
+		.input(search.optional())
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+			const result = await booksRepo.getBooksByUserID(ctx.session, input?.searchTerm);
+
+			return result;
+		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)

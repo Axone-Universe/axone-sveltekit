@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { drawerStore } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
+
+	
+
 	let currentPlace = $page.params
 	function drawerClose(): void {
 		drawerStore.close();

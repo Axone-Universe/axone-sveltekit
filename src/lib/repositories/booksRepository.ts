@@ -3,6 +3,7 @@ import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
+import {User} from '$lib/models/user'
 
 export class BooksRepository extends Repository {
 	async getAll(
@@ -56,6 +57,8 @@ export class BooksRepository extends Repository {
 			resolve(book);
 		});
 	}
+	
+	
 
 	async count(): Promise<number> {
 		const count = await Book.count();
@@ -64,4 +67,23 @@ export class BooksRepository extends Repository {
 			resolve(count);
 		});
 	}
+	async getBooksByUserID(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>[]> {
+		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
+		const books = await Book.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
+
+		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
+			resolve(books);
+		});
+	}
+
+
+	
+		
+		  
+		  
+	  
+		 
+		;
+		
+	 
 }
