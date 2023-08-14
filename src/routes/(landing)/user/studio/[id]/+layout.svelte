@@ -29,6 +29,7 @@
 	<Navigation />
 </Drawer>
 
+
 <!-- App Shell -->
 <AppShell slotSidebarLeft="bg-surface-500/5 {classesSidebarLeft}">
 	<svelte:fragment slot="header">
@@ -36,7 +37,7 @@
 		<AppBar>
 			<svelte:fragment slot="lead">
 				<div class="flex items-center">
-					<button class="lg:hidden btn btn-sm mr-4" on:click={drawerOpen}>
+					<button class=" btn btn-sm mr-4" on:click={drawerOpen}>
 						<span>
 							<svg viewBox="0 0 100 80" class="fill-token w-4 h-4">
 								<rect width="100" height="20" />
@@ -48,10 +49,7 @@
 					<strong class="text-xl uppercase">Skeleton</strong>
 				</div>
 			</svelte:fragment>
-			<svelte:fragment slot="trail">
-				<a class="btn btn-sm" href="/">Home</a>
-				<a class="btn btn-sm" href="/about">About</a>
-			</svelte:fragment>
+			
 		</AppBar>
 	</svelte:fragment>
 	<!-- Left Sidebar Slot -->
