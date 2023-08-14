@@ -253,7 +253,7 @@
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
-	$: illustrationBgColor = showIllustrations ? 'var(--color-primary-500)' : '';
+	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
 
 	function toggleShowComments() {
@@ -554,7 +554,8 @@
 								<input
 										id={`caption-${illustration.id}`}
 										type="text"
-										class="input text-sm h-6 mb-2 resize-none overflow-hidden"
+										class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
+										placeholder="Caption"
 										bind:value={quill.illustrations[id].illustration.caption}
 								>
 
