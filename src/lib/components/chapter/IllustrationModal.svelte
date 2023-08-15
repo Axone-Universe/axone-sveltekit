@@ -2,6 +2,8 @@
 
     import type {Illustration} from "$lib/util/editor/quill";
     import { FileButton } from '@skeletonlabs/skeleton';
+    import { modalStore } from '@skeletonlabs/skeleton';
+
 
     export let illustration: Illustration;
     export let uploadClick: (file: File, illustration: Illustration) => void;
@@ -38,14 +40,16 @@
         >
     </main>
     <footer class="flex flex-row-reverse">
+        <button class="btn btn-sm variant-filled ml-3" on:click={() => modalStore.close()}>
+          close
+        </button>
         <FileButton
                 type="file"
                 name={illustration.id}
                 accept="image/png, image/jpeg, image/gif, image/svg"
-                button="variant-soft-primary"
-                class="w-16 h-8 mb-2"
+                button="btn-icon btn-sm variant-ringed-primary"
                 on:change={changeImage}>
-            <img src="/upload.svg" alt="upload">
+            <img class="w-16 h-8 mb-2" src="/upload.svg" alt="upload">
         </FileButton>
     </footer>
 
