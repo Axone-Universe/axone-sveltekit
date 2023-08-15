@@ -175,6 +175,42 @@
 		modalStore.trigger(modalSettings);
 	};
 
+	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>){
+		const bookId = chapter.book
+		const chapterId = chapter._id
+		const folder = `${bookId}/${chapterId}`
+
+		/*
+		Be careful if you have a lot of files. Besides server load, if .remove passes data in the url versus body like
+		post, you will blow up url length quickly. I don't know how Supabase storage API implements DELETE as body is
+		optional. Normally all resources are in the url for DELETE.
+		 */
+		supabase.storage
+				.from('illustrations')
+				.list(folder)
+				.then((response: StorageFileError) => {
+					if (response.data){
+						const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+						supabase.storage
+								.from('illustrations')
+								.remove(filesToRemove)
+								.then((response: StorageFileError) => {
+									if (response.error) {
+										console.log(response.error)
+										// show toast error
+										const errorUploadToast: ToastSettings = {
+											message: 'There was an issue deleting the illustrations',
+											// Provide any utility or variant background style:
+											background: 'variant-filled-error',
+										};
+										toastStore.trigger(errorUploadToast);
+									}
+								})
+					}
+				})
+
+	}
+
 	let deleteChapter = () => {
 		const modal: ModalSettings = {
 			type: 'confirm',
@@ -184,6 +220,9 @@
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
+					//delete all illustrations from supabase storage for this chapter
+					deleteChapterStorage(selectedChapterNode)
+
 					trpc($page)
 						.chapters.delete.mutate({
 							id: selectedChapterNode._id
