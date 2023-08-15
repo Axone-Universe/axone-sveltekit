@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Genres } from '$lib/util/types';
+import type { Genres } from '$lib/shared/genres';
 
 export const genres = z.object({
 	Action: z.boolean(),

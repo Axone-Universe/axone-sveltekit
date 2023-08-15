@@ -42,6 +42,7 @@
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
 	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
 	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
+	import { onDestroy } from 'svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -81,6 +82,11 @@
 			setupEditor();
 		}
 	});
+
+	/**
+	 * To avoid memory leaks clear the interval
+	 */
+	onDestroy(() => clearInterval(saveDeltaInterval));
 
 	/**
 	 * Drawer settings

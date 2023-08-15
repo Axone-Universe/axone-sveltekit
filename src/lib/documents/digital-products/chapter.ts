@@ -6,13 +6,14 @@ import mongoose from 'mongoose';
 import type { ChapterProperties } from '$lib/shared/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
 	private _prevChapterID?: string;
-	private _userID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -32,10 +33,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	userID(userID: string): ChapterBuilder {
-		this._userID = userID;
-
 		this._chapterProperties.user = userID;
-
 		return this;
 	}
 
@@ -58,13 +56,27 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
+	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+		console.log('** perm set');
+		console.log(permissions);
+		this._chapterProperties.permissions = permissions;
+		return this;
+	}
+
+	sessionUserID(sessionUserID: string): ChapterBuilder {
+		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
 
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const chapter = await Chapter.findById(this._chapterProperties._id);
+			const chapter = await Chapter.findById(this._chapterProperties._id, null, {
+				userID: this._sessionUserID
+			});
 
 			const children = chapter.children;
 			if (children && children.length !== 0) {
@@ -79,7 +91,10 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			}
 
-			result = await Chapter.deleteOne({ _id: this._chapterProperties._id }, { session });
+			result = await Chapter.deleteOne(
+				{ _id: this._chapterProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
 
 			return result;
 		});
@@ -89,13 +104,14 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	async update(): Promise<HydratedDocument<ChapterProperties>> {
-		const chapter = await Chapter.findOneAndUpdate(
-			{ _id: this._chapterProperties._id },
-			this._chapterProperties,
-			{ new: true }
-		);
+		await Chapter.findOneAndUpdate({ _id: this._chapterProperties._id }, this._chapterProperties, {
+			new: true,
+			userID: this._sessionUserID
+		});
 
-		return chapter;
+		return (await Chapter.findById(this._chapterProperties._id, null, {
+			userID: this._sessionUserID
+		})) as HydratedDocument<ChapterProperties>;
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {
@@ -110,18 +126,24 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		await session.withTransaction(async () => {
 			await chapter.save({ session });
 
-			const storyline = await Storyline.findById(this._storylineID);
+			const storyline = await Storyline.findById(this._storylineID, null, {
+				userID: this._chapterProperties.user
+			});
 			storyline.chapters.push(chapter._id);
 			await storyline.save({ session });
 
 			if (this._prevChapterID) {
-				const prevChapter = await Chapter.findById(this._prevChapterID);
+				const prevChapter = await Chapter.findById(this._prevChapterID, null, {
+					userID: this._chapterProperties.user
+				});
 				prevChapter.children.push(chapter._id);
 				await prevChapter.save({ session });
 			}
 		});
 		session.endSession();
 
-		return chapter!;
+		return (await Chapter.findById(this._chapterProperties._id, null, {
+			userID: this._sessionUserID
+		})) as HydratedDocument<ChapterProperties>;
 	}
 }

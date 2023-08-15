@@ -9,6 +9,7 @@ import { Chapter } from '$lib/models/chapter';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
+	private _sessionUserID?: string;
 	private readonly _deltaProperties: DeltaProperties;
 
 	constructor(id?: string) {
@@ -19,7 +20,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		};
 	}
 
-	chapterID(chapterID: string) {
+	chapterID(chapterID: string): DeltaBuilder {
 		this._chapterID = chapterID;
 
 		return this;
@@ -28,6 +29,11 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 	ops(ops: string): DeltaBuilder {
 		const opsJSON = JSON.parse(ops);
 		this._deltaProperties.ops = opsJSON;
+		return this;
+	}
+
+	sessionUserID(sessionUserID: string): DeltaBuilder {
+		this._sessionUserID = sessionUserID;
 		return this;
 	}
 
@@ -75,7 +81,9 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		await session.withTransaction(async () => {
 			await delta.save({ session });
 
-			const chapter = await Chapter.findById(this._chapterID);
+			const chapter = await Chapter.findById(this._chapterID, null, {
+				userID: this._sessionUserID
+			});
 			chapter.delta = delta._id;
 			await chapter.save({ session });
 

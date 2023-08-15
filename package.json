@@ -14,7 +14,7 @@
 		"test-data": "vitest db-data --no-threads"
 	},
 	"devDependencies": {
-		"@skeletonlabs/skeleton": "^1.5.1",
+		"@skeletonlabs/skeleton": "^1.11.0",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/adapter-vercel": "^2.4.3",
 		"@sveltejs/kit": "^1.18.0",

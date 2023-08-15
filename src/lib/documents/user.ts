@@ -34,6 +34,11 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	email(email: string): UserBuilder {
+		this._userProperties.email = email;
+		return this;
+	}
+
 	facebook(facebook: string): UserBuilder {
 		this._userProperties.facebook = facebook;
 		return this;
@@ -59,6 +64,10 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	sessionUserID(sessionUserID: string): UserBuilder {
+		throw new Error('Method not implemented.');
+	}
+
 	async update(): Promise<HydratedDocument<UserProperties>> {
 		const user = await User.findOneAndUpdate(
 			{ _id: this._userProperties._id },
@@ -75,7 +84,6 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		const user = new User(this._userProperties);
 		await user.save();
 
-		console.log('*** added user *');
 		console.log(this._userProperties._id);
 		console.log(user._id);
 

@@ -12,8 +12,13 @@ export const users = t.router({
 	list: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
-			const result = await usersRepo.get(input?.searchTerm, input?.limit, input?.skip);
+		.query(async ({ input, ctx }) => {
+			const result = await usersRepo.getById(
+				ctx.session,
+				input?.searchTerm,
+				input?.limit,
+				input?.skip
+			);
 
 			return result;
 		}),
@@ -21,8 +26,17 @@ export const users = t.router({
 	getById: t.procedure
 		.use(logger)
 		.input(search)
-		.query(async ({ input }) => {
-			const result = await usersRepo.getById(input.searchTerm);
+		.query(async ({ input, ctx }) => {
+			const result = await usersRepo.getById(ctx.session, input.searchTerm);
+
+			return result;
+		}),
+
+	getByDetails: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			const result = await usersRepo.getByDetails(ctx.session, input.searchTerm ?? '');
 
 			return result;
 		}),
@@ -37,6 +51,7 @@ export const users = t.router({
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
+			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
@@ -58,6 +73,7 @@ export const users = t.router({
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
+			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
 			if (input.instagram) userBuilder = userBuilder.instagram(input.instagram);
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);

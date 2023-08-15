@@ -2,6 +2,8 @@ import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import type { DeltaProperties } from './delta';
+import type { PermissionProperties } from './permission';
+import type { Genres } from './genres';
 
 export const label = 'Chapter';
 
@@ -11,6 +13,8 @@ export interface ChapterProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	delta?: string | HydratedDocument<DeltaProperties>;
 	children?: string[] | HydratedDocument<ChapterProperties>[];
+	permissions?: HydratedDocument<PermissionProperties>[];
+	genres?: Genres;
 	title?: string;
 	description?: string;
 }

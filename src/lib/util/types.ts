@@ -1,4 +1,4 @@
-import type {Bucket, StorageError as SupabasStorageError, FileObject} from "@supabase/storage-js";
+import type { Bucket, StorageError as SupabasStorageError, FileObject } from '@supabase/storage-js';
 
 export interface DeltaQuery {
 	id?: string;
@@ -33,9 +33,9 @@ export type StorageError =
 	| { data: null; error: { name: string; statusCode?: string } };
 
 export type StorageBucketError =
-	| { data: Bucket; error: null; }
-	| { data: null; error: SupabasStorageError; }
+	| { data: Bucket; error: null }
+	| { data: null; error: SupabasStorageError };
 
 export type StorageFileError =
-	| { data: FileObject[]; error: null; }
-	| { data: null; error: SupabasStorageError; }
+	| { data: FileObject[]; error: null }
+	| { data: null; error: SupabasStorageError };

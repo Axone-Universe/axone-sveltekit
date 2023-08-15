@@ -5,12 +5,14 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/chapters';
 import { search } from '$lib/trpc/schemas/chapters';
+import type { HydratedDocument } from 'mongoose';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export const chapters = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
 			if (input?.storylineID) {
@@ -21,7 +23,7 @@ export const chapters = t.router({
 				chaptersRepo.toChapterID(input.toChapterID);
 			}
 
-			const result = await chaptersRepo.getAll(input?.limit, input?.skip);
+			const result = await chaptersRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
@@ -30,8 +32,8 @@ export const chapters = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input }) => {
-			const chapterBuilder = new ChapterBuilder(input.id);
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
 			if (input?.description) {
 				chapterBuilder.description(input.description);
@@ -39,6 +41,10 @@ export const chapters = t.router({
 
 			if (input?.title) {
 				chapterBuilder.title(input.title);
+			}
+
+			if (input?.permissions) {
+				chapterBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
 			}
 
 			const chapterNode = await chapterBuilder.update();
@@ -51,6 +57,7 @@ export const chapters = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const chapterBuilder = new ChapterBuilder()
+				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.bookID(input.bookID)
@@ -59,6 +66,10 @@ export const chapters = t.router({
 
 			if (input?.prevChapterID) {
 				chapterBuilder.prevChapterID(input.prevChapterID);
+			}
+
+			if (input?.permissions) {
+				chapterBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
 			}
 
 			const chapterNode = await chapterBuilder.build();
@@ -70,8 +81,8 @@ export const chapters = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input }) => {
-			const chapterBuilder = new ChapterBuilder(input.id);
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
 			const response = await chapterBuilder.delete();
 			return response;
 		})

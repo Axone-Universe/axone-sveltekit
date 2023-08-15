@@ -5,15 +5,15 @@ import { t } from '$lib/trpc/t';
 import { update, search, create } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 
-const deltasRepo = new DeltasRepository();
-
 export const deltas = t.router({
 	create: t.procedure
 		.use(logger)
 		.use(auth)
 		.input(create)
-		.mutation(async ({ input }) => {
-			const deltaBuilder = new DeltaBuilder().chapterID(input.chapterID);
+		.mutation(async ({ input, ctx }) => {
+			const deltaBuilder = new DeltaBuilder()
+				.sessionUserID(ctx.session!.user.id)
+				.chapterID(input.chapterID);
 
 			const deltaNodeResponse = await deltaBuilder.build();
 
@@ -23,6 +23,7 @@ export const deltas = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input }) => {
+			const deltasRepo = new DeltasRepository();
 			const result = await deltasRepo.getById(input.id);
 
 			console.log('** 1 serv setting edtior ');
@@ -34,8 +35,10 @@ export const deltas = t.router({
 		.use(logger)
 		.use(auth)
 		.input(update)
-		.mutation(async ({ input }) => {
-			const deltaBuilder = new DeltaBuilder(input.id).chapterID(input.chapterID);
+		.mutation(async ({ input, ctx }) => {
+			const deltaBuilder = new DeltaBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.chapterID(input.chapterID);
 
 			if (input.ops) {
 				await deltaBuilder.delta(input.id, input.ops);

@@ -1,7 +1,8 @@
 import type { Session, User } from '@supabase/supabase-js';
-
 import { router } from '$lib/trpc/router';
-import mongoose from 'mongoose';
+import mongoose, { type HydratedDocument } from 'mongoose';
+import { GenresBuilder } from '$lib/shared/genres';
+
 import {
 	TEST_MONGO_PASSWORD,
 	TEST_MONGO_URL,
@@ -10,28 +11,121 @@ import {
 	MONGO_PASSWORD,
 	MONGO_URL,
 	MONGO_USER,
-	MONGO_DB
+	MONGO_DB,
+	TEST_USER_ID,
+	TEST_USER_FIRST_NAME,
+	TEST_USER_LAST_NAME
 } from '$env/static/private';
+import type { StorylineProperties } from '$lib/shared/storyline';
 
-export const testUser: User = {
-	id: '123',
-	email: 'user@test.com',
-	user_metadata: {},
+/** Supabase Test User Infos */
+export const testUserOne: User = {
+	id: TEST_USER_ID ? TEST_USER_ID : '1',
+	email: 'user_one@test.com',
+	user_metadata: {
+		firstName: TEST_USER_FIRST_NAME ? TEST_USER_FIRST_NAME : 'user',
+		lastName: TEST_USER_LAST_NAME ? TEST_USER_LAST_NAME : 'one'
+	},
 	app_metadata: {},
 	aud: '',
 	created_at: ''
 };
 
-export const testSession: Session = {
-	access_token: '',
-	refresh_token: '',
-	expires_in: 0,
-	token_type: '',
-	user: testUser
+export const testUserTwo: User = {
+	id: '2',
+	email: 'user_two@test.com',
+	user_metadata: { firstName: 'user', lastName: 'two' },
+	app_metadata: {},
+	aud: '',
+	created_at: ''
 };
 
-export const testUserInfo = { _id: '', firstName: 'Test', lastName: 'Userme', imageURL: '' };
+export const testUserThree: User = {
+	id: '3',
+	email: 'user_three@test.com',
+	user_metadata: { firstName: 'user', lastName: 'three' },
+	app_metadata: {},
+	aud: '',
+	created_at: ''
+};
 
+/**
+ * Creates a session from a given user supabase
+ * @param supabaseUser
+ * @returns
+ */
+export function createTestSession(supabaseUser: User) {
+	const testSession: Session = {
+		access_token: '',
+		refresh_token: '',
+		expires_in: 0,
+		token_type: '',
+		user: supabaseUser
+	};
+	return testSession;
+}
+
+/**
+ * Creates a book from a given title ans session
+ * @param session
+ * @param title
+ * @returns
+ */
+export async function createBook(session: Session, title: string) {
+	const caller = router.createCaller({ session: session });
+
+	const genres = new GenresBuilder();
+	genres.genre('Action');
+
+	const book = await caller.books.create({
+		title,
+		imageURL: 'www.example.com',
+		genres: genres.getGenres(),
+		description: ''
+	});
+
+	// set public permissions
+	await caller.permissions.create({
+		documentID: book._id,
+		documentType: 'Book',
+		permission: 'edit',
+		public: true
+	});
+
+	return book;
+}
+
+export async function createChapter(
+	session: Session,
+	title: string,
+	description: string,
+	storyline: HydratedDocument<StorylineProperties>,
+	prevChapterID?: string
+) {
+	const caller = router.createCaller({ session: session });
+
+	const chapter = await caller.chapters.create({
+		title: title,
+		description: description,
+		storylineID: storyline._id,
+		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
+		prevChapterID: prevChapterID
+	});
+
+	// set public permissions
+	await caller.permissions.create({
+		documentID: chapter._id,
+		documentType: 'Chapter',
+		permission: 'edit',
+		public: true
+	});
+
+	return chapter;
+}
+
+/**
+ * Differentiate the DBs so that Dev DB is not wiped out when testing
+ */
 export async function connectTestDatabase() {
 	const options: mongoose.ConnectOptions = {
 		dbName: TEST_MONGO_DB,
@@ -42,7 +136,7 @@ export async function connectTestDatabase() {
 	await mongoose.connect(TEST_MONGO_URL, options);
 }
 
-export async function connectDatabase() {
+export async function connectDevDatabase() {
 	const options: mongoose.ConnectOptions = {
 		dbName: MONGO_DB,
 		user: MONGO_USER,
@@ -54,13 +148,23 @@ export async function connectDatabase() {
 
 export async function cleanUpDatabase() {
 	console.log('dropping DB');
-
-	/* Drop the DB */
 	await mongoose.connection.db.dropDatabase();
 }
 
-export const createUser = async (session: Session) => {
+/**
+ * Supabase is external to the platform. This creates the platform user from the supabase session user
+ * @param session
+ * @returns
+ */
+export const createDBUser = async (session: Session) => {
 	const caller = router.createCaller({ session });
 
-	return await caller.users.create(testUserInfo);
+	const supabaseUser = session.user;
+	const userDetails = {
+		_id: '',
+		firstName: supabaseUser.user_metadata.firstName,
+		lastName: supabaseUser.user_metadata.lastName,
+		email: session.user.email
+	};
+	return await caller.users.create(userDetails);
 };

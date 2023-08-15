@@ -11,6 +11,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	// If a storyline has no parent it is the default storyline
 	private _parentStorylineID?: string;
 	private _branchOffChapterID?: string;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -66,6 +67,15 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
+	properties() {
+		return this._storylineProperties;
+	}
+
+	sessionUserID(sessionUserID: string): StorylineBuilder {
+		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
 	/**
 	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters
 	 *      UP TO the branch-off chapter which should be specified as well.
@@ -85,8 +95,12 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		// get the parent chapter ids
 		// we assume they are already sorted in correct order by the push
 		if (this._parentStorylineID) {
-			const parentStoryline = await Storyline.findById(this._parentStorylineID);
-			for (const chapterID of parentStoryline.chapters) {
+			const parentStoryline = await Storyline.findById(this._parentStorylineID, null, {
+				userID: this._userID
+			});
+			for (const chapter of parentStoryline.chapters) {
+				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
+
 				storyline.chapters.push(chapterID);
 				if (chapterID === this._branchOffChapterID) {
 					break;
