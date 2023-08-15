@@ -8,6 +8,11 @@
     export let illustration: Illustration;
     export let uploadClick: (file: File, illustration: Illustration) => void;
 
+    /**
+     * Change the image of the illustration to the one selected by the user
+     * Calls the uploadClick function to upload the image to Supabase
+     * @param event
+     */
     function changeImage(event: Event){
         const inputElement = event.target as HTMLInputElement;
         const file = inputElement.files?.[0];
