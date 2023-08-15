@@ -368,7 +368,8 @@
 		let editor = document.getElementById('editor');
 
 		const src = quill.illustrations[id].illustration.src
-		const filename = src.substring(src.lastIndexOf('/') + 1)
+		// bucket name is excluded, but all other folder and file paths are included
+		const filename = src.substring(src.indexOf('books') + 'books'.length + 1)
 
 		supabase.storage
 				.from('books')
