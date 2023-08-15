@@ -39,11 +39,10 @@ export class ChaptersRepository extends Repository {
 		let chapters: HydratedDocument<ChapterProperties>[] = [];
 
 		if (this._storylineID) {
-			const storyline = await Storyline.findById(this._storylineID, null, {
+			const storyline = await Storyline.findOne({ _id: this._storylineID }, null, {
 				userID: session?.user.id
 			});
 
-			// We don't populate storyline because we must set the session user for the middleware
 			const storylineChapters = storyline.chapters;
 
 			if (!this._toChapterID) {

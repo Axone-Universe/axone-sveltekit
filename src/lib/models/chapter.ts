@@ -56,7 +56,7 @@ chapterSchema.pre(
 );
 
 function populate(query: any) {
-	query.populate('user');
+	query.populate([{ path: 'user' }, { path: 'permissions', populate: { path: 'user' } }]);
 }
 
 export const Chapter = mongoose.models[label] || model<ChapterProperties>(label, chapterSchema);

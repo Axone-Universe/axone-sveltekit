@@ -53,7 +53,9 @@ describe('chapters', () => {
 
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2Response.title).toEqual(chapter2Title);
-		expect(chapter2Response.user).toEqual(user._id);
+		expect(
+			typeof chapter2Response.user === 'string' ? chapter2Response.user : chapter2Response.user?._id
+		).toEqual(user._id);
 		expect(storylineChapters[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
