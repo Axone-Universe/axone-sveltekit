@@ -508,8 +508,9 @@
 	async function uploadIllustration (newIllustrationFile: File | Event, illustration: Illustration) {
 
 		// if the file is an event, get the file from the event
-		if (typeof newIllustrationFile === 'object') {
+		if (newIllustrationFile instanceof Event) {
 			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
+			console.log('newIllustrationFile')
 		}
 
 		if (!newIllustrationFile) {
@@ -535,7 +536,7 @@
 									fileSizeLimit: 1024
 								}).then(() => {
 									//upload file to bucket
-								uploadFileToBucket(newIllustrationFile, bucketName, undefined, illustration)
+								uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration)
 						})
 					}
 				}).catch((error) => {
