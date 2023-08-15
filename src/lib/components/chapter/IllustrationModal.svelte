@@ -4,11 +4,10 @@
     import { FileButton } from '@skeletonlabs/skeleton';
 
     export let illustration: Illustration;
-    export let uploadClick: (file: File) => void;
+    export let uploadClick: (file: File, illustration: Illustration) => void;
 
     function changeImage(event: Event){
         const inputElement = event.target as HTMLInputElement;
-        const inputElementId = inputElement.id;
         const file = inputElement.files?.[0];
 
         if (!file) {
@@ -24,7 +23,7 @@
         };
         reader.readAsDataURL(file);
 
-        uploadClick(file);
+        uploadClick(file, illustration);
     }
 
 </script>

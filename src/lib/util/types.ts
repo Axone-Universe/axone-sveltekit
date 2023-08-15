@@ -1,3 +1,5 @@
+import type {Bucket, StorageError as SupabasStorageError} from "@supabase/storage-js";
+
 export interface DeltaQuery {
 	id?: string;
 	chapterID: string;
@@ -29,3 +31,7 @@ export interface NodeRelationship {
 export type StorageError =
 	| { data: { path: string }; error: null }
 	| { data: null; error: { name: string; statusCode?: string } };
+
+export type StorageBucketError =
+	| { data: Bucket; error: null; }
+	| { data: null; error: SupabasStorageError; }

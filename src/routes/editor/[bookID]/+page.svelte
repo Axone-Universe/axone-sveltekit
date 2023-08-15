@@ -40,8 +40,11 @@
 	import {type ChapterProperties, ChapterPropertyBuilder} from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
+	import type {StorageBucketError, StorageError} from "$lib/util/types";
+	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
 
 	export let data: PageData;
+	const { supabase } = data;
 	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
 	onMount(() => {
@@ -295,8 +298,8 @@
 		quill.updateComment(id, editor, comment);
 	}
 
-	function submitIllustration(event: Event, id: string) {
-		const illustration = quill.illustrations[id].illustration;
+	function submitIllustration(id: string, newIllustrationObject: IllustrationObject | undefined) {
+		const illustration = newIllustrationObject ? newIllustrationObject : quill.illustrations[id].illustration;
 		let editor = document.getElementById('editor');
 		quill.updateIllustration(id, editor, illustration);
 	}
@@ -343,8 +346,69 @@
 		modalStore.trigger(modal);
 	}
 
-	function uploadIllustration (file: File) {
+	async function uploadIllustration (newIllustrationFile: File, illustration: Illustration) {
+
+		if (!newIllustrationFile) {
+			return; // No file selected
+		}
+
+		/*
+			$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
+		 */
+		const chapterId = getCurrentChapter()?._id
+		const bookId = getCurrentChapter()?.book
+		console.log('chapter', getCurrentChapter())
+
+		const uploadFileToBucket = (file: File, bucket: string) => {
+			supabase.storage
+					.from(bucket)
+					.upload(file.name, file)
+					.then((response: StorageError) => {
+						if (response.data){
+							//success
+							let url = supabase.storage
+									.from('illustrations')
+									.getPublicUrl(response.data.path)
+									.data.publicUrl;
+
+							// for some reason, the public url needs to be cleaned
+							// it does not add the folder paths correctly
+
+							url = url.substring(0, url.indexOf('illustrations'))
+								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
+
+							illustration.illustration.src = url
+							submitIllustration(illustration.id, illustration.illustration)
+						}
+					})
+		}
+
+		//retrieve supabase storage bucket
+		let bucketName = `illustrations/${bookId}/${chapterId}`
+
+		supabase.storage
+				.getBucket('illustrations')
+				.then((response: StorageBucketError) => {
+					if (response.error || !response.data) {
+						// bucket not found, create bucket first
+						supabase.storage
+								.createBucket(bucketName, {
+									public: false,
+									allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg'],
+									fileSizeLimit: 1024
+								}).then(() => {
+							uploadFileToBucket(newIllustrationFile, bucketName)
+						})
+					}
+				}).catch((error) => {
+
+		})
+
 		return true
+	}
+
+	function getCurrentChapter(){
+		return quill.chapter
 	}
 
 	function replaceIllustrationSrc(event: Event) {
@@ -590,7 +654,7 @@
 											Remove
 										</button>
 										<button
-												on:click={(event) => submitIllustration(event, id)}
+												on:click={() => submitIllustration(id)}
 												class="chip variant-filled"
 												type="submit"
 										>
