@@ -388,12 +388,6 @@
 		showIllustrations = true;
 	}
 
-	function chooseIllustration(event: MouseEvent){
-		const imageElementId = (event.target as HTMLImageElement).id;
-		const illustrationId = imageElementId.substring(imageElementId.indexOf('-') + 1);
-		document.getElementById(`file-${illustrationId}`)?.click()
-	}
-
 	function showIllustrationModal(illustration: Illustration){
 		const modalComponent: ModalComponent = {
 			// Pass a reference to your custom component
@@ -448,10 +442,10 @@
 
 		let progressToastId = toastStore.trigger(progressUploadToast);
 
-		const uploadFileToBucket = (file: File, bucket: string) => {
+		const uploadFileToBucket = (file: File, bucket: string, newFileName: string | undefined) => {
 			supabase.storage
 					.from(bucket)
-					.upload(file.name, file)
+					.upload((newFileName || file.name), file)
 					.then((response: StorageError) => {
 						if (response.data){
 							//success
@@ -470,8 +464,11 @@
 							submitIllustration(illustration.id, illustration.illustration)
 							toastStore.close(progressToastId)
 							toastStore.trigger(successUploadToast);
+						} else if (response.error.error === "Duplicate") {
+							uploadFileToBucket(file, bucket, ('copy_'+file.name))
 						} else {
 							//error
+							console.log(response)
 							toastStore.close(progressToastId)
 							toastStore.trigger(errorUploadToast);
 						}
@@ -757,7 +754,7 @@
 											Remove
 										</button>
 										<button
-												on:click={() => submitIllustration(id)}
+												on:click={() => submitIllustration(id, undefined)}
 												class="chip variant-filled"
 												type="submit"
 										>
