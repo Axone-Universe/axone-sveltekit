@@ -42,7 +42,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, '/login');
 		}
 	} else {
-		const users = await userRepo.get(session.user.id);
+		const users = await userRepo.getById(session, session.user.id);
 
 		// if the user is not created yet in the DB, create the user
 		if (

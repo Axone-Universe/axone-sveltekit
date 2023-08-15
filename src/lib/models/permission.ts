@@ -1,5 +1,5 @@
 import type { PermissionProperties } from '$lib/shared/permission';
-import { Schema, type FilterQuery } from 'mongoose';
+import { Schema } from 'mongoose';
 import { label as UserLabel } from '$lib/shared/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({

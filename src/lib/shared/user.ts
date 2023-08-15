@@ -8,6 +8,7 @@ export interface UserProperties {
 	lastName?: string;
 	about?: string;
 	imageURL?: string;
+	email?: string;
 	facebook?: string;
 	instagram?: string;
 	twitter?: string;
@@ -34,6 +35,7 @@ export class UserPropertyBuilder {
 			firstName: '',
 			lastName: '',
 			about: '',
+			email: '',
 			facebook: '',
 			instagram: '',
 			twitter: '',

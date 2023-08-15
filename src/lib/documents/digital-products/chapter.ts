@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import type { ChapterProperties } from '$lib/shared/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -55,6 +56,13 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
+	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+		console.log('** perm set');
+		console.log(permissions);
+		this._chapterProperties.permissions = permissions;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): ChapterBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -96,13 +104,14 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	async update(): Promise<HydratedDocument<ChapterProperties>> {
-		const chapter = await Chapter.findOneAndUpdate(
-			{ _id: this._chapterProperties._id },
-			this._chapterProperties,
-			{ new: true }
-		);
+		await Chapter.findOneAndUpdate({ _id: this._chapterProperties._id }, this._chapterProperties, {
+			new: true,
+			userID: this._sessionUserID
+		});
 
-		return chapter;
+		return (await Chapter.findById(this._chapterProperties._id, null, {
+			userID: this._sessionUserID
+		})) as HydratedDocument<ChapterProperties>;
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {
@@ -133,6 +142,8 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		});
 		session.endSession();
 
-		return chapter!;
+		return (await Chapter.findById(this._chapterProperties._id, null, {
+			userID: this._sessionUserID
+		})) as HydratedDocument<ChapterProperties>;
 	}
 }
