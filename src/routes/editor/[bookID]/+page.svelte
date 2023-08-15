@@ -208,7 +208,7 @@
 	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>){
 		const bookId = chapter.book
 		const chapterId = chapter._id
-		const folder = `${bookId}/${chapterId}`
+		const folder = `${bookId}/chapters/${chapterId}`
 
 		/*
 		Be careful if you have a lot of files. Besides server load, if .remove passes data in the url versus body like
@@ -216,13 +216,13 @@
 		optional. Normally all resources are in the url for DELETE.
 		 */
 		supabase.storage
-				.from('illustrations')
+				.from('books')
 				.list(folder)
 				.then((response: StorageFileError) => {
 					if (response.data){
 						const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
 						supabase.storage
-								.from('illustrations')
+								.from('books')
 								.remove(filesToRemove)
 								.then((response: StorageFileError) => {
 									if (response.error) {
@@ -368,14 +368,14 @@
 		let editor = document.getElementById('editor');
 
 		const src = quill.illustrations[id].illustration.src
-		const bucket = src.indexOf('illustrations') === -1 ?
-				'illustrations' : src.substring(src.indexOf('illustrations'), src.lastIndexOf('/'))
-		const filename = bucket + '/' + src.substring(src.lastIndexOf('/') + 1)
+		const filename = src.substring(src.lastIndexOf('/') + 1)
+
 		supabase.storage
-				.from('illustrations')
+				.from('books')
 				.remove([filename])
 				.then((response: StorageFileError) => {
 					if (!response.data) {
+
 						//error
 						const errorUploadToast: ToastSettings = {
 							message: 'There was an issue deleting the illustration',
@@ -383,7 +383,6 @@
 							background: 'variant-filled-error',
 						};
 						toastStore.trigger(errorUploadToast);
-						console.log(response.error)
 					}else{
 						//success
 						const successUploadToast: ToastSettings = {
@@ -483,14 +482,14 @@
 					if (response.data){
 						//success
 						let url = supabase.storage
-								.from('illustrations')
+								.from('books')
 								.getPublicUrl(response.data.path)
 								.data.publicUrl;
 
 						// for some reason, the public url needs to be cleaned
 						// it does not add the folder paths correctly
 
-						url = url.substring(0, url.indexOf('illustrations'))
+						url = url.substring(0, url.indexOf('books'))
 								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
 
 						illustration.illustration.src = url
@@ -529,11 +528,11 @@
 		const bookId = getCurrentChapter()?.book
 
 		//retrieve supabase storage bucket
-		let bucketName = `illustrations/${bookId}/${chapterId}`
+		let bucketName = `books/${bookId}/chapters/${chapterId}`
 
 		//check if bucket exists
 		supabase.storage
-				.getBucket('illustrations')
+				.getBucket('books')
 				.then((response: StorageBucketError) => {
 					if (response.error || !response.data) {
 						// bucket not found, create bucket first
