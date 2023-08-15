@@ -5,7 +5,7 @@
 		AccordionItem,
 		AppShell,
 		Drawer,
-		drawerStore,
+		drawerStore, FileDropzone,
 		LightSwitch,
 		ListBox,
 		ListBoxItem,
@@ -379,11 +379,10 @@
 	}
 
 	function illustrationAddClick() {
-		// TODO: remove test data
 		quill.getModule('quillIllustration').addIllustration({
-			src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/681px-Placeholder_view_vector.svg.png',
-			alt: 'test alt',
-			caption: 'test caption'
+			src: '',
+			alt: '',
+			caption: ''
 		});
 		drawerStore.open(drawerSettings);
 		showIllustrations = true;
@@ -414,7 +413,11 @@
 		modalStore.trigger(modal);
 	}
 
-	async function uploadIllustration (newIllustrationFile: File, illustration: Illustration) {
+	async function uploadIllustration (newIllustrationFile: File | Event, illustration: Illustration) {
+
+		if (typeof newIllustrationFile === 'object') {
+			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
+		}
 
 		const successUploadToast: ToastSettings = {
 			message: 'Illustration has been uploaded successfully',
@@ -718,13 +721,21 @@
 							<div
 									class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
-								<img
-										id={`src-${illustration.id}`}
-										class="h-40 resize-none rounded-md mb-2"
-										alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
-										src={quill.illustrations[id].illustration.src}
-										on:click={() => showIllustrationModal(illustration)}
-								>
+								{#if (quill.illustrations[id].illustration.src.length > 0)}
+									<img
+											id={`src-${illustration.id}`}
+											class="h-40 resize-none rounded-md mb-2"
+											alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
+											src={quill.illustrations[id].illustration.src}
+											on:click={() => showIllustrationModal(illustration)}
+									>
+								{:else}
+									<FileDropzone name="illustrationDropZone"  on:change={(event) => uploadIllustration(event, illustration)}
+									>
+										<svelte:fragment slot="message"><strong>Upload an image</strong> or drage and drop</svelte:fragment>
+										<svelte:fragment slot="meta">PNG, JPG, SVG, and GIF allowed.</svelte:fragment>
+									</FileDropzone>
+								{/if}
 								<input
 										type="file"
 										id={`file-${illustration.id}`}
