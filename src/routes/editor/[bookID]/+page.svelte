@@ -424,6 +424,7 @@
 		quill.getModule('comment').addComment(' ');
 		drawerStore.open(drawerSettings);
 		showComments = true;
+		showIllustrations = false;
 	}
 
 	/**
@@ -437,6 +438,7 @@
 		});
 		drawerStore.open(drawerSettings);
 		showIllustrations = true;
+		showComments = false;
 	}
 
 	/**
