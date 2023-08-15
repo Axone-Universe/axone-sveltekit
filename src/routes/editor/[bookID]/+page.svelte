@@ -93,6 +93,26 @@
 		rounded: 'rounded-xl'
 	};
 
+	/**
+	 * Toast settings
+	 */
+	const successUploadToast: ToastSettings = {
+		message: 'Illustration has been uploaded successfully',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-success',
+	};
+	const progressUploadToast: ToastSettings = {
+		message: 'Uploading illustration...',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-secondary',
+		autohide: false
+	};
+	const errorUploadToast: ToastSettings = {
+		message: 'There was an issue uploading the illustration',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-error',
+	};
+
 	function toggleDrawer() {
 		if ($drawerStore.open) {
 			drawerStore.close();
@@ -175,6 +195,10 @@
 		modalStore.trigger(modalSettings);
 	};
 
+	/**
+	 * Deletes all illustrations from supabase storage for this chapter
+	 * @param chapter
+	 */
 	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>){
 		const bookId = chapter.book
 		const chapterId = chapter._id
@@ -271,8 +295,8 @@
 	 * Quill Editor Settings
 	 */
 	let quill: QuillEditor;
-	let showComments: boolean = false;
-	let showIllustrations: boolean = false;
+	let showComments = false;
+	let showIllustrations = false;
 	let deltaChange;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
@@ -282,6 +306,7 @@
 		quill.illustrations = quill.illustrations;
 	});
 
+	// Quill toolbar options
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
 		['blockquote', { indent: '+1' }],
@@ -300,6 +325,10 @@
 	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
 
+	/**
+	 * Toggles the showComments boolean and updates the quill module
+	 *
+	 */
 	function toggleShowComments() {
 		if (showIllustrations && !showComments) {
 			toggleShowIllustrations();
@@ -307,6 +336,9 @@
 		showComments = !showComments;
 	}
 
+	/**
+	 * Toggles the showIllustrations boolean and updates the quill module
+	 */
 	function toggleShowIllustrations() {
 		if (showComments && !showIllustrations) {
 			toggleShowComments();
@@ -321,6 +353,11 @@
 		quill.removeComment(id, editor);
 	}
 
+	/**
+	 * Removes the illustration from the quill Parchment
+	 * Also removes the illustration from supabase storage
+	 * @param id
+	 */
 	function removeIllustration(id: string) {
 		let editor = document.getElementById('editor');
 
@@ -366,6 +403,11 @@
 		quill.updateComment(id, editor, comment);
 	}
 
+	/**
+	 * Updates existing illustration by getting the blot from the quill Parchment
+	 * @param id - the id of the illustration
+	 * @param newIllustrationObject - the new illustration object
+	 */
 	function submitIllustration(id: string, newIllustrationObject: IllustrationObject | undefined) {
 		const illustration = newIllustrationObject ? newIllustrationObject : quill.illustrations[id].illustration;
 		let editor = document.getElementById('editor');
@@ -378,6 +420,9 @@
 		showComments = true;
 	}
 
+	/**
+	 * Adds an illustration to the quill
+	 */
 	function illustrationAddClick() {
 		quill.getModule('quillIllustration').addIllustration({
 			src: '',
@@ -388,6 +433,10 @@
 		showIllustrations = true;
 	}
 
+	/**
+	 * Shows the illustration modal
+	 * @param illustration
+	 */
 	function showIllustrationModal(illustration: Illustration){
 		const modalComponent: ModalComponent = {
 			// Pass a reference to your custom component
@@ -407,77 +456,73 @@
 		modalStore.trigger(modal);
 	}
 
+	
+
+	/**
+	 * Uploads a file to a supabase storage bucket
+	 * @param file - the file to upload
+	 * @param bucket - the bucket to upload to
+	 * @param newFileName - the new file name to use
+	 * @param illustration - the illustration object
+	 */
+	const uploadFileToBucket = (file: File, bucket: string, newFileName: string | undefined, illustration: Illustration) => {
+		let progressToastId = toastStore.trigger(progressUploadToast);
+
+		supabase.storage
+				.from(bucket)
+				.upload((newFileName || file.name), file)
+				.then((response: StorageError) => {
+					if (response.data){
+						//success
+						let url = supabase.storage
+								.from('illustrations')
+								.getPublicUrl(response.data.path)
+								.data.publicUrl;
+
+						// for some reason, the public url needs to be cleaned
+						// it does not add the folder paths correctly
+
+						url = url.substring(0, url.indexOf('illustrations'))
+								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
+
+						illustration.illustration.src = url
+						submitIllustration(illustration.id, illustration.illustration)
+						toastStore.close(progressToastId)
+						toastStore.trigger(successUploadToast);
+					} else if (response.error.error === "Duplicate") {
+						uploadFileToBucket(file, bucket, ('copy_'+file.name), illustration)
+					} else {
+						//error
+						console.log(response)
+						toastStore.close(progressToastId)
+						toastStore.trigger(errorUploadToast);
+					}
+				})
+	}
+
+	/**
+	 * Uploads an illustration to supabase storage
+	 * @param newIllustrationFile - the file to upload or the event that contains the file
+	 * @param illustration
+	 */
 	async function uploadIllustration (newIllustrationFile: File | Event, illustration: Illustration) {
 
+		// if the file is an event, get the file from the event
 		if (typeof newIllustrationFile === 'object') {
 			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
 		}
-
-		const successUploadToast: ToastSettings = {
-			message: 'Illustration has been uploaded successfully',
-			// Provide any utility or variant background style:
-			background: 'variant-filled-success',
-		};
-		const progressUploadToast: ToastSettings = {
-			message: 'Uploading illustration...',
-			// Provide any utility or variant background style:
-			background: 'variant-filled-secondary',
-			autohide: false
-		};
-		const errorUploadToast: ToastSettings = {
-			message: 'There was an issue uploading the illustration',
-			// Provide any utility or variant background style:
-			background: 'variant-filled-error',
-		};
 
 		if (!newIllustrationFile) {
 			return; // No file selected
 		}
 
-		/*
-			$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
-		 */
 		const chapterId = getCurrentChapter()?._id
 		const bookId = getCurrentChapter()?.book
-
-		let progressToastId = toastStore.trigger(progressUploadToast);
-
-		const uploadFileToBucket = (file: File, bucket: string, newFileName: string | undefined) => {
-			supabase.storage
-					.from(bucket)
-					.upload((newFileName || file.name), file)
-					.then((response: StorageError) => {
-						if (response.data){
-							//success
-							let url = supabase.storage
-									.from('illustrations')
-									.getPublicUrl(response.data.path)
-									.data.publicUrl;
-
-							// for some reason, the public url needs to be cleaned
-							// it does not add the folder paths correctly
-
-							url = url.substring(0, url.indexOf('illustrations'))
-								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
-
-							illustration.illustration.src = url
-							submitIllustration(illustration.id, illustration.illustration)
-							toastStore.close(progressToastId)
-							toastStore.trigger(successUploadToast);
-						} else if (response.error.error === "Duplicate") {
-							uploadFileToBucket(file, bucket, ('copy_'+file.name))
-						} else {
-							//error
-							console.log(response)
-							toastStore.close(progressToastId)
-							toastStore.trigger(errorUploadToast);
-						}
-					})
-		}
 
 		//retrieve supabase storage bucket
 		let bucketName = `illustrations/${bookId}/${chapterId}`
 
+		//check if bucket exists
 		supabase.storage
 				.getBucket('illustrations')
 				.then((response: StorageBucketError) => {
@@ -489,7 +534,8 @@
 									allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg'],
 									fileSizeLimit: 1024
 								}).then(() => {
-							uploadFileToBucket(newIllustrationFile, bucketName)
+									//upload file to bucket
+								uploadFileToBucket(newIllustrationFile, bucketName, undefined, illustration)
 						})
 					}
 				}).catch((error) => {
@@ -499,10 +545,17 @@
 		return true
 	}
 
+	/**
+	 * Gets the current chapter from the quill
+	 */
 	function getCurrentChapter(){
 		return quill.chapter
 	}
 
+	/**
+	 * Replaces the illustration src with the selected file's src
+	 * @param event
+	 */
 	function replaceIllustrationSrc(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
 		const inputElementId = inputElement.id;
