@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type {DrawerSettings, ModalComponent, ModalSettings} from '@skeletonlabs/skeleton';
+	import type {DrawerSettings, ModalComponent, ModalSettings, ToastSettings} from '@skeletonlabs/skeleton';
 	import {
 		Accordion,
 		AccordionItem,
@@ -9,7 +9,7 @@
 		LightSwitch,
 		ListBox,
 		ListBoxItem,
-		modalStore
+		modalStore, toastStore
 	} from '@skeletonlabs/skeleton';
 	import {afterUpdate, beforeUpdate, onMount} from 'svelte';
 	import {trpc} from '$lib/trpc/client';
@@ -348,6 +348,23 @@
 
 	async function uploadIllustration (newIllustrationFile: File, illustration: Illustration) {
 
+		const successUploadToast: ToastSettings = {
+			message: 'Illustration has been uploaded successfully',
+			// Provide any utility or variant background style:
+			background: 'variant-filled-success',
+		};
+		const progressUploadToast: ToastSettings = {
+			message: 'Uploading illustration...',
+			// Provide any utility or variant background style:
+			background: 'variant-filled-secondary',
+			autohide: false
+		};
+		const errorUploadToast: ToastSettings = {
+			message: 'There was an issue uploading the illustration',
+			// Provide any utility or variant background style:
+			background: 'variant-filled-error',
+		};
+
 		if (!newIllustrationFile) {
 			return; // No file selected
 		}
@@ -357,7 +374,8 @@
 		 */
 		const chapterId = getCurrentChapter()?._id
 		const bookId = getCurrentChapter()?.book
-		console.log('chapter', getCurrentChapter())
+
+		let progressToastId = toastStore.trigger(progressUploadToast);
 
 		const uploadFileToBucket = (file: File, bucket: string) => {
 			supabase.storage
@@ -379,6 +397,12 @@
 
 							illustration.illustration.src = url
 							submitIllustration(illustration.id, illustration.illustration)
+							toastStore.close(progressToastId)
+							toastStore.trigger(successUploadToast);
+						} else {
+							//error
+							toastStore.close(progressToastId)
+							toastStore.trigger(errorUploadToast);
 						}
 					})
 		}
@@ -401,7 +425,7 @@
 						})
 					}
 				}).catch((error) => {
-
+					toastStore.trigger(errorUploadToast);
 		})
 
 		return true
