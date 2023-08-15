@@ -40,7 +40,7 @@
 	import {type ChapterProperties, ChapterPropertyBuilder} from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
-	import type {StorageBucketError, StorageError} from "$lib/util/types";
+	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
 	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
 
 	export let data: PageData;
@@ -284,6 +284,35 @@
 
 	function removeIllustration(id: string) {
 		let editor = document.getElementById('editor');
+
+		const src = quill.illustrations[id].illustration.src
+		const bucket = src.indexOf('illustrations') === -1 ?
+				'illustrations' : src.substring(src.indexOf('illustrations'), src.lastIndexOf('/'))
+		const filename = bucket + '/' + src.substring(src.lastIndexOf('/') + 1)
+		supabase.storage
+				.from('illustrations')
+				.remove([filename])
+				.then((response: StorageFileError) => {
+					if (!response.data) {
+						//error
+						const errorUploadToast: ToastSettings = {
+							message: 'There was an issue deleting the illustration',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-error',
+						};
+						toastStore.trigger(errorUploadToast);
+						console.log(response.error)
+					}else{
+						//success
+						const successUploadToast: ToastSettings = {
+							message: 'Illustration has been deleted successfully',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-success',
+						};
+						toastStore.trigger(successUploadToast);
+					}
+				})
+
 		quill.removeIllustration(id, editor);
 	}
 
