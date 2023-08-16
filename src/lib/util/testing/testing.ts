@@ -147,7 +147,6 @@ export async function connectDevDatabase() {
 }
 
 export async function cleanUpDatabase() {
-	console.log('dropping DB');
 	await mongoose.connection.db.dropDatabase();
 }
 

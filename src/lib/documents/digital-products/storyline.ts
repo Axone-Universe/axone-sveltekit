@@ -3,6 +3,7 @@ import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
 import type { StorylineProperties } from '$lib/shared/storyline';
 import { Storyline } from '$lib/models/storyline';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -69,6 +70,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	properties() {
 		return this._storylineProperties;
+	}
+
+	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+		this._storylineProperties.permissions = permissions;
+		return this;
 	}
 
 	sessionUserID(sessionUserID: string): StorylineBuilder {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { permissions } from './permissions';
 
 export const storylineQuerySchema = z.object({
 	bookID: z.string().optional(),
@@ -21,5 +22,6 @@ export const create = z.object({
 	book: z.unknown().optional(),
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
-	parentChapter: z.string().optional()
+	parentChapter: z.string().optional(),
+	permissions: z.array(permissions).optional()
 });

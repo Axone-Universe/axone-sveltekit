@@ -5,7 +5,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import ManagePermissions from '../permissions/ManagePermissions.svelte';
+	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import type { PermissionProperties } from '$lib/shared/permission';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;

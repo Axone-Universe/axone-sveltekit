@@ -7,6 +7,7 @@ import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
 import mongoose from 'mongoose';
 import { StorylineBuilder } from './storyline';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -18,7 +19,10 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 		this._bookProperties = {
 			_id: id ? id : ulid(),
-			user: ''
+			user: '',
+			title: '',
+			imageURL: '',
+			description: ''
 		};
 		this._userID = {};
 	}
@@ -48,6 +52,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 	genres(genres: Genres) {
 		this._bookProperties.genres = genres;
+		return this;
+	}
+
+	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+		this._bookProperties.permissions = permissions;
 		return this;
 	}
 

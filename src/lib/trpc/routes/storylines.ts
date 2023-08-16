@@ -5,6 +5,8 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create } from '$lib/trpc/schemas/storylines';
 import { search } from '$lib/trpc/schemas/storylines';
+import type { HydratedDocument } from 'mongoose';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 const storylinesRepo = new StorylinesRepository();
 
@@ -44,6 +46,10 @@ export const storylines = t.router({
 			if (input?.parent) storylineBuilder.parentStorylineID(input.parent);
 			if (input?.parentChapter) storylineBuilder.branchOffChapterID(input.parentChapter);
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
+
+			if (input?.permissions) {
+				storylineBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+			}
 
 			const storylineNode = await storylineBuilder.build();
 
