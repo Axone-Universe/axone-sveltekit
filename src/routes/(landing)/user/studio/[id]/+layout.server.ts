@@ -10,13 +10,17 @@ import type { BookProperties } from '$lib/shared/book';
 
 
 export const load = (async (event) => {
-	const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
+	//const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
 	const userID = event.params.id;
 
 	const UserBooks = (await trpc(event).books.getBooksByUserID.query({
 		searchTerm: userID
 		
 	})) as HydratedDocument<BookProperties>[];
+
+	const UserChapters = (await trpc(event).chapters.getChaptersByUserID.query({
+		searchTerm: userID
+	}))
 
 
 	/*if (data && data.user) {
@@ -30,7 +34,7 @@ export const load = (async (event) => {
 		}
 	}
 */
-return {UserBooks };
+return {UserBooks, UserChapters };
 	
 }) satisfies PageServerLoad;
 
