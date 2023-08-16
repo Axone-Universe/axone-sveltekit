@@ -26,6 +26,25 @@ export const chapters = t.router({
 			return result;
 		}),
 
+	getChaptersByUserID: t.procedure
+		.use(logger)
+		.input(search.optional())
+		.query(async ({ input, ctx }) => {
+			const chaptersRepo = new ChaptersRepository();
+
+			if (input?.storylineID) {
+				chaptersRepo.storylineID(input.storylineID);
+			}
+
+			if (input?.toChapterID) {
+				chaptersRepo.toChapterID(input.toChapterID);
+			}
+
+			const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.limit, input?.skip);
+
+			return result;
+		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)

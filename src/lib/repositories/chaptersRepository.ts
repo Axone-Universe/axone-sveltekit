@@ -76,6 +76,14 @@ export class ChaptersRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
+	async getChaptersByUserID(session: Session | null, id?: string, skip?: number): Promise<HydratedDocument<ChapterProperties>[]> {
+		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
+		const chapters = await Chapter.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
+
+		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
+			resolve(chapters);
+		});
+	}
 	async count(): Promise<number> {
 		const count = await Chapter.count();
 
