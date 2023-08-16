@@ -1,17 +1,20 @@
 import { z } from 'zod';
+import { permissions } from './permissions';
 
 export const create = z.object({
 	title: z.string(),
 	description: z.string(),
 	bookID: z.string(),
 	storylineID: z.string(),
-	prevChapterID: z.string().optional()
+	prevChapterID: z.string().optional(),
+	permissions: z.array(permissions).optional()
 });
 
 export const update = z.object({
 	id: z.string(),
 	title: z.string().optional(),
-	description: z.string().optional()
+	description: z.string().optional(),
+	permissions: z.array(permissions).optional()
 });
 
 export const search = z.object({

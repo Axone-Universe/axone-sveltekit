@@ -5,6 +5,8 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
+	import ManagePermissions from '../permissions/ManagePermissions.svelte';
+	import type { PermissionProperties } from '$lib/shared/permission';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
 	export let bookID: string;
@@ -14,11 +16,14 @@
 	let customClass = '';
 	export { customClass as class };
 
+	let permissions: { [key: string]: HydratedDocument<PermissionProperties> } = {};
+
 	let closeModal = () => {
 		modalStore.close();
 	};
 
 	async function submit() {
+		// permissions = permissions.map
 		if (chapterNode._id) {
 			updateChapter();
 		} else {
@@ -38,7 +43,8 @@
 				bookID: bookID,
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
-				description: chapterNode.description!
+				description: chapterNode.description!,
+				permissions: Object.values(permissions) as any
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -67,7 +73,8 @@
 			.chapters.update.mutate({
 				id: chapterNode._id,
 				title: chapterNode.title,
-				description: chapterNode.description
+				description: chapterNode.description,
+				permissions: Object.values(permissions) as any
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -92,7 +99,7 @@
 
 <form
 	on:submit|preventDefault={submit}
-	class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}
+	class={`modal-example-form card p-4 w-modal h-[780px] shadow-xl space-y-4 overflow-y-auto ${customClass}`}
 >
 	<div class="modal-form p-4 space-y-4 rounded-container-token">
 		<label>
@@ -114,6 +121,11 @@
 				required
 			/>
 		</label>
+
+		<div>
+			Permissions
+			<ManagePermissions {permissions} permissionedDocument={chapterNode} />
+		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">
 		<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>

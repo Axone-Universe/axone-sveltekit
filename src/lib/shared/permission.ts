@@ -3,6 +3,7 @@ import type { UserProperties } from './user';
 import { label as BookLabel } from '$lib/shared/book';
 import { label as ChapterLabel } from '$lib/shared/chapter';
 import { label as StorylineLabel } from '$lib/shared/storyline';
+import { z } from 'zod';
 
 export const label = 'Permission';
 
@@ -17,4 +18,20 @@ export interface PermissionProperties {
 	public: boolean;
 	user?: string | HydratedDocument<UserProperties>;
 	permission?: Permissions;
+}
+
+export class PermissionPropertyBuilder {
+	private readonly _properties: PermissionProperties;
+
+	constructor() {
+		this._properties = {
+			_id: '',
+			public: false,
+			permission: 'edit'
+		};
+	}
+
+	getProperties() {
+		return this._properties;
+	}
 }
