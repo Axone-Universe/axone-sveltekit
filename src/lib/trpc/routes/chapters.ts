@@ -42,7 +42,7 @@ export const chapters = t.router({
 				chaptersRepo.toChapterID(input.toChapterID);
 			}
 
-			const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.limit, input?.skip);
+			const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.searchTerm);
 
 			return result;
 		}),
