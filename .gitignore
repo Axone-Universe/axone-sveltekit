@@ -13,3 +13,4 @@ rs-data
 
 # ignoring Jetbrains specific files
 /.idea
+qodana.yaml
