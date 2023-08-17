@@ -8,9 +8,9 @@ export const label = 'Book';
 export interface BookProperties {
 	_id: string;
 	user: string | HydratedDocument<UserProperties>;
-	title?: string;
-	description?: string;
-	imageURL?: string;
+	title: string;
+	description: string;
+	imageURL: string;
 	tags?: string[];
 	permissions?: HydratedDocument<PermissionProperties>[];
 	genres?: Genres;
