@@ -38,7 +38,7 @@ export function addUpdatePermissionFilter(userID: string, filter: any) {
 export function addReadPermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
-	// We'll only get books with public permissions
+	// We'll only get documents with public permissions
 	if (!userID) {
 		permissionFilter = { permissions: { $elemMatch: { public: true } } };
 	} else {
@@ -58,7 +58,7 @@ export function addReadPermissionFilter(userID: string, filter: any) {
 export function addDeletePermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
-	// We'll only get books with public permissions
+	// We'll only get documents with public permissions
 	if (!userID) {
 		throw new Error('Unknown user requesting delete');
 	}
