@@ -493,18 +493,26 @@
 						url = url.substring(0, url.indexOf('books'))
 								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
 
-						illustration.illustration.src = url
-						submitIllustration(illustration.id, illustration.illustration)
-						toastStore.close(progressToastId)
-						toastStore.trigger(successUploadToast);
-					} else if (response.error.error === "Duplicate") {
-						uploadFileToBucket(file, bucket, ('copy_'+file.name), illustration)
-					} else {
-						//error
-						console.log(response)
-						toastStore.close(progressToastId)
-						toastStore.trigger(errorUploadToast);
-					}
+                        illustration.illustration.src = url
+                        submitIllustration(illustration.id, illustration.illustration)
+                        toastStore.close(progressToastId)
+                        toastStore.trigger(successUploadToast);
+                    } else if (response.error.error === "Duplicate") {
+                        uploadFileToBucket(file, bucket, ('copy_' + file.name), illustration)
+                    } else if (response.error.error === "Payload too large" || response.error.statusCode === "413"){
+                        //file too large
+                        toastStore.close(progressToastId)
+                        const errorUploadToast: ToastSettings = {
+                            message: 'File is too large. Please upload a smaller file.',
+                            // Provide any utility or variant background style:
+                            background: 'variant-filled-error',
+                        };
+                        toastStore.trigger(errorUploadToast);
+                    } else {
+                        //error
+                        toastStore.close(progressToastId)
+                        toastStore.trigger(errorUploadToast);
+                    }
 				})
 	}
 
