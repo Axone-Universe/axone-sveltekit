@@ -57,8 +57,6 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
-		console.log('** perm set');
-		console.log(permissions);
 		this._chapterProperties.permissions = permissions;
 		return this;
 	}

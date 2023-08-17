@@ -5,6 +5,8 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, submitToCampaign } from '$lib/trpc/schemas/books';
 import { search } from '$lib/trpc/schemas/shared';
+import type { HydratedDocument } from 'mongoose';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 export const books = t.router({
 	getAll: t.procedure
@@ -58,10 +60,15 @@ export const books = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder()
+				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.description(input.description)
 				.imageURL(input.imageURL);
+
+			if (input?.permissions) {
+				bookBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+			}
 
 			if (input.genres) {
 				bookBuilder.genres(input.genres);
