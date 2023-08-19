@@ -16,7 +16,7 @@ export const bookSchema = new Schema<BookProperties>({
 	description: String,
 	imageURL: String,
 	tags: String,
-	permissions: [permissionSchema],
+	permissions: { type: Map, of: permissionSchema },
 	genres: genresSchemaProperties
 });
 

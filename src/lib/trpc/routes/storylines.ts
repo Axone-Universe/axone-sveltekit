@@ -48,7 +48,7 @@ export const storylines = t.router({
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
 
 			if (input?.permissions) {
-				storylineBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+				storylineBuilder.permissions(input.permissions as any);
 			}
 
 			const storylineNode = await storylineBuilder.build();

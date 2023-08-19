@@ -28,7 +28,7 @@
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>;
-	export let permissions: { [key: string]: HydratedDocument<PermissionProperties> };
+	export let permissions: Map<string, HydratedDocument<PermissionProperties>>;
 
 	export let customClass = '';
 	export { customClass as class };

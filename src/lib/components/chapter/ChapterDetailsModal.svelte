@@ -16,7 +16,7 @@
 	let customClass = '';
 	export { customClass as class };
 
-	let permissions: { [key: string]: HydratedDocument<PermissionProperties> } = {};
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = {};
 
 	let closeModal = () => {
 		modalStore.close();

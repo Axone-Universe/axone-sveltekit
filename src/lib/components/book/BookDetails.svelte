@@ -24,7 +24,7 @@
 
 	let genres = book.genres as unknown as Record<string, boolean>;
 
-	let permissions: { [key: string]: HydratedDocument<PermissionProperties> } = {};
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = {};
 
 	async function createBook() {
 		if (!imageFile) {

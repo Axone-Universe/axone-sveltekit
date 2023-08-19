@@ -31,7 +31,7 @@
 	let bookGenres: Record<string, boolean> = {};
 	let genres: Record<string, boolean> = {};
 
-	let permissions: { [key: string]: HydratedDocument<PermissionProperties> } = {};
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = {};
 
 	onMount(() => {
 		bookGenres = book.genres as unknown as Record<string, boolean>;

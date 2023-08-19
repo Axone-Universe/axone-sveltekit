@@ -11,22 +11,15 @@ export const permissionSchema = new Schema<PermissionProperties>({
 
 /** READ, UPDATE, DELETE permission filters */
 
-export function addUpdatePermissionFilter(userID: string, filter: any) {
+export function addReadPermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
-	// We'll only get books with public permissions
+	// We'll only get documents with public permissions
 	if (!userID) {
-		permissionFilter = { permissions: { $elemMatch: { public: true, permission: 'edit' } } };
+		permissionFilter = { ['permissions.public']: { $exists: true } };
 	} else {
 		permissionFilter = {
-			$or: [
-				{ user: userID },
-				{
-					permissions: {
-						$elemMatch: { $or: [{ public: true }, { user: userID, permission: 'edit' }] }
-					}
-				}
-			]
+			$or: [{ user: userID }, { ['permissions.' + userID]: { $exists: true } }]
 		};
 	}
 
@@ -35,20 +28,18 @@ export function addUpdatePermissionFilter(userID: string, filter: any) {
 	return updatedFilter;
 }
 
-export function addReadPermissionFilter(userID: string, filter: any) {
+export function addUpdatePermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
-	// We'll only get documents with public permissions
-	if (!userID) {
-		permissionFilter = { permissions: { $elemMatch: { public: true } } };
-	} else {
-		permissionFilter = {
-			$or: [
-				{ user: userID },
-				{ permissions: { $elemMatch: { $or: [{ public: true }, { user: userID }] } } }
-			]
-		};
-	}
+	// We'll only get books with public permissions
+	permissionFilter = {
+		$or: [
+			{ user: userID },
+			{
+				['permissions.' + userID + '.permission']: 'edit'
+			}
+		]
+	};
 
 	const updatedFilter = { $and: [filter, permissionFilter] };
 

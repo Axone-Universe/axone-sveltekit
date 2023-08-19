@@ -16,7 +16,7 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	book: { type: String, ref: BookLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	chapters: [{ type: String, ref: ChapterLabel }],
-	permissions: [permissionSchema],
+	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String,
 	imageURL: String

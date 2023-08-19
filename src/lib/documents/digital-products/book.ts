@@ -22,7 +22,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			user: '',
 			title: '',
 			imageURL: '',
-			description: ''
+			description: '',
+			permissions: new Map()
 		};
 		this._userID = {};
 	}
@@ -55,7 +56,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
 		this._bookProperties.permissions = permissions;
 		return this;
 	}
@@ -63,6 +64,17 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	sessionUserID(sessionUserID: string): BookBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
+	}
+
+	async update(): Promise<HydratedDocument<BookProperties>> {
+		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
+			new: true,
+			userID: this._sessionUserID
+		});
+
+		return (await Book.findById(this._bookProperties._id, null, {
+			userID: this._sessionUserID
+		})) as HydratedDocument<BookProperties>;
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
