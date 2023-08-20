@@ -16,7 +16,7 @@ export const update = z.object({
 	description: z.string().optional(),
 	imageURL: z.string().optional(),
 	genres: genres.optional(),
-	permissions: z.map(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const submitToCampaign = z.object({

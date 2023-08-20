@@ -3,7 +3,6 @@ import type { UserProperties } from './user';
 import { label as BookLabel } from '$lib/shared/book';
 import { label as ChapterLabel } from '$lib/shared/chapter';
 import { label as StorylineLabel } from '$lib/shared/storyline';
-import { z } from 'zod';
 
 export const label = 'Permission';
 

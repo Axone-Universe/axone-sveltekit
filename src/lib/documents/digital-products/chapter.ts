@@ -128,6 +128,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			const storyline = await Storyline.findById(this._storylineID, null, {
 				userID: this._chapterProperties.user
 			});
+
 			storyline.chapters.push(chapter._id);
 			await storyline.save({ session });
 

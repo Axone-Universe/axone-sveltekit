@@ -29,7 +29,7 @@ storylineSchema.pre(['find', 'findOne'], function (next) {
 	const updatedFilter = addReadPermissionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
-	this.populate({ path: 'user chapters', options: { userID: userID } });
+	this.populate({ path: 'user chapters permissions.$*.user', options: { userID: userID } });
 	next();
 });
 

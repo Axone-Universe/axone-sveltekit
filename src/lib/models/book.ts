@@ -59,7 +59,7 @@ bookSchema.pre(
  * @param query
  */
 function populate(query: any) {
-	query.populate('user');
+	query.populate([{ path: 'user' }, { path: 'permissions.$*.user' }]);
 }
 
 export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);

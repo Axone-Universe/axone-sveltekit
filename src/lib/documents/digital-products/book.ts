@@ -97,7 +97,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 				.title(hydratedBook.title!)
 				.main(true)
 				.description(hydratedBook.description!)
-				.imageURL(hydratedBook.imageURL!);
+				.imageURL(hydratedBook.imageURL!)
+				.permissions(hydratedBook.permissions);
 
 			const storyline = new Storyline(storylineBuilder.properties());
 			await storyline.save({ session });

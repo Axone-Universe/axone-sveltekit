@@ -1,4 +1,5 @@
 import type { PermissionProperties } from '$lib/shared/permission';
+import type { UserProperties } from '$lib/shared/user';
 import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,
@@ -25,8 +26,8 @@ describe('books', () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
-		await createDBUser(testUserOneSession);
-		await createDBUser(createTestSession(testUserTwo));
+		const testUserOneDB = await createDBUser(testUserOneSession);
+		const testUserTwoDB = await createDBUser(createTestSession(testUserTwo));
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 		let permissions = createBookResponse.permissions;
@@ -34,7 +35,7 @@ describe('books', () => {
 		permissions.set(testUserTwo.id, {
 			_id: ulid(),
 			public: false,
-			user: testUserTwo.id,
+			user: testUserTwoDB._id,
 			permission: 'edit'
 		} as HydratedDocument<PermissionProperties>);
 
@@ -42,7 +43,7 @@ describe('books', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		let updatedBookResponse = await caller.books.update({
 			id: createBookResponse._id,
-			permissions: permissions as any
+			permissions: Object.fromEntries(permissions) as any
 		});
 
 		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('edit');
@@ -52,13 +53,13 @@ describe('books', () => {
 		permissions.set(testUserTwo.id, {
 			_id: ulid(),
 			public: false,
-			user: testUserTwo.id,
+			user: testUserTwoDB._id,
 			permission: 'view'
 		} as HydratedDocument<PermissionProperties>);
 
 		updatedBookResponse = await caller.books.update({
 			id: createBookResponse._id,
-			permissions: permissions as any
+			permissions: Object.fromEntries(permissions) as any
 		});
 
 		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('view');
@@ -82,7 +83,7 @@ describe('books', () => {
 
 		const updatedBookResponse = await caller.books.update({
 			id: getBookResponse._id,
-			permissions: permissions
+			permissions: Object.fromEntries(permissions) as any
 		});
 
 		expect(updatedBookResponse.permissions.get('')).toEqual(undefined);

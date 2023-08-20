@@ -24,7 +24,7 @@
 
 	let genres = book.genres as unknown as Record<string, boolean>;
 
-	let permissions: Map<string, HydratedDocument<PermissionProperties>> = {};
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
 
 	async function createBook() {
 		if (!imageFile) {
@@ -69,13 +69,18 @@
 			book.imageURL = imageURL;
 		}
 
+		const perms = Object.assign({}, permissions, { user: '2' });
+
+		console.log('** book create perms');
+		console.log(Object.fromEntries(permissions));
+
 		trpc($page)
 			.books.create.mutate({
 				title: book.title,
 				description: book.description,
 				imageURL: book.imageURL,
 				genres: book.genres,
-				permissions: Object.values(permissions) as any
+				permissions: Object.fromEntries(permissions) as any
 			})
 			.then((bookResponse) => {
 				const t: ToastSettings = {

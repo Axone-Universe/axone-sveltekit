@@ -19,7 +19,11 @@ export function addReadPermissionFilter(userID: string, filter: any) {
 		permissionFilter = { ['permissions.public']: { $exists: true } };
 	} else {
 		permissionFilter = {
-			$or: [{ user: userID }, { ['permissions.' + userID]: { $exists: true } }]
+			$or: [
+				{ user: userID },
+				{ ['permissions.public']: { $exists: true } },
+				{ ['permissions.' + userID]: { $exists: true } }
+			]
 		};
 	}
 
