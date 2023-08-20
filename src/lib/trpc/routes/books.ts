@@ -3,7 +3,7 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, submitToCampaign } from '$lib/trpc/schemas/books';
+import { create, submitToCampaign, update } from '$lib/trpc/schemas/books';
 import { search } from '$lib/trpc/schemas/shared';
 import type { HydratedDocument } from 'mongoose';
 import type { PermissionProperties } from '$lib/shared/permission';
@@ -43,7 +43,24 @@ export const books = t.router({
 
 			return result;
 		}),
+	update: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id);
 
+			if (input.title) bookBuilder.title(input.title);
+			if (input.description) bookBuilder.description(input.description);
+			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
+			if (input.genres) bookBuilder.genres(input.genres);
+			if (input.permissions) bookBuilder.permissions(input.permissions as any);
+
+			const bookNode = await bookBuilder.update();
+			return bookNode;
+		}),
 	create: t.procedure
 		.use(logger)
 		.use(auth)
@@ -57,7 +74,7 @@ export const books = t.router({
 				.imageURL(input.imageURL);
 
 			if (input?.permissions) {
-				bookBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+				bookBuilder.permissions(input.permissions as any);
 			}
 
 			if (input.genres) {

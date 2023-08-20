@@ -7,7 +7,16 @@ export const create = z.object({
 	description: z.string(),
 	imageURL: z.string(),
 	genres: genres.optional(),
-	permissions: z.array(permissions).optional()
+	permissions: z.record(z.string(), permissions).optional()
+});
+
+export const update = z.object({
+	id: z.string(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	imageURL: z.string().optional(),
+	genres: genres.optional(),
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const submitToCampaign = z.object({

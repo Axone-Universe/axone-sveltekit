@@ -1,3 +1,5 @@
+import type { PermissionProperties } from '$lib/shared/permission';
+import type { UserProperties } from '$lib/shared/user';
 import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,
@@ -8,6 +10,8 @@ import {
 	testUserTwo,
 	createBook
 } from '$lib/util/testing/testing';
+import type { HydratedDocument } from 'mongoose';
+import { ulid } from 'ulid';
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -22,30 +26,43 @@ describe('books', () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
-		await createDBUser(testUserOneSession);
-		await createDBUser(createTestSession(testUserTwo));
+		const testUserOneDB = await createDBUser(testUserOneSession);
+		const testUserTwoDB = await createDBUser(createTestSession(testUserTwo));
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
+		let permissions = createBookResponse.permissions;
+
+		permissions.set(testUserTwo.id, {
+			_id: ulid(),
+			public: false,
+			user: testUserTwoDB._id,
+			permission: 'edit'
+		} as HydratedDocument<PermissionProperties>);
 
 		// create a new permission
 		const caller = router.createCaller({ session: testUserOneSession });
-		const userPermission = await caller.permissions.create({
-			documentID: createBookResponse._id,
-			documentType: 'Book',
-			permission: 'edit',
-			user: testUserTwo.id
+		let updatedBookResponse = await caller.books.update({
+			id: createBookResponse._id,
+			permissions: Object.fromEntries(permissions) as any
 		});
 
-		//update permission
-		await caller.permissions.update({
-			_id: userPermission._id,
-			documentID: createBookResponse._id,
-			documentType: 'Book',
+		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('edit');
+
+		permissions = updatedBookResponse.permissions;
+
+		permissions.set(testUserTwo.id, {
+			_id: ulid(),
+			public: false,
+			user: testUserTwoDB._id,
 			permission: 'view'
+		} as HydratedDocument<PermissionProperties>);
+
+		updatedBookResponse = await caller.books.update({
+			id: createBookResponse._id,
+			permissions: Object.fromEntries(permissions) as any
 		});
 
-		const getBookResponse = await caller.books.getById({ searchTerm: createBookResponse._id });
-		expect(getBookResponse.permissions![1].permission).toEqual('view');
+		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('view');
 	});
 
 	test('delete permission', async () => {
@@ -56,19 +73,19 @@ describe('books', () => {
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		let getBookResponse = await caller.books.getById({ searchTerm: createBookResponse._id });
+		const getBookResponse = await caller.books.getById({ searchTerm: createBookResponse._id });
 
-		expect(getBookResponse.permissions![0].public).toEqual(true);
+		expect(getBookResponse.permissions.get('public')?.public).toEqual(true);
 
 		// delete permission
-		await caller.permissions.delete({
-			_id: getBookResponse.permissions![0]._id,
-			documentID: getBookResponse._id,
-			documentType: 'Book'
+		const permissions = getBookResponse.permissions as any;
+		permissions.delete('');
+
+		const updatedBookResponse = await caller.books.update({
+			id: getBookResponse._id,
+			permissions: Object.fromEntries(permissions) as any
 		});
 
-		getBookResponse = await caller.books.getById({ searchTerm: getBookResponse._id });
-
-		expect(getBookResponse.permissions!.length).toEqual(0);
+		expect(updatedBookResponse.permissions.get('')).toEqual(undefined);
 	});
 });

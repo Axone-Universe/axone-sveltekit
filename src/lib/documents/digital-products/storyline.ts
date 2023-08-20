@@ -18,7 +18,8 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		super();
 		this._storylineProperties = {
 			_id: id ? id : ulid(),
-			main: false
+			main: false,
+			permissions: new Map()
 		};
 	}
 
@@ -72,7 +73,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this._storylineProperties;
 	}
 
-	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
 		this._storylineProperties.permissions = permissions;
 		return this;
 	}
