@@ -20,6 +20,8 @@ export const bookSchema = new Schema<BookProperties>({
 	genres: genresSchemaProperties
 });
 
+
+
 bookSchema.pre(['find', 'findOne'], function (next) {
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();

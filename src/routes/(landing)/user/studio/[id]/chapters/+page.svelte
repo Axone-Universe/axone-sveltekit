@@ -9,7 +9,7 @@
 	import type { HydratedDocument } from 'mongoose';
 	import { onMount } from 'svelte';
 	import { beforeUpdate } from 'svelte';
-	
+	import { decodeTime, ulid } from 'ulid';
 
 
 
@@ -32,21 +32,22 @@
 	type chapterItem = {
 	position: number;
   	Book: string;
-  	Date: Date;
-  	Storyline: string;
+  	Date: Date
 	};
+
 
 
 	let sourceData: Array<chapterItem> = [];
 	//const reactiveSourceData = reactive(sourceData);
 	function setup(){
+
+	//UserChapters[0].ulid.date
 	for (let i = 0; i < UserChapters.length; i++) {
 
 		const chaptertoAdd = ({
 		position: i,
-		Book: UserChapters[i].title,
-		Date: UserChapters[i].date,
-		Storyline: UserChapters[i].Storyline
+		Book: UserChapters[i].book,
+		Date: new Date(decodeTime(UserChapters[i]._id))
 		});
 	
 		sourceData.push(chaptertoAdd);
@@ -87,11 +88,11 @@
 	
 	$: tableSimple = {
 	// A list of heading labels.
-	head: ['Book', 'Description', 'Date', 'Storylines'],
+	head: ['Book', 'Description', 'Date'],
 	// The data visibly shown in your table body UI.
-	body: tableMapperValues(sourceData, ['Book', 'Description', 'Date', 'Storylines']),
+	body: tableMapperValues(sourceData, ['Book', 'Description', 'Date']),
 	// Optional: The data returned when interactive is enabled and a row is clicked.
-	meta: tableMapperValues(sourceData, ['position', 'Book', 'Description', 'Date', 'Storylines']),
+	meta: tableMapperValues(sourceData, ['position', 'Book', 'Description', 'Date']),
 	
 	};
 	
@@ -99,7 +100,7 @@
 	</script>
 
 <div class="container p-10 space-y-4">
-	<h1>BOOKS</h1>
+	<h1>CHAPTERS</h1>
 	
 	<Table source={tableSimple} />
 </div>
