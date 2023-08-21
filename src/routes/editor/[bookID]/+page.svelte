@@ -570,7 +570,7 @@
 	}
 
 	/**
-	 * Replaces the illustration src with the selected file's src
+	 * Replaces the illustration image element src with the selected file's src
 	 * @param event
 	 */
 	function replaceIllustrationSrc(event: Event) {
