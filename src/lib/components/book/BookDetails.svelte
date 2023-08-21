@@ -130,7 +130,51 @@
 		
 	];
 
-	function adobeCreateCover(){
+	async function adobeCreateCover(){
+		const ccEverywhere = await window.CCEverywhere.initialize({
+                /* Get credentials at Adobe Developer Console.
+                During beta, your client will need to be enabled. 
+                Email your client ID (API Key) to amandah@adobe.com
+                */
+                clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+                appName: 'Axone',
+				appVersion: { major: 1, minor: 0 }, 
+    			platformCategory: 'web'
+            });
+
+			const createDesignCallback = {
+                    onCancel: () => {},
+                    onPublish: (publishParams) => {
+                        const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
+                        //image_data.src = localData.image;
+                        //project_id = localData.project;
+                        console.log("Created from scratch", localData)
+                    },
+                    onError: (err) => {
+                        console.error('Error received is', err.toString());
+                    },
+                };
+                 
+                ccEverywhere.createDesign({
+                    callbacks: createDesignCallback,
+                    modalParams: {
+                        // borderRadius: 2,
+                        // padding: 2,
+                        // backgroundColor: 'purple',
+                        // size: {
+                        //     height: 500,
+                        //     width: 1000,
+                        //     unit: 'px'
+                        // }
+                    },
+                    inputParams: {
+                        editorPanelView: 'yourStuff',
+                        // panelSearchText: 'school'
+                    },
+                    outputParams: {
+                        outputType: "base64",
+                    }
+                });
 
 	}
 	const popupSettings = (target: string) => {
