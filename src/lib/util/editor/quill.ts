@@ -434,7 +434,7 @@ export class QuillEditor extends Quill {
 		delete this.comments[id];
 	}
 
-	removeIllustration(id: string, editor: HTMLElement | null) {
+	async removeIllustration({id, editor, supabase, filenames}: { id: string, editor: HTMLElement | null, supabase: SupabaseClient | null | undefined, filenames: string[] | null | undefined }) {
 		if (editor == null) {
 			return;
 		}
@@ -450,6 +450,12 @@ export class QuillEditor extends Quill {
 		this.formatText(index, length, 'illustrationId', false);
 
 		delete this.illustrations[id];
+
+		if (supabase && filenames){
+			return await supabase.storage
+				.from('books')
+				.remove(filenames)
+		}
 	}
 
 	getComments(): { [key: string]: Comment } {
@@ -501,17 +507,12 @@ export class QuillEditor extends Quill {
 			.getPublicUrl(responsePath)
 			.data.publicUrl;
 
-
-
-
-
 		// for some reason, the public url needs to be cleaned
 		// it does not add the folder paths correctly
 		url = url.substring(0, url.indexOf(bucket))
 			+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
-		
+
 		return url;
 	}
-
 
 }

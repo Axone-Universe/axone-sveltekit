@@ -372,9 +372,7 @@
 		// bucket name is excluded, but all other folder and file paths are included
 		const filename = src.substring(src.indexOf('books') + 'books'.length + 1)
 
-		supabase.storage
-				.from('books')
-				.remove([filename])
+		quill.removeIllustration({id: id, editor: editor, supabase: supabase, filenames: [filename]})
 				.then((response: StorageFileError) => {
 					if (!response.data) {
 
@@ -396,7 +394,6 @@
 					}
 				})
 
-		quill.removeIllustration(id, editor);
 	}
 
 	/**
