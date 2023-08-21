@@ -5,17 +5,19 @@
 		AccordionItem,
 		AppShell,
 		Drawer,
-		drawerStore, FileDropzone,
+		drawerStore,
+		FileDropzone,
 		LightSwitch,
 		ListBox,
 		ListBoxItem,
-		modalStore, toastStore
+		modalStore,
+		toastStore
 	} from '@skeletonlabs/skeleton';
-	import {afterUpdate, beforeUpdate, onMount} from 'svelte';
+	import {afterUpdate, beforeUpdate, onDestroy, onMount} from 'svelte';
 	import {trpc} from '$lib/trpc/client';
 	import Quill from 'quill';
-	import {changeDelta, QuillEditor} from '$lib/util/editor/quill';
-	import type { Illustration } from '$lib/util/editor/quill'
+	import type {Illustration} from '$lib/util/editor/quill'
+	import {changeDelta, QuillEditor, type UploadFileToBucketParams} from '$lib/util/editor/quill';
 	import '$lib/util/editor/quill.illustration';
 	import type {PageData} from './$types';
 	import type {HydratedDocument} from 'mongoose';
@@ -42,7 +44,6 @@
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
 	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
 	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
-	import { onDestroy } from 'svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -464,7 +465,7 @@
 		modalStore.trigger(modal);
 	}
 
-	
+
 
 	/**
 	 * Uploads a file to a supabase storage bucket
@@ -473,47 +474,50 @@
 	 * @param newFileName - the new file name to use
 	 * @param illustration - the illustration object
 	 */
-	const uploadFileToBucket = (file: File, bucket: string, newFileName: string | undefined, illustration: Illustration) => {
-		let progressToastId = toastStore.trigger(progressUploadToast);
+	let progressToastId: string | undefined = undefined;
+	function uploadFileToBucket (file: File, bucket: string, newFileName: string | undefined, illustration: Illustration) {
+		if (!progressToastId)
+			progressToastId = toastStore.trigger(progressUploadToast);
 
-		supabase.storage
-				.from(bucket)
-				.upload((newFileName || file.name), file)
+		quill.uploadFileToBucket({supabase, file, bucket, newFileName} as UploadFileToBucketParams)
 				.then((response: StorageError) => {
 					if (response.data){
 						//success
-						let url = supabase.storage
-								.from('books')
-								.getPublicUrl(response.data.path)
-								.data.publicUrl;
-
-						// for some reason, the public url needs to be cleaned
-						// it does not add the folder paths correctly
-
-						url = url.substring(0, url.indexOf('books'))
-								+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
-
-                        illustration.illustration.src = url
-                        submitIllustration(illustration.id, illustration.illustration)
-                        toastStore.close(progressToastId)
-                        toastStore.trigger(successUploadToast);
-                    } else if (response.error.error === "Duplicate") {
-                        uploadFileToBucket(file, bucket, ('copy_' + file.name), illustration)
-                    } else if (response.error.error === "Payload too large" || response.error.statusCode === "413"){
-                        //file too large
-                        toastStore.close(progressToastId)
-                        const errorUploadToast: ToastSettings = {
-                            message: 'File is too large. Please upload a smaller file.',
-                            // Provide any utility or variant background style:
-                            background: 'variant-filled-error',
-                        };
-                        toastStore.trigger(errorUploadToast);
-                    } else {
-                        //error
-                        toastStore.close(progressToastId)
-                        toastStore.trigger(errorUploadToast);
-                    }
+						//update illustration src, then submit illustration
+						illustration.illustration.src = quill.getSupabaseFileURL({supabase, bucket, responsePath: response.data.path})
+						submitIllustration(illustration.id, illustration.illustration)
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						toastStore.trigger(successUploadToast);
+					} else if (response.error.error === "Duplicate") {
+						//file already exists, rename file and try again
+						uploadFileToBucket(file, bucket, ('copy_' + (newFileName || file.name)), illustration)
+					} else if (response.error.error === "Payload too large" || response.error.statusCode === "413"){
+						//file too large
+						//show toast error
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						const errorUploadToast: ToastSettings = {
+							message: 'File is too large. Please upload a smaller file.',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-error',
+						};
+						toastStore.trigger(errorUploadToast);
+					} else {
+						//error
+						//show toast error
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						toastStore.trigger(errorUploadToast);
+					}
 				})
+
 	}
 
 	/**
@@ -526,7 +530,6 @@
 		// if the file is an event, get the file from the event
 		if (newIllustrationFile instanceof Event) {
 			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
-			console.log('newIllustrationFile')
 		}
 
 		if (!newIllustrationFile) {

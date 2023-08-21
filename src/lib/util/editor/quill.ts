@@ -1,13 +1,14 @@
 import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
-import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
-import type { HydratedDocument } from 'mongoose';
-import type { ChapterProperties } from '$lib/shared/chapter';
-import { trpc } from '$lib/trpc/client';
-import type { Page } from '@sveltejs/kit';
-import type { DeltaProperties } from '$lib/shared/delta';
-import { writable } from 'svelte/store';
-import type { IllustrationObject } from './quill.illustration';
+import Quill, {type QuillOptionsStatic, type Sources} from 'quill';
+import type {HydratedDocument} from 'mongoose';
+import type {ChapterProperties} from '$lib/shared/chapter';
+import {trpc} from '$lib/trpc/client';
+import type {Page} from '@sveltejs/kit';
+import type {DeltaProperties} from '$lib/shared/delta';
+import {writable} from 'svelte/store';
+import type {IllustrationObject} from './quill.illustration';
+import type {SupabaseClient} from "@supabase/supabase-js";
 
 export const changeDelta = writable<Delta>(new Delta());
 
@@ -27,6 +28,13 @@ export interface Illustration {
 
 export interface QuillOptions extends QuillOptionsStatic {
 	reader?: boolean;
+}
+
+export interface UploadFileToBucketParams {
+	supabase: SupabaseClient;
+	file: File;
+	bucket: string;
+	newFileName: string | undefined;
 }
 
 export class QuillEditor extends Quill {
@@ -465,4 +473,45 @@ export class QuillEditor extends Quill {
 
 		return [index, length];
 	}
+
+	/**
+	 * Attempts to upload a file to the specified bucket
+	 * @param supabase Supabase client
+	 * @param file File to upload
+	 * @param bucket Bucket to upload to
+	 * @param newFileName Optional new file name
+	 */
+	async uploadFileToBucket({supabase, file, bucket, newFileName}: UploadFileToBucketParams){
+		return await supabase.storage
+			.from(bucket)
+			.upload((newFileName || file.name), file)
+	}
+
+	getSupabaseFileURL({
+						   supabase,
+						   bucket,
+						   responsePath
+	}: {
+		supabase: SupabaseClient,
+		bucket: string,
+		responsePath: string
+	}){
+		let url = supabase.storage
+			.from(bucket)
+			.getPublicUrl(responsePath)
+			.data.publicUrl;
+
+
+
+
+
+		// for some reason, the public url needs to be cleaned
+		// it does not add the folder paths correctly
+		url = url.substring(0, url.indexOf(bucket))
+			+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
+		
+		return url;
+	}
+
+
 }
