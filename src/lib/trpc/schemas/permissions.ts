@@ -21,6 +21,6 @@ export const create = z.object({
 export const permissions = z.object({
 	_id: z.string(),
 	public: z.boolean(),
-	user: user.optional(),
+	user: z.any().optional(),
 	permission: z.enum(PermissionsEnum).optional()
 });

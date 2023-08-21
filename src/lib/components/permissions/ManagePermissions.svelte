@@ -28,7 +28,7 @@
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>;
-	export let permissions: { [key: string]: HydratedDocument<PermissionProperties> };
+	export let permissions: Map<string, HydratedDocument<PermissionProperties>>;
 
 	export let customClass = '';
 	export { customClass as class };
@@ -47,10 +47,12 @@
 		placement: 'bottom'
 	};
 
-	const permissionsPopupSettings: PopupSettings = {
-		event: 'focus-click',
-		target: 'popupPermissions',
-		placement: 'bottom'
+	const permissionsPopupSettings = (target: string) => {
+		return {
+			event: 'focus-click',
+			target: target,
+			placement: 'bottom'
+		} as PopupSettings;
 	};
 
 	let selectedUser: string = '';
@@ -131,29 +133,29 @@
 		permission.user = users[userID];
 
 		if (userID !== documentOwner._id) {
-			permissions[userID] = permission;
+			permissions.set(userID, permission);
 			permissions = permissions;
 		}
 	}
 
 	function removePermission(userID: string) {
-		delete permissions[userID];
+		permissions.delete(userID);
 		permissions = permissions;
 	}
 
 	function createPermissionsDict() {
 		if (permissionedDocument.permissions) {
-			for (const permission of permissionedDocument.permissions) {
-				let userID = '';
+			console.log('** perms docs');
+			console.log(permissionedDocument.permissions);
+			// Convert to map again because it comes to UI deserialized into JS object
+			for (let [key, permission] of new Map(Object.entries(permissionedDocument.permissions))) {
+				let userID = 'public';
 				if (permission.user) {
 					userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
 				}
-				permissions[userID] = permission;
+				permissions.set(userID, permission);
 			}
 		}
-
-		console.log('&& public ');
-		console.log(permissions);
 
 		permissions = permissions;
 	}
@@ -169,7 +171,14 @@
 			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
 		permission._id = ulid();
 		permission.public = true;
-		permissions[''] = permission;
+		permissions.set('public', permission);
+	}
+
+	function onPermissionChanged(event: any) {
+		const userID = event.target.getAttribute('name');
+		const value = event.target.value;
+		console.log('** perm ' + userID + ' ' + value);
+		permissions.get(userID)!.permission = value;
 	}
 </script>
 
@@ -229,7 +238,7 @@
 						</button>
 					</div>
 				</div>
-				{#each Object.entries(permissions) as [id, permission]}
+				{#each [...permissions] as [id, permission]}
 					{#if permission.user && typeof permission.user !== 'string'}
 						<div class="flex p-2 justify-start items-center space-x-2">
 							<Avatar src="https://source.unsplash.com/YOErFW8AfkI/32x32" rounded="rounded-full" />
@@ -240,7 +249,7 @@
 
 							<div class="flex w-full justify-end">
 								<div class="flex-row btn-group variant-filled w-40">
-									<button class="w-9/12" use:popup={permissionsPopupSettings}>
+									<button class="w-9/12" use:popup={permissionsPopupSettings(id)}>
 										<span class="flex capitalize text-sm w-full">{permission.permission}</span>
 										<Icon class="border-none" data={caretDown} scale={1} />
 									</button>
@@ -250,16 +259,14 @@
 									>
 								</div>
 
-								<div
-									class="card shadow-xl py-2 !bg-surface-100-800-token z-10"
-									data-popup="popupPermissions"
-								>
+								<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={id}>
 									<ListBox class="p-2 w-40 ">
 										{#each PermissionsEnum as permissionType}
 											<ListBoxItem
-												bind:group={permissions[id].permission}
-												name=""
+												bind:group={permission.permission}
+												name={id}
 												value={permissionType}
+												on:change={onPermissionChanged}
 											>
 												{permissionType}
 											</ListBoxItem>
@@ -287,12 +294,12 @@
 					<SlideToggle
 						name="slider-large"
 						background="bg-primary-800"
-						checked={permissions['']?.public}
+						checked={permissions.get('public')?.public}
 						active="bg-primary-500"
 						size="md"
 						on:change={onPublicAccessChange}
 					>
-						{permissions[''] ? 'On' : 'Off'}
+						{permissions.get('public') ? 'On' : 'Off'}
 					</SlideToggle>
 				</div>
 			</div>

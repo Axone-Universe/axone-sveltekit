@@ -63,7 +63,7 @@ export const chapters = t.router({
 			}
 
 			if (input?.permissions) {
-				chapterBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+				chapterBuilder.permissions(input.permissions as any);
 			}
 
 			const chapterNode = await chapterBuilder.update();
@@ -88,7 +88,7 @@ export const chapters = t.router({
 			}
 
 			if (input?.permissions) {
-				chapterBuilder.permissions(input.permissions as HydratedDocument<PermissionProperties>[]);
+				chapterBuilder.permissions(input.permissions as any);
 			}
 
 			const chapterNode = await chapterBuilder.build();

@@ -16,7 +16,7 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	book: { type: String, ref: BookLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	chapters: [{ type: String, ref: ChapterLabel }],
-	permissions: [permissionSchema],
+	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String,
 	imageURL: String
@@ -29,7 +29,7 @@ storylineSchema.pre(['find', 'findOne'], function (next) {
 	const updatedFilter = addReadPermissionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
-	this.populate({ path: 'user chapters', options: { userID: userID } });
+	this.populate({ path: 'user chapters permissions.$*.user', options: { userID: userID } });
 	next();
 });
 

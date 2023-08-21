@@ -14,6 +14,7 @@ import {
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
+import { ulid } from 'ulid';
 
 beforeAll(async () => {
 	await connectDevDatabase();
@@ -33,27 +34,13 @@ const createBook = async (title: string, testSession: Session) => {
 		description:
 			'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness, it was the spring of hope, it was the winter of despair.',
 		genres: genres.getGenres(),
+		permissions: { ['public']: { _id: ulid(), public: true } },
 		imageURL:
 			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
 	});
 
-	// set public permissions
-	await caller.permissions.create({
-		documentID: book._id,
-		documentType: 'Book',
-		permission: 'view',
-		public: true
-	});
-
-	const storylines = await caller.storylines.getAll({
+	await caller.storylines.getAll({
 		bookID: book._id
-	});
-
-	await caller.permissions.create({
-		documentID: storylines[0]._id,
-		documentType: 'Storyline',
-		permission: 'view',
-		public: true
 	});
 
 	return book;
@@ -145,17 +132,11 @@ describe('db test data', () => {
 			description: 'Storyline 1',
 			book: userAuthoredBookResponse1._id,
 			parent: storylines[0]._id,
-			parentChapter: chapter1Response._id
+			parentChapter: chapter1Response._id,
+			permissions: { ['public']: { _id: ulid(), public: true } }
 		});
 
-		await caller.permissions.create({
-			documentID: storyline2._id,
-			documentType: 'Storyline',
-			permission: 'view',
-			public: true
-		});
-
-		const chapter2_2Response = await createChapter(
+		await createChapter(
 			testSessionOne,
 			chapter2_2Title,
 			`While testing the limits of her quantum device, Samantha accidentally picks up a mysterious distress signal 

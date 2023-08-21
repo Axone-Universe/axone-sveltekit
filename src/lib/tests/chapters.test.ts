@@ -96,7 +96,6 @@ describe('chapters', () => {
 			description: 'Updated chapter 1'
 		});
 
-		console.log(chapterUpdateResponse);
 		expect(chapterUpdateResponse.description).toEqual('Updated chapter 1');
 	});
 
