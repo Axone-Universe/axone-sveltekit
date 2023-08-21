@@ -11,6 +11,8 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import type { PermissionProperties } from '$lib/shared/permission';
+	import type {PopupSettings} from '$lib/util/popup/types';
+	import {popup} from '$lib/util/popup/popup';
 
 	let input: HTMLInputElement;
 	let image: HTMLElement;
@@ -120,12 +122,33 @@
 	function upload() {
 		input.click();
 	}
+
+
+	const creatorsMenuList = [
+		{ funct : upload, label: 'Upload Cover' },
+		{ funct : adobeCreateCover, label: 'Create Cover' },
+		
+	];
+
+	function adobeCreateCover(){
+
+	}
+	const popupSettings = (target: string) => {
+		let settings: PopupSettings = {
+			event: 'hover-popup',
+			target: target,
+			placement: 'bottom'
+		};
+		return settings;
+	};
+	const dropdownEditOptions: PopupSettings = popupSettings('dropdownEditOptions');
+
 </script>
 
 <div class={`${customClass}`}>
 	<div class="card mx-2 w-5/6 md:w-2/6 aspect-[10/17] h-fit pb-2 card-hover">
 		<div class="h-[87%]">
-			<button>
+			<button use:popup={dropdownEditOptions} >
 				<img
 					bind:this={image}
 					class="{imageFile ? '' : 'hidden'} object-cover w-full aspect-[5/8]"
@@ -133,10 +156,20 @@
 					alt="cover"
 				/>
 			</button>
+			
+		</div>
+		<div data-popup="dropdownEditOptions" class='card p-4 w-fit' >
+			<ul class="list">
+				{#each creatorsMenuList as menuItem}
+					<li>
+						<button on:click={menuItem.funct} class="w-full">{menuItem.label}</button>
+					</li>
+				{/each}
+			</ul>
 		</div>
 		<footer class="flex flex-col items-center">
 			<div class="overflow-hidden flex-auto flex items-center">
-				<button on:click={upload} type="button" class="btn-icon bg-surface-200-700-token">
+				<button use:popup={dropdownEditOptions} type="button" class="btn-icon bg-surface-200-700-token">
 					<Icon class="p-2" data={pencil} scale={2.5} />
 				</button>
 				<input on:change={onImageChange} bind:this={input} type="file" hidden />
@@ -176,6 +209,7 @@
 					</span>
 				{/each}
 			</div>
+
 		</label>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
