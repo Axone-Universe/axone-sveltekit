@@ -18,7 +18,7 @@
 	import Quill from 'quill';
 	import type {Illustration} from '$lib/util/editor/quill'
 	import {changeDelta, QuillEditor, type UploadFileToBucketParams} from '$lib/util/editor/quill';
-	import '$lib/util/editor/quill.illustration';
+	import 'quill-illustration/dist/quill.illustration.d.ts'
 	import type {PageData} from './$types';
 	import type {HydratedDocument} from 'mongoose';
 
@@ -43,7 +43,7 @@
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
 	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
-	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
+	import type { IllustrationObject } from 'quill-illustration/dist/quill.illustration.d.ts'
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -351,8 +351,8 @@
 			toggleShowComments();
 		}
 		showIllustrations = !showIllustrations;
-		// if (showIllustrations) quill.getModule('quillIllustration').addIllustrationStyle('green')
-		// else quill.getModule('quillIllustration').addIllustrationStyle('transparent')
+		// if (showIllustrations) quill.getModule('illustration').addIllustrationStyle('green')
+		// else quill.getModule('illustration').addIllustrationStyle('transparent')
 	}
 
 	function removeComment(id: string) {
@@ -429,7 +429,7 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
-		quill.getModule('quillIllustration').addIllustration({
+		quill.getModule('illustration').addIllustration({
 			src: '',
 			alt: '',
 			caption: ''
@@ -626,7 +626,7 @@
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
 					},
-					quillIllustration: {
+					illustration: {
 						enabled: true,
 						color: 'transparent',
 						illustrationAuthorId: session?.user.id,

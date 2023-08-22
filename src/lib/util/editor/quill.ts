@@ -7,7 +7,9 @@ import { trpc } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { writable } from 'svelte/store';
-import type { IllustrationObject } from './quill.illustration';
+import 'quill-illustration/dist/quill.illustration.d.ts'
+import {QuillIllustration} from 'quill-illustration/quill.illustration';
+import type { IllustrationObject } from 'quill-illustration/dist/quill.illustration.d.ts'
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError } from '$lib/util/types';
 
@@ -62,6 +64,7 @@ export class QuillEditor extends Quill {
 		options?: QuillOptions
 	) {
 		super(container, options);
+		Quill.register('modules/illustration', QuillIllustration);
 		this.chapter = chapter;
 		this.page = page;
 		// changeDelta.update(() => new Delta());
