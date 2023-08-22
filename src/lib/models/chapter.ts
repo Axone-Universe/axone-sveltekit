@@ -16,7 +16,7 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	user: { type: String, ref: UserLabel, required: true },
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
-	permissions: [permissionSchema],
+	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String
 });
@@ -56,7 +56,7 @@ chapterSchema.pre(
 );
 
 function populate(query: any) {
-	query.populate([{ path: 'user' }, { path: 'permissions', populate: { path: 'user' } }]);
+	query.populate([{ path: 'user' }, { path: 'permissions.$*.user' }]);
 }
 
 export const Chapter = mongoose.models[label] || model<ChapterProperties>(label, chapterSchema);

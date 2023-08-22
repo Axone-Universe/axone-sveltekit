@@ -18,7 +18,8 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	constructor(id?: string) {
 		super();
 		this._chapterProperties = {
-			_id: id ? id : ulid()
+			_id: id ? id : ulid(),
+			permissions: new Map()
 		};
 	}
 
@@ -56,7 +57,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
-	permissions(permissions: HydratedDocument<PermissionProperties>[]) {
+	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
 		this._chapterProperties.permissions = permissions;
 		return this;
 	}
@@ -127,6 +128,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			const storyline = await Storyline.findById(this._storylineID, null, {
 				userID: this._chapterProperties.user
 			});
+
 			storyline.chapters.push(chapter._id);
 			await storyline.save({ session });
 

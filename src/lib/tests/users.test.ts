@@ -52,8 +52,6 @@ describe('users', () => {
 		const caller = router.createCaller({ session: null });
 		const userResponses = await caller.users.getByDetails({ searchTerm: 'user_t' });
 
-		console.log('** user respos');
-		console.log(userResponses);
 		// compare sorted arrays to ignore element position differences (if any)
 		expect(userResponses.map((a) => a._id).sort()).toEqual([userResponse2._id].sort());
 	});
