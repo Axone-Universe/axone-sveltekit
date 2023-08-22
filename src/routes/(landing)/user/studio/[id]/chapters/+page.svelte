@@ -11,9 +11,94 @@
 	import { beforeUpdate } from 'svelte';
 	import { decodeTime, ulid } from 'ulid';
 	import type { BookProperties } from '$lib/shared/book';
+	import Icon from 'svelte-awesome';
+	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
+	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
+	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
+	import {
+		AppShell,
+		Drawer,
+		drawerStore,
+		Accordion,
+		AccordionItem,
+		ListBoxItem,
+		ListBox,
+		LightSwitch,
+		modalStore
+	} from '@skeletonlabs/skeleton';
+	
+	import type {  ChapterProperties } from '$lib/shared/chapter';
+	
+	import {
+		
+		check,
+		trash,
+		edit,
+		
+	} from 'svelte-awesome/icons';
 
 
+	beforeUpdate(() => {
+		let chapterID = $page.url.searchParams.get('chapterID');
 
+		
+		if (!selectedChapterNode) {
+			if (!chapterID && Object.keys(UserChapters).length !== 0) {
+				chapterID = Object.keys(UserChapters)[0];
+			}
+
+			if (chapterID && chapterID in UserChapters) {
+				selectedChapterNode = UserChapters[chapterID];
+			}
+
+			
+		}
+	});
+
+
+	let selectedChapterNode: HydratedDocument<ChapterProperties>;
+
+	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
+		selectedChapterNode = UserChapters[chapter._id];
+	}
+
+
+	let modalComponent: ModalComponent = {
+		ref: undefined
+	};
+
+	let modalSettings: ModalSettings = {
+		type: 'component',
+		// Pass the component directly:
+		component: modalComponent,
+		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
+			if (!chapterNode) {
+				return;
+			}
+
+			// Update the UI
+			let chapterID = chapterNode._id;
+			
+
+			// afterUpdate() will run the setup editor
+			UserChapters[chapterID] = chapterNode;
+
+			selectedChapterNode = chapterNode;
+			UserChapters = UserChapters;
+		}
+	};
+
+
+	let showChapterDetails = (bookID: string) => {
+		modalComponent.ref = ChapterDetailsModal;
+		modalComponent.props = {
+			chapterNode: selectedChapterNode,
+			bookID: bookID,
+			//storylineID: storylineResponse._id
+		};
+
+		modalStore.trigger(modalSettings);
+	};
 
 	
 	let currentPlace = $page.params
@@ -24,7 +109,9 @@
 	export let data: PageData;
 	$: ({ session, UserChapters} = data);
 
-
+function pronter(){
+	console.log(typeof(UserChapters[0]))
+}
 	
 	</script>
 
@@ -39,6 +126,7 @@
 					<table class="table">
 						<thead>
 							<tr>
+								
 								<th>Book</th>
 								<th>Chapter Title</th>
 
@@ -51,6 +139,15 @@
 
 						<tbody>
 							{#each UserChapters as chapter}
+							{#if selectedChapterNode}
+							<button
+								on:click={() => showChapterDetails(chapter.book._id)}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={edit} scale={2.5} />
+							</button>
+							{/if}
 								<tr>
 									<td class="w-1/4">
 									<div class="flex items-center">

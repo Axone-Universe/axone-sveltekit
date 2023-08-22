@@ -4,7 +4,7 @@
 	// Skeleton Features
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import { Drawer, drawerStore } from '@skeletonlabs/skeleton';
-
+	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
 	// Local Features
 	import Navigation from '$lib/components/navigation/Navigation.svelte';
 
@@ -12,9 +12,16 @@
 	import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
 	import '@skeletonlabs/skeleton/styles/all.css';
 	//import '../app.postcss';
-
+	const drawerSettings: DrawerSettings = {
+		//id: 'leftDrawer',
+		//bgDrawer: 'bg-transparent',
+		height: 'h-full',
+		padding: 'p-4',
+		rounded: 'rounded-xl',
+		width: 'w-64',
+	};
 	function drawerOpen(): void {
-		drawerStore.open({});
+		drawerStore.open(drawerSettings);
 	}
 
 	// Reactive Properties
