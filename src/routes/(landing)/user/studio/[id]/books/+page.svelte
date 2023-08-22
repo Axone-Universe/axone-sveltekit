@@ -9,7 +9,7 @@
 	import type { HydratedDocument } from 'mongoose';
 	import { onMount } from 'svelte';
 	import { beforeUpdate } from 'svelte';
-	
+	import { decodeTime, ulid } from 'ulid';
 
 
 
@@ -24,84 +24,52 @@
 	$: ({ session, UserBooks} = data);
 
 
-	//function BookCounter(){
-	//	numBooks = UserBooks.length;
-	//}
-	
-
-	type bookItem = {
-	position: number;
-  	Book: string;
-  	Description: string;
-  	Date: Date;
-  	Storylines: number;
-	};
-
-
-	let sourceData: Array<bookItem> = [];
-	//const reactiveSourceData = reactive(sourceData);
-	function setup(){
-	for (let i = 0; i < UserBooks.length; i++) {
-
-		const bookToAdd = ({
-		position: i,
-		Book: UserBooks[i].title,
-		Description: UserBooks[i].description,
-		Date: UserBooks[i].date,
-		Storylines: UserBooks[i].storylines
-		});
-	
-		sourceData.push(bookToAdd);
-	}
-	console.log(sourceData.length);
-	sourceData = sourceData;
-    }
-	
-	//beforeUpdate(() => {
-    //console.log('the component is about to update');
-    //});
-	onMount(() => {
-		setup();
-	});
-
-
-
-	//});
-	//BookCounter();
-	function printer(){
-		console.log(UserBooks.length);
-	}
-	//let numBooks = UserBooks.length;
-	
-	
-	function PRONTER(){
-	console.log(sourceData.length);
-	
-	for (let i = 0; i < sourceData.length; i++) {
-	console.log(sourceData[i])
-	
-	}
-	}
-	console.log("TESTING" + sourceData.length)
-	console.log("THis is being called")
-
-
-	
-	$: tableSimple = {
-	// A list of heading labels.
-	head: ['Book', 'Description', 'Date', 'Storylines'],
-	// The data visibly shown in your table body UI.
-	body: tableMapperValues(sourceData, ['Book', 'Description', 'Date', 'Storylines']),
-	// Optional: The data returned when interactive is enabled and a row is clicked.
-	meta: tableMapperValues(sourceData, ['position', 'Book', 'Description', 'Date', 'Storylines']),
-	
-	};
-	
 
 	</script>
 
 <div class="container p-10 space-y-4">
 	<h1>BOOKS</h1>
-	
-	<Table source={tableSimple} />
+	<body>
+		<div class="container">
+			<div class="row">
+
+				<div  class="relative overflow-x-auto">
+					
+					<table class="table">
+						<thead class="uppercase text-xl">
+							<tr>
+								<th>Book</th>
+
+								<th>Description</th>
+								<th>Date</th>
+								<th>Storylines</th>
+								
+							
+							</tr>
+						</thead>
+
+						<tbody>
+							{#each UserBooks as book}
+								<tr>
+									<td class="w-1/4">
+									<div class="flex items-center">
+										<img src={book.imageURL} alt="Book Cover" class="w-20 h-20 mr-2  p-1" />
+										{book.title}
+									</div>
+								</td>
+									<td class="w-1/4">{book.description}</td>
+									<td class="w-1/4">{new Date(decodeTime(book._id))}</td>
+									<td class="w-1/4">{book.storylines}</td>
+								</tr>
+							{/each}
+
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+
+		</div>
+		
+	</body>
 </div>

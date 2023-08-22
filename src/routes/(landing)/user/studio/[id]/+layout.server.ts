@@ -7,6 +7,8 @@ import { supabaseAdmin } from '$lib/util/supabase';
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/shared/user';
 import type { BookProperties } from '$lib/shared/book';
+import type { StorylineProperties } from '$lib/shared/storyline';
+import type { ChapterProperties } from '$lib/shared/chapter';
 
 
 export const load = (async (event) => {
@@ -20,8 +22,11 @@ export const load = (async (event) => {
 
 	const UserChapters = (await trpc(event).chapters.getChaptersByUserID.query({
 		searchTerm: userID
-	}))
+	}))as HydratedDocument<ChapterProperties>[];
 
+	/*const UserStorylines = (await trpc(event).storylines.getStorylinesByUserID.query({
+		searchTerm: userID
+	}))as HydratedDocument<StorylineProperties>[];*/
 
 	/*if (data && data.user) {
 		// check if user has a profile

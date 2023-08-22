@@ -10,6 +10,7 @@
 	import { onMount } from 'svelte';
 	import { beforeUpdate } from 'svelte';
 	import { decodeTime, ulid } from 'ulid';
+	import type { BookProperties } from '$lib/shared/book';
 
 
 
@@ -24,83 +25,64 @@
 	$: ({ session, UserChapters} = data);
 
 
-	//function BookCounter(){
-	//	numBooks = UserBooks.length;
-	//}
 	
-
-	type chapterItem = {
-	position: number;
-  	Book: string;
-  	Date: Date
-	};
-
-
-
-	let sourceData: Array<chapterItem> = [];
-	//const reactiveSourceData = reactive(sourceData);
-	function setup(){
-
-	//UserChapters[0].ulid.date
-	for (let i = 0; i < UserChapters.length; i++) {
-
-		const chaptertoAdd = ({
-		position: i,
-		Book: UserChapters[i].book,
-		Date: new Date(decodeTime(UserChapters[i]._id))
-		});
-	
-		sourceData.push(chaptertoAdd);
-	}
-	console.log(sourceData.length);
-	sourceData = sourceData;
-    }
-	
-	//beforeUpdate(() => {
-    //console.log('the component is about to update');
-    //});
-	onMount(() => {
-		setup();
-	});
-
-
-
-	//});
-	//BookCounter();
-	function printer(){
-		console.log(UserChapters.length);
-	}
-	//let numBooks = UserBooks.length;
-	
-	
-	function PRONTER(){
-	console.log(sourceData.length);
-	
-	for (let i = 0; i < sourceData.length; i++) {
-	console.log(sourceData[i])
-	
-	}
-	}
-	console.log("TESTING" + sourceData.length)
-	console.log("THis is being called")
-
-
-	
-	$: tableSimple = {
-	// A list of heading labels.
-	head: ['Book', 'Description', 'Date'],
-	// The data visibly shown in your table body UI.
-	body: tableMapperValues(sourceData, ['Book', 'Description', 'Date']),
-	// Optional: The data returned when interactive is enabled and a row is clicked.
-	meta: tableMapperValues(sourceData, ['position', 'Book', 'Description', 'Date']),
-	
-	};
-	
-
 	</script>
 
 <div class="container p-10 space-y-4">
 	<h1>CHAPTERS</h1>
 	
-	<Table source={tableSimple} />
+	<body>
+		<div class="container">
+			<div class="row">
+
+				<div class="twelve columns">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Book</th>
+								<th>Chapter Title</th>
+
+								<th>Description</th>
+								<th>Date</th>
+								
+							
+							</tr>
+						</thead>
+
+						<tbody>
+							{#each UserChapters as chapter}
+								<tr>
+									<td class="w-1/4">
+									<div class="flex items-center">
+										
+										{#if chapter.book?.imageURL}
+       										 <img src={chapter.book?.imageURL} alt="Book Cover" class="w-20 h-20 " />
+   										{/if}
+										{#if chapter.book == null}
+											<h3 class="w-20 h-20 mr-2 p-1">place holder</h3>
+										{/if}
+										{#if chapter.book}
+       										 {chapter.book.title}
+   										{/if}
+										{#if chapter.book == null}
+										{chapter.book}
+										{/if}
+										
+									</div>
+									</td>
+									<td class="w-1/4">{chapter.title}</td>
+									<td class="w-1/4">{chapter.description}</td>
+									<td class="w-1/4">{new Date(decodeTime(chapter._id))}</td>
+								</tr>
+							{/each}
+
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+
+		</div>
+		
+	</body>
 </div>
