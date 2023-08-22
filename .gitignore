@@ -10,4 +10,9 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vercel
 rs-data
+
+# ignoring Jetbrains specific files
+/.idea
+qodana.yaml
+
 /tmp/db
