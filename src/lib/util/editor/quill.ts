@@ -8,8 +8,8 @@ import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { writable } from 'svelte/store';
 import 'quill-illustration/dist/quill.illustration.d.ts'
-import {QuillIllustration} from 'quill-illustration/quill.illustration';
-import type { IllustrationObject } from 'quill-illustration/dist/quill.illustration.d.ts'
+import {QuillIllustration} from '@axone-network/quill-illustration/quill.illustration';
+import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts'
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError } from '$lib/util/types';
 

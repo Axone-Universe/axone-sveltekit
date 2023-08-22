@@ -18,7 +18,7 @@
 	import Quill from 'quill';
 	import type {Illustration} from '$lib/util/editor/quill'
 	import {changeDelta, QuillEditor, type UploadFileToBucketParams} from '$lib/util/editor/quill';
-	import 'quill-illustration/dist/quill.illustration.d.ts'
+	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts'
 	import type {PageData} from './$types';
 	import type {HydratedDocument} from 'mongoose';
 
@@ -43,7 +43,7 @@
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
 	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
-	import type { IllustrationObject } from 'quill-illustration/dist/quill.illustration.d.ts'
+	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts'
 
 	export let data: PageData;
 	const { supabase } = data;
