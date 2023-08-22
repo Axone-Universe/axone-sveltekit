@@ -7,7 +7,7 @@ import { trpc } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { writable } from 'svelte/store';
-import 'quill-illustration/dist/quill.illustration.d.ts';
+import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import { QuillIllustration } from '@axone-network/quill-illustration/quill.illustration';
 import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import type { SupabaseClient } from '@supabase/supabase-js';
