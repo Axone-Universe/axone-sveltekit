@@ -542,6 +542,12 @@ export class QuillEditor extends Quill {
 		return url;
 	}
 
+	/**
+	 * Creates a new bucket if the specified bucket does not exist
+	 * @param supabase
+	 * @param errorCallback
+	 * @param bucket
+	 */
 	async createIllustrationBucket({
 		supabase,
 	 	errorCallback,
