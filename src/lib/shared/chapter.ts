@@ -13,7 +13,7 @@ export interface ChapterProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	delta?: string | HydratedDocument<DeltaProperties>;
 	children?: string[] | HydratedDocument<ChapterProperties>[];
-	permissions?: HydratedDocument<PermissionProperties>[];
+	permissions: Map<string, HydratedDocument<PermissionProperties>>;
 	genres?: Genres;
 	title?: string;
 	description?: string;
@@ -30,7 +30,8 @@ export class ChapterPropertyBuilder {
 			delta: '',
 			children: [],
 			title: '',
-			description: ''
+			description: '',
+			permissions: new Map()
 		};
 	}
 

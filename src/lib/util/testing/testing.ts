@@ -2,6 +2,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { router } from '$lib/trpc/router';
 import mongoose, { type HydratedDocument } from 'mongoose';
 import { GenresBuilder } from '$lib/shared/genres';
+import type { PermissionProperties } from '$lib/shared/permission';
 
 import {
 	TEST_MONGO_PASSWORD,
@@ -17,6 +18,7 @@ import {
 	TEST_USER_LAST_NAME
 } from '$env/static/private';
 import type { StorylineProperties } from '$lib/shared/storyline';
+import { ulid } from 'ulid';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -81,15 +83,8 @@ export async function createBook(session: Session, title: string) {
 		title,
 		imageURL: 'www.example.com',
 		genres: genres.getGenres(),
-		description: ''
-	});
-
-	// set public permissions
-	await caller.permissions.create({
-		documentID: book._id,
-		documentType: 'Book',
-		permission: 'edit',
-		public: true
+		description: '',
+		permissions: { ['public']: { _id: ulid(), public: true } }
 	});
 
 	return book;
@@ -109,15 +104,8 @@ export async function createChapter(
 		description: description,
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
-		prevChapterID: prevChapterID
-	});
-
-	// set public permissions
-	await caller.permissions.create({
-		documentID: chapter._id,
-		documentType: 'Chapter',
-		permission: 'edit',
-		public: true
+		prevChapterID: prevChapterID,
+		permissions: { ['public']: { _id: ulid(), public: true } }
 	});
 
 	return chapter;

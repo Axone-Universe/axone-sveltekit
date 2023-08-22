@@ -23,5 +23,5 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.array(permissions).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
