@@ -1,14 +1,15 @@
 import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
-import Quill, {type QuillOptionsStatic, type Sources} from 'quill';
-import type {HydratedDocument} from 'mongoose';
-import type {ChapterProperties} from '$lib/shared/chapter';
-import {trpc} from '$lib/trpc/client';
-import type {Page} from '@sveltejs/kit';
-import type {DeltaProperties} from '$lib/shared/delta';
-import {writable} from 'svelte/store';
-import type {IllustrationObject} from './quill.illustration';
-import type {SupabaseClient} from "@supabase/supabase-js";
+import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
+import type { HydratedDocument } from 'mongoose';
+import type { ChapterProperties } from '$lib/shared/chapter';
+import { trpc } from '$lib/trpc/client';
+import type { Page } from '@sveltejs/kit';
+import type { DeltaProperties } from '$lib/shared/delta';
+import { writable } from 'svelte/store';
+import type { IllustrationObject } from './quill.illustration';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { StorageBucketError } from '$lib/util/types';
 
 export const changeDelta = writable<Delta>(new Delta());
 
@@ -89,11 +90,14 @@ export class QuillEditor extends Quill {
 			// that is the one sent to the server
 
 			this.changeDelta.ops.forEach((op: Op) => {
-				if (op.attributes && op.attributes.illustration && typeof op.attributes.illustration === 'object') {
+				if (
+					op.attributes &&
+					op.attributes.illustration &&
+					typeof op.attributes.illustration === 'object'
+				) {
 					op.attributes.illustration = JSON.stringify(op.attributes.illustration as string);
 				}
-			})
-
+			});
 
 			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
 			changeDelta.update(() => new Delta());
@@ -183,14 +187,18 @@ export class QuillEditor extends Quill {
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
 		const ops = opsJSON ? opsJSON : [];
 
-		console.log("loading ops", ops);
+		console.log('loading ops', ops);
 
 		//Parse the illustrations to JavaScript objects
 		(ops as Op[]).forEach((op) => {
-			if (op.attributes && op.attributes.illustration && (typeof op.attributes.illustration) === 'string') {
+			if (
+				op.attributes &&
+				op.attributes.illustration &&
+				typeof op.attributes.illustration === 'string'
+			) {
 				op.attributes.illustration = JSON.parse(op.attributes.illustration as string);
 			}
-		})
+		});
 		this.setContents(new Delta(ops as Op[]));
 
 		this.on('selection-change', this.selectionChange.bind(this));
@@ -254,9 +262,10 @@ export class QuillEditor extends Quill {
 			// get the container with all the illustrations
 			const illustrations = document.getElementById('illustrations-container');
 			// focus on the caption input. id = "caption-" + illustrationId
-			(illustrations?.querySelector(('#caption-' + illustrationId).toString()) as HTMLElement).focus();
+			(
+				illustrations?.querySelector(('#caption-' + illustrationId).toString()) as HTMLElement
+			).focus();
 		}
-
 	}
 
 	/**
@@ -277,7 +286,7 @@ export class QuillEditor extends Quill {
 			// eslint-disable-next-line no-self-assign
 			this.comments = this.comments;
 		}
-		if (added.illustration){
+		if (added.illustration) {
 			// eslint-disable-next-line no-self-assign
 			this.illustrations = this.illustrations;
 		}
@@ -348,8 +357,10 @@ export class QuillEditor extends Quill {
 		}
 
 		const defaultIllustration: IllustrationObject = {
-			alt: "", caption: "", src: ""
-		}
+			alt: '',
+			caption: '',
+			src: ''
+		};
 
 		const illustration: Illustration = {
 			id: op?.attributes?.illustrationId,
@@ -401,7 +412,11 @@ export class QuillEditor extends Quill {
 		return delta;
 	}
 
-	updateIllustration(id: string, editor: HTMLElement | null, illustrationObject: IllustrationObject) {
+	updateIllustration(
+		id: string,
+		editor: HTMLElement | null,
+		illustrationObject: IllustrationObject
+	) {
 		if (editor == null) {
 			return;
 		}
@@ -412,7 +427,13 @@ export class QuillEditor extends Quill {
 			return;
 		}
 
-		const delta = this.formatText(index, length, 'illustration', JSON.stringify(illustrationObject), 'user');
+		const delta = this.formatText(
+			index,
+			length,
+			'illustration',
+			JSON.stringify(illustrationObject),
+			'user'
+		);
 		return delta;
 	}
 
@@ -434,7 +455,17 @@ export class QuillEditor extends Quill {
 		delete this.comments[id];
 	}
 
-	async removeIllustration({id, editor, supabase, filenames}: { id: string, editor: HTMLElement | null, supabase: SupabaseClient | null | undefined, filenames: string[] | null | undefined }) {
+	async removeIllustration({
+		id,
+		editor,
+		supabase,
+		filenames
+	}: {
+		id: string;
+		editor: HTMLElement | null;
+		supabase: SupabaseClient | null | undefined;
+		filenames: string[] | null | undefined;
+	}) {
 		if (editor == null) {
 			return;
 		}
@@ -451,10 +482,8 @@ export class QuillEditor extends Quill {
 
 		delete this.illustrations[id];
 
-		if (supabase && filenames){
-			return await supabase.storage
-				.from('books')
-				.remove(filenames)
+		if (supabase && filenames) {
+			return await supabase.storage.from('books').remove(filenames);
 		}
 	}
 
@@ -487,32 +516,56 @@ export class QuillEditor extends Quill {
 	 * @param bucket Bucket to upload to
 	 * @param newFileName Optional new file name
 	 */
-	async uploadFileToBucket({supabase, file, bucket, newFileName}: UploadFileToBucketParams){
-		return await supabase.storage
-			.from(bucket)
-			.upload((newFileName || file.name), file)
+	async uploadFileToBucket({ supabase, file, bucket, newFileName }: UploadFileToBucketParams) {
+		return await supabase.storage.from(bucket).upload(newFileName || file.name, file);
 	}
 
 	getSupabaseFileURL({
-						   supabase,
-						   bucket,
-						   responsePath
+		supabase,
+		bucket,
+		responsePath
 	}: {
-		supabase: SupabaseClient,
-		bucket: string,
-		responsePath: string
-	}){
-		let url = supabase.storage
-			.from(bucket)
-			.getPublicUrl(responsePath)
-			.data.publicUrl;
+		supabase: SupabaseClient;
+		bucket: string;
+		responsePath: string;
+	}) {
+		let url = supabase.storage.from(bucket).getPublicUrl(responsePath).data.publicUrl;
 
 		// for some reason, the public url needs to be cleaned
 		// it does not add the folder paths correctly
-		url = url.substring(0, url.indexOf(bucket))
-			+ bucket + '/' + url.substring(url.lastIndexOf('/') + 1)
+		url =
+			url.substring(0, url.indexOf(bucket)) +
+			bucket +
+			'/' +
+			url.substring(url.lastIndexOf('/') + 1);
 
 		return url;
 	}
 
+	async createIllustrationBucket({
+		supabase,
+	 	errorCallback,
+		bucket
+	}: {
+		supabase: SupabaseClient;
+		errorCallback: () => void;
+		bucket: string;
+	}) {
+		//check if bucket exists
+		supabase.storage
+			.getBucket(bucket.substring(0, bucket.indexOf('/')) || 'books')
+			.then((response: StorageBucketError) => {
+				if (response.error || !response.data) {
+					// bucket not found, create bucket first
+					return supabase.storage.createBucket(bucket, {
+						public: false,
+						allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg'],
+						fileSizeLimit: 1024
+					});
+				}
+			})
+			.catch(() => {
+				errorCallback();
+			});
+	}
 }

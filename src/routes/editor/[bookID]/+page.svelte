@@ -520,10 +520,9 @@
 	/**
 	 * Uploads an illustration to supabase storage
 	 * @param newIllustrationFile - the file to upload or the event that contains the file
-	 * @param illustration
+	 * @param illustration - the illustration
 	 */
 	async function uploadIllustration (newIllustrationFile: File | Event, illustration: Illustration) {
-
 		// if the file is an event, get the file from the event
 		if (newIllustrationFile instanceof Event) {
 			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
@@ -537,29 +536,19 @@
 		const bookId = getCurrentChapter()?.book
 
 		//retrieve supabase storage bucket
-		let bucketName = `books/${bookId}/chapters/${chapterId}`
+		const bucketName = `books/${bookId}/chapters/${chapterId}`
 
 		//check if bucket exists
-		supabase.storage
-				.getBucket('books')
-				.then((response: StorageBucketError) => {
-					if (response.error || !response.data) {
-						// bucket not found, create bucket first
-						supabase.storage
-								.createBucket(bucketName, {
-									public: false,
-									allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg'],
-									fileSizeLimit: 1024
-								}).then(() => {
-									//upload file to bucket
-								uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration)
-						})
-					}
-				}).catch((error) => {
-					toastStore.trigger(errorUploadToast);
+		return await quill.createIllustrationBucket({
+			supabase: supabase,
+			bucket: bucketName,
+			errorCallback: function () {
+				toastStore.trigger(errorUploadToast);
+			}
+		}).then(() => {
+			uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration)
 		})
 
-		return true
 	}
 
 	/**
