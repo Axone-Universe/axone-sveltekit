@@ -89,10 +89,11 @@
 	};
 
 
-	let showChapterDetails = (bookID: string) => {
+	let showChapterDetails = (bookID: string, chapId: string) => {
+		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
-			chapterNode: selectedChapterNode,
+			chapterNode: foundChapter,
 			bookID: bookID,
 			//storylineID: storylineResponse._id
 		};
@@ -141,7 +142,7 @@ function pronter(){
 							{#each UserChapters as chapter}
 							{#if selectedChapterNode}
 							<button
-								on:click={() => showChapterDetails(chapter.book._id)}
+								on:click={() => showChapterDetails(chapter.book._id, chapter._id)}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
