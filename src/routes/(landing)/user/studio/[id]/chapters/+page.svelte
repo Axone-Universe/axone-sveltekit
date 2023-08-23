@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	import { tableMapperValues } from '@skeletonlabs/skeleton';
+	import { trpc } from '$lib/trpc/client';
 	import { Table } from '@skeletonlabs/skeleton';
 	import type { TableSource } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
@@ -100,10 +101,85 @@
 
 		modalStore.trigger(modalSettings);
 	};
+/*
 
+
+
+
+NOTES FOR BEN:
+Try and see if you can fix the selectedChapterNode selector thing...
+Currently I have hacked my own fix
+need to test if it works for delete
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
 	
 	let currentPlace = $page.params
 	
+	let deleteChapter = (chapId: string) => {
+		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: foundChapter.title,
+			body: 'Are you sure you wish to delete this chapter?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.chapters.delete.mutate({
+							id: foundChapter._id
+						})
+						.then((response) => {
+							if (response.deletedCount !== 0) {
+								let deletedID = foundChapter._id;
+								let chapterIDs = Object.keys(UserChapters);
+								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
+
+								if (nextIndex >= chapterIDs.length) {
+									nextIndex = 0;
+								}
+
+								let selectedChapterID = chapterIDs[nextIndex];
+								
+
+								// delete the node first
+								delete UserChapters[deletedID];
+
+								// give next node if it's available
+								selectedChapterNode = UserChapters[selectedChapterID];
+
+								UserChapters = UserChapters;
+
+								// setup the editor
+								
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	};
 	
 	
 
@@ -142,12 +218,18 @@ function pronter(){
 							{#each UserChapters as chapter}
 							{#if selectedChapterNode}
 							<button
-								on:click={() => showChapterDetails(chapter.book._id, chapter._id)}
+								on:click={() => {showChapterDetails(chapter.book._id, chapter._id); chapterSelected(chapter); console.log({selectedChapterNode})}}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={edit} scale={2.5} />
 							</button>
+							<button
+										on:click={() => deleteChapter(chapter._id)}
+											type="button"
+											class="m-2 btn-icon bg-surface-200-700-token">
+											<Icon class="p-2" data={trash} scale={2.5} />
+									</button>
 							{/if}
 								<tr>
 									<td class="w-1/4">
@@ -171,7 +253,9 @@ function pronter(){
 									<td class="w-1/4">{chapter.title}</td>
 									<td class="w-1/4">{chapter.description}</td>
 									<td class="w-1/4">{new Date(decodeTime(chapter._id))}</td>
+									
 								</tr>
+								
 							{/each}
 
 						</tbody>

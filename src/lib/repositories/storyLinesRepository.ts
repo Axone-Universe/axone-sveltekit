@@ -70,6 +70,17 @@ export class StorylinesRepository extends Repository {
 		});
 	}
 
+
+
+	async getStorylinesByUserID(session: Session | null, id?: string): Promise<HydratedDocument<StorylineProperties>[]> {
+		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
+		const storyLines = await Storyline.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
+
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
+			resolve(storyLines);
+		});
+	}
+
 	async count(): Promise<number> {
 		const count = await Storyline.count();
 

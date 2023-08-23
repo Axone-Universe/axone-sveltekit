@@ -33,6 +33,16 @@ export const storylines = t.router({
 			return result;
 		}),
 
+	getStorylinesByUserID: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			
+			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);;
+
+			return result;
+		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)
