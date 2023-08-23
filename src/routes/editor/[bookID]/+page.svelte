@@ -5,6 +5,12 @@
 		ModalSettings,
 		ToastSettings
 	} from '@skeletonlabs/skeleton';
+	import type {
+		DrawerSettings,
+		ModalComponent,
+		ModalSettings,
+		ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import {
 		Accordion,
 		AccordionItem,
@@ -20,10 +26,16 @@
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
+	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
+	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
+	import type { Illustration } from '$lib/util/editor/quill';
+	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
 	import '$lib/util/editor/quill.illustration';
+	import type { PageData } from './$types';
+	import type { HydratedDocument } from 'mongoose';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 
@@ -38,17 +50,20 @@
 		plus,
 		spinner,
 		stickyNote,
-		trash,
-		lock,
-		unlock
+		trash
 	} from 'svelte-awesome/icons';
+	import { page } from '$app/stores';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/shared/chapter';
+	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
+	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
+	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
+	import type { IllustrationObject } from '$lib/util/editor/quill.illustration';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
 	import type { IllustrationObject } from '$lib/util/editor/quill.illustration';
@@ -115,6 +130,7 @@
 		message: 'Illustration has been uploaded successfully',
 		// Provide any utility or variant background style:
 		background: 'variant-filled-success'
+		background: 'variant-filled-success'
 	};
 	const progressUploadToast: ToastSettings = {
 		message: 'Uploading illustration...',
@@ -125,6 +141,7 @@
 	const errorUploadToast: ToastSettings = {
 		message: 'There was an issue uploading the illustration',
 		// Provide any utility or variant background style:
+		background: 'variant-filled-error'
 		background: 'variant-filled-error'
 	};
 
@@ -226,6 +243,10 @@
 		const bookId = chapter.book;
 		const chapterId = chapter._id;
 		const folder = `${bookId}/chapters/${chapterId}`;
+	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>) {
+		const bookId = chapter.book;
+		const chapterId = chapter._id;
+		const folder = `${bookId}/chapters/${chapterId}`;
 
 		/*
 		Be careful if you have a lot of files. Besides server load, if .remove passes data in the url versus body like
@@ -233,6 +254,28 @@
 		optional. Normally all resources are in the url for DELETE.
 		 */
 		supabase.storage
+			.from('books')
+			.list(folder)
+			.then((response: StorageFileError) => {
+				if (response.data) {
+					const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+					supabase.storage
+						.from('books')
+						.remove(filesToRemove)
+						.then((response: StorageFileError) => {
+							if (response.error) {
+								console.log(response.error);
+								// show toast error
+								const errorUploadToast: ToastSettings = {
+									message: 'There was an issue deleting the illustrations',
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(errorUploadToast);
+							}
+						});
+				}
+			});
 			.from('books')
 			.list(folder)
 			.then((response: StorageFileError) => {
@@ -267,6 +310,7 @@
 			response: (r: boolean) => {
 				if (r) {
 					//delete all illustrations from supabase storage for this chapter
+					deleteChapterStorage(selectedChapterNode);
 					deleteChapterStorage(selectedChapterNode);
 
 					trpc($page)
@@ -341,6 +385,8 @@
 			'comments-toggle',
 			'illustrations-add'
 		]
+			'illustrations-add'
+		]
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
@@ -384,12 +430,14 @@
 		let editor = document.getElementById('editor');
 
 		const src = quill.illustrations[id].illustration.src;
+		const src = quill.illustrations[id].illustration.src;
 		// bucket name is excluded, but all other folder and file paths are included
+		const filename = src.substring(src.indexOf('books') + 'books'.length + 1);
 		const filename = src.substring(src.indexOf('books') + 'books'.length + 1);
 
 		quill
 			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
-			.then((response: any) => {
+			.then((response: StorageFileError) => {
 				if (!response.data) {
 					//error
 					const errorUploadToast: ToastSettings = {
@@ -430,6 +478,9 @@
 		const illustration = newIllustrationObject
 			? newIllustrationObject
 			: quill.illustrations[id].illustration;
+		const illustration = newIllustrationObject
+			? newIllustrationObject
+			: quill.illustrations[id].illustration;
 		let editor = document.getElementById('editor');
 		quill.updateIllustration(id, editor, illustration);
 	}
@@ -460,6 +511,7 @@
 	 * @param illustration
 	 */
 	function showIllustrationModal(illustration: Illustration) {
+	function showIllustrationModal(illustration: Illustration) {
 		const modalComponent: ModalComponent = {
 			// Pass a reference to your custom component
 			ref: IllustrationModal,
@@ -468,11 +520,13 @@
 				illustration: illustration,
 				uploadClick: uploadIllustration
 			}
+			}
 		};
 
 		const modal: ModalSettings = {
 			type: 'component',
 			// Pass the component directly:
+			component: modalComponent
 			component: modalComponent
 		};
 		modalStore.trigger(modal);
@@ -493,10 +547,17 @@
 		illustration: Illustration
 	) {
 		if (!progressToastId) progressToastId = toastStore.trigger(progressUploadToast);
+	function uploadFileToBucket(
+		file: File,
+		bucket: string,
+		newFileName: string | undefined,
+		illustration: Illustration
+	) {
+		if (!progressToastId) progressToastId = toastStore.trigger(progressUploadToast);
 
 		quill
 			.uploadFileToBucket({ supabase, file, bucket, newFileName } as UploadFileToBucketParams)
-			.then((response: any) => {
+			.then((response: StorageError) => {
 				if (response.data) {
 					//success
 					//update illustration src, then submit illustration
@@ -548,6 +609,7 @@
 	 * @param illustration - the illustration
 	 */
 	async function uploadIllustration(newIllustrationFile: File | Event, illustration: Illustration) {
+	async function uploadIllustration(newIllustrationFile: File | Event, illustration: Illustration) {
 		// if the file is an event, get the file from the event
 		if (newIllustrationFile instanceof Event) {
 			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
@@ -559,11 +621,25 @@
 
 		const chapterId = getCurrentChapter()?._id;
 		const bookId = getCurrentChapter()?.book;
+		const chapterId = getCurrentChapter()?._id;
+		const bookId = getCurrentChapter()?.book;
 
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
+		const bucketName = `books/${bookId}/chapters/${chapterId}`;
 
 		//check if bucket exists
+		return await quill
+			.createIllustrationBucket({
+				supabase: supabase,
+				bucket: bucketName,
+				errorCallback: function () {
+					toastStore.trigger(errorUploadToast);
+				}
+			})
+			.then(() => {
+				uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration);
+			});
 		return await quill
 			.createIllustrationBucket({
 				supabase: supabase,
@@ -580,6 +656,8 @@
 	/**
 	 * Gets the current chapter from the quill
 	 */
+	function getCurrentChapter() {
+		return quill.chapter;
 	function getCurrentChapter() {
 		return quill.chapter;
 	}
@@ -643,6 +721,7 @@
 				theme: 'bubble',
 				modules: {
 					toolbar: {
+						container: toolbarOptions
 						container: toolbarOptions
 					},
 					comment: {
@@ -803,13 +882,24 @@
 					<div
 						id="illustrations-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+						id="illustrations-container"
+						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
 					>
 						{#each Object.entries(quill.illustrations) as [id, illustration]}
 							<div
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
+								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								{#if quill.illustrations[id].illustration.src.length > 0}
+								{#if quill.illustrations[id].illustration.src.length > 0}
 									<img
+										id={`src-${illustration.id}`}
+										class="h-40 resize-none rounded-md mb-2"
+										alt={quill.illustrations[id].illustration.alt ||
+											quill.illustrations[id].illustration.caption}
+										src={quill.illustrations[id].illustration.src}
+										on:click={() => showIllustrationModal(illustration)}
+									/>
 										id={`src-${illustration.id}`}
 										class="h-40 resize-none rounded-md mb-2"
 										alt={quill.illustrations[id].illustration.alt ||
@@ -821,7 +911,13 @@
 									<FileDropzone
 										name="illustrationDropZone"
 										on:change={(event) => uploadIllustration(event, illustration)}
+									<FileDropzone
+										name="illustrationDropZone"
+										on:change={(event) => uploadIllustration(event, illustration)}
 									>
+										<svelte:fragment slot="message"
+											><strong>Upload an image</strong> or drage and drop</svelte:fragment
+										>
 										<svelte:fragment slot="message"
 											><strong>Upload an image</strong> or drage and drop</svelte:fragment
 										>
@@ -835,7 +931,19 @@
 									accept="image/png, image/jpeg, image/gif, image/svg"
 									on:change={replaceIllustrationSrc}
 								/>
+									type="file"
+									id={`file-${illustration.id}`}
+									class="hidden"
+									accept="image/png, image/jpeg, image/gif, image/svg"
+									on:change={replaceIllustrationSrc}
+								/>
 								<input
+									id={`caption-${illustration.id}`}
+									type="text"
+									class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
+									placeholder="Caption"
+									bind:value={quill.illustrations[id].illustration.caption}
+								/>
 									id={`caption-${illustration.id}`}
 									type="text"
 									class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
@@ -849,9 +957,16 @@
 											on:click={() => removeIllustration(id)}
 											class="chip variant-ghost-surface"
 										>
+										<button
+											on:click={() => removeIllustration(id)}
+											class="chip variant-ghost-surface"
+										>
 											Remove
 										</button>
 										<button
+											on:click={() => submitIllustration(id, undefined)}
+											class="chip variant-filled"
+											type="submit"
 											on:click={() => submitIllustration(id, undefined)}
 											class="chip variant-filled"
 											type="submit"
@@ -884,6 +999,9 @@
 								<Icon class="p-2" data={dashcube} scale={2.5} />
 							</button>
 							<button
+								on:click={() => toggleShowIllustrations()}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
 								on:click={() => toggleShowIllustrations()}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"

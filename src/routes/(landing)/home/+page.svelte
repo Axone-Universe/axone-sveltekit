@@ -1,45 +1,139 @@
 <script lang="ts">
-	import type { EmblaOptionsType } from 'embla-carousel-svelte';
+	import { FrameInfiniteGrid } from '@egjs/svelte-infinitegrid';
 
-	import Section from '$lib/components/Section.svelte';
+	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
-	import BookPreview from '$lib/components/book/BookPreview.svelte';
-	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
+	import { GenresBuilder, GENRES, type Genre } from '$lib/shared/genre';
 
 	import type { PageData } from './$types';
+	import { trpcWithQuery } from '$lib/trpc/client';
+	import type { HydratedDocument } from 'mongoose';
+	import type { BookProperties } from '$lib/shared/book';
+
+	const LOAD_DEBOUNCE_SECONDS = 1.0;
+	let last_load_epoch = 0;
+	let genresBuilder = new GenresBuilder();
 
 	export let data: PageData;
-	let { userAuthoredBookResponses } = data;
 
-	let options: EmblaOptionsType = {
-		loop: false,
-		align: 'start',
-		slidesToScroll: 1
-	};
-	let plugins: never[] = [];
+	const getBooksInfinite = trpcWithQuery($page).books.getAll.createInfiniteQuery(
+		{ limit: 10, genres: genresBuilder.build() },
+		{
+			queryKey: ['booksHome', genresBuilder.build()],
+			getNextPageParam: (lastPage) => lastPage.cursor,
+			cacheTime: 0
+		}
+	);
+
+	$: items = $getBooksInfinite.data
+		? ($getBooksInfinite.data.pages.flatMap(
+				(page) => page.result
+		  ) as HydratedDocument<BookProperties>[])
+		: [];
+
+	let ig;
+
+	function onSearchClick() {
+		$getBooksInfinite.refetch();
+	}
+
+	function onClearClick() {
+		genresBuilder = genresBuilder.reset();
+	}
 </script>
 
-<Container>
-	<Section>
-		<div class="mx-20 md:space-y-2">
-			<p class="text-l md:text-3xl font-bold">Featured</p>
-			<p class="text-sm text-thin md:text-normal">Our top picks from the universe</p>
-		</div>
-		<BookCarousel {options} {plugins}>
-			{#each userAuthoredBookResponses as bookResponse}
-				<BookPreview class="embla__slide" bookData={bookResponse} />
+<Container class="p-4">
+	<h1 class="my-8 text-center">Home</h1>
+	<div class="card flex items-center shadow-lg sticky top-[4.5rem] z-[2] w-full p-2 gap-2">
+		<div class="flex flex-wrap gap-2">
+			{#each GENRES as genre}
+				<button
+					class={`chip ${
+						genresBuilder.build().includes(genre) ? 'variant-filled-primary' : 'variant-filled'
+					}`}
+					on:click={() => {
+						genresBuilder = genresBuilder.toggle(genre);
+					}}
+				>
+					<p>{genre}</p>
+				</button>
 			{/each}
-		</BookCarousel>
-	</Section>
+		</div>
 
-	<Section>
-		<div class="mx-20 md:space-y-2">
-			<p class="text-l md:text-3xl font-bold">Top Finds For You</p>
+		<div class="flex flex-col gap-1">
+			<button class="btn btn-sm variant-filled-primary h-fit" on:click={onSearchClick}
+				>Search</button
+			>
+			<button class="btn btn-sm variant-filled-surface h-fit" on:click={onClearClick}>Clear</button>
 		</div>
-		<BookCarousel {options} {plugins}>
-			{#each userAuthoredBookResponses as bookResponse}
-				<BookPreview class="embla__slide" bookData={bookResponse} />
-			{/each}
-		</BookCarousel>
-	</Section>
+	</div>
+
+	<div class="p-4">
+		{#if $getBooksInfinite.isLoading}
+			Loading...
+		{:else if $getBooksInfinite.isError}
+			{$getBooksInfinite.error}
+		{:else if items.length == 0}
+			<p>No books!</p>
+		{:else}
+			<FrameInfiniteGrid
+				class="hidden sm:flex"
+				gap={5}
+				bind:this={ig}
+				{items}
+				let:visibleItems
+				frame={[
+					[1, 1, 2, 3, 3],
+					[1, 1, 4, 4, 5]
+				]}
+				on:requestAppend={() => {
+					if (
+						last_load_epoch === 0 ||
+						Date.now() - last_load_epoch >= LOAD_DEBOUNCE_SECONDS * 1000
+					) {
+						last_load_epoch = Date.now();
+						$getBooksInfinite.fetchNextPage();
+					}
+				}}
+			>
+				{#each visibleItems as item (item.key)}
+					<div
+						class="rounded-lg overflow-hidden even:sm:w-32 even:md:w-64 odd:sm:w-24 odd:md:w-48 aspect-[2/3] relative cursor-pointer"
+					>
+						<img
+							src={item.data.imageURL}
+							alt={item.data.title}
+							class="w-full h-full object-cover"
+						/>
+						<div
+							class="group hover:bg-black/25 absolute top-0 w-full h-full bg-black/0 duration-300"
+						>
+							<div
+								class="opacity-0 group-hover:opacity-100 flex flex-col justify-between items-center duration-300"
+							>
+								<p class="whitespace-normal text-lg font-bold">{item.data.title}</p>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</FrameInfiniteGrid>
+			<div class="flex flex-col gap-5 sm:hidden">
+				{#each items as item (item.title)}
+					<div class="w-full aspect-[2/3] relative cursor-pointer">
+						<img src={item.imageURL} alt={item.title} class="w-full h-full object-cover" />
+						<div
+							class="group hover:bg-black/25 absolute top-0 w-full h-full bg-black/0 duration-300"
+						>
+							<div
+								class="opacity-0 group-hover:opacity-100 flex flex-col justify-between items-center duration-300"
+							>
+								<p class="whitespace-normal break-all text-lg font-bold">{item.title}</p>
+								<p class="whitespace-normal break-all text-lg font-bold">{item.user}</p>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</div>
 </Container>

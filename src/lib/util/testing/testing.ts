@@ -1,8 +1,11 @@
+import { faker } from '@faker-js/faker';
 import type { Session, User } from '@supabase/supabase-js';
-import { router } from '$lib/trpc/router';
 import mongoose, { type HydratedDocument } from 'mongoose';
-import { GenresBuilder } from '$lib/shared/genres';
-import type { PermissionProperties } from '$lib/shared/permission';
+import { ulid } from 'ulid';
+
+import { GenresBuilder } from '$lib/shared/genre';
+import type { StorylineProperties } from '$lib/shared/storyline';
+import { router } from '$lib/trpc/router';
 
 import {
 	TEST_MONGO_PASSWORD,
@@ -52,6 +55,23 @@ export const testUserThree: User = {
 	created_at: ''
 };
 
+export function generateTestUser(): User {
+	const id = `test-${ulid()}`;
+	const firstName = faker.person.firstName();
+	const lastName = faker.person.lastName();
+	return {
+		id,
+		email: `${firstName}.${lastName}.${id.substring(id.length - 5, id.length - 1)}@test.com`,
+		user_metadata: {
+			firstName,
+			lastName
+		},
+		app_metadata: {},
+		aud: '',
+		created_at: ''
+	};
+}
+
 /**
  * Creates a session from a given user supabase
  * @param supabaseUser
@@ -77,13 +97,12 @@ export function createTestSession(supabaseUser: User) {
 export async function createBook(session: Session, title: string) {
 	const caller = router.createCaller({ session: session });
 
-	const genres = new GenresBuilder();
-	genres.genre('Action');
+	const genres = new GenresBuilder().with('Action');
 
 	const book = await caller.books.create({
 		title,
 		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
+		genres: Array.from(genres.build()),
 		description: '',
 		published: true
 	});
@@ -135,8 +154,17 @@ export async function connectDevDatabase() {
 	await mongoose.connect(MONGO_URL, options);
 }
 
-export async function cleanUpDatabase() {
-	await mongoose.connection.db.dropDatabase();
+export async function cleanUpDatabase(isPartOfDBSetup = false) {
+	await Promise.all(
+		Object.values(mongoose.connection.collections).map(async (collection) => {
+			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
+				await collection.deleteMany({ _id: /^test-/ });
+			} else {
+				await collection.deleteMany({});
+			}
+		})
+	);
+	// await mongoose.connection.db.dropDatabase();
 }
 
 /**

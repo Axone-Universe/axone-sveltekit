@@ -7,7 +7,7 @@ import { redirect } from '@sveltejs/kit';
 
 export const load = (async (event) => {
 	const bookData = (await trpc(event).books.getById.query({
-		searchTerm: event.params.id,
+		id: event.params.id,
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 

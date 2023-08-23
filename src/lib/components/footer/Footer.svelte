@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppBar, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+	import { AppBar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { twitter, instagram } from 'svelte-awesome/icons';

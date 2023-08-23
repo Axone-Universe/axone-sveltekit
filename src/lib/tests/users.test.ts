@@ -34,7 +34,7 @@ describe('users', () => {
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list();
+		const userResponses = await caller.users.list({});
 
 		// compare sorted arrays to ignore element position differences (if any)
 		expect(userResponses.map((a) => a._id).sort()).toEqual(
@@ -50,7 +50,7 @@ describe('users', () => {
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.getByDetails({ searchTerm: 'user_t' });
+		const userResponses = await caller.users.getByDetails({ detail: 'user_t' });
 
 		// compare sorted arrays to ignore element position differences (if any)
 		expect(userResponses.map((a) => a._id).sort()).toEqual([userResponse2._id].sort());
@@ -64,7 +64,7 @@ describe('users', () => {
 		await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponse = await caller.users.getById({ searchTerm: createUserResponse._id });
+		const userResponse = await caller.users.getById({ id: createUserResponse._id });
 
 		expect(userResponse!._id).toEqual(createUserResponse._id);
 	});

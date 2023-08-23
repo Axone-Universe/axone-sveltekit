@@ -8,6 +8,7 @@ import {
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
+import { GENRES } from '$lib/shared/genre';
 
 export const bookSchema = new Schema<BookProperties>({
 	_id: { type: String, required: true },
@@ -18,7 +19,12 @@ export const bookSchema = new Schema<BookProperties>({
 	tags: String,
 	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
-	genres: genresSchemaProperties
+	genres: [
+		{
+			type: String,
+			enum: GENRES
+		}
+	]
 });
 
 bookSchema.pre(['find', 'findOne'], function () {

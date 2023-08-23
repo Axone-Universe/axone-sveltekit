@@ -1,12 +1,6 @@
-import { label, type UserProperties } from '$lib/shared/user';
+import { GENRES } from '$lib/shared/genre';
+import { label, USER_LABELS, type UserProperties } from '$lib/shared/user';
 import mongoose, { Schema, model } from 'mongoose';
-import { genresSchemaProperties } from './genres';
-
-const usersSchemaProperties = {
-	Writer: Boolean,
-	Illustrator: Boolean,
-	Editor: Boolean
-};
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },
@@ -18,8 +12,18 @@ export const userSchema = new Schema<UserProperties>({
 	facebook: String,
 	instagram: String,
 	twitter: String,
-	genres: genresSchemaProperties,
-	labels: usersSchemaProperties
+	genres: [
+		{
+			type: String,
+			enum: GENRES
+		}
+	],
+	labels: [
+		{
+			type: String,
+			enum: USER_LABELS
+		}
+	]
 });
 
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });

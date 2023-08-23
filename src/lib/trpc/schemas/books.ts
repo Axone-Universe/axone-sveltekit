@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { genres } from './shared';
+import { genreSchema } from './shared';
 import { permissions } from './permissions';
 
 export const create = z.object({
 	title: z.string(),
 	description: z.string(),
 	imageURL: z.string(),
-	genres: genres.optional(),
+	genres: genreSchema.optional(),
 	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
@@ -16,7 +16,7 @@ export const update = z.object({
 	title: z.string().optional(),
 	description: z.string().optional(),
 	imageURL: z.string().optional(),
-	genres: genres.optional(),
+	genres: genreSchema.optional(),
 	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
@@ -24,4 +24,12 @@ export const update = z.object({
 export const submitToCampaign = z.object({
 	bookID: z.string(),
 	campaignID: z.string()
+});
+
+export const search = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	genres: genreSchema.optional(),
+	title: z.string().optional(),
+	id: z.string().optional()
 });

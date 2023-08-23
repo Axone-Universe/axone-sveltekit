@@ -1,12 +1,10 @@
 import { z } from 'zod';
-import { genres } from './shared';
-import type { UserProperties, Users } from '$lib/shared/user';
+import { genreSchema } from './shared';
+import { USER_LABELS, type UserProperties } from '$lib/shared/user';
 
-export const users = z.object({
-	Writer: z.boolean(),
-	Illustrator: z.boolean(),
-	Editor: z.boolean()
-}) satisfies z.ZodType<Users>;
+const UserSchema = z.enum(USER_LABELS);
+
+export const userSchema = z.array(UserSchema);
 
 export const create = z.object({
 	_id: z.string(),
@@ -18,8 +16,8 @@ export const create = z.object({
 	facebook: z.string().optional(),
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
-	genres: genres.optional(),
-	labels: users.optional()
+	genres: genreSchema.optional(),
+	labels: userSchema.optional()
 }) satisfies z.ZodType<UserProperties>;
 
 export const update = z.object({
@@ -32,6 +30,13 @@ export const update = z.object({
 	facebook: z.string().optional(),
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
-	genres: genres.optional(),
-	labels: users.optional()
+	genres: genreSchema.optional(),
+	labels: userSchema.optional()
+});
+
+export const search = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	id: z.string().optional(),
+	detail: z.string().optional()
 });

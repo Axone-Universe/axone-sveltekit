@@ -3,20 +3,25 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, submitToCampaign, update } from '$lib/trpc/schemas/books';
-import { search } from '$lib/trpc/schemas/shared';
+import { create, search, submitToCampaign, update } from '$lib/trpc/schemas/books';
 import type { HydratedDocument } from 'mongoose';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { BookProperties } from '$lib/shared/book';
 
 export const books = t.router({
 	getAll: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(search)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getAll(ctx.session, input?.limit, input?.skip);
+			const result = (await booksRepo.get(
+				ctx.session,
+				input?.limit,
+				input?.cursor,
+				input?.genres,
+				input?.title
+			)) as HydratedDocument<BookProperties>[];
 
-			return result;
+			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
 	getByTitle: t.procedure
@@ -26,9 +31,9 @@ export const books = t.router({
 			const booksRepo = new BooksRepository();
 			const result = await booksRepo.getByTitle(
 				ctx.session!,
-				input?.searchTerm,
+				input?.title,
 				input?.limit,
-				input?.skip
+				input?.cursor
 			);
 
 			return result;
@@ -39,10 +44,11 @@ export const books = t.router({
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getById(ctx.session, input?.searchTerm);
+			const result = await booksRepo.getById(ctx.session, input?.id);
 
 			return result;
 		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)
@@ -62,6 +68,7 @@ export const books = t.router({
 			const bookNode = await bookBuilder.update();
 			return bookNode;
 		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)

@@ -1,5 +1,4 @@
 import type { PermissionProperties } from '$lib/shared/permission';
-import type { UserProperties } from '$lib/shared/user';
 import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,

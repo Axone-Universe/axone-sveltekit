@@ -50,9 +50,9 @@ describe('books', () => {
 		const bookResponse3 = await createBook(createTestSession(testUserThree), testBookTitle3);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.getAll();
+		const bookResponses = await caller.books.getAll({});
 
-		expect(bookResponses.map((a) => a._id).sort()).toEqual(
+		expect(bookResponses.result.map((a) => a._id).sort()).toEqual(
 			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
 		);
 	});
@@ -65,7 +65,7 @@ describe('books', () => {
 		await createBook(createTestSession(testUserOne), testBookTitle2);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.getByTitle({ searchTerm: testBookTitle1 });
+		const bookResponses = await caller.books.getByTitle({ title: testBookTitle1 });
 
 		expect(bookResponses.length).toEqual(1);
 		expect(bookResponses.pop()?._id).toEqual(bookResponse._id);

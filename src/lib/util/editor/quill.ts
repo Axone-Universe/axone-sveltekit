@@ -3,7 +3,7 @@ import type Op from 'quill-delta/dist/Op';
 import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
 import type { HydratedDocument } from 'mongoose';
 import type { ChapterProperties } from '$lib/shared/chapter';
-import { trpc } from '$lib/trpc/client';
+import { trpcWithQuery } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { writable } from 'svelte/store';
@@ -101,7 +101,7 @@ export class QuillEditor extends Quill {
 			changeDelta.update(() => new Delta());
 
 			// TODO: If the autosave fails, merge snapshot and change deltas
-			trpc(this.page)
+			trpcWithQuery(this.page)
 				.deltas.update.mutate({
 					id: deltaID,
 					chapterID: this.chapter!._id,
@@ -148,7 +148,7 @@ export class QuillEditor extends Quill {
 
 		if (delta) {
 			if (typeof delta === 'string') {
-				const deltaResponse = await trpc(this.page).deltas.getById.query({
+				const deltaResponse = await trpcWithQuery(this.page).deltas.getById.query({
 					id: delta as string
 				});
 				this.setChapterContents(
@@ -159,7 +159,7 @@ export class QuillEditor extends Quill {
 				this.setChapterContents(this.chapter!, delta as HydratedDocument<ChapterProperties>);
 			}
 		} else {
-			await trpc(this.page)
+			await trpcWithQuery(this.page)
 				.deltas.create.mutate({
 					chapterID: this.chapter!._id
 				})

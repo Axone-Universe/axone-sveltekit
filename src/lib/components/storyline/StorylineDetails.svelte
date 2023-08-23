@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
-	import { trpc } from '$lib/trpc/client';
+	import { trpcWithQuery } from '$lib/trpc/client';
 	import {
 		Accordion,
 		AccordionItem,
@@ -39,7 +39,7 @@
 
 	async function createStoryline() {
 		console.log(storyline);
-		trpc($page)
+		trpcWithQuery($page)
 			.storylines.create.mutate({
 				title: storyline.title,
 				description: storyline.description,

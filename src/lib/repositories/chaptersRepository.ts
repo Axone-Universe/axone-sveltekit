@@ -18,7 +18,7 @@ export class ChaptersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async getAll(
+	async get(
 		session: Session | null,
 		limit?: number,
 		skip?: number
