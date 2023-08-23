@@ -1,3 +1,11 @@
+import type { Bucket, StorageError as SupabasStorageError, FileObject } from '@supabase/storage-js';
+
+export interface DeltaQuery {
+	id?: string;
+	chapterID: string;
+	ops?: string;
+}
+
 export interface CampaignProperties {
 	id?: string;
 	title: string;
@@ -23,3 +31,11 @@ export interface NodeRelationship {
 export type StorageError =
 	| { data: { path: string }; error: null }
 	| { data: null; error: { name: string; statusCode?: string } };
+
+export type StorageBucketError =
+	| { data: Bucket; error: null }
+	| { data: null; error: SupabasStorageError };
+
+export type StorageFileError =
+	| { data: FileObject[]; error: null }
+	| { data: null; error: SupabasStorageError };
