@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" >
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
@@ -127,10 +127,11 @@
 	const creatorsMenuList = [
 		{ funct : upload, label: 'Upload Cover' },
 		{ funct : adobeCreateCover, label: 'Create Cover' },
-		
+		{ funct : adobeEditCover, label: 'Edit Cover' },
 	];
+	
+	async function adobeEditCover(){
 
-	async function adobeCreateCover(){
 		const ccEverywhere = await window.CCEverywhere.initialize({
                 /* Get credentials at Adobe Developer Console.
                 During beta, your client will need to be enabled. 
@@ -142,7 +143,77 @@
     			platformCategory: 'web'
             });
 
+
 			const createDesignCallback = {
+                    onCancel: () => {},
+                    onPublish: (publishParams) => {
+                        const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
+                        //image_data.src = localData.image;
+                        //project_id = localData.project;
+                        
+                        //let img = document.getElementById('savedDesign');
+                        
+                        //let blob = new Blob(localData.image, {type: 'text/plain'});
+                        //img.src = URL.createObjectURL(blob);
+                        //console.log("Created from asset", localData, img);
+                    },
+                    onError: (err) => {
+                        console.error('Error received is', err.toString());
+                    },
+                };
+
+                if(image) {
+                    ccEverywhere.createDesign({
+                        callbacks: createDesignCallback,
+                        inputParams: {
+                            asset: {
+                                data: image, 
+                                dataType: 'base64', 
+                                type: 'image'
+                            }, 
+                        },
+                        outputParams: {
+                            outputType: "url",
+                    }})
+                } else {
+                    console.log("no input image provided")
+                } 
+            
+
+	}
+	async function adobeCreateCover(){
+		let ccEverywhere ;
+		if(!localStorage.getItem('adobe')){
+
+			ccEverywhere = await window.CCEverywhere.initialize({
+					/* Get credentials at Adobe Developer Console.
+					During beta, your client will need to be enabled. 
+					Email your client ID (API Key) to amandah@adobe.com
+					*/
+					clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+					appName: 'Axone',
+					appVersion: { major: 1, minor: 0 }, 
+					platformCategory: 'web'
+				});
+
+
+			localStorage.setItem('adobe', ccEverywhere);
+		
+		}else{
+
+			ccEverywhere = await localStorage.getItem('adobe');
+
+		}
+		console.log(ccEverywhere);
+
+		
+		
+
+		
+		
+			
+			const createDesignCallback = {
+					
                     onCancel: () => {},
                     onPublish: (publishParams) => {
                         const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
