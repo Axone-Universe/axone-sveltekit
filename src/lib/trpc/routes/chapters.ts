@@ -15,19 +15,25 @@ export const chapters = t.router({
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
-			if (input?.storylineID) {
-				chaptersRepo.storylineID(input.storylineID);
-			}
-
-			if (input?.toChapterID) {
-				chaptersRepo.toChapterID(input.toChapterID);
-			}
-
 			const result = await chaptersRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),
 
+	getByStorylineID: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			const chaptersRepo = new ChaptersRepository();
+
+			const result = await chaptersRepo.getByStorylineID(
+				ctx.session,
+				input.storylineID,
+				input.toChapterID
+			);
+
+			return result;
+		}),
 	update: t.procedure
 		.use(logger)
 		.use(auth)

@@ -47,7 +47,7 @@ describe('chapters', () => {
 			chapter1Response._id
 		);
 
-		let storylineChapters = await caller.chapters.getAll({
+		let storylineChapters = await caller.chapters.getByStorylineID({
 			storylineID: storylines[0]._id
 		});
 
@@ -59,8 +59,8 @@ describe('chapters', () => {
 		expect(storylineChapters[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
-		storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].id,
+		storylineChapters = await caller.chapters.getByStorylineID({
+			storylineID: storylines[0]._id,
 			toChapterID: chapter1Response._id
 		});
 

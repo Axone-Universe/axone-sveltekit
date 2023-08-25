@@ -6,6 +6,7 @@ import { DocumentBuilder } from '../documentBuilder';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
+import type { ChapterProperties } from '$lib/shared/chapter';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
@@ -22,7 +23,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 	chapterID(chapterID: string): DeltaBuilder {
 		this._chapterID = chapterID;
-
+		this._deltaProperties.chapter = chapterID;
 		return this;
 	}
 
@@ -45,7 +46,16 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		const deltaOps = JSON.parse(ops);
 		const quillDelta = new QuillDelta(deltaOps);
 
-		const delta = await Delta.findById(id);
+		const delta = await Delta.aggregate([
+			{
+				$match: {
+					_id: id
+				}
+			}
+		])
+			.cursor()
+			.next();
+
 		const currentOpsJSON = delta.ops;
 
 		// convert current ops to a delta
@@ -81,11 +91,25 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		await session.withTransaction(async () => {
 			await delta.save({ session });
 
-			const chapter = await Chapter.findById(this._chapterID, null, {
-				userID: this._sessionUserID
+			const chapter = await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterID
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			)
+				.cursor()
+				.next();
+
+			await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
+				userID: this._sessionUserID,
+				session: session
 			});
-			chapter.delta = delta._id;
-			await chapter.save({ session });
 
 			return delta;
 		});

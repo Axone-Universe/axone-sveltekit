@@ -31,7 +31,7 @@
 	let bookGenres: Record<string, boolean> = {};
 	let genres: Record<string, boolean> = {};
 
-	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
+	let permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
 
 	onMount(() => {
 		bookGenres = book.genres as unknown as Record<string, boolean>;
@@ -48,7 +48,7 @@
 				book: storyline.book,
 				parent: storyline.parent,
 				parentChapter: storyline.parentChapter,
-				permissions: Object.fromEntries(permissions) as any
+				permissions: permissions
 			})
 			.then(async (storyline) => {
 				const t: ToastSettings = {

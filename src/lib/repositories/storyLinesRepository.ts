@@ -21,19 +21,15 @@ export class StorylinesRepository extends Repository {
 		limit?: number,
 		skip?: number
 	): Promise<HydratedDocument<StorylineProperties>[]> {
-		let query = Storyline.find(this._bookID ? { book: this._bookID } : {}, null, {
+		const pipeline = [];
+
+		if (this._bookID) pipeline.push({ $match: { book: this._bookID } });
+		if (limit) pipeline.push({ $limit: limit });
+		if (skip) pipeline.push({ $skip: skip });
+
+		const storylines = (await Storyline.aggregate(pipeline, {
 			userID: session?.user.id
-		});
-
-		if (skip) {
-			query = query.skip(skip);
-		}
-
-		if (limit) {
-			query = query.limit(limit);
-		}
-
-		const storylines = await query;
+		})) as HydratedDocument<StorylineProperties>[];
 
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storylines);
@@ -51,19 +47,28 @@ export class StorylinesRepository extends Repository {
 
 	async getById(
 		session: Session | null,
-		id?: string
+		id: string
 	): Promise<HydratedDocument<StorylineProperties>> {
-		let query;
+		const storyline = await Storyline.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
 
-		if (!id) {
-			query = Storyline.findOne({ main: true, book: this._bookID }, null, {
-				userID: session?.user.id
-			});
-		} else {
-			query = Storyline.findById(id, null, { userID: session?.user.id });
-		}
+		return new Promise<HydratedDocument<StorylineProperties>>((resolve) => {
+			resolve(storyline);
+		});
+	}
 
-		const storyline = await query;
+	async getByBookID(
+		session: Session | null,
+		bookID: string
+	): Promise<HydratedDocument<StorylineProperties>> {
+		const storyline = await Storyline.aggregate([{ $match: { book: bookID } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
 
 		return new Promise<HydratedDocument<StorylineProperties>>((resolve) => {
 			resolve(storyline);

@@ -1,5 +1,5 @@
 import { label, type BookProperties } from '$lib/shared/book';
-import mongoose, { Schema, model } from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
 import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
@@ -20,14 +20,20 @@ export const bookSchema = new Schema<BookProperties>({
 	genres: genresSchemaProperties
 });
 
-bookSchema.pre(['find', 'findOne'], function (next) {
-	const userID = this.getOptions().userID;
-	const filter = this.getFilter();
+bookSchema.pre(['find', 'findOne'], function () {
+	throw new Error('Please use aggregate.');
+});
 
-	const updatedFilter = addReadPermissionFilter(userID, filter);
-	this.setQuery(updatedFilter);
+bookSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const pipeline = this.pipeline();
 
-	populate(this);
+	// add populate pipeline
+
+	// const updatedFilter = addReadPermissionFilter(userID, filter);
+	// this.setQuery(updatedFilter);
+
+	populate(pipeline);
 	next();
 });
 
@@ -58,8 +64,37 @@ bookSchema.pre(
  * Add fields you want to be populated by default here
  * @param query
  */
-function populate(query: any) {
-	query.populate([{ path: 'user' }, { path: 'permissions.$*.user' }]);
+function populate(pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+		},
+		{
+			$unwind: {
+				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		}
+	);
+
+	pipeline.push(
+		{
+			$addFields: {
+				permissionsArray: { $objectToArray: '$permissions' }
+			}
+		},
+		{
+			$lookup: {
+				from: 'users',
+				localField: 'permissionsArray.v.user',
+				foreignField: '_id',
+				as: 'permissionsUsers'
+			}
+		},
+		{
+			$unset: ['permissionsArray']
+		}
+	);
 }
 
 export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);

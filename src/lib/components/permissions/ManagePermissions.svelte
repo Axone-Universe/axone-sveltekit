@@ -28,7 +28,7 @@
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>;
-	export let permissions: Map<string, HydratedDocument<PermissionProperties>>;
+	export let permissions: Record<string, HydratedDocument<PermissionProperties>>;
 
 	export let customClass = '';
 	export { customClass as class };
@@ -133,13 +133,13 @@
 		permission.user = users[userID];
 
 		if (userID !== documentOwner._id) {
-			permissions.set(userID, permission);
+			permissions[userID] = permission;
 			permissions = permissions;
 		}
 	}
 
 	function removePermission(userID: string) {
-		permissions.delete(userID);
+		delete permissions[userID];
 		permissions = permissions;
 	}
 
@@ -153,8 +153,13 @@
 				if (permission.user) {
 					userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
 				}
-				permissions.set(userID, permission);
+				permissions[userID] = permission;
 			}
+		}
+
+		// fill the users in from permissionsUsers
+		for (const user of permissionedDocument.permissionsUsers ?? []) {
+			permissions[user._id].user = user;
 		}
 
 		permissions = permissions;
@@ -171,14 +176,14 @@
 			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
 		permission._id = ulid();
 		permission.public = true;
-		permissions.set('public', permission);
+		permissions['public'] = permission;
 	}
 
 	function onPermissionChanged(event: any) {
 		const userID = event.target.getAttribute('name');
 		const value = event.target.value;
 		console.log('** perm ' + userID + ' ' + value);
-		permissions.get(userID)!.permission = value;
+		permissions[userID]!.permission = value;
 	}
 </script>
 
@@ -238,7 +243,7 @@
 						</button>
 					</div>
 				</div>
-				{#each [...permissions] as [id, permission]}
+				{#each Object.entries(permissions) as [id, permission]}
 					{#if permission.user && typeof permission.user !== 'string'}
 						<div class="flex p-2 justify-start items-center space-x-2">
 							<Avatar src="https://source.unsplash.com/YOErFW8AfkI/32x32" rounded="rounded-full" />
@@ -294,12 +299,12 @@
 					<SlideToggle
 						name="slider-large"
 						background="bg-primary-800"
-						checked={permissions.get('public')?.public}
+						checked={permissions['public']?.public}
 						active="bg-primary-500"
 						size="md"
 						on:change={onPublicAccessChange}
 					>
-						{permissions.get('public') ? 'On' : 'Off'}
+						{permissions['public'] ? 'On' : 'Off'}
 					</SlideToggle>
 				</div>
 			</div>

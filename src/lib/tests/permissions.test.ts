@@ -32,37 +32,37 @@ describe('books', () => {
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 		let permissions = createBookResponse.permissions;
 
-		permissions.set(testUserTwo.id, {
+		permissions[testUserTwo.id] = {
 			_id: ulid(),
 			public: false,
 			user: testUserTwoDB._id,
 			permission: 'edit'
-		} as HydratedDocument<PermissionProperties>);
+		} as HydratedDocument<PermissionProperties>;
 
 		// create a new permission
 		const caller = router.createCaller({ session: testUserOneSession });
 		let updatedBookResponse = await caller.books.update({
 			id: createBookResponse._id,
-			permissions: Object.fromEntries(permissions) as any
+			permissions: permissions
 		});
 
-		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('edit');
+		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('edit');
 
 		permissions = updatedBookResponse.permissions;
 
-		permissions.set(testUserTwo.id, {
+		permissions[testUserTwo.id] = {
 			_id: ulid(),
 			public: false,
 			user: testUserTwoDB._id,
 			permission: 'view'
-		} as HydratedDocument<PermissionProperties>);
+		} as HydratedDocument<PermissionProperties>;
 
 		updatedBookResponse = await caller.books.update({
 			id: createBookResponse._id,
-			permissions: Object.fromEntries(permissions) as any
+			permissions: permissions
 		});
 
-		expect(updatedBookResponse.permissions.get(testUserTwo.id)?.permission).toEqual('view');
+		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('view');
 	});
 
 	test('delete permission', async () => {
@@ -75,17 +75,17 @@ describe('books', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const getBookResponse = await caller.books.getById({ searchTerm: createBookResponse._id });
 
-		expect(getBookResponse.permissions.get('public')?.public).toEqual(true);
+		expect(getBookResponse.permissions['public']?.public).toEqual(true);
 
 		// delete permission
-		const permissions = getBookResponse.permissions as any;
-		permissions.delete('');
+		const permissions = getBookResponse.permissions;
+		delete permissions[''];
 
 		const updatedBookResponse = await caller.books.update({
 			id: getBookResponse._id,
-			permissions: Object.fromEntries(permissions) as any
+			permissions: permissions
 		});
 
-		expect(updatedBookResponse.permissions.get('')).toEqual(undefined);
+		expect(updatedBookResponse.permissions['']).toEqual(undefined);
 	});
 });

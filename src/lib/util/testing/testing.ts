@@ -105,7 +105,7 @@ export async function createChapter(
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		permissions: { ['public']: { _id: ulid(), user: session.user.id, public: true } }
 	});
 
 	return chapter;

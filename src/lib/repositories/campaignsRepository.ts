@@ -2,6 +2,7 @@ import type { CampaignProperties } from '$lib/shared/campaign';
 import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';
+import type { Session } from '@supabase/supabase-js';
 
 export class CampaignsRepository extends Repository {
 	async get(
@@ -38,6 +39,7 @@ export class CampaignsRepository extends Repository {
 	}
 
 	getById(
+		session: Session | null,
 		searchTerm?: string | undefined,
 		limit?: number | undefined,
 		skip?: number | undefined

@@ -16,7 +16,7 @@
 	let customClass = '';
 	export { customClass as class };
 
-	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
+	let permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
 
 	let closeModal = () => {
 		modalStore.close();
@@ -44,7 +44,7 @@
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
 				description: chapterNode.description!,
-				permissions: Object.fromEntries(permissions) as any
+				permissions: permissions
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -74,7 +74,7 @@
 				id: chapterNode._id,
 				title: chapterNode.title,
 				description: chapterNode.description,
-				permissions: Object.fromEntries(permissions) as any
+				permissions: permissions
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;

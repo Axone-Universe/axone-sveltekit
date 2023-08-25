@@ -78,7 +78,7 @@ describe('storylines', () => {
 			prevChapterID: chapter1Response._id
 		});
 
-		const storyline_2Chapters = await caller.chapters.getAll({
+		const storyline_2Chapters = await caller.chapters.getByStorylineID({
 			storylineID: storyline2._id
 		});
 

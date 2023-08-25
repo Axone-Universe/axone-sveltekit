@@ -23,7 +23,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			title: '',
 			imageURL: '',
 			description: '',
-			permissions: new Map()
+			permissions: {}
 		};
 		this._userID = {};
 	}
@@ -56,7 +56,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
+	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._bookProperties.permissions = permissions;
 		return this;
 	}
@@ -72,9 +72,22 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			userID: this._sessionUserID
 		});
 
-		return (await Book.findById(this._bookProperties._id, null, {
-			userID: this._sessionUserID
-		})) as HydratedDocument<BookProperties>;
+		const newBook = await Book.aggregate(
+			[
+				{
+					$match: {
+						_id: this._bookProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		return newBook;
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
@@ -105,9 +118,21 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		});
 		session.endSession();
 
-		// We always want to know the creator of a book
-		Book.populate(book, { path: 'user' });
+		const newBook = await Book.aggregate(
+			[
+				{
+					$match: {
+						_id: this._bookProperties._id
+					}
+				}
+			],
+			{
+				userID: this._userID.id
+			}
+		)
+			.cursor()
+			.next();
 
-		return book as HydratedDocument<BookProperties>;
+		return newBook as unknown as HydratedDocument<BookProperties>;
 	}
 }
