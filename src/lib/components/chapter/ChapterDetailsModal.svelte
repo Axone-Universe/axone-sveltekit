@@ -44,7 +44,8 @@
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
 				description: chapterNode.description!,
-				permissions: permissions
+				permissions: permissions,
+				published: chapterNode.published
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -74,7 +75,8 @@
 				id: chapterNode._id,
 				title: chapterNode.title,
 				description: chapterNode.description,
-				permissions: permissions
+				permissions: permissions,
+				published: chapterNode.published
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -124,7 +126,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} permissionedDocument={chapterNode} />
+			<ManagePermissions {permissions} bind:permissionedDocument={chapterNode} />
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">

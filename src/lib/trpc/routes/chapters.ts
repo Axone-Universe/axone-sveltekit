@@ -20,7 +20,7 @@ export const chapters = t.router({
 			return result;
 		}),
 
-	getByStorylineID: t.procedure
+	getByStoryline: t.procedure
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
@@ -28,7 +28,7 @@ export const chapters = t.router({
 
 			const result = await chaptersRepo.getByStorylineID(
 				ctx.session,
-				input.storylineID,
+				input.storylineChapterIDs,
 				input.toChapterID
 			);
 
@@ -41,17 +41,10 @@ export const chapters = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
-			if (input?.description) {
-				chapterBuilder.description(input.description);
-			}
-
-			if (input?.title) {
-				chapterBuilder.title(input.title);
-			}
-
-			if (input?.permissions) {
-				chapterBuilder.permissions(input.permissions as any);
-			}
+			if (input.published) chapterBuilder.published(input.published);
+			if (input.description) chapterBuilder.description(input.description);
+			if (input.title) chapterBuilder.title(input.title);
+			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
 
 			const chapterNode = await chapterBuilder.update();
 			return chapterNode;
@@ -70,13 +63,9 @@ export const chapters = t.router({
 				.storylineID(input.storylineID)
 				.description(input.description);
 
-			if (input?.prevChapterID) {
-				chapterBuilder.prevChapterID(input.prevChapterID);
-			}
-
-			if (input?.permissions) {
-				chapterBuilder.permissions(input.permissions as any);
-			}
+			if (input.published) chapterBuilder.published(input.published);
+			if (input.prevChapterID) chapterBuilder.prevChapterID(input.prevChapterID);
+			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
 
 			const chapterNode = await chapterBuilder.build();
 

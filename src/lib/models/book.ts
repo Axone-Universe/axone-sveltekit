@@ -4,7 +4,6 @@ import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
 	addDeletePermissionFilter,
-	addReadPermissionFilter,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
@@ -16,6 +15,7 @@ export const bookSchema = new Schema<BookProperties>({
 	description: String,
 	imageURL: String,
 	tags: String,
+	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
 	genres: genresSchemaProperties
 });
@@ -29,10 +29,6 @@ bookSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	// add populate pipeline
-
-	// const updatedFilter = addReadPermissionFilter(userID, filter);
-	// this.setQuery(updatedFilter);
-
 	populate(pipeline);
 	next();
 });
@@ -95,6 +91,22 @@ function populate(pipeline: PipelineStage[]) {
 			$unset: ['permissionsArray']
 		}
 	);
+}
+
+function permissions(userID: string, pipeline: PipelineStage[]) {
+	pipeline.push({
+		$addFields: {
+			permissioned: {
+				$cond: [
+					{
+						$or: [{ published: true }, { ['permissions.' + userID]: { $exists: true } }]
+					},
+					true,
+					false
+				]
+			}
+		}
+	});
 }
 
 export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);

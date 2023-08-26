@@ -23,7 +23,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			title: '',
 			imageURL: '',
 			description: '',
-			permissions: {}
+			permissions: {},
+			published: false
 		};
 		this._userID = {};
 	}
@@ -63,6 +64,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 	sessionUserID(sessionUserID: string): BookBuilder {
 		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
+	published(published: boolean) {
+		this._bookProperties.published = published;
 		return this;
 	}
 
@@ -111,6 +117,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 				.main(true)
 				.description(hydratedBook.description!)
 				.imageURL(hydratedBook.imageURL!)
+				.published(hydratedBook.published)
 				.permissions(hydratedBook.permissions);
 
 			const storyline = new Storyline(storylineBuilder.properties());

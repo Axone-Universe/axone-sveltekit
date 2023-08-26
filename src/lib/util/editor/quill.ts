@@ -77,7 +77,6 @@ export class QuillEditor extends Quill {
 
 	saveDelta() {
 		if (this.changeDelta && this.changeDelta.length() > 0) {
-			console.log('saving delta 2');
 			let deltaID: string;
 			if (typeof this.chapter?.delta === 'string') {
 				deltaID = this.chapter?.delta as string;
@@ -85,7 +84,6 @@ export class QuillEditor extends Quill {
 				deltaID = (this.chapter?.delta as HydratedDocument<DeltaProperties>)._id;
 			}
 
-			console.log('saving ' + this.chapter?.title);
 			// take a snapshot of current delta state.
 			// that is the one sent to the server
 
@@ -101,7 +99,7 @@ export class QuillEditor extends Quill {
 
 			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
 			changeDelta.update(() => new Delta());
-			console.log('saving delta 3', this.changeDeltaSnapshot.ops);
+
 			// TODO: If the autosave fails, merge snapshot and change deltas
 			trpc(this.page)
 				.deltas.update.mutate({
@@ -144,7 +142,6 @@ export class QuillEditor extends Quill {
 
 		this.disable();
 
-		console.log('get ch d');
 		if (delta) {
 			if (typeof delta === 'string') {
 				const deltaResponse = await trpc(this.page).deltas.getById.query({
@@ -186,8 +183,6 @@ export class QuillEditor extends Quill {
 
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
 		const ops = opsJSON ? opsJSON : [];
-
-		console.log('loading ops', ops);
 
 		//Parse the illustrations to JavaScript objects
 		(ops as Op[]).forEach((op) => {
@@ -550,7 +545,7 @@ export class QuillEditor extends Quill {
 	 */
 	async createIllustrationBucket({
 		supabase,
-	 	errorCallback,
+		errorCallback,
 		bucket
 	}: {
 		supabase: SupabaseClient;

@@ -5,15 +5,8 @@ import type { Session } from '@supabase/supabase-js';
 import type { Document, HydratedDocument } from 'mongoose';
 
 export class StorylinesRepository extends Repository {
-	private _bookID?: string;
-
 	constructor() {
 		super();
-	}
-
-	bookId(bookId: string): StorylinesRepository {
-		this._bookID = bookId;
-		return this;
 	}
 
 	async getAll(
@@ -23,7 +16,7 @@ export class StorylinesRepository extends Repository {
 	): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
 
-		if (this._bookID) pipeline.push({ $match: { book: this._bookID } });
+		pipeline.push({ $match: {} });
 		if (limit) pipeline.push({ $limit: limit });
 		if (skip) pipeline.push({ $skip: skip });
 
@@ -62,15 +55,18 @@ export class StorylinesRepository extends Repository {
 
 	async getByBookID(
 		session: Session | null,
-		bookID: string
-	): Promise<HydratedDocument<StorylineProperties>> {
-		const storyline = await Storyline.aggregate([{ $match: { book: bookID } }], {
-			userID: session?.user.id
-		})
-			.cursor()
-			.next();
+		bookID: string,
+		main?: boolean | undefined
+	): Promise<HydratedDocument<StorylineProperties>[]> {
+		const pipeline = [];
 
-		return new Promise<HydratedDocument<StorylineProperties>>((resolve) => {
+		pipeline.push(main ? { $match: { book: bookID, main: true } } : { $match: { book: bookID } });
+
+		const storyline = await Storyline.aggregate(pipeline, {
+			userID: session?.user.id
+		});
+
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storyline);
 		});
 	}

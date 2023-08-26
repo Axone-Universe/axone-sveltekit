@@ -106,6 +106,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				.cursor()
 				.next();
 
+			chapter.delta = delta._id;
 			await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
 				userID: this._sessionUserID,
 				session: session

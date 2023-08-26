@@ -4,33 +4,11 @@ import { label as UserLabel } from '$lib/shared/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({
 	_id: { type: String, required: true },
-	public: { type: Boolean, required: true },
 	user: { type: String, ref: UserLabel },
 	permission: String
 });
 
 /** READ, UPDATE, DELETE permission filters */
-
-export function addReadPermissionFilter(userID: string, filter: any) {
-	let permissionFilter = {};
-
-	// We'll only get documents with public permissions
-	if (!userID) {
-		permissionFilter = { ['permissions.public']: { $exists: true } };
-	} else {
-		permissionFilter = {
-			$or: [
-				{ user: userID },
-				{ ['permissions.public']: { $exists: true } },
-				{ ['permissions.' + userID]: { $exists: true } }
-			]
-		};
-	}
-
-	const updatedFilter = { $and: [filter, permissionFilter] };
-
-	return updatedFilter;
-}
 
 export function addUpdatePermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};

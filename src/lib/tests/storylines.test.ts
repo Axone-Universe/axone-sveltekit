@@ -58,11 +58,11 @@ describe('storylines', () => {
 		});
 
 		const storyline_1Chapters = await caller.chapters.getAll({
-			storylineID: storylines[0]._id
+			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
 		// Create a new storyline
-		const storyline2 = await caller.storylines.create({
+		let storyline2 = await caller.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
 			book: bookResponse._id,
@@ -78,8 +78,12 @@ describe('storylines', () => {
 			prevChapterID: chapter1Response._id
 		});
 
-		const storyline_2Chapters = await caller.chapters.getByStorylineID({
+		storyline2 = await caller.storylines.getById({
 			storylineID: storyline2._id
+		});
+
+		const storyline_2Chapters = await caller.chapters.getByStoryline({
+			storylineChapterIDs: storyline2.chapters as string[]
 		});
 
 		expect(chapter1Response.title).toEqual(chapter1Title);

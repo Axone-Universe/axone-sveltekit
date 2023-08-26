@@ -80,7 +80,8 @@
 				description: book.description,
 				imageURL: book.imageURL,
 				genres: book.genres,
-				permissions: permissions
+				permissions: permissions,
+				published: book.published
 			})
 			.then((bookResponse) => {
 				const t: ToastSettings = {
@@ -185,7 +186,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} permissionedDocument={book} />
+			<ManagePermissions {permissions} bind:permissionedDocument={book} />
 		</div>
 
 		<div class="flex flex-col sm:flex-row gap-4">

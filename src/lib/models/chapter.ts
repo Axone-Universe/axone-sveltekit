@@ -5,7 +5,6 @@ import { label as StorylineLabel } from '$lib/shared/storyline';
 import { label as UserLabel } from '$lib/shared/user';
 import { label as DeltaLabel } from '$lib/shared/delta';
 import {
-	addReadPermissionFilter,
 	addDeletePermissionFilter,
 	addUpdatePermissionFilter,
 	permissionSchema
@@ -18,6 +17,7 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	user: { type: String, ref: UserLabel, required: true },
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
+	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String
@@ -31,12 +31,8 @@ chapterSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	// add populate pipeline
-
-	// const updatedFilter = addReadPermissionFilter(userID, filter);
-	// this.setQuery(updatedFilter);
-
 	populate(pipeline);
+	permissions(userID, pipeline);
 	next();
 });
 
@@ -94,6 +90,53 @@ function populate(pipeline: PipelineStage[]) {
 			$unset: ['permissionsArray']
 		}
 	);
+}
+
+function permissions(userID: string, pipeline: PipelineStage[]) {
+	// permissions
+	pipeline.push(
+		{
+			$lookup: {
+				from: 'storylines',
+				localField: 'storyline',
+				foreignField: '_id',
+				as: 'storyline'
+			}
+		},
+		{
+			$unwind: {
+				path: '$storyline',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$match: {
+				$or: [
+					{ 'storyline.user': userID },
+					{ 'storyline.published': true },
+					{ ['storyline.permissions.' + userID]: { $exists: true } }
+				]
+			}
+		}
+	);
+
+	pipeline.push({
+		$addFields: {
+			hasPermission: {
+				$cond: [
+					{
+						$or: [
+							{ $eq: ['$user._id', userID] },
+							{ $eq: ['$published', true] }
+							// { $ne: [['$permissions.' + userID], null] }
+						]
+					},
+					true,
+					false
+				]
+			}
+		}
+	});
 }
 
 export const Chapter = mongoose.models[label] || model<ChapterProperties>(label, chapterSchema);

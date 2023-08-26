@@ -149,11 +149,10 @@
 			console.log(permissionedDocument.permissions);
 			// Convert to map again because it comes to UI deserialized into JS object
 			for (let [key, permission] of new Map(Object.entries(permissionedDocument.permissions))) {
-				let userID = 'public';
 				if (permission.user) {
-					userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
+					let userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
+					permissions[userID] = permission;
 				}
-				permissions[userID] = permission;
 			}
 		}
 
@@ -167,16 +166,7 @@
 
 	/** An empty user means the permission is for the public */
 	function onPublicAccessChange() {
-		if ('' in permissions) {
-			delete permissions[''];
-			return;
-		}
-
-		let permission =
-			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
-		permission._id = ulid();
-		permission.public = true;
-		permissions['public'] = permission;
+		permissionedDocument.published = !permissionedDocument.published;
 	}
 
 	function onPermissionChanged(event: any) {
@@ -299,12 +289,12 @@
 					<SlideToggle
 						name="slider-large"
 						background="bg-primary-800"
-						checked={permissions['public']?.public}
+						checked={permissionedDocument.published}
 						active="bg-primary-500"
 						size="md"
 						on:change={onPublicAccessChange}
 					>
-						{permissions['public'] ? 'On' : 'Off'}
+						{permissionedDocument.published ? 'On' : 'Off'}
 					</SlideToggle>
 				</div>
 			</div>

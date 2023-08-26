@@ -4,7 +4,6 @@ import { label as BookLabel } from '$lib/shared/book';
 import { label as UserLabel } from '$lib/shared/user';
 import { label as ChapterLabel } from '$lib/shared/chapter';
 import {
-	addReadPermissionFilter,
 	addDeletePermissionFilter,
 	addUpdatePermissionFilter,
 	permissionSchema
@@ -16,34 +15,23 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	book: { type: String, ref: BookLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	chapters: [{ type: String, ref: ChapterLabel }],
+	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String,
 	imageURL: String
 });
 
-storylineSchema.pre(['find', 'findOne'], function (next) {
-	const userID = this.getOptions().userID;
-	const filter = this.getFilter();
-
+storylineSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
-	// const updatedFilter = addReadPermissionFilter(userID, filter);
-	// this.setQuery(updatedFilter);
-
-	// this.populate({ path: 'user chapters permissions.$*.user', options: { userID: userID } });
-	next();
 });
 
 storylineSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	// add populate pipeline
-
-	// const updatedFilter = addReadPermissionFilter(userID, filter);
-	// this.setQuery(updatedFilter);
-
 	populate(pipeline);
+	permissions(userID, pipeline);
 	next();
 });
 
@@ -87,9 +75,9 @@ function populate(pipeline: PipelineStage[]) {
 		}
 	);
 
-	pipeline.push({
-		$lookup: { from: 'chapters', localField: 'chapters', foreignField: '_id', as: 'chapters' }
-	});
+	// pipeline.push({
+	// 	$lookup: { from: 'chapters', localField: 'chapters', foreignField: '_id', as: 'chapters' }
+	// });
 
 	pipeline.push(
 		{
@@ -107,6 +95,35 @@ function populate(pipeline: PipelineStage[]) {
 		},
 		{
 			$unset: ['permissionsArray']
+		}
+	);
+}
+
+function permissions(userID: string, pipeline: PipelineStage[]) {
+	// permissions
+	pipeline.push(
+		{
+			$lookup: {
+				from: 'books',
+				localField: 'book',
+				foreignField: '_id',
+				as: 'book'
+			}
+		},
+		{
+			$unwind: {
+				path: '$book',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$match: {
+				$or: [
+					{ 'book.user': userID },
+					{ 'book.published': true },
+					{ ['book.permissions.' + userID]: { $exists: true } }
+				]
+			}
 		}
 	);
 }

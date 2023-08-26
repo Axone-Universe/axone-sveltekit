@@ -48,7 +48,8 @@
 				book: storyline.book,
 				parent: storyline.parent,
 				parentChapter: storyline.parentChapter,
-				permissions: permissions
+				permissions: permissions,
+				published: storyline.published
 			})
 			.then(async (storyline) => {
 				const t: ToastSettings = {
@@ -183,7 +184,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} permissionedDocument={storyline} />
+			<ManagePermissions {permissions} bind:permissionedDocument={storyline} />
 		</div>
 
 		<div class="flex flex-col sm:flex-row gap-4">

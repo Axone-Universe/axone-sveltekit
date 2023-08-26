@@ -40,18 +40,17 @@ export class ChaptersRepository extends Repository {
 
 	async getByStorylineID(
 		session: Session | null,
-		storylineID?: string,
+		storylineChapterIDs?: string[],
 		toChapterID?: string
 	): Promise<HydratedDocument<ChapterProperties>[]> {
 		let chapters: HydratedDocument<ChapterProperties>[] = [];
 
-		const storyline = await Storyline.aggregate([{ $match: { _id: storylineID } }], {
-			userID: session?.user.id
-		})
-			.cursor()
-			.next();
-
-		const storylineChapters = storyline.chapters;
+		const storylineChapters = await Chapter.aggregate(
+			[{ $match: { _id: { $in: storylineChapterIDs } } }],
+			{
+				userID: session?.user.id
+			}
+		);
 
 		if (!toChapterID) {
 			chapters = storylineChapters;

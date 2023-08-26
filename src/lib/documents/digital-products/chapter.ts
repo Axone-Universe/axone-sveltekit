@@ -19,7 +19,8 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		super();
 		this._chapterProperties = {
 			_id: id ? id : ulid(),
-			permissions: {}
+			permissions: {},
+			published: false
 		};
 	}
 
@@ -57,6 +58,11 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._chapterProperties.permissions = permissions;
+		return this;
+	}
+
+	published(published: boolean) {
+		this._chapterProperties.published = published;
 		return this;
 	}
 
@@ -125,13 +131,18 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			userID: this._sessionUserID
 		});
 
-		const chapter = await Chapter.aggregate([
-			{
-				$match: {
-					_id: this._chapterProperties._id
+		const chapter = await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
 				}
+			],
+			{
+				userID: this._sessionUserID
 			}
-		])
+		)
 			.cursor()
 			.next();
 

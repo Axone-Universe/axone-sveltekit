@@ -10,7 +10,9 @@ export class DeltasRepository extends Repository {
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<DeltaProperties>> {
-		const delta = await Delta.aggregate([{ $match: { _id: id } }])
+		const delta = await Delta.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
 			.cursor()
 			.next();
 

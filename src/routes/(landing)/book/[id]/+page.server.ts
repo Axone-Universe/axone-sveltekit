@@ -10,7 +10,7 @@ export const load = (async (event) => {
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 
-	const storylineResponses = (await trpc(event).storylines.getAll.query({
+	const storylineResponses = (await trpc(event).storylines.getByBookID.query({
 		bookID: event.params.id
 	})) as HydratedDocument<StorylineProperties>[];
 

@@ -15,8 +15,10 @@ export interface ChapterProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	delta?: string | HydratedDocument<DeltaProperties>;
 	children?: string[] | HydratedDocument<ChapterProperties>[];
+	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
-	permissionsUsers?: HydratedDocument<UserProperties>[];
+	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
+	hasPermission?: boolean; // Boolean to see if current session user has permissions to view the document
 	genres?: Genres;
 	title?: string;
 	description?: string;
@@ -34,7 +36,8 @@ export class ChapterPropertyBuilder {
 			children: [],
 			title: '',
 			description: '',
-			permissions: {}
+			permissions: {},
+			published: false
 		};
 	}
 

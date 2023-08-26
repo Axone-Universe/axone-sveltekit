@@ -8,6 +8,10 @@
 	import type { PageData } from './$types';
 	import Container from '$lib/components/Container.svelte';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
+	import { trpc } from '$lib/trpc/client';
+	import { page } from '$app/stores';
+	import type { HydratedDocument } from 'mongoose';
+	import type { ChapterProperties } from '$lib/shared/chapter';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);
@@ -26,7 +30,31 @@
 	};
 
 	async function loadChapters(storylineID: string) {
-		activeStoryline = storylines[storylineID];
+		let activateStoryline = storylines[storylineID];
+
+		if (!activateStoryline.chapters) {
+			activeStoryline = activateStoryline;
+			return;
+		}
+
+		if (activateStoryline.chapters.length === 0) {
+			activeStoryline = activateStoryline;
+			return;
+		}
+
+		if (typeof activateStoryline.chapters[0] !== 'string') {
+			activeStoryline = activateStoryline;
+			return;
+		}
+
+		trpc($page)
+			.chapters.getByStoryline.query({
+				storylineChapterIDs: activateStoryline.chapters as string[]
+			})
+			.then((chaptersResponse) => {
+				activateStoryline.chapters = chaptersResponse as HydratedDocument<ChapterProperties>[];
+				activeStoryline = activateStoryline;
+			});
 	}
 </script>
 
@@ -42,9 +70,7 @@
 					class="btn variant-filled space-x-12 line-clamp-1 w-full justify-between"
 					use:popup={popupCombobox}
 				>
-					<span class="capitalize text-sm"
-						>{storylines[storylinesList]?.title ?? 'Story Lines'}</span
-					>
+					<span class="capitalize text-sm">{activeStoryline?.title ?? 'Story Lines'}</span>
 					<Icon data={caretDown} scale={1} />
 				</button>
 
@@ -55,7 +81,7 @@
 								on:click={() => loadChapters(id)}
 								bind:group={storylinesList}
 								name=""
-								value={storyline.title}
+								value={storyline._id}
 							>
 								{storyline.title}
 							</ListBoxItem>
