@@ -124,11 +124,14 @@
 	}
 
 
-	const creatorsMenuList = [
-		{ funct : upload, label: 'Upload Cover' },
-		{ funct : adobeCreateCover, label: 'Create Cover' },
-		{ funct : adobeEditCover, label: 'Edit Cover' },
-	];
+	let creatorsMenuList = [
+			{ funct : upload, label: 'Upload Cover' },
+			{ funct : adobeCreateCover, label: 'Create Cover' },
+			{ funct : adobeEditCover, label: 'Edit Cover' },
+		];;
+	
+
+	
 	
 	async function adobeEditCover(){
 
@@ -156,18 +159,32 @@
                         //let blob = new Blob(localData.image, {type: 'text/plain'});
                         //img.src = URL.createObjectURL(blob);
                         //console.log("Created from asset", localData, img);
+						const t: ToastSettings = {
+							message: 'Book created successfully',
+							background: 'variant-filled-primary'
+						};
+						toastStore.trigger(t);
                     },
                     onError: (err) => {
+
+						let t: ToastSettings = {
+							message: `Something wrong happened. Please try again.`,
+							background: 'variant-filled-error',
+							autohide: true
+						};
+
+						toastStore.trigger(t);
+		
                         console.error('Error received is', err.toString());
                     },
                 };
 
-                if(image) {
+                if(imageFile) {
                     ccEverywhere.createDesign({
                         callbacks: createDesignCallback,
                         inputParams: {
                             asset: {
-                                data: image, 
+                                data: image.getAttribute('src'), 
                                 dataType: 'base64', 
                                 type: 'image'
                             }, 
@@ -178,14 +195,12 @@
                 } else {
                     console.log("no input image provided")
                 } 
-            
+				ccEverywhere.terminate();
+
 
 	}
 	async function adobeCreateCover(){
-		let ccEverywhere ;
-		if(!localStorage.getItem('adobe')){
-
-			ccEverywhere = await window.CCEverywhere.initialize({
+		let ccEverywhere=  await window.CCEverywhere.initialize({
 					/* Get credentials at Adobe Developer Console.
 					During beta, your client will need to be enabled. 
 					Email your client ID (API Key) to amandah@adobe.com
@@ -194,23 +209,9 @@
 					appName: 'Axone',
 					appVersion: { major: 1, minor: 0 }, 
 					platformCategory: 'web'
-				});
-
-
-			localStorage.setItem('adobe', ccEverywhere);
-		
-		}else{
-
-			ccEverywhere = await localStorage.getItem('adobe');
-
-		}
-		console.log(ccEverywhere);
-
-		
+				}); ;
 		
 
-		
-		
 			
 			const createDesignCallback = {
 					
@@ -220,8 +221,21 @@
                         //image_data.src = localData.image;
                         //project_id = localData.project;
                         console.log("Created from scratch", localData)
+						const t: ToastSettings = {
+							message: 'Book created successfully',
+							background: 'variant-filled-primary'
+						};
+						toastStore.trigger(t);
                     },
                     onError: (err) => {
+
+						let t: ToastSettings = {
+							message: `Something wrong happened. Please try Again.`,
+							background: 'variant-filled-error',
+							autohide: true
+						};
+
+						toastStore.trigger(t);
                         console.error('Error received is', err.toString());
                     },
                 };
@@ -246,6 +260,9 @@
                         outputType: "base64",
                     }
                 });
+
+
+				ccEverywhere.terminate();
 
 	}
 	const popupSettings = (target: string) => {
@@ -275,6 +292,8 @@
 		</div>
 		<div data-popup="dropdownEditOptions" class='card p-4 w-fit' >
 			<ul class="list">
+
+			
 				{#each creatorsMenuList as menuItem}
 					<li>
 						<button on:click={menuItem.funct} class="w-full">{menuItem.label}</button>
