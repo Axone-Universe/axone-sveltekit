@@ -1,45 +1,52 @@
 <script lang="ts">
+	import type {DrawerSettings, ModalComponent, ModalSettings, ToastSettings} from '@skeletonlabs/skeleton';
 	import {
+		Accordion,
+		AccordionItem,
 		AppShell,
 		Drawer,
 		drawerStore,
-		Accordion,
-		AccordionItem,
-		ListBoxItem,
-		ListBox,
+		FileDropzone,
 		LightSwitch,
-		modalStore
+		ListBox,
+		ListBoxItem,
+		modalStore,
+		toastStore
 	} from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
-	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
-	import { trpc } from '$lib/trpc/client';
+	import {afterUpdate, beforeUpdate, onDestroy, onMount} from 'svelte';
+	import {trpc} from '$lib/trpc/client';
 	import Quill from 'quill';
-	import { QuillEditor } from '$lib/util/editor/quill';
-	import type { PageData } from './$types';
-	import type { HydratedDocument } from 'mongoose';
+	import type {Illustration} from '$lib/util/editor/quill'
+	import {changeDelta, QuillEditor, type UploadFileToBucketParams} from '$lib/util/editor/quill';
+	import '$lib/util/editor/quill.illustration';
+	import type {PageData} from './$types';
+	import type {HydratedDocument} from 'mongoose';
 
 	import Icon from 'svelte-awesome';
 	import {
+		check,
 		chevronLeft,
 		chevronRight,
+		dashcube,
+		edit,
+		image,
 		plus,
 		spinner,
-		check,
-		trash,
-		edit,
 		stickyNote,
-		dashcube
+		trash,
 	} from 'svelte-awesome/icons';
-	import { page } from '$app/stores';
+	import {page} from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
-	import { ChapterPropertyBuilder, type ChapterProperties } from '$lib/shared/chapter';
-	import { changeDelta } from '$lib/util/editor/quill';
+	import {type ChapterProperties, ChapterPropertyBuilder} from '$lib/shared/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
-	import { onDestroy } from 'svelte';
+	import IllustrationModal from "$lib/components/chapter/IllustrationModal.svelte";
+	import type {StorageBucketError, StorageError, StorageFileError} from "$lib/util/types";
+	import type {IllustrationObject} from "$lib/util/editor/quill.illustration";
 
 	export let data: PageData;
+	const { supabase } = data;
 	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
 	onMount(() => {
@@ -91,6 +98,26 @@
 		height: 'h-full',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
+	};
+
+	/**
+	 * Toast settings
+	 */
+	const successUploadToast: ToastSettings = {
+		message: 'Illustration has been uploaded successfully',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-success',
+	};
+	const progressUploadToast: ToastSettings = {
+		message: 'Uploading illustration...',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-secondary',
+		autohide: false
+	};
+	const errorUploadToast: ToastSettings = {
+		message: 'There was an issue uploading the illustration',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-error',
 	};
 
 	function toggleDrawer() {
@@ -175,6 +202,46 @@
 		modalStore.trigger(modalSettings);
 	};
 
+	/**
+	 * Deletes all illustrations from supabase storage for this chapter
+	 * @param chapter
+	 */
+	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>){
+		const bookId = chapter.book
+		const chapterId = chapter._id
+		const folder = `${bookId}/chapters/${chapterId}`
+
+		/*
+		Be careful if you have a lot of files. Besides server load, if .remove passes data in the url versus body like
+		post, you will blow up url length quickly. I don't know how Supabase storage API implements DELETE as body is
+		optional. Normally all resources are in the url for DELETE.
+		 */
+		supabase.storage
+				.from('books')
+				.list(folder)
+				.then((response: StorageFileError) => {
+					if (response.data){
+						const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+						supabase.storage
+								.from('books')
+								.remove(filesToRemove)
+								.then((response: StorageFileError) => {
+									if (response.error) {
+										console.log(response.error)
+										// show toast error
+										const errorUploadToast: ToastSettings = {
+											message: 'There was an issue deleting the illustrations',
+											// Provide any utility or variant background style:
+											background: 'variant-filled-error',
+										};
+										toastStore.trigger(errorUploadToast);
+									}
+								})
+					}
+				})
+
+	}
+
 	let deleteChapter = () => {
 		const modal: ModalSettings = {
 			type: 'confirm',
@@ -184,6 +251,9 @@
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
+					//delete all illustrations from supabase storage for this chapter
+					deleteChapterStorage(selectedChapterNode)
+
 					trpc($page)
 						.chapters.delete.mutate({
 							id: selectedChapterNode._id
@@ -232,15 +302,18 @@
 	 * Quill Editor Settings
 	 */
 	let quill: QuillEditor;
-	let showComments: boolean = false;
+	let showComments = false;
+	let showIllustrations = false;
 	let deltaChange;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
 	changeDelta.subscribe((value) => {
 		deltaChange = value;
 		quill.comments = quill.comments;
+		quill.illustrations = quill.illustrations;
 	});
 
+	// Quill toolbar options
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
 		['blockquote', { indent: '+1' }],
@@ -250,20 +323,77 @@
 			{ align: 'right' },
 			{ align: 'justify' },
 			'comments-add',
-			'comments-toggle'
-		]
+			'comments-toggle',
+			'illustrations-add',
+		],
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
-	$: cssVarStyles = `--comment-bg-color:${commentBgColor}`;
+	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
+	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
 
+	/**
+	 * Toggles the showComments boolean and updates the quill module
+	 *
+	 */
 	function toggleShowComments() {
+		if (showIllustrations && !showComments) {
+			toggleShowIllustrations();
+		}
 		showComments = !showComments;
+	}
+
+	/**
+	 * Toggles the showIllustrations boolean and updates the quill module
+	 */
+	function toggleShowIllustrations() {
+		if (showComments && !showIllustrations) {
+			toggleShowComments();
+		}
+		showIllustrations = !showIllustrations;
+		// if (showIllustrations) quill.getModule('quillIllustration').addIllustrationStyle('green')
+		// else quill.getModule('quillIllustration').addIllustrationStyle('transparent')
 	}
 
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
+	}
+
+	/**
+	 * Removes the illustration from the quill Parchment
+	 * Also removes the illustration from supabase storage
+	 * @param id
+	 */
+	function removeIllustration(id: string) {
+		let editor = document.getElementById('editor');
+
+		const src = quill.illustrations[id].illustration.src
+		// bucket name is excluded, but all other folder and file paths are included
+		const filename = src.substring(src.indexOf('books') + 'books'.length + 1)
+
+		quill.removeIllustration({id: id, editor: editor, supabase: supabase, filenames: [filename]})
+				.then((response: StorageFileError) => {
+					if (!response.data) {
+
+						//error
+						const errorUploadToast: ToastSettings = {
+							message: 'There was an issue deleting the illustration',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-error',
+						};
+						toastStore.trigger(errorUploadToast);
+					}else{
+						//success
+						const successUploadToast: ToastSettings = {
+							message: 'Illustration has been deleted successfully',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-success',
+						};
+						toastStore.trigger(successUploadToast);
+					}
+				})
+
 	}
 
 	/**
@@ -277,10 +407,179 @@
 		quill.updateComment(id, editor, comment);
 	}
 
+	/**
+	 * Updates existing illustration by getting the blot from the quill Parchment
+	 * @param id - the id of the illustration
+	 * @param newIllustrationObject - the new illustration object
+	 */
+	function submitIllustration(id: string, newIllustrationObject: IllustrationObject | undefined) {
+		const illustration = newIllustrationObject ? newIllustrationObject : quill.illustrations[id].illustration;
+		let editor = document.getElementById('editor');
+		quill.updateIllustration(id, editor, illustration);
+	}
+
 	function commentAddClick() {
 		quill.getModule('comment').addComment(' ');
 		drawerStore.open(drawerSettings);
 		showComments = true;
+		showIllustrations = false;
+	}
+
+	/**
+	 * Adds an illustration to the quill
+	 */
+	function illustrationAddClick() {
+		quill.getModule('quillIllustration').addIllustration({
+			src: '',
+			alt: '',
+			caption: ''
+		});
+		drawerStore.open(drawerSettings);
+		showIllustrations = true;
+		showComments = false;
+	}
+
+	/**
+	 * Shows the illustration modal
+	 * @param illustration
+	 */
+	function showIllustrationModal(illustration: Illustration){
+		const modalComponent: ModalComponent = {
+			// Pass a reference to your custom component
+			ref: IllustrationModal,
+			// Add the component properties as key/value pairs
+			props: {
+				illustration: illustration,
+				uploadClick: uploadIllustration
+			},
+		};
+
+		const modal: ModalSettings = {
+			type: 'component',
+			// Pass the component directly:
+			component: modalComponent,
+		};
+		modalStore.trigger(modal);
+	}
+
+
+
+	/**
+	 * Uploads a file to a supabase storage bucket
+	 * @param file - the file to upload
+	 * @param bucket - the bucket to upload to
+	 * @param newFileName - the new file name to use
+	 * @param illustration - the illustration object
+	 */
+	let progressToastId: string | undefined = undefined;
+	function uploadFileToBucket (file: File, bucket: string, newFileName: string | undefined, illustration: Illustration) {
+		if (!progressToastId)
+			progressToastId = toastStore.trigger(progressUploadToast);
+
+		quill.uploadFileToBucket({supabase, file, bucket, newFileName} as UploadFileToBucketParams)
+				.then((response: StorageError) => {
+					if (response.data){
+						//success
+						//update illustration src, then submit illustration
+						illustration.illustration.src = quill.getSupabaseFileURL({supabase, bucket, responsePath: response.data.path})
+						submitIllustration(illustration.id, illustration.illustration)
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						toastStore.trigger(successUploadToast);
+					} else if (response.error.error === "Duplicate") {
+						//file already exists, rename file and try again
+						uploadFileToBucket(file, bucket, ('copy_' + (newFileName || file.name)), illustration)
+					} else if (response.error.error === "Payload too large" || response.error.statusCode === "413"){
+						//file too large
+						//show toast error
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						const errorUploadToast: ToastSettings = {
+							message: 'File is too large. Please upload a smaller file.',
+							// Provide any utility or variant background style:
+							background: 'variant-filled-error',
+						};
+						toastStore.trigger(errorUploadToast);
+					} else {
+						//error
+						//show toast error
+						if (progressToastId) {
+							toastStore.close(progressToastId)
+							progressToastId = undefined
+						}
+						toastStore.trigger(errorUploadToast);
+					}
+				})
+
+	}
+
+	/**
+	 * Uploads an illustration to supabase storage
+	 * @param newIllustrationFile - the file to upload or the event that contains the file
+	 * @param illustration - the illustration
+	 */
+	async function uploadIllustration (newIllustrationFile: File | Event, illustration: Illustration) {
+		// if the file is an event, get the file from the event
+		if (newIllustrationFile instanceof Event) {
+			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
+		}
+
+		if (!newIllustrationFile) {
+			return; // No file selected
+		}
+
+		const chapterId = getCurrentChapter()?._id
+		const bookId = getCurrentChapter()?.book
+
+		//retrieve supabase storage bucket
+		const bucketName = `books/${bookId}/chapters/${chapterId}`
+
+		//check if bucket exists
+		return await quill.createIllustrationBucket({
+			supabase: supabase,
+			bucket: bucketName,
+			errorCallback: function () {
+				toastStore.trigger(errorUploadToast);
+			}
+		}).then(() => {
+			uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration)
+		})
+
+	}
+
+	/**
+	 * Gets the current chapter from the quill
+	 */
+	function getCurrentChapter(){
+		return quill.chapter
+	}
+
+	/**
+	 * Replaces the illustration image element src with the selected file's src
+	 * @param event
+	 */
+	function replaceIllustrationSrc(event: Event) {
+		const inputElement = event.target as HTMLInputElement;
+		const inputElementId = inputElement.id;
+		const illustrationId = inputElementId.substring(inputElementId.indexOf('-') + 1);
+		const file = inputElement.files?.[0];
+
+		if (!file) {
+			return; // No file selected
+		}
+
+		const imageElement = document.getElementById(`src-${illustrationId}`) as HTMLImageElement;
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			if (e.target?.result) {
+				imageElement.src = e.target.result as string;
+			}
+		};
+		reader.readAsDataURL(file);
 	}
 
 	function commentServerTimestamp() {
@@ -288,6 +587,14 @@
 		return new Promise((resolve, reject) => {
 			let currentTimestamp = Math.round(new Date().getTime() / 1000);
 
+			resolve(currentTimestamp);
+		});
+	}
+
+	function illustrationServerTimestamp() {
+		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
+		return new Promise((resolve, reject) => {
+			let currentTimestamp = Math.round(new Date().getTime() / 1000);
 			resolve(currentTimestamp);
 		});
 	}
@@ -300,6 +607,7 @@
 	function setupEditor() {
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
+		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
 
 		let container = document.getElementById('editor');
 		if (container) {
@@ -308,13 +616,23 @@
 				reader: false,
 				theme: 'bubble',
 				modules: {
-					toolbar: toolbarOptions,
+					toolbar: {
+						container: toolbarOptions,
+					},
 					comment: {
 						enabled: true,
 						commentAuthorId: session?.user.id,
 						commentAddOn: session?.user.email, // any additional info needed
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
+					},
+					quillIllustration: {
+						enabled: true,
+						color: 'transparent',
+						illustrationAuthorId: session?.user.id,
+						illustrationAddOn: session?.user.email, // any additional info needed
+						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
+						illustrationTimestamp: illustrationServerTimestamp
 					},
 					history: {
 						delay: 1000,
@@ -449,6 +767,65 @@
 						{/each}
 					</div>
 				{/if}
+
+				{#if showIllustrations && Object.keys(quill.illustrations).length !== 0}
+					<div
+							id="illustrations-container"
+							class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+					>
+						{#each Object.entries(quill.illustrations) as [id, illustration]}
+							<div
+									class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
+							>
+								{#if (quill.illustrations[id].illustration.src.length > 0)}
+									<img
+											id={`src-${illustration.id}`}
+											class="h-40 resize-none rounded-md mb-2"
+											alt={quill.illustrations[id].illustration.alt || quill.illustrations[id].illustration.caption}
+											src={quill.illustrations[id].illustration.src}
+											on:click={() => showIllustrationModal(illustration)}
+									>
+								{:else}
+									<FileDropzone name="illustrationDropZone"  on:change={(event) => uploadIllustration(event, illustration)}
+									>
+										<svelte:fragment slot="message"><strong>Upload an image</strong> or drage and drop</svelte:fragment>
+										<svelte:fragment slot="meta">PNG, JPG, SVG, and GIF allowed.</svelte:fragment>
+									</FileDropzone>
+								{/if}
+								<input
+										type="file"
+										id={`file-${illustration.id}`}
+										class="hidden"
+										accept="image/png, image/jpeg, image/gif, image/svg"
+										on:change={replaceIllustrationSrc}
+								>
+								<input
+										id={`caption-${illustration.id}`}
+										type="text"
+										class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
+										placeholder="Caption"
+										bind:value={quill.illustrations[id].illustration.caption}
+								>
+
+								<footer class="modal-footer flex flex-col space-x-2 items-center">
+									<div>
+										<button on:click={() => removeIllustration(id)} class="chip variant-ghost-surface">
+											Remove
+										</button>
+										<button
+												on:click={() => submitIllustration(id, undefined)}
+												class="chip variant-filled"
+												type="submit"
+										>
+											Save
+										</button>
+									</div>
+								</footer>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
 				<div class="flex flex-col p-2 bg-surface-50-900-token">
 					<div class="h-3/4 flex flex-col items-center">
 						<LightSwitch />
@@ -466,6 +843,13 @@
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={dashcube} scale={2.5} />
+							</button>
+							<button
+									on:click={() => toggleShowIllustrations()}
+									type="button"
+									class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={image} scale={2.5} />
 							</button>
 							<button
 								on:click={() => showChapterNotes()}
