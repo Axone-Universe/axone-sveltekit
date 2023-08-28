@@ -138,6 +138,7 @@
 	let leftDrawerList = 'copyright';
 
 	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
+		console.log(chapter.hasPermission);
 		selectedChapterNode = chapterResponses[chapter._id];
 	}
 

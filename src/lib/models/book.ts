@@ -4,6 +4,7 @@ import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
 	addDeletePermissionFilter,
+	addPermissionPipeline,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
@@ -28,8 +29,8 @@ bookSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	// add populate pipeline
 	populate(pipeline);
+	// addPermissionPipeline(userID, pipeline);
 	next();
 });
 
@@ -72,41 +73,6 @@ function populate(pipeline: PipelineStage[]) {
 			}
 		}
 	);
-
-	pipeline.push(
-		{
-			$addFields: {
-				permissionsArray: { $objectToArray: '$permissions' }
-			}
-		},
-		{
-			$lookup: {
-				from: 'users',
-				localField: 'permissionsArray.v.user',
-				foreignField: '_id',
-				as: 'permissionsUsers'
-			}
-		},
-		{
-			$unset: ['permissionsArray']
-		}
-	);
-}
-
-function permissions(userID: string, pipeline: PipelineStage[]) {
-	pipeline.push({
-		$addFields: {
-			permissioned: {
-				$cond: [
-					{
-						$or: [{ published: true }, { ['permissions.' + userID]: { $exists: true } }]
-					},
-					true,
-					false
-				]
-			}
-		}
-	});
 }
 
 export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);

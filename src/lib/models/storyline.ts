@@ -5,6 +5,7 @@ import { label as UserLabel } from '$lib/shared/user';
 import { label as ChapterLabel } from '$lib/shared/chapter';
 import {
 	addDeletePermissionFilter,
+	addPermissionPipeline,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
@@ -31,7 +32,7 @@ storylineSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	permissions(userID, pipeline);
+	addPermissionPipeline(userID, pipeline, 'books', 'book');
 	next();
 });
 
@@ -75,10 +76,6 @@ function populate(pipeline: PipelineStage[]) {
 		}
 	);
 
-	// pipeline.push({
-	// 	$lookup: { from: 'chapters', localField: 'chapters', foreignField: '_id', as: 'chapters' }
-	// });
-
 	pipeline.push(
 		{
 			$addFields: {
@@ -95,35 +92,6 @@ function populate(pipeline: PipelineStage[]) {
 		},
 		{
 			$unset: ['permissionsArray']
-		}
-	);
-}
-
-function permissions(userID: string, pipeline: PipelineStage[]) {
-	// permissions
-	pipeline.push(
-		{
-			$lookup: {
-				from: 'books',
-				localField: 'book',
-				foreignField: '_id',
-				as: 'book'
-			}
-		},
-		{
-			$unwind: {
-				path: '$book',
-				preserveNullAndEmptyArrays: true
-			}
-		},
-		{
-			$match: {
-				$or: [
-					{ 'book.user': userID },
-					{ 'book.published': true },
-					{ ['book.permissions.' + userID]: { $exists: true } }
-				]
-			}
 		}
 	);
 }

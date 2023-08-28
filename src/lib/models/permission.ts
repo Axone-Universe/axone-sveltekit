@@ -1,5 +1,5 @@
 import type { PermissionProperties } from '$lib/shared/permission';
-import { Schema } from 'mongoose';
+import { Schema, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/shared/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({
@@ -7,6 +7,86 @@ export const permissionSchema = new Schema<PermissionProperties>({
 	user: { type: String, ref: UserLabel },
 	permission: String
 });
+
+/**
+ *
+ * @param userID - ID of user for the session
+ * @param collection - The name of the collection that restricts access to this document e.g. storylines access is restricted by books
+ * @param path - The name of the field referencing the collection
+ * @param pipeline - The aggregate pipeline
+ */
+export function addPermissionPipeline(
+	userID: string,
+	pipeline: PipelineStage[],
+	collection?: string,
+	path?: string
+) {
+	pipeline.push(
+		{
+			$addFields: {
+				permissionsArray: { $objectToArray: '$permissions' }
+			}
+		},
+		{
+			$lookup: {
+				from: 'users',
+				localField: 'permissionsArray.v.user',
+				foreignField: '_id',
+				as: 'permissionsUsers'
+			}
+		},
+		{
+			$unset: ['permissionsArray']
+		}
+	);
+
+	pipeline.push({
+		$addFields: {
+			hasPermission: {
+				$cond: [
+					{
+						$or: [
+							{ $eq: ['$user._id', userID] },
+							{ $eq: ['$published', true] },
+							{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
+						]
+					},
+					true,
+					false
+				]
+			}
+		}
+	});
+
+	if (collection && path) {
+		// permissions
+		pipeline.push(
+			{
+				$lookup: {
+					from: collection,
+					localField: path,
+					foreignField: '_id',
+					as: path
+				}
+			},
+			{
+				$unwind: {
+					path: '$' + path,
+					preserveNullAndEmptyArrays: true
+				}
+			},
+			{
+				$match: {
+					$or: [
+						{ [path + '.user']: userID },
+						{ [path + '.published']: true },
+						{ [path + '.permissions.' + userID]: { $exists: true } }
+					]
+				}
+			}
+		);
+	}
+}
 
 /** READ, UPDATE, DELETE permission filters */
 
