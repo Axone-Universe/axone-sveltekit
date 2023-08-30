@@ -94,21 +94,57 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		let document: any;
 		switch (this._documentType) {
 			case BookLabel: {
-				document = await Book.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Book.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			case StorylineLabel: {
-				document = await Storyline.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Storyline.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			case ChapterLabel: {
-				document = await Chapter.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Chapter.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			default: {

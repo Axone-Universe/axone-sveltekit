@@ -9,8 +9,9 @@ export const storylineQuerySchema = z.object({
 });
 
 export const search = z.object({
-	bookID: z.string(),
+	bookID: z.string().optional(),
 	storylineID: z.string().optional(),
+	main: z.boolean().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
 	skip: z.number().optional()
@@ -23,5 +24,6 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
+	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
