@@ -66,6 +66,41 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
+	async delete(): Promise<mongoose.mongo.DeleteResult> {
+		const session = await mongoose.startSession();
+
+		let result = {};
+
+		await session.withTransaction(async () => {
+			const book = await Book.findById(this._bookProperties._id, null, {
+				userID: this._sessionUserID
+			});
+
+			const children = book.children;
+			if (children && children.length !== 0) {
+				// re-assign children to the parent
+				const parents = await book.find({
+					children: this._bookProperties._id
+				});
+
+				for (const parent of parents) {
+					parent.children = parent.children.concat(children);
+					await parent.save({ session });
+				}
+			}
+
+			result = await Book.deleteOne(
+				{ _id: this._bookProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
+
+			return result;
+		});
+		session.endSession();
+
+		return result as mongoose.mongo.DeleteResult;
+	}
+
 	async update(): Promise<HydratedDocument<BookProperties>> {
 		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
 			new: true,
@@ -76,6 +111,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			userID: this._sessionUserID
 		})) as HydratedDocument<BookProperties>;
 	}
+
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
 		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');

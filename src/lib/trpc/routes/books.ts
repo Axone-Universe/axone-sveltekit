@@ -104,5 +104,15 @@ export const books = t.router({
 		.input(submitToCampaign) // TODO: use createBook schema
 		.mutation(async () => {
 			throw new Error('not Implemented');
+		}),
+
+	delete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const response = await bookBuilder.delete();
+			return response;
 		})
 });
