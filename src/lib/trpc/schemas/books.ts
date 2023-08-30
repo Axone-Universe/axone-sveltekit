@@ -7,6 +7,7 @@ export const create = z.object({
 	description: z.string(),
 	imageURL: z.string(),
 	genres: genres.optional(),
+	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 
@@ -16,6 +17,7 @@ export const update = z.object({
 	description: z.string().optional(),
 	imageURL: z.string().optional(),
 	genres: genres.optional(),
+	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 

@@ -57,6 +57,7 @@ export const books = t.router({
 			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
+			if (input.published) bookBuilder.published(input.published);
 
 			const bookNode = await bookBuilder.update();
 			return bookNode;
@@ -73,13 +74,9 @@ export const books = t.router({
 				.description(input.description)
 				.imageURL(input.imageURL);
 
-			if (input?.permissions) {
-				bookBuilder.permissions(input.permissions as any);
-			}
-
-			if (input.genres) {
-				bookBuilder.genres(input.genres);
-			}
+			if (input.permissions) bookBuilder.permissions(input.permissions as any);
+			if (input.genres) bookBuilder.genres(input.genres);
+			if (input.published) bookBuilder.published(input.published);
 
 			const bookNode = await bookBuilder.build();
 

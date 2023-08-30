@@ -14,7 +14,6 @@ export type PermissionedDocument = (typeof PermissionedDocumentsEnum)[number];
 
 export interface PermissionProperties {
 	_id: string;
-	public: boolean;
 	user?: string | HydratedDocument<UserProperties>;
 	permission?: Permissions;
 }
@@ -25,7 +24,6 @@ export class PermissionPropertyBuilder {
 	constructor() {
 		this._properties = {
 			_id: '',
-			public: false,
 			permission: 'edit'
 		};
 	}

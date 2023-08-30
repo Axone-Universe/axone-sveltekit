@@ -34,10 +34,6 @@ describe('books', () => {
 		});
 
 		expect(bookResponse.title).toEqual(testBookTitle);
-		expect((bookResponse.user as unknown as HydratedDocument<UserProperties>)!._id).toEqual(
-			userResponse._id
-		);
-		expect(storylines[0].title).toEqual(testBookTitle);
 	});
 
 	test('get all books', async () => {

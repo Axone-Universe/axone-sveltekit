@@ -19,7 +19,8 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		this._storylineProperties = {
 			_id: id ? id : ulid(),
 			main: false,
-			permissions: new Map()
+			permissions: {},
+			published: false
 		};
 	}
 
@@ -73,8 +74,13 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this._storylineProperties;
 	}
 
-	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
+	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._storylineProperties.permissions = permissions;
+		return this;
+	}
+
+	published(published: boolean) {
+		this._storylineProperties.published = published;
 		return this;
 	}
 
@@ -102,9 +108,21 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		// get the parent chapter ids
 		// we assume they are already sorted in correct order by the push
 		if (this._parentStorylineID) {
-			const parentStoryline = await Storyline.findById(this._parentStorylineID, null, {
-				userID: this._userID
-			});
+			const parentStoryline = await Storyline.aggregate(
+				[
+					{
+						$match: {
+							_id: this._parentStorylineID
+						}
+					}
+				],
+				{
+					userID: this._userID
+				}
+			)
+				.cursor()
+				.next();
+
 			for (const chapter of parentStoryline.chapters) {
 				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
 

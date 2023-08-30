@@ -12,7 +12,10 @@ export interface BookProperties {
 	description: string;
 	imageURL: string;
 	tags?: string[];
-	permissions: Map<string, HydratedDocument<PermissionProperties>>;
+	published: boolean;
+	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[];
+	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
 	genres?: Genres;
 }
 
@@ -31,7 +34,8 @@ export class BookPropertyBuilder {
 			imageURL: '',
 			genres: genres,
 			tags: [],
-			permissions: new Map()
+			permissions: {},
+			published: true
 		};
 	}
 

@@ -84,7 +84,7 @@ export async function createBook(session: Session, title: string) {
 		imageURL: 'www.example.com',
 		genres: genres.getGenres(),
 		description: '',
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		published: true
 	});
 
 	return book;
@@ -105,7 +105,7 @@ export async function createChapter(
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		published: true
 	});
 
 	return chapter;

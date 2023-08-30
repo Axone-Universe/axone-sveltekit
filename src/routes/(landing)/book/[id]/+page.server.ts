@@ -3,6 +3,7 @@ import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/shared/book';
 import type { StorylineProperties } from '$lib/shared/storyline';
+import { redirect } from '@sveltejs/kit';
 
 export const load = (async (event) => {
 	const bookData = (await trpc(event).books.getById.query({
@@ -10,7 +11,12 @@ export const load = (async (event) => {
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 
-	const storylineResponses = (await trpc(event).storylines.getAll.query({
+	// If there are no viewing permissions redirect
+	if (!bookData.userPermissions?.view) {
+		throw redirect(303, '/permissions/' + bookData._id + '/?documentType=book');
+	}
+
+	const storylineResponses = (await trpc(event).storylines.getByBookID.query({
 		bookID: event.params.id
 	})) as HydratedDocument<StorylineProperties>[];
 
