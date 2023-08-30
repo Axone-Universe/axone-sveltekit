@@ -24,14 +24,12 @@
 		// permissions = permissions.map
 		if (bookData._id) {
 			updateBook();
-		/*} else {
+		} else {
 			createBook();
-		}*/
-        }
+		}
 
 		return false;
 	}
-
 	async function createBook() {
 		let toastMessage = 'Creation Failed';
 		let toastBackground = 'bg-warning-500';
@@ -72,6 +70,8 @@
 				id: bookData._id,
 				title: bookData.title,
 				description: bookData.description,
+				imageURL: bookData.imageURL,
+				genres: bookData.genres,
 				permissions: Object.fromEntries(permissions) as any
 			})
 			.then((bookNodeResponses) => {
