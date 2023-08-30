@@ -39,10 +39,12 @@
 		spinner,
 		stickyNote,
 		trash,
-		lock
+		lock,
+		unlock
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
+	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/shared/chapter';
@@ -138,7 +140,6 @@
 	let leftDrawerList = 'copyright';
 
 	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
-		console.log(chapter.hasPermission);
 		selectedChapterNode = chapterResponses[chapter._id];
 	}
 
@@ -183,6 +184,14 @@
 			storylineID: storylineResponse._id
 		};
 
+		modalStore.trigger(modalSettings);
+	};
+
+	let showChapterPermissions = () => {
+		modalComponent.ref = RequestPermissionModal;
+		modalComponent.props = {
+			document: selectedChapterNode
+		};
 		modalStore.trigger(modalSettings);
 	};
 
@@ -380,7 +389,7 @@
 
 		quill
 			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
-			.then((response: StorageFileError) => {
+			.then((response: any) => {
 				if (!response.data) {
 					//error
 					const errorUploadToast: ToastSettings = {
@@ -487,7 +496,7 @@
 
 		quill
 			.uploadFileToBucket({ supabase, file, bucket, newFileName } as UploadFileToBucketParams)
-			.then((response: StorageError) => {
+			.then((response: any) => {
 				if (response.data) {
 					//success
 					//update illustration src, then submit illustration
@@ -734,7 +743,7 @@
 									>
 										<div class="line-clamp-1 flex justify-between items-center">
 											<p class="line-clamp-1">{chapterResponse.title}</p>
-											{#if !chapterResponse.hasPermission}
+											{#if !chapterResponse.userPermissions?.view}
 												<Icon data={lock} scale={1.2} />
 											{/if}
 										</div>
@@ -887,6 +896,13 @@
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
 								<Icon class="p-2" data={stickyNote} scale={2.5} />
+							</button>
+							<button
+								on:click={() => showChapterPermissions()}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={unlock} scale={2.5} />
 							</button>
 						{/if}
 					</div>

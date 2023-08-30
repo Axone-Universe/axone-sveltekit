@@ -142,6 +142,10 @@ export class QuillEditor extends Quill {
 
 		this.disable();
 
+		if (!this.chapter?.userPermissions?.view) {
+			return this.chapter!;
+		}
+
 		if (delta) {
 			if (typeof delta === 'string') {
 				const deltaResponse = await trpc(this.page).deltas.getById.query({
@@ -199,7 +203,9 @@ export class QuillEditor extends Quill {
 		this.on('selection-change', this.selectionChange.bind(this));
 		this.on('text-change', this.textChange.bind(this));
 
-		this.reader ? this.disable() : this.enable();
+		if (this.chapter?.userPermissions?.edit) {
+			this.reader ? this.disable() : this.enable();
+		}
 	}
 
 	/**

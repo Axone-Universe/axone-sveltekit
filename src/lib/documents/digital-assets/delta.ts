@@ -6,7 +6,6 @@ import { DocumentBuilder } from '../documentBuilder';
 import type { DeltaProperties } from '$lib/shared/delta';
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
-import type { ChapterProperties } from '$lib/shared/chapter';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
@@ -46,13 +45,18 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		const deltaOps = JSON.parse(ops);
 		const quillDelta = new QuillDelta(deltaOps);
 
-		const delta = await Delta.aggregate([
-			{
-				$match: {
-					_id: id
+		const delta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: id
+					}
 				}
+			],
+			{
+				userID: this._sessionUserID
 			}
-		])
+		)
 			.cursor()
 			.next();
 
@@ -86,11 +90,8 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		const session = await mongoose.startSession();
 
-		const delta = new Delta(this._deltaProperties);
 		// use a transaction to make sure everything saves
 		await session.withTransaction(async () => {
-			await delta.save({ session });
-
 			const chapter = await Chapter.aggregate(
 				[
 					{
@@ -106,6 +107,11 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				.cursor()
 				.next();
 
+			this._deltaProperties.permissions = chapter.permissions;
+
+			const delta = new Delta(this._deltaProperties);
+			await delta.save({ session });
+
 			chapter.delta = delta._id;
 			await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
 				userID: this._sessionUserID,
@@ -114,7 +120,23 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 			return delta;
 		});
+		session.endSession();
 
-		return delta;
+		const newDelta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: this._deltaProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		return newDelta;
 	}
 }

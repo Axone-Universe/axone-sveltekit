@@ -6,7 +6,8 @@ import { label as UserLabel } from '$lib/shared/user';
 import { label as DeltaLabel } from '$lib/shared/delta';
 import {
 	addDeletePermissionFilter,
-	addPermissionPipeline,
+	addPermissionsPipeline,
+	addRestrictionsPipeline,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
@@ -33,7 +34,8 @@ chapterSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	addPermissionPipeline(userID, pipeline, 'storylines', 'storyline');
+	addPermissionsPipeline(userID, pipeline);
+	addRestrictionsPipeline(userID, pipeline, 'storylines', 'storyline');
 	next();
 });
 

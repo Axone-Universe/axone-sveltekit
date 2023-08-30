@@ -18,7 +18,7 @@ export interface ChapterProperties {
 	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
-	hasPermission?: boolean; // Boolean to see if current session user has permissions to view the document
+	userPermissions?: { view: boolean; edit: boolean; comment: boolean }; // Has the current session user permission details
 	genres?: Genres;
 	title?: string;
 	description?: string;
@@ -37,7 +37,7 @@ export class ChapterPropertyBuilder {
 			title: '',
 			description: '',
 			permissions: {},
-			published: false
+			published: true
 		};
 	}
 

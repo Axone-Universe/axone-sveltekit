@@ -128,7 +128,7 @@ describe('books', () => {
 			published: false
 		});
 
-		expect(chapter1Response.hasPermission).toEqual(true);
+		expect(chapter1Response.userPermissions?.view).toEqual(true);
 
 		caller = router.createCaller({ session: createTestSession(testUserTwo) });
 
@@ -140,6 +140,6 @@ describe('books', () => {
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
-		expect(!storylineChapters[0].hasPermission).toEqual(true);
+		expect(!storylineChapters[0].userPermissions?.view).toEqual(true);
 	});
 });

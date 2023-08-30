@@ -20,25 +20,36 @@
 	import { UserPropertyBuilder, type UserProperties } from '$lib/shared/user';
 	import type { BookProperties } from '$lib/shared/book';
 	import type { ChapterProperties } from '$lib/shared/chapter';
-	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { Icon } from 'svelte-awesome';
-	import { onMount } from 'svelte';
+	import { caretDown, trash } from 'svelte-awesome/icons';
+	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
+	import StorylineDetails from '../storyline/StorylineDetails.svelte';
+	import type { StorylineProperties } from '$lib/shared/storyline';
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
-		| HydratedDocument<ChapterProperties>;
-	export let permissions: Record<string, HydratedDocument<PermissionProperties>>;
+		| HydratedDocument<ChapterProperties>
+		| HydratedDocument<StorylineProperties>;
 
 	export let customClass = '';
 	export { customClass as class };
+
+	let permissions: Record<
+		string,
+		HydratedDocument<PermissionProperties>
+	> = permissionedDocument.permissions;
 
 	let documentOwner: HydratedDocument<UserProperties> =
 		permissionedDocument.user as HydratedDocument<UserProperties>; // creator of the document
 
 	onMount(() => {
 		setDocumentOwner();
-		createPermissionsDict();
+		setPermissionUsers();
+	});
+
+	afterUpdate(() => {
+		permissions = permissions;
 	});
 
 	let autocompletePopupSettings: PopupSettings = {
@@ -73,6 +84,12 @@
 				value: documentOwner._id
 			}
 		];
+	}
+
+	function setPermissionUsers() {
+		for (const user of permissionedDocument.permissionsUsers ?? []) {
+			permissions[user._id].user = user;
+		}
 	}
 
 	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
@@ -136,31 +153,13 @@
 			permissions[userID] = permission;
 			permissions = permissions;
 		}
+
+		console.log('** doc pers');
+		console.log(permissionedDocument.permissions);
 	}
 
 	function removePermission(userID: string) {
 		delete permissions[userID];
-		permissions = permissions;
-	}
-
-	function createPermissionsDict() {
-		if (permissionedDocument.permissions) {
-			console.log('** perms docs');
-			console.log(permissionedDocument.permissions);
-			// Convert to map again because it comes to UI deserialized into JS object
-			for (let [key, permission] of new Map(Object.entries(permissionedDocument.permissions))) {
-				if (permission.user) {
-					let userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
-					permissions[userID] = permission;
-				}
-			}
-		}
-
-		// fill the users in from permissionsUsers
-		for (const user of permissionedDocument.permissionsUsers ?? []) {
-			permissions[user._id].user = user;
-		}
-
 		permissions = permissions;
 	}
 
@@ -172,8 +171,10 @@
 	function onPermissionChanged(event: any) {
 		const userID = event.target.getAttribute('name');
 		const value = event.target.value;
-		console.log('** perm ' + userID + ' ' + value);
 		permissions[userID]!.permission = value;
+
+		console.log('** doc pers');
+		console.log(permissionedDocument.permissions);
 	}
 </script>
 

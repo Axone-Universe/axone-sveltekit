@@ -8,13 +8,12 @@ import { search } from '$lib/trpc/schemas/storylines';
 import type { HydratedDocument } from 'mongoose';
 import type { PermissionProperties } from '$lib/shared/permission';
 
-const storylinesRepo = new StorylinesRepository();
-
 export const storylines = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
 			const result = await storylinesRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
@@ -24,6 +23,7 @@ export const storylines = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
 			const result = await storylinesRepo.getById(ctx.session, input.storylineID!);
 
 			return result;
@@ -33,6 +33,7 @@ export const storylines = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
 			const result = await storylinesRepo.getByBookID(ctx.session, input.bookID!, input.main);
 
 			return result;

@@ -5,8 +5,6 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/chapters';
 import { search } from '$lib/trpc/schemas/chapters';
-import type { HydratedDocument } from 'mongoose';
-import type { PermissionProperties } from '$lib/shared/permission';
 
 export const chapters = t.router({
 	getAll: t.procedure
@@ -20,6 +18,15 @@ export const chapters = t.router({
 			return result;
 		}),
 
+	getById: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			const chaptersRepo = new ChaptersRepository();
+			const result = await chaptersRepo.getById(ctx.session, input.searchTerm!);
+
+			return result;
+		}),
 	getByStoryline: t.procedure
 		.use(logger)
 		.input(search)

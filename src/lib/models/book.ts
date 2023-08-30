@@ -4,7 +4,7 @@ import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
 	addDeletePermissionFilter,
-	addPermissionPipeline,
+	addPermissionsPipeline,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
@@ -30,7 +30,7 @@ bookSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	// addPermissionPipeline(userID, pipeline);
+	addPermissionsPipeline(userID, pipeline);
 	next();
 });
 

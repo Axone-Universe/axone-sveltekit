@@ -31,8 +31,6 @@
 	let bookGenres: Record<string, boolean> = {};
 	let genres: Record<string, boolean> = {};
 
-	let permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
-
 	onMount(() => {
 		bookGenres = book.genres as unknown as Record<string, boolean>;
 		genres = storyline.genres as unknown as Record<string, boolean>;
@@ -48,7 +46,7 @@
 				book: storyline.book,
 				parent: storyline.parent,
 				parentChapter: storyline.parentChapter,
-				permissions: permissions,
+				permissions: storyline.permissions,
 				published: storyline.published
 			})
 			.then(async (storyline) => {
@@ -184,7 +182,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} bind:permissionedDocument={storyline} />
+			<ManagePermissions bind:permissionedDocument={storyline} />
 		</div>
 
 		<div class="flex flex-col sm:flex-row gap-4">

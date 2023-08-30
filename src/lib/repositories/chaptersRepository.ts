@@ -38,6 +38,18 @@ export class ChaptersRepository extends Repository {
 		});
 	}
 
+	async getById(session: Session | null, id: string): Promise<HydratedDocument<ChapterProperties>> {
+		const chapter = await Chapter.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
+
+		return new Promise<HydratedDocument<ChapterProperties>>((resolve) => {
+			resolve(chapter);
+		});
+	}
+
 	async getByStorylineID(
 		session: Session | null,
 		storylineChapterIDs?: string[],
@@ -74,10 +86,6 @@ export class ChaptersRepository extends Repository {
 		limit?: number,
 		skip?: number
 	): Promise<HydratedDocument<ChapterProperties>[]> {
-		throw new Error('not Implemented');
-	}
-
-	async getById(session: Session, id?: string): Promise<unknown> {
 		throw new Error('not Implemented');
 	}
 

@@ -15,6 +15,7 @@ export interface BookProperties {
 	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
+	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
 	genres?: Genres;
 }
 
@@ -34,7 +35,7 @@ export class BookPropertyBuilder {
 			genres: genres,
 			tags: [],
 			permissions: {},
-			published: false
+			published: true
 		};
 	}
 

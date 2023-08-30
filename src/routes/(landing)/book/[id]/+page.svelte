@@ -2,7 +2,7 @@
 	import { ListBox, ListBoxItem, popup, Avatar } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome';
-	import { caretDown, plus, leanpub, star } from 'svelte-awesome/icons';
+	import { caretDown, lock } from 'svelte-awesome/icons';
 	import { afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
@@ -74,16 +74,22 @@
 					<Icon data={caretDown} scale={1} />
 				</button>
 
-				<div class="card w-48 shadow-xl py-2" data-popup="popupCombobox">
-					<ListBox rounded="rounded-none">
+				<div class="card w-48 shadow-xl p-2" data-popup="popupCombobox">
+					<ListBox>
 						{#each Object.entries(storylines) as [id, storyline]}
 							<ListBoxItem
 								on:click={() => loadChapters(id)}
 								bind:group={storylinesList}
 								name=""
+								class="soft-listbox"
 								value={storyline._id}
 							>
-								{storyline.title}
+								<div class="line-clamp-1 flex justify-between items-center">
+									<p class="line-clamp-1">{storyline.title}</p>
+									{#if !storyline.userPermissions?.view}
+										<Icon data={lock} scale={1.2} />
+									{/if}
+								</div>
 							</ListBoxItem>
 						{/each}
 					</ListBox>

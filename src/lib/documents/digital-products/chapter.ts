@@ -7,6 +7,7 @@ import type { ChapterProperties } from '$lib/shared/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/shared/permission';
+import { Delta } from '$lib/models/delta';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -126,10 +127,28 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	async update(): Promise<HydratedDocument<ChapterProperties>> {
-		await Chapter.findOneAndUpdate({ _id: this._chapterProperties._id }, this._chapterProperties, {
-			new: true,
-			userID: this._sessionUserID
+		const session = await mongoose.startSession();
+		await session.withTransaction(async () => {
+			const chapter = await Chapter.findOneAndUpdate(
+				{ _id: this._chapterProperties._id },
+				this._chapterProperties,
+				{
+					new: true,
+					userID: this._sessionUserID,
+					session: session
+				}
+			);
+
+			// update delta permissions as well
+			if (chapter.delta) {
+				await Delta.findOneAndUpdate(
+					{ _id: chapter.delta },
+					{ permissions: this._chapterProperties.permissions },
+					{ session }
+				);
+			}
 		});
+		session.endSession();
 
 		const chapter = await Chapter.aggregate(
 			[

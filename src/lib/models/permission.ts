@@ -1,4 +1,4 @@
-import type { PermissionProperties } from '$lib/shared/permission';
+import { PermissionsEnum, type PermissionProperties } from '$lib/shared/permission';
 import { Schema, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/shared/user';
 
@@ -15,12 +15,7 @@ export const permissionSchema = new Schema<PermissionProperties>({
  * @param path - The name of the field referencing the collection
  * @param pipeline - The aggregate pipeline
  */
-export function addPermissionPipeline(
-	userID: string,
-	pipeline: PipelineStage[],
-	collection?: string,
-	path?: string
-) {
+export function addPermissionsPipeline(userID: string, pipeline: PipelineStage[]) {
 	pipeline.push(
 		{
 			$addFields: {
@@ -42,50 +37,85 @@ export function addPermissionPipeline(
 
 	pipeline.push({
 		$addFields: {
-			hasPermission: {
-				$cond: [
-					{
-						$or: [
-							{ $eq: ['$user._id', userID] },
-							{ $eq: ['$published', true] },
-							{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
-						]
-					},
-					true,
-					false
-				]
-			}
-		}
-	});
-
-	if (collection && path) {
-		// permissions
-		pipeline.push(
-			{
-				$lookup: {
-					from: collection,
-					localField: path,
-					foreignField: '_id',
-					as: path
-				}
-			},
-			{
-				$unwind: {
-					path: '$' + path,
-					preserveNullAndEmptyArrays: true
-				}
-			},
-			{
-				$match: {
-					$or: [
-						{ [path + '.user']: userID },
-						{ [path + '.published']: true },
-						{ [path + '.permissions.' + userID]: { $exists: true } }
+			userPermissions: {
+				[PermissionsEnum[0]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{ $eq: ['$published', true] },
+								{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
+							]
+						},
+						true,
+						false
+					]
+				},
+				[PermissionsEnum[1]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{
+									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[1]] }, 'missing']
+								}
+							]
+						},
+						true,
+						false
+					]
+				},
+				[PermissionsEnum[2]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{
+									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[2]] }, 'missing']
+								}
+							]
+						},
+						true,
+						false
 					]
 				}
 			}
-		);
-	}
+		}
+	});
+}
+
+export function addRestrictionsPipeline(
+	userID: string,
+	pipeline: PipelineStage[],
+	collection: string,
+	path: string
+) {
+	// permissions
+	pipeline.push(
+		{
+			$lookup: {
+				from: collection,
+				localField: path,
+				foreignField: '_id',
+				as: path
+			}
+		},
+		{
+			$unwind: {
+				path: '$' + path,
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$match: {
+				$or: [
+					{ [path + '.user']: userID },
+					{ [path + '.published']: true },
+					{ [path + '.permissions.' + userID]: { $exists: true } }
+				]
+			}
+		}
+	);
 }
 
 /** READ, UPDATE, DELETE permission filters */

@@ -16,8 +16,6 @@
 	let customClass = '';
 	export { customClass as class };
 
-	let permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
-
 	let closeModal = () => {
 		modalStore.close();
 	};
@@ -44,7 +42,7 @@
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
 				description: chapterNode.description!,
-				permissions: permissions,
+				permissions: chapterNode.permissions,
 				published: chapterNode.published
 			})
 			.then((chapterNodeResponse) => {
@@ -70,12 +68,15 @@
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
+		console.log('** sv per,s');
+		console.log(chapterNode.permissions);
+
 		trpc($page)
 			.chapters.update.mutate({
 				id: chapterNode._id,
 				title: chapterNode.title,
 				description: chapterNode.description,
-				permissions: permissions,
+				permissions: chapterNode.permissions,
 				published: chapterNode.published
 			})
 			.then((chapterNodeResponse) => {
@@ -126,7 +127,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} bind:permissionedDocument={chapterNode} />
+			<ManagePermissions bind:permissionedDocument={chapterNode} />
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">

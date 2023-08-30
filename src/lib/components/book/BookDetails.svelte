@@ -24,8 +24,6 @@
 
 	let genres = book.genres as unknown as Record<string, boolean>;
 
-	let permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
-
 	async function createBook() {
 		if (!imageFile) {
 			createBookData(null);
@@ -69,18 +67,13 @@
 			book.imageURL = imageURL;
 		}
 
-		const perms = Object.assign({}, permissions, { user: '2' });
-
-		console.log('** book create perms');
-		console.log(permissions);
-
 		trpc($page)
 			.books.create.mutate({
 				title: book.title,
 				description: book.description,
 				imageURL: book.imageURL,
 				genres: book.genres,
-				permissions: permissions,
+				permissions: book.permissions,
 				published: book.published
 			})
 			.then((bookResponse) => {
@@ -186,7 +179,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} bind:permissionedDocument={book} />
+			<ManagePermissions bind:permissionedDocument={book} />
 		</div>
 
 		<div class="flex flex-col sm:flex-row gap-4">

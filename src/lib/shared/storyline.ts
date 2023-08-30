@@ -16,6 +16,8 @@ export interface StorylineProperties {
 	chapters?: string[] | HydratedDocument<ChapterProperties>[];
 	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[];
+	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
 	description?: string;
 	imageURL?: string;
 	tags?: string[];
@@ -44,7 +46,7 @@ export class StorylinePropertyBuilder {
 			parentChapter: '',
 			tags: [],
 			permissions: {},
-			published: false
+			published: true
 		};
 	}
 
