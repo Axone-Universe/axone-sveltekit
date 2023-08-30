@@ -39,7 +39,7 @@
 	} from 'svelte-awesome/icons';
 
 
-	beforeUpdate(() => {
+	/*beforeUpdate(() => {
 		let chapterID = $page.url.searchParams.get('chapterID');
 
 		
@@ -54,14 +54,14 @@
 
 			
 		}
-	});
+	});*/
 
 
-	let selectedChapterNode: HydratedDocument<ChapterProperties>;
+	/*let selectedChapterNode: HydratedDocument<ChapterProperties>;
 
 	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
 		selectedChapterNode = UserChapters[chapter._id];
-	}
+	}*/
 
 
 	let modalComponent: ModalComponent = {
@@ -84,7 +84,7 @@
 			// afterUpdate() will run the setup editor
 			UserChapters[chapterID] = chapterNode;
 
-			selectedChapterNode = chapterNode;
+			
 			UserChapters = UserChapters;
 		}
 	};
@@ -157,17 +157,18 @@ need to test if it works for delete
 									nextIndex = 0;
 								}
 
-								let selectedChapterID = chapterIDs[nextIndex];
+							
 								
-
+								UserChapters = UserChapters.filter(chapter => chapter._id !== deletedID);
 								// delete the node first
-								delete UserChapters[deletedID];
+								//delete UserChapters[deletedID];
 
 								// give next node if it's available
-								selectedChapterNode = UserChapters[selectedChapterID];
-
+								console.log(UserChapters.length);
+								
 								UserChapters = UserChapters;
-
+								console.log("a second time now");
+								console.log(UserChapters.length);
 								// setup the editor
 								
 							}
@@ -216,9 +217,9 @@ function pronter(){
 
 						<tbody>
 							{#each UserChapters as chapter}
-							{#if selectedChapterNode}
+							
 							<button
-								on:click={() => {showChapterDetails(chapter.book._id, chapter._id); chapterSelected(chapter); console.log({selectedChapterNode})}}
+								on:click={() => showChapterDetails(chapter.book._id, chapter._id)}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token"
 							>
@@ -230,7 +231,7 @@ function pronter(){
 											class="m-2 btn-icon bg-surface-200-700-token">
 											<Icon class="p-2" data={trash} scale={2.5} />
 									</button>
-							{/if}
+							
 								<tr>
 									<td class="w-1/4">
 									<div class="flex items-center">
