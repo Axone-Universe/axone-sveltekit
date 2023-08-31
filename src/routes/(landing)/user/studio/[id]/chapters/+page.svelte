@@ -63,6 +63,9 @@
 		selectedChapterNode = UserChapters[chapter._id];
 	}*/
 
+	export let data: PageData;
+	$: ({ session, UserChapters} = data);
+
 
 	let modalComponent: ModalComponent = {
 		ref: undefined
@@ -101,35 +104,7 @@
 
 		modalStore.trigger(modalSettings);
 	};
-/*
 
-
-
-
-NOTES FOR BEN:
-Try and see if you can fix the selectedChapterNode selector thing...
-Currently I have hacked my own fix
-need to test if it works for delete
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 	
 	let currentPlace = $page.params
 	
@@ -184,12 +159,7 @@ need to test if it works for delete
 	
 	
 
-	export let data: PageData;
-	$: ({ session, UserChapters} = data);
 
-function pronter(){
-	console.log(typeof(UserChapters[0]))
-}
 	
 	</script>
 

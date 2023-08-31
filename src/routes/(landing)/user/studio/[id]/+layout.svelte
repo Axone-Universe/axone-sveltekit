@@ -53,7 +53,7 @@
 							</svg>
 						</span>
 					</button>
-					<strong class="text-xl uppercase">Skeleton</strong>
+					<strong class="text-xl ">Author Studio</strong>
 				</div>
 			</svelte:fragment>
 			

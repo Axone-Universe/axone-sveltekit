@@ -10,19 +10,124 @@
 	import { onMount } from 'svelte';
 	import { beforeUpdate } from 'svelte';
 	import { decodeTime, ulid } from 'ulid';
-
-
-
-
+	import Icon from 'svelte-awesome';
+	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
+	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
+	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
+	import type { BookProperties } from '$lib/shared/book';
+	import { trpc } from '$lib/trpc/client';
+	import {
+		AppShell,
+		Drawer,
+		drawerStore,
+		Accordion,
+		AccordionItem,
+		ListBoxItem,
+		ListBox,
+		LightSwitch,
+		modalStore
+	} from '@skeletonlabs/skeleton';
 	
-	let currentPlace = $page.params
+	import type {  ChapterProperties } from '$lib/shared/chapter';
 	
+	import {
+		
+		check,
+		trash,
+		edit,
+		
+	} from 'svelte-awesome/icons';
 	
-	let numBooks = 0;
+	import BookDetailsModal from '$lib/components/book/BookDetailsModal.svelte';
 
 	export let data: PageData;
 	$: ({ session, UserBooks} = data);
 
+	
+	let currentPlace = $page.params
+	UserBooks = UserBooks;
+	
+	let numBooks = 0;
+
+	let modalComponent: ModalComponent = {
+		ref: undefined
+	};
+	let modalSettings: ModalSettings = {
+		type: 'component',
+		// Pass the component directly:
+		component: modalComponent
+		
+	};
+
+	let showBookDetails = (book: HydratedDocument<BookProperties>) => {
+		//const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
+		modalComponent.ref = BookDetailsModal;
+		modalComponent.props = {
+			bookData: book,
+			
+		};
+
+		modalStore.trigger(modalSettings);
+	};
+
+	//console.log(UserBooks.length);
+	
+	let deleteBook = (book: HydratedDocument<BookProperties>) => {
+		
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: book.title,
+			body: 'Are you sure you wish to delete this chapter?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.books.delete.mutate({
+							id: book._id
+						})
+						.then((response) => {
+							if (response.deletedCount !== 0) {
+								let deletedID = book._id;
+								let bookIDs = Object.keys(UserBooks);
+								let nextIndex = bookIDs.indexOf(deletedID) + 1;
+
+								if (nextIndex >= bookIDs.length) {
+									nextIndex = 0;
+								}
+
+							
+								
+								UserBooks = UserBooks.filter(book => book._id !== deletedID);
+								// delete the node first
+								//delete UserChapters[deletedID];
+
+								// give next node if it's available
+								console.log(UserBooks.length);
+								
+								UserBooks = UserBooks;
+								console.log("a second time now");
+								console.log(UserBooks.length);
+								// setup the editor
+								
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	};
+
+
+
+	/*let showModal = () => {
+    if (selectedBookNode != null) {
+        modalStore.trigger(modal);
+    }
+};*/
 
 
 	</script>
@@ -50,6 +155,25 @@
 
 						<tbody>
 							{#each UserBooks as book}
+
+							
+							<button
+								on:click={() => {  showBookDetails(book)}}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token"
+							>
+								<Icon class="p-2" data={edit} scale={2.5} />
+							</button>
+							<button
+							on:click={() => deleteBook(book)}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token">
+								<Icon class="p-2" data={trash} scale={2.5} />
+						</button>
+
+
+
+
 								<tr>
 									<td class="w-1/4">
 									<div class="flex items-center">

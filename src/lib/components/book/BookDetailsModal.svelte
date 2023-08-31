@@ -76,8 +76,9 @@
 			})
 			.then((bookNodeResponses) => {
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
-				toastMessage = 'Sunccessfully Saved';
+				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
+				
 
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(bookData) : '';
