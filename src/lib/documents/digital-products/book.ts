@@ -67,7 +67,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	async delete(): Promise<mongoose.mongo.DeleteResult> {
+	/*async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
 
 		let result = {};
@@ -100,7 +100,62 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		session.endSession();
 
 		return result as mongoose.mongo.DeleteResult;
+	}*/
+
+	async delete(): Promise<mongoose.mongo.DeleteResult> {
+		const session = await mongoose.startSession();
+
+		let result = {};
+
+		await session.withTransaction(async () => {
+			const book = await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			)
+				.cursor()
+				.next();
+
+			const children = book.children;
+			if (children && children.length !== 0) {
+				// re-assign children to the parent
+				const parents = await Book.aggregate([
+					{
+						$match: {
+							children: this._bookProperties._id
+						}
+					}
+				]);
+
+				for (const parent of parents) {
+					parent.children = parent.children.concat(children);
+
+					await Book.findOneAndUpdate({ _id: parent._id }, parent, {
+						userID: this._sessionUserID,
+						session: session
+					});
+				}
+			}
+
+			result = await Book.deleteOne(
+				{ _id: this._bookProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
+
+			return result;
+		});
+		session.endSession();
+
+		return result as mongoose.mongo.DeleteResult;
 	}
+	  
 
 	published(published: boolean) {
 		this._bookProperties.published = published;
