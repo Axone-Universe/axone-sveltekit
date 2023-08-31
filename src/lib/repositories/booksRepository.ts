@@ -11,17 +11,16 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		skip?: number
 	): Promise<HydratedDocument<BookProperties>[]> {
-		let query = Book.find({}, null, { userID: session?.user.id });
+		const pipeline = [];
 
-		if (skip) {
-			query = query.skip(skip);
-		}
+		pipeline.push({ $match: {} });
+		if (limit) pipeline.push({ $limit: limit });
+		if (skip) pipeline.push({ $skip: skip });
 
-		if (limit) {
-			query = query.limit(limit);
-		}
+		const books = (await Book.aggregate(pipeline, {
+			userID: session?.user.id
+		})) as HydratedDocument<BookProperties>[];
 
-		const books = (await query) as HydratedDocument<BookProperties>[];
 		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
 			resolve(books);
 		});
@@ -33,17 +32,15 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		skip?: number
 	): Promise<HydratedDocument<BookProperties>[]> {
-		let query = Book.find({ title: title }, null, { userID: session?.user.id });
+		const pipeline = [];
 
-		if (skip) {
-			query = query.skip(skip);
-		}
+		pipeline.push({ $match: { title: title } });
+		if (limit) pipeline.push({ $limit: limit });
+		if (skip) pipeline.push({ $skip: skip });
 
-		if (limit) {
-			query = query.limit(limit);
-		}
-
-		const books = await query;
+		const books = (await Book.aggregate(pipeline, {
+			userID: session?.user.id
+		})) as HydratedDocument<BookProperties>[];
 
 		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
 			resolve(books);
@@ -51,7 +48,11 @@ export class BooksRepository extends Repository {
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
-		const book = await Book.findById(id, null, { userID: session?.user.id });
+		const book = await Book.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
 
 		return new Promise<HydratedDocument<BookProperties>>((resolve) => {
 			resolve(book);

@@ -7,6 +7,7 @@ export const create = z.object({
 	bookID: z.string(),
 	storylineID: z.string(),
 	prevChapterID: z.string().optional(),
+	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 
@@ -14,11 +15,12 @@ export const update = z.object({
 	id: z.string(),
 	title: z.string().optional(),
 	description: z.string().optional(),
+	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const search = z.object({
-	storylineID: z.string().optional(),
+	storylineChapterIDs: z.array(z.string()).optional(),
 	searchTerm: z.string().optional(),
 	toChapterID: z.string().optional(),
 	limit: z.number().optional(),

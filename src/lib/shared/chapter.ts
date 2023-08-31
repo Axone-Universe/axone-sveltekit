@@ -4,16 +4,21 @@ import type { UserProperties } from './user';
 import type { DeltaProperties } from './delta';
 import type { PermissionProperties } from './permission';
 import type { Genres } from './genres';
+import type { StorylineProperties } from './storyline';
 
 export const label = 'Chapter';
 
 export interface ChapterProperties {
 	_id: string;
 	book?: string | HydratedDocument<BookProperties>;
+	storyline?: string | HydratedDocument<StorylineProperties>;
 	user?: string | HydratedDocument<UserProperties>;
 	delta?: string | HydratedDocument<DeltaProperties>;
 	children?: string[] | HydratedDocument<ChapterProperties>[];
-	permissions: Map<string, HydratedDocument<PermissionProperties>>;
+	published: boolean;
+	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
+	userPermissions?: { view: boolean; edit: boolean; comment: boolean }; // Has the current session user permission details
 	genres?: Genres;
 	title?: string;
 	description?: string;
@@ -31,7 +36,8 @@ export class ChapterPropertyBuilder {
 			children: [],
 			title: '',
 			description: '',
-			permissions: new Map()
+			permissions: {},
+			published: true
 		};
 	}
 

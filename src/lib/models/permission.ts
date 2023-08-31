@@ -1,36 +1,124 @@
-import type { PermissionProperties } from '$lib/shared/permission';
-import { Schema } from 'mongoose';
+import { PermissionsEnum, type PermissionProperties } from '$lib/shared/permission';
+import { Schema, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/shared/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({
 	_id: { type: String, required: true },
-	public: { type: Boolean, required: true },
 	user: { type: String, ref: UserLabel },
 	permission: String
 });
 
-/** READ, UPDATE, DELETE permission filters */
+/**
+ *
+ * @param userID - ID of user for the session
+ * @param collection - The name of the collection that restricts access to this document e.g. storylines access is restricted by books
+ * @param path - The name of the field referencing the collection
+ * @param pipeline - The aggregate pipeline
+ */
+export function addPermissionsPipeline(userID: string, pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$addFields: {
+				permissionsArray: { $objectToArray: '$permissions' }
+			}
+		},
+		{
+			$lookup: {
+				from: 'users',
+				localField: 'permissionsArray.v.user',
+				foreignField: '_id',
+				as: 'permissionsUsers'
+			}
+		},
+		{
+			$unset: ['permissionsArray']
+		}
+	);
 
-export function addReadPermissionFilter(userID: string, filter: any) {
-	let permissionFilter = {};
-
-	// We'll only get documents with public permissions
-	if (!userID) {
-		permissionFilter = { ['permissions.public']: { $exists: true } };
-	} else {
-		permissionFilter = {
-			$or: [
-				{ user: userID },
-				{ ['permissions.public']: { $exists: true } },
-				{ ['permissions.' + userID]: { $exists: true } }
-			]
-		};
-	}
-
-	const updatedFilter = { $and: [filter, permissionFilter] };
-
-	return updatedFilter;
+	pipeline.push({
+		$addFields: {
+			userPermissions: {
+				[PermissionsEnum[0]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{ $eq: ['$published', true] },
+								{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
+							]
+						},
+						true,
+						false
+					]
+				},
+				[PermissionsEnum[1]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{
+									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[1]] }, 'missing']
+								}
+							]
+						},
+						true,
+						false
+					]
+				},
+				[PermissionsEnum[2]]: {
+					$cond: [
+						{
+							$or: [
+								{ $eq: ['$user._id', userID] },
+								{
+									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[2]] }, 'missing']
+								}
+							]
+						},
+						true,
+						false
+					]
+				}
+			}
+		}
+	});
 }
+
+export function addRestrictionsPipeline(
+	userID: string,
+	pipeline: PipelineStage[],
+	collection: string,
+	path: string
+) {
+	// permissions
+	pipeline.push(
+		{
+			$lookup: {
+				from: collection,
+				localField: path,
+				foreignField: '_id',
+				as: path
+			}
+		},
+		{
+			$unwind: {
+				path: '$' + path,
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$match: {
+				$or: [
+					{ [path + '.user']: userID },
+					{ [path + '.published']: true },
+					{ [path + '.permissions.' + userID]: { $exists: true } }
+				]
+			}
+		}
+	);
+}
+
+/** READ, UPDATE, DELETE permission filters */
 
 export function addUpdatePermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};

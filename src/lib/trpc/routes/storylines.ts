@@ -8,16 +8,12 @@ import { search } from '$lib/trpc/schemas/storylines';
 import type { HydratedDocument } from 'mongoose';
 import type { PermissionProperties } from '$lib/shared/permission';
 
-const storylinesRepo = new StorylinesRepository();
-
 export const storylines = t.router({
 	getAll: t.procedure
 		.use(logger)
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
-			if (input?.bookID) {
-				storylinesRepo.bookId(input.bookID);
-			}
+			const storylinesRepo = new StorylinesRepository();
 			const result = await storylinesRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
@@ -27,8 +23,18 @@ export const storylines = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
-			storylinesRepo.bookId(input.bookID);
-			const result = await storylinesRepo.getById(ctx.session, input.storylineID);
+			const storylinesRepo = new StorylinesRepository();
+			const result = await storylinesRepo.getById(ctx.session, input.storylineID!);
+
+			return result;
+		}),
+
+	getByBookID: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
+			const result = await storylinesRepo.getByBookID(ctx.session, input.bookID!, input.main);
 
 			return result;
 		}),
@@ -56,6 +62,7 @@ export const storylines = t.router({
 			if (input?.parent) storylineBuilder.parentStorylineID(input.parent);
 			if (input?.parentChapter) storylineBuilder.branchOffChapterID(input.parentChapter);
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
+			if (input.published) storylineBuilder.published(input.published);
 
 			if (input?.permissions) {
 				storylineBuilder.permissions(input.permissions as any);

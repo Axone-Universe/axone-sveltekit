@@ -29,7 +29,7 @@ describe('chapters', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		let storylines = await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
@@ -39,6 +39,7 @@ describe('chapters', () => {
 			'My chapter 1',
 			storylines[0]
 		);
+
 		const chapter2Response = await createChapter(
 			testUserOneSession,
 			chapter2Title,
@@ -47,8 +48,12 @@ describe('chapters', () => {
 			chapter1Response._id
 		);
 
-		let storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0]._id
+		storylines = await caller.storylines.getAll({
+			bookID: bookResponse._id
+		});
+
+		let storylineChapters = await caller.chapters.getByStoryline({
+			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
 		expect(chapter1Response.title).toEqual(chapter1Title);
@@ -59,8 +64,8 @@ describe('chapters', () => {
 		expect(storylineChapters[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
-		storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].id,
+		storylineChapters = await caller.chapters.getByStoryline({
+			storylineChapterIDs: storylines[0].chapters as string[],
 			toChapterID: chapter1Response._id
 		});
 
@@ -144,7 +149,7 @@ describe('chapters', () => {
 		});
 
 		let storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].id
+			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
 		expect(storylineChapters.length).toEqual(2);
@@ -155,7 +160,7 @@ describe('chapters', () => {
 		});
 
 		storylineChapters = await caller.chapters.getAll({
-			storylineID: storylines[0].id
+			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
 		expect(storylineChapters.length).toEqual(1);
