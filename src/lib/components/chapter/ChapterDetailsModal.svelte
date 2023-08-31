@@ -78,7 +78,7 @@
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
-				toastMessage = 'Sunccessfully Saved';
+				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {
