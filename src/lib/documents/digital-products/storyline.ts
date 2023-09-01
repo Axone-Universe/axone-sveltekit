@@ -1,10 +1,11 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
+import mongoose from 'mongoose';
 import type { StorylineProperties } from '$lib/shared/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/shared/permission';
-
+import { Delta } from '$lib/models/delta';
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
 	private _userID?: string;
@@ -88,6 +89,108 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		this._sessionUserID = sessionUserID;
 		return this;
 	}
+
+
+
+
+	
+	async delete(): Promise<mongoose.mongo.DeleteResult> {
+		const session = await mongoose.startSession();
+
+		let result = {};
+
+		await session.withTransaction(async () => {
+			const storyline = await Storyline.aggregate(
+				[
+					{
+						$match: {
+							_id: this._storylineProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			)
+				.cursor()
+				.next();
+
+			const children = storyline.children;
+			if (children && children.length !== 0) {
+				// re-assign children to the parent
+				const parents = await Storyline.aggregate([
+					{
+						$match: {
+							children: this._storylineProperties._id
+						}
+					}
+				]);
+
+				for (const parent of parents) {
+					parent.children = parent.children.concat(children);
+
+					await Storyline.findOneAndUpdate({ _id: parent._id }, parent, {
+						userID: this._sessionUserID,
+						session: session
+					});
+				}
+			}
+
+			result = await Storyline.deleteOne(
+				{ _id: this._storylineProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
+
+			return result;
+		});
+		session.endSession();
+
+		return result as mongoose.mongo.DeleteResult;
+	}
+
+	async update(): Promise<HydratedDocument<StorylineProperties>> {
+		const session = await mongoose.startSession();
+		await session.withTransaction(async () => {
+			const storyline = await Storyline.findOneAndUpdate(
+				{ _id: this._storylineProperties._id },
+				this._storylineProperties,
+				{
+					new: true,
+					userID: this._sessionUserID,
+					session: session
+				}
+			);
+
+			// update delta permissions as well
+			if (storyline.delta) {
+				await Delta.findOneAndUpdate(
+					{ _id: storyline.delta },
+					{ permissions: this._storylineProperties.permissions },
+					{ session }
+				);
+			}
+		});
+		session.endSession();
+
+		const storyline = await Storyline.aggregate(
+			[
+				{
+					$match: {
+						_id: this._storylineProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		return storyline;
+	}
+
+
 
 	/**
 	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters

@@ -6,7 +6,8 @@ module.exports = {
 		require('path').join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
 	],
 	theme: {
-		extend: {}
+		extend: {'3xl': '1.875rem',
+		'4xl': '2.4rem'}
 	},
 	plugins: [
 		require('@tailwindcss/forms'),

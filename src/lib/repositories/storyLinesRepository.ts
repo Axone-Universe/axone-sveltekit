@@ -78,11 +78,15 @@ export class StorylinesRepository extends Repository {
 
 
 	async getStorylinesByUserID(session: Session | null, id?: string): Promise<HydratedDocument<StorylineProperties>[]> {
-		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
-		const storyLines = await Storyline.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
+		const pipeline = [];
 
+		pipeline.push({ $match: { user: id, main: true }});
+
+		const storyline = await Storyline.aggregate(pipeline, {
+			userID: session?.user.id
+		}) as HydratedDocument<StorylineProperties>[];
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
-			resolve(storyLines);
+			resolve(storyline);
 		});
 	}
 

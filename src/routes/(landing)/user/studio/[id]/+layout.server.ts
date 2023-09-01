@@ -24,9 +24,9 @@ export const load = (async (event) => {
 		searchTerm: userID
 	}))as HydratedDocument<ChapterProperties>[];
 
-	/*const UserStorylines = (await trpc(event).storylines.getStorylinesByUserID.query({
+	const UserStorylines = (await trpc(event).storylines.getStorylinesByUserID.query({
 		searchTerm: userID
-	}))as HydratedDocument<StorylineProperties>[];*/
+	}))as HydratedDocument<StorylineProperties>[];
 
 	/*if (data && data.user) {
 		// check if user has a profile
@@ -39,7 +39,7 @@ export const load = (async (event) => {
 		}
 	}
 */
-return {UserBooks, UserChapters };
+return {UserBooks, UserChapters, UserStorylines };
 	
 }) satisfies PageServerLoad;
 

@@ -81,7 +81,33 @@ export class BooksRepository extends Repository {
 	async getBooksByUserID(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline = [];
 	
-		pipeline.push({ $match: { user: id } });
+		pipeline.push({ $match: { user: id } },
+			{
+
+				$lookup: {
+		  
+				  from: 'storylines',
+		  
+				  localField: '_id',
+		  
+				  foreignField: 'book',
+		  
+				  as: 'storylines',
+		  
+				},
+				
+		  
+			  },
+			  
+			  {
+
+				$addFields: {
+		  
+				  count: { $size: "$storylines" }
+		  
+				}
+		  
+			  });
 		// If you want to limit or skip, you can add those stages here
 		// if (limit) pipeline.push({ $limit: limit });
 		// if (skip) pipeline.push({ $skip: skip });

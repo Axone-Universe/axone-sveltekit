@@ -1,30 +1,17 @@
 
 
 <script lang="ts">
-	import { tableMapperValues } from '@skeletonlabs/skeleton';
 	import { trpc } from '$lib/trpc/client';
-	import { Table } from '@skeletonlabs/skeleton';
-	import type { TableSource } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import { onMount } from 'svelte';
-	import { beforeUpdate } from 'svelte';
-	import { decodeTime, ulid } from 'ulid';
-	import type { BookProperties } from '$lib/shared/book';
+	import { decodeTime } from 'ulid';
 	import Icon from 'svelte-awesome';
-	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
+	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
-	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
+	import { afterUpdate } from 'svelte';
 	import {
-		AppShell,
-		Drawer,
-		drawerStore,
-		Accordion,
-		AccordionItem,
-		ListBoxItem,
-		ListBox,
-		LightSwitch,
+		
 		modalStore
 	} from '@skeletonlabs/skeleton';
 	
@@ -32,40 +19,17 @@
 	
 	import {
 		
-		check,
+		
 		trash,
 		edit,
 		
 	} from 'svelte-awesome/icons';
 
 
-	/*beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		
-		if (!selectedChapterNode) {
-			if (!chapterID && Object.keys(UserChapters).length !== 0) {
-				chapterID = Object.keys(UserChapters)[0];
-			}
-
-			if (chapterID && chapterID in UserChapters) {
-				selectedChapterNode = UserChapters[chapterID];
-			}
-
-			
-		}
-	});*/
-
-
-	/*let selectedChapterNode: HydratedDocument<ChapterProperties>;
-
-	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
-		selectedChapterNode = UserChapters[chapter._id];
-	}*/
-
+	
 	export let data: PageData;
-	$: ({ session, UserChapters} = data);
-
+	
+	$: ({  UserChapters } = data);
 
 	let modalComponent: ModalComponent = {
 		ref: undefined
@@ -73,18 +37,16 @@
 
 	let modalSettings: ModalSettings = {
 		type: 'component',
-		// Pass the component directly:
+		
 		component: modalComponent,
 		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
 			if (!chapterNode) {
 				return;
 			}
 
-			// Update the UI
 			let chapterID = chapterNode._id;
 			
 
-			// afterUpdate() will run the setup editor
 			UserChapters[chapterID] = chapterNode;
 
 			
@@ -93,20 +55,27 @@
 	};
 
 
+	/*afterUpdate(() => {
+    console.log('New update');
+	UserChapters = UserChapters;
+	
+  	});*/
+
 	let showChapterDetails = (bookID: string, chapId: string) => {
 		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
 			chapterNode: foundChapter,
 			bookID: bookID,
-			//storylineID: storylineResponse._id
+			
 		};
 
 		modalStore.trigger(modalSettings);
 	};
 
+
 	
-	let currentPlace = $page.params
+	
 	
 	let deleteChapter = (chapId: string) => {
 		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
@@ -118,6 +87,8 @@
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
+					
+				
 					trpc($page)
 						.chapters.delete.mutate({
 							id: foundChapter._id
@@ -135,26 +106,20 @@
 							
 								
 								UserChapters = UserChapters.filter(chapter => chapter._id !== deletedID);
-								// delete the node first
-								//delete UserChapters[deletedID];
-
-								// give next node if it's available
-								console.log(UserChapters.length);
 								
-								UserChapters = UserChapters;
-								console.log("a second time now");
-								console.log(UserChapters.length);
-								// setup the editor
 								
 							}
 						})
 						.catch((error) => {
 							console.log(error);
 						});
-				}
+						}
 			}
 		};
+		UserChapters = UserChapters;
 		modalStore.trigger(modal);
+		
+		
 	};
 	
 	
@@ -168,11 +133,12 @@
 	
 	<body>
 		<div class="container">
+
 			<div class="row">
 
-				<div class="twelve columns">
+				<div class="relative overflow-x-auto">
 					<table class="table">
-						<thead>
+						<thead class="uppercase text-xl">
 							<tr>
 								
 								<th>Book</th>
@@ -207,7 +173,7 @@
 									<div class="flex items-center">
 										
 										{#if chapter.book?.imageURL}
-       										 <img src={chapter.book?.imageURL} alt="Book Cover" class="w-20 h-20 " />
+       										 <img src={chapter.book?.imageURL} alt="Book Cover" class="w-20 h-20 mr-2  p-1 " />
    										{/if}
 										{#if chapter.book == null}
 											<h3 class="w-20 h-20 mr-2 p-1">place holder</h3>

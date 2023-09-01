@@ -24,13 +24,13 @@ export const chapters = t.router({
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
-			if (input?.storylineID) {
+			/*if (input?.storylineID) {
 				chaptersRepo.storylineID(input.storylineID);
 			}
 
 			if (input?.toChapterID) {
 				chaptersRepo.toChapterID(input.toChapterID);
-			}
+			}*/
 
 			const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.searchTerm);
 
