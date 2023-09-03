@@ -60,15 +60,12 @@ describe('users', () => {
 		const testSessionOne = createTestSession(testUserOne);
 		const testSessionTwo = createTestSession(testUserTwo);
 
-		const userResponse = await createDBUser(testSessionOne);
+		const createUserResponse = await createDBUser(testSessionOne);
 		await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list({ searchTerm: userResponse._id });
+		const userResponse = await caller.users.getById({ searchTerm: createUserResponse._id });
 
-		const user = userResponses[0];
-
-		expect(userResponses.length).toEqual(1);
-		expect(user!._id).toEqual(userResponse._id);
+		expect(userResponse!._id).toEqual(createUserResponse._id);
 	});
 });

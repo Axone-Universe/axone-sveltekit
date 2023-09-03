@@ -6,6 +6,7 @@ import { users } from '$lib/trpc/routes/users';
 import { storylines } from '$lib/trpc/routes/storylines';
 import { chapters } from '$lib/trpc/routes/chapters';
 import { deltas } from '$lib/trpc/routes/deltas';
+import { notes } from '$lib/trpc/routes/notes';
 import { permissions } from '$lib/trpc/routes/permissions';
 import { t } from '$lib/trpc/t';
 
@@ -16,7 +17,8 @@ export const router = t.router({
 	storylines,
 	chapters,
 	deltas,
-	permissions
+	permissions,
+	notes
 });
 
 export type Router = typeof router;
