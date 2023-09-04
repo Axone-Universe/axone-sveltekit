@@ -309,7 +309,7 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
-		modalComponent.props = { storylineNode: storylineResponse };
+		modalComponent.props = { storylineNode: storylineResponse, chapterID: selectedChapterNode._id };
 		modalStore.trigger(modalSettings);
 	};
 

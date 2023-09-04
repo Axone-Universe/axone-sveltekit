@@ -14,10 +14,10 @@
 	import { page } from '$app/stores';
 
 	export let data: PageData;
-	export let { userNode } = data;
+	export let { userResponse } = data;
 
-	const userGenres = userNode.genres as unknown as Record<string, boolean>;
-	const userLabels = userNode.labels as unknown as Record<string, boolean>;
+	const userGenres = userResponse.genres as unknown as Record<string, boolean>;
+	const userLabels = userResponse.labels as unknown as Record<string, boolean>;
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
@@ -32,14 +32,14 @@
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
 				<div class="flex flex-col gap-1">
 					<h3 class="flex items-center gap-2">
-						{userNode.firstName}
-						{userNode.lastName}
+						{userResponse.firstName}
+						{userResponse.lastName}
 						{#if viewerIsUser}
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						{/if}
 					</h3>
 					<div class="flex gap-2 flex-wrap">
-						{#if userNode.labels}
+						{#if userResponse.labels}
 							{#each Object.keys(userLabels) as label}
 								{#if userLabels[label]}
 									<div class="chip variant-filled">{label}</div>
@@ -50,13 +50,13 @@
 						{/if}
 					</div>
 					<div class="flex gap-2">
-						{#if userNode.facebook}
+						{#if userResponse.facebook}
 							<Icon data={facebookIcon} scale={2} />
 						{/if}
-						{#if userNode.instagram}
+						{#if userResponse.instagram}
 							<Icon data={instagramIcon} scale={2} />
 						{/if}
-						{#if userNode.twitter}
+						{#if userResponse.twitter}
 							<Icon data={twitterIcon} scale={2} />
 						{/if}
 					</div>
@@ -73,8 +73,8 @@
 			<h2 class="mb-4">About</h2>
 			<div class="card p-4">
 				<p>
-					{userNode.about
-						? userNode.about
+					{userResponse.about
+						? userResponse.about
 						: 'Apparently, this user is really boring and did not say anything for their About section.'}
 				</p>
 			</div>
@@ -84,7 +84,7 @@
 			<h2 class="mb-4">Genre Preferences</h2>
 			<div class="gap-4 w-full">
 				<div class="card p-4">
-					{#if userNode.genres}
+					{#if userResponse.genres}
 						<div class="flex gap-2 flex-wrap">
 							{#if userGenres.genres}
 								{#each Object.keys(userGenres) as genre}
