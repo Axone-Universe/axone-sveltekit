@@ -5,6 +5,7 @@ import type { HydratedDocument } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
 import type { Genre } from '$lib/shared/genre';
+import { UsersRepository } from './usersRepository';
 
 export class BooksRepository extends Repository {
 	async get(
@@ -20,8 +21,16 @@ export class BooksRepository extends Repository {
 			filter.title = title;
 		}
 
-		if (genres && genres.length > 0) {
-			filter.genres = { $all: genres };
+		if (genres) {
+			if (genres.length > 0) {
+				filter.genres = { $all: genres };
+			}
+		} else {
+			const userRepo = new UsersRepository();
+			const user = await userRepo.getById(session);
+			if (user) {
+				filter.genres = { $in: user.genres };
+			}
 		}
 
 		if (cursor) {
@@ -33,7 +42,7 @@ export class BooksRepository extends Repository {
 			limit
 		});
 
-		return (await query) as HydratedDocument<BookProperties>[];
+		return await query;
 	}
 
 	async getByTitle(
@@ -57,7 +66,7 @@ export class BooksRepository extends Repository {
 			limit
 		});
 
-		return (await query) as HydratedDocument<BookProperties>[];
+		return await query;
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {

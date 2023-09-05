@@ -35,4 +35,31 @@ deltaSchema.pre(
 	}
 );
 
-export const Delta = mongoose.models[label] || model<DeltaProperties>(label, deltaSchema);
+deltaSchema.pre(['find', 'findOne'], function () {
+	throw new Error('Please use aggregate.');
+});
+
+deltaSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const pipeline = this.pipeline();
+
+	addRestrictionsPipeline(userID, pipeline, 'chapters', 'chapter');
+	next();
+});
+
+deltaSchema.pre(
+	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
+	function (next) {
+		const userID = this.getOptions().userID;
+		const filter = this.getFilter();
+
+		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		this.setQuery(updatedFilter);
+
+		next();
+	}
+);
+
+export const Delta = mongoose.models[label]
+	? model<DeltaProperties>(label)
+	: model<DeltaProperties>(label, deltaSchema);

@@ -11,8 +11,8 @@ export class UsersRepository extends Repository {
 		return await query;
 	}
 
-	async getById(session: Session | null, id?: string): Promise<HydratedDocument<UserProperties>> {
-		const query = User.findById(id);
+	async getById(session: Session | null): Promise<HydratedDocument<UserProperties> | null> {
+		const query = User.findById(session?.user.id);
 
 		return await query;
 	}
@@ -47,11 +47,7 @@ export class UsersRepository extends Repository {
 			query = query.limit(limit);
 		}
 
-		const users = await query;
-
-		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
-			resolve(users);
-		});
+		return await query;
 	}
 
 	async count(): Promise<number> {

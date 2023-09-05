@@ -4,22 +4,21 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, search, submitToCampaign, update } from '$lib/trpc/schemas/books';
-import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from '$lib/shared/book';
 
 export const books = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = (await booksRepo.get(
+
+			const result = await booksRepo.get(
 				ctx.session,
-				input?.limit,
-				input?.cursor,
-				input?.genres,
-				input?.title
-			)) as HydratedDocument<BookProperties>[];
+				input.limit,
+				input.cursor,
+				input.genres,
+				input.title
+			);
 
 			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),

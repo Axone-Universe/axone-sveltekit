@@ -1,6 +1,5 @@
 import { label, type BookProperties } from '$lib/shared/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
-import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
 	addDeletePermissionFilter,
@@ -81,4 +80,6 @@ function populate(pipeline: PipelineStage[]) {
 	);
 }
 
-export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);
+export const Book = mongoose.models[label]
+	? model<BookProperties>(label)
+	: model<BookProperties>(label, bookSchema);

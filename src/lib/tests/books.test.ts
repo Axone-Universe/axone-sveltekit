@@ -50,7 +50,7 @@ describe('books', () => {
 		const bookResponse3 = await createBook(createTestSession(testUserThree), testBookTitle3);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.getAll({});
+		const bookResponses = await caller.books.get({});
 
 		expect(bookResponses.result.map((a) => a._id).sort()).toEqual(
 			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
