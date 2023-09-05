@@ -3,9 +3,10 @@
 	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
-	import { user, star } from 'svelte-awesome/icons';
+	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
 	import type { UserProperties } from '$lib/shared/user';
+	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 
 	export let bookData: HydratedDocument<BookProperties>;
 
@@ -21,16 +22,21 @@
 </script>
 
 <div
-	class={`bg-surface-100-800-token w-full md:w-3/4 lg:w-2/4 grid grid-cols-1 md:grid-cols-2 p-4 space-x-4 ${customClass}`}
+	class={`card w-full md:w-3/4 lg:w-2/4 grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative ${customClass}`}
 >
-	<div class="flex flex-col items-center">
-		<img src={bookData.imageURL} class="object-cover w-3/4 md:w-full aspect-[6/8]" alt="Post" />
+	<button class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled" on:click={closeModal}>
+		<Icon class="w-5 h-5" data={close} />
+	</button>
+	<div class="rounded-md overflow-hidden">
+		<ImageWithFallback
+			src={bookData.imageURL}
+			alt={bookData.title}
+			additionalClasses="aspect-square w-full"
+		/>
 	</div>
 	<div class="bg-initial overflow-hidden">
 		<header class="p-2 space-y-4">
-			<div class="flex flex-col p-2 items-center">
-				<p class="text-lg font-bold line-clamp-1">{bookData.title}</p>
-			</div>
+			<p class="text-lg font-bold line-clamp-2">{bookData.title}</p>
 			<div class="flex flex-row space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
 					<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />

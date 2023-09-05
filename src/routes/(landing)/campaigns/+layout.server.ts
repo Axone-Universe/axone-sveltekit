@@ -1,4 +1,4 @@
-import { trpcWithQuery } from '$lib/trpc/client';
+import { trpc } from '$lib/trpc/client';
 import { preprocessCampaigns } from '$lib/util/preprocess';
 import type { HydratedDocument } from 'mongoose';
 import type { LayoutServerLoad } from './$types';
@@ -41,7 +41,7 @@ import type { CampaignProperties } from '$lib/shared/campaign';
 
 export const load = (async (event) => {
 	// get campaigns at layout to be stored in page.data to be used by all child pages
-	const campaignResponses = (await trpcWithQuery(
+	const campaignResponses = (await trpc(
 		event
 	).campaigns.list.query()) as HydratedDocument<CampaignProperties>[];
 	// const count = await trpc(event).campaigns.total.query();

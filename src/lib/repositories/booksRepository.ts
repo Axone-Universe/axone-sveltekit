@@ -15,6 +15,7 @@ export class BooksRepository extends Repository {
 		genres?: Genre[],
 		title?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
+		const pipeline = [];
 		const filter: any = {};
 
 		if (title) {
@@ -27,7 +28,7 @@ export class BooksRepository extends Repository {
 			}
 		} else {
 			const userRepo = new UsersRepository();
-			const user = await userRepo.getById(session);
+			const user = await userRepo.getById(session, session?.user.id);
 			if (user) {
 				filter.genres = { $in: user.genres };
 			}
@@ -37,9 +38,12 @@ export class BooksRepository extends Repository {
 			filter._id = { $gt: cursor };
 		}
 
-		const query = Book.find(filter, null, {
-			userID: session?.user.id,
-			limit
+		pipeline.push({ $match: filter });
+
+		if (limit) pipeline.push({ $limit: limit });
+
+		const query = Book.aggregate(pipeline, {
+			userID: session?.user.id
 		});
 
 		return await query;
@@ -51,6 +55,8 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		cursor?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
+		const pipeline = [];
+
 		const filter: any = {};
 
 		if (title) {
@@ -61,20 +67,23 @@ export class BooksRepository extends Repository {
 			filter._id = { $gt: cursor };
 		}
 
-		const query = Book.find(filter, null, {
-			userID: session?.user.id,
-			limit
+		pipeline.push({ $match: filter });
+
+		const query = Book.aggregate(pipeline, {
+			userID: session?.user.id
 		});
 
 		return await query;
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
-		const query = Book.findById(id, null, {
+		const query = Book.aggregate([{ $match: { _id: id } }], {
 			userID: session?.user.id
-		});
+		})
+			.cursor()
+			.next();
 
-		return (await query) as HydratedDocument<BookProperties>;
+		return await query;
 	}
 
 	async count(): Promise<number> {

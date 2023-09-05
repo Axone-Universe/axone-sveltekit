@@ -20,8 +20,6 @@ import {
 	TEST_USER_FIRST_NAME,
 	TEST_USER_LAST_NAME
 } from '$env/static/private';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import { ulid } from 'ulid';
 import { UserPropertyBuilder } from '$lib/shared/user';
 
 /** Supabase Test User Infos */

@@ -11,8 +11,8 @@ export class UsersRepository extends Repository {
 		return await query;
 	}
 
-	async getById(session: Session | null): Promise<HydratedDocument<UserProperties> | null> {
-		const query = User.findById(session?.user.id);
+	async getById(session: Session | null, id?: string): Promise<HydratedDocument<UserProperties> | null> {
+		const query = User.findById(id);
 
 		return await query;
 	}

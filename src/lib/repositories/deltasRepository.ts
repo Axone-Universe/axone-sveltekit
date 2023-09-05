@@ -2,7 +2,6 @@ import { Delta } from '$lib/models/delta';
 import { Repository } from '$lib/repositories/repository';
 import type { DeltaProperties } from '$lib/shared/delta';
 import type { Session } from '@supabase/supabase-js';
-import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 
 export class DeltasRepository extends Repository {
@@ -11,11 +10,11 @@ export class DeltasRepository extends Repository {
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<DeltaProperties>> {
-		const delta = await Delta.findById(id);
-
-		return new Promise<HydratedDocument<DeltaProperties>>((resolve) => {
-			resolve(delta);
-		});
+		return await Delta.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
 	}
 
 	async get(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {

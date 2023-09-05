@@ -11,7 +11,6 @@ import {
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
-import { ulid } from 'ulid';
 
 import {
 	TEST_DATA_NUM_USERS,
