@@ -29,7 +29,7 @@ export class BooksRepository extends Repository {
 		} else {
 			const userRepo = new UsersRepository();
 			const user = await userRepo.getById(session, session?.user.id);
-			if (user) {
+			if (user && user.genres) {
 				filter.genres = { $in: user.genres };
 			}
 		}
