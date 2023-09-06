@@ -12,7 +12,6 @@
 
 	let customClass = '';
 	const bookUser = bookData.user as HydratedDocument<UserProperties>;
-	const bookGenres = bookData.genres as unknown as Record<string, boolean>;
 
 	export { customClass as class };
 
@@ -22,22 +21,23 @@
 </script>
 
 <div
-	class={`card w-full md:w-3/4 lg:w-2/4 grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative ${customClass}`}
+	class={`card w-full sm:w-3/4 lg:w-1/2 grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}
 >
-	<button class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled" on:click={closeModal}>
+	<button
+		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled"
+		on:click={closeModal}
+	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
-	<div class="rounded-md overflow-hidden">
-		<ImageWithFallback
-			src={bookData.imageURL}
-			alt={bookData.title}
-			additionalClasses="aspect-square w-full"
-		/>
-	</div>
-	<div class="bg-initial overflow-hidden">
-		<header class="p-2 space-y-4">
+	<ImageWithFallback
+		src={bookData.imageURL}
+		alt={bookData.title}
+		additionalClasses="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden"
+	/>
+	<div class="flex flex-col justify-between items-center gap-4 h-full">
+		<header class="space-y-2">
 			<p class="text-lg font-bold line-clamp-2">{bookData.title}</p>
-			<div class="flex flex-row space-x-2 items-center">
+			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
 					<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />
 				{:else}
@@ -56,31 +56,27 @@
 					<p class="text-sm font-bold line-clamp-1">4.5</p>
 				</div>
 			</div>
-			<div class="space-x-2 line-clamp-1">
-				{#if bookData.genres !== undefined}
-					{#each Object.keys(bookGenres) as genre}
-						{#if bookGenres[genre]}
-							<div class="chip variant-filled">{genre}</div>
-						{/if}
+			<div class="flex flex-wrap gap-2">
+				{#if bookData.genres}
+					{#each bookData.genres as genre}
+						<div class="chip variant-filled py-0.5 px-1">{genre}</div>
 					{/each}
 				{/if}
 			</div>
 		</header>
-		<hr class="opacity-50" />
-		<div>
-			<div>
-				<p class="text-lg font-thin line-clamp-3 md:line-clamp-5">
-					{bookData.description}
-				</p>
-			</div>
+		<div class="h-full">
+			<hr class="opacity-50" />
+			<p class="font-thin overflow-scroll my-2">
+				{bookData.description}
+			</p>
 		</div>
-		<hr class="opacity-50" />
-		<footer class="p-4 flex flex-col items-center space-x-4">
-			<div class="btn-group variant-filled">
+		<div class="w-full flex flex-col gap-4 items-center">
+			<hr class="opacity-50 min-w-full" />
+			<footer class="btn-group variant-filled py-1 max-w-fit">
 				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
 				<a on:click={closeModal} class="button" href="/reader/{bookData._id}">Read</a>
 				<button>+</button>
-			</div>
-		</footer>
+			</footer>
+		</div>
 	</div>
 </div>
