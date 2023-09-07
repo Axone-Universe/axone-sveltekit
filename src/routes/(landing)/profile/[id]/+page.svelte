@@ -14,7 +14,7 @@
 	import { page } from '$app/stores';
 
 	export let data: PageData;
-	export let { userResponse } = data;
+	export let { userNode } = data;
 
 	const userGenres = userNode.genres;
 	const userLabels = userNode.labels;
@@ -32,8 +32,8 @@
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
 				<div class="flex flex-col gap-1">
 					<h3 class="flex items-center gap-2">
-						{userResponse.firstName}
-						{userResponse.lastName}
+						{userNode.firstName}
+						{userNode.lastName}
 						{#if viewerIsUser}
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						{/if}
@@ -46,13 +46,13 @@
 						{/if}
 					</div>
 					<div class="flex gap-2">
-						{#if userResponse.facebook}
+						{#if userNode.facebook}
 							<Icon data={facebookIcon} scale={2} />
 						{/if}
-						{#if userResponse.instagram}
+						{#if userNode.instagram}
 							<Icon data={instagramIcon} scale={2} />
 						{/if}
-						{#if userResponse.twitter}
+						{#if userNode.twitter}
 							<Icon data={twitterIcon} scale={2} />
 						{/if}
 					</div>
@@ -69,8 +69,8 @@
 			<h2 class="mb-4">About</h2>
 			<div class="card p-4">
 				<p>
-					{userResponse.about
-						? userResponse.about
+					{userNode.about
+						? userNode.about
 						: 'Apparently, this user is really boring and did not say anything for their About section.'}
 				</p>
 			</div>
