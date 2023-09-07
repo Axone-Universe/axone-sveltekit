@@ -435,26 +435,41 @@
 	}
 
 	function commentAddClick() {
-		if (!quill.selectedContainsComment()) quill.getModule('comment').addComment(' ');
-		drawerStore.open(drawerSettings);
-		showComments = true;
-		showIllustrations = false;
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) quill.getModule('comment').addComment(' ');
+
+		if (quill.selectedContainsIllustration()){
+			drawerStore.open(drawerSettings);
+			showComments = false;
+			showIllustrations = true;
+		} else {
+			drawerStore.open(drawerSettings);
+			showComments = true;
+			showIllustrations = false;
+		}
+
 	}
 
 	/**
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
-		if (!quill.selectedContainsIllustration()) {
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('illustration').addIllustration({
 				src: '',
 				alt: '',
 				caption: ''
 			});
 		}
-		drawerStore.open(drawerSettings);
-		showIllustrations = true;
-		showComments = false;
+
+		if (quill.selectedContainsComment()){
+			drawerStore.open(drawerSettings);
+			showComments = true;
+			showIllustrations = false;
+		} else {
+			drawerStore.open(drawerSettings);
+			showComments = false;
+			showIllustrations = true;
+		}
 	}
 
 	/**
