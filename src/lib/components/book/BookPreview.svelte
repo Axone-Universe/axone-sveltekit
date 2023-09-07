@@ -38,7 +38,7 @@
 >
 	<ImageWithFallback src={book.imageURL} alt={book.title} bind:didError />
 	<div
-		class="bg-black/40 absolute top-0 w-full h-full md:bg-black/0 md:hover:bg-black/60 duration-300"
+		class="bg-black/40 absolute top-0 w-full h-full md:bg-black/0 md:hover:bg-black/40 duration-300"
 	>
 		<div
 			class="opacity-100 md:opacity-0 md:group-hover:opacity-100 flex flex-col justify-between duration-300 p-2"
