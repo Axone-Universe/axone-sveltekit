@@ -22,11 +22,9 @@ export const deltas = t.router({
 	getById: t.procedure
 		.use(logger)
 		.input(search)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const deltasRepo = new DeltasRepository();
-			const result = await deltasRepo.getById(input.id);
-
-			console.log('** 1 serv setting edtior ');
+			const result = await deltasRepo.getById(ctx.session, input.id);
 
 			return result;
 		}),

@@ -13,12 +13,7 @@ export const users = t.router({
 		.use(logger)
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
-			const result = await usersRepo.getById(
-				ctx.session,
-				input?.searchTerm,
-				input?.limit,
-				input?.skip
-			);
+			const result = await usersRepo.getAll(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),

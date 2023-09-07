@@ -20,25 +20,36 @@
 	import { UserPropertyBuilder, type UserProperties } from '$lib/shared/user';
 	import type { BookProperties } from '$lib/shared/book';
 	import type { ChapterProperties } from '$lib/shared/chapter';
-	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { Icon } from 'svelte-awesome';
-	import { onMount } from 'svelte';
+	import { caretDown, trash } from 'svelte-awesome/icons';
+	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
+	import StorylineDetails from '../storyline/StorylineDetails.svelte';
+	import type { StorylineProperties } from '$lib/shared/storyline';
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
-		| HydratedDocument<ChapterProperties>;
-	export let permissions: Map<string, HydratedDocument<PermissionProperties>>;
+		| HydratedDocument<ChapterProperties>
+		| HydratedDocument<StorylineProperties>;
 
 	export let customClass = '';
 	export { customClass as class };
+
+	let permissions: Record<
+		string,
+		HydratedDocument<PermissionProperties>
+	> = permissionedDocument.permissions;
 
 	let documentOwner: HydratedDocument<UserProperties> =
 		permissionedDocument.user as HydratedDocument<UserProperties>; // creator of the document
 
 	onMount(() => {
 		setDocumentOwner();
-		createPermissionsDict();
+		setPermissionUsers();
+	});
+
+	afterUpdate(() => {
+		permissions = permissions;
 	});
 
 	let autocompletePopupSettings: PopupSettings = {
@@ -73,6 +84,12 @@
 				value: documentOwner._id
 			}
 		];
+	}
+
+	function setPermissionUsers() {
+		for (const user of permissionedDocument.permissionsUsers ?? []) {
+			permissions[user._id].user = user;
+		}
 	}
 
 	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
@@ -133,52 +150,31 @@
 		permission.user = users[userID];
 
 		if (userID !== documentOwner._id) {
-			permissions.set(userID, permission);
+			permissions[userID] = permission;
 			permissions = permissions;
 		}
+
+		console.log('** doc pers');
+		console.log(permissionedDocument.permissions);
 	}
 
 	function removePermission(userID: string) {
-		permissions.delete(userID);
-		permissions = permissions;
-	}
-
-	function createPermissionsDict() {
-		if (permissionedDocument.permissions) {
-			console.log('** perms docs');
-			console.log(permissionedDocument.permissions);
-			// Convert to map again because it comes to UI deserialized into JS object
-			for (let [key, permission] of new Map(Object.entries(permissionedDocument.permissions))) {
-				let userID = 'public';
-				if (permission.user) {
-					userID = typeof permission.user === 'string' ? permission.user : permission.user._id;
-				}
-				permissions.set(userID, permission);
-			}
-		}
-
+		delete permissions[userID];
 		permissions = permissions;
 	}
 
 	/** An empty user means the permission is for the public */
 	function onPublicAccessChange() {
-		if ('' in permissions) {
-			delete permissions[''];
-			return;
-		}
-
-		let permission =
-			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
-		permission._id = ulid();
-		permission.public = true;
-		permissions.set('public', permission);
+		permissionedDocument.published = !permissionedDocument.published;
 	}
 
 	function onPermissionChanged(event: any) {
 		const userID = event.target.getAttribute('name');
 		const value = event.target.value;
-		console.log('** perm ' + userID + ' ' + value);
-		permissions.get(userID)!.permission = value;
+		permissions[userID]!.permission = value;
+
+		console.log('** doc pers');
+		console.log(permissionedDocument.permissions);
 	}
 </script>
 
@@ -238,7 +234,7 @@
 						</button>
 					</div>
 				</div>
-				{#each [...permissions] as [id, permission]}
+				{#each Object.entries(permissions) as [id, permission]}
 					{#if permission.user && typeof permission.user !== 'string'}
 						<div class="flex p-2 justify-start items-center space-x-2">
 							<Avatar src="https://source.unsplash.com/YOErFW8AfkI/32x32" rounded="rounded-full" />
@@ -294,12 +290,12 @@
 					<SlideToggle
 						name="slider-large"
 						background="bg-primary-800"
-						checked={permissions.get('public')?.public}
+						checked={permissionedDocument.published}
 						active="bg-primary-500"
 						size="md"
 						on:change={onPublicAccessChange}
 					>
-						{permissions.get('public') ? 'On' : 'Off'}
+						{permissionedDocument.published ? 'On' : 'Off'}
 					</SlideToggle>
 				</div>
 			</div>

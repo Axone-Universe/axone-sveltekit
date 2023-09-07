@@ -22,7 +22,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 	chapterID(chapterID: string): DeltaBuilder {
 		this._chapterID = chapterID;
-
+		this._deltaProperties.chapter = chapterID;
 		return this;
 	}
 
@@ -45,7 +45,21 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		const deltaOps = JSON.parse(ops);
 		const quillDelta = new QuillDelta(deltaOps);
 
-		const delta = await Delta.findById(id);
+		const delta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
 		const currentOpsJSON = delta.ops;
 
 		// convert current ops to a delta
@@ -76,20 +90,53 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		const session = await mongoose.startSession();
 
-		const delta = new Delta(this._deltaProperties);
 		// use a transaction to make sure everything saves
 		await session.withTransaction(async () => {
+			const chapter = await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterID
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			)
+				.cursor()
+				.next();
+
+			this._deltaProperties.permissions = chapter.permissions;
+
+			const delta = new Delta(this._deltaProperties);
 			await delta.save({ session });
 
-			const chapter = await Chapter.findById(this._chapterID, null, {
-				userID: this._sessionUserID
-			});
 			chapter.delta = delta._id;
-			await chapter.save({ session });
+			await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
+				userID: this._sessionUserID,
+				session: session
+			});
 
 			return delta;
 		});
+		session.endSession();
 
-		return delta;
+		const newDelta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: this._deltaProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		return newDelta;
 	}
 }

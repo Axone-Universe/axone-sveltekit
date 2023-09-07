@@ -14,7 +14,6 @@ import {
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
-import { ulid } from 'ulid';
 
 beforeAll(async () => {
 	await connectDevDatabase();
@@ -34,7 +33,7 @@ const createBook = async (title: string, testSession: Session) => {
 		description:
 			'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness, it was the spring of hope, it was the winter of despair.',
 		genres: genres.getGenres(),
-		permissions: { ['public']: { _id: ulid(), public: true } },
+		published: true,
 		imageURL:
 			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
 	});
@@ -133,7 +132,7 @@ describe('db test data', () => {
 			book: userAuthoredBookResponse1._id,
 			parent: storylines[0]._id,
 			parentChapter: chapter1Response._id,
-			permissions: { ['public']: { _id: ulid(), public: true } }
+			published: true
 		});
 
 		await createChapter(

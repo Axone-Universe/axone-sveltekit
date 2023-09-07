@@ -4,6 +4,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/shared/book';
 import type { StorylineProperties } from '$lib/shared/storyline';
 import type { ChapterProperties } from '$lib/shared/chapter';
+import { book } from 'svelte-awesome/icons';
 
 export const ssr = false;
 
@@ -16,13 +17,23 @@ export const load = (async (event) => {
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 
-	const storylineResponse = (await trpc(event).storylines.getById.query({
-		bookID: bookID,
-		storylineID: storylineID ? storylineID : undefined
-	})) as HydratedDocument<StorylineProperties>;
+	let storylineResponse: HydratedDocument<StorylineProperties>;
 
-	const storylineChapters = (await trpc(event).chapters.getAll.query({
-		storylineID: storylineResponse._id
+	if (storylineID) {
+		storylineResponse = (await trpc(event).storylines.getById.query({
+			storylineID: storylineID
+		})) as HydratedDocument<StorylineProperties>;
+	} else {
+		storylineResponse = (
+			await trpc(event).storylines.getByBookID.query({
+				bookID: bookID,
+				main: true
+			})
+		)[0] as HydratedDocument<StorylineProperties>;
+	}
+
+	const storylineChapters = (await trpc(event).chapters.getByStoryline.query({
+		storylineChapterIDs: storylineResponse.chapters as string[]
 	})) as HydratedDocument<ChapterProperties>[];
 
 	const chapterResponses: { [key: string]: HydratedDocument<ChapterProperties> } = {};

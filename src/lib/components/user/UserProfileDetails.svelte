@@ -3,6 +3,7 @@
 
 	import defaultUserImage from '$lib/assets/default-user.png';
 	import type { UserProperties } from '$lib/shared/user';
+	import TextArea from '$lib/components/TextArea.svelte';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
@@ -10,11 +11,7 @@
 	const genres = userProperties.genres as unknown as Record<string, boolean>;
 	const labels = userProperties.labels as unknown as Record<string, boolean>;
 
-	const aboutMaxLength = 500;
-
 	let profileImage = defaultUserImage;
-
-	$: remaining = aboutMaxLength - userProperties.about!.length;
 
 	async function submit() {
 		onSubmit(userProperties);
@@ -48,11 +45,11 @@
 			/>
 		</label>
 
+		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
 			About
-			<textarea class="textarea" bind:value={userProperties.about} />
+			<TextArea maxLength={500} bind:textContent={userProperties.about} />
 		</label>
-		<div class="text-sm">Characters left: {remaining}</div>
 	</Step>
 
 	<Step>

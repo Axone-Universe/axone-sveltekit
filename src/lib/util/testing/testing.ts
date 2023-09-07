@@ -19,6 +19,7 @@ import {
 } from '$env/static/private';
 import type { StorylineProperties } from '$lib/shared/storyline';
 import { ulid } from 'ulid';
+import { UserPropertyBuilder } from '$lib/shared/user';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -84,7 +85,7 @@ export async function createBook(session: Session, title: string) {
 		imageURL: 'www.example.com',
 		genres: genres.getGenres(),
 		description: '',
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		published: true
 	});
 
 	return book;
@@ -105,7 +106,7 @@ export async function createChapter(
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		published: true
 	});
 
 	return chapter;
@@ -147,11 +148,14 @@ export const createDBUser = async (session: Session) => {
 	const caller = router.createCaller({ session });
 
 	const supabaseUser = session.user;
-	const userDetails = {
-		_id: '',
-		firstName: supabaseUser.user_metadata.firstName,
-		lastName: supabaseUser.user_metadata.lastName,
-		email: session.user.email
-	};
-	return await caller.users.create(userDetails);
+
+	const userPropertyBuilder = new UserPropertyBuilder();
+	const userProperties = userPropertyBuilder.getProperties();
+
+	userProperties._id = '';
+	userProperties.firstName = supabaseUser.user_metadata.firstName;
+	userProperties.lastName = supabaseUser.user_metadata.lastName;
+	userProperties.email = session.user.email;
+
+	return await caller.users.create(userProperties);
 };
