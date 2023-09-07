@@ -43,6 +43,7 @@ export interface UploadFileToBucketParams {
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	illustrations: { [key: string]: Illustration } = {};
+	selectedDelta: Delta = undefined;
 	ops: Op[] | undefined;
 	page: Page;
 	chapter: HydratedDocument<ChapterProperties> | undefined;
@@ -243,6 +244,7 @@ export class QuillEditor extends Quill {
 		}
 
 		const delta = this.getContents(range.index, 1);
+		this.selectedDelta = delta;
 
 		if (!this.isComment(delta.ops[0]) && !this.isIllustration(delta.ops[0])) {
 			return;
@@ -338,9 +340,36 @@ export class QuillEditor extends Quill {
 		};
 	}
 
+	/**
+	 * returns true if the first character of the selected text contains a comment
+	 *
+	 * when adding a comment, each letter of the selection contains an attribute for the comment
+	 */
+	selectedContainsComment(): boolean {
+		return this.selectedDelta &&
+			this.selectedDelta.ops &&
+			this.selectedDelta.ops[0].attributes &&
+			this.selectedDelta.ops[0].attributes.commentId;
+	}
+
+	/**
+	 * returns true if the first character of the selected text contains an illustration
+	 * when adding an illustration, each letter of the selection contains an attribute for the illustration
+	 */
+	selectedContainsIllustration(): boolean {
+		return this.selectedDelta &&
+			this.selectedDelta.ops &&
+			this.selectedDelta.ops[0].attributes &&
+			this.selectedDelta.ops[0].attributes.illustrationId;
+	}
+
 	addComment(op: Op): boolean {
 		if (!this.isComment(op)) {
 			return false;
+		}
+
+		if (this.selectedContainsComment()) {
+			return false; //comment already exists on this selection
 		}
 
 		const comment: Comment = {
@@ -357,6 +386,10 @@ export class QuillEditor extends Quill {
 	addIllustration(op: Op): boolean {
 		if (!this.isIllustration(op)) {
 			return false;
+		}
+
+		if (this.selectedContainsIllustration()) {
+			return false; //illustration already exists on this selection
 		}
 
 		const defaultIllustration: IllustrationObject = {

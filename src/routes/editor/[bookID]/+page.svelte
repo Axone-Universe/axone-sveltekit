@@ -419,7 +419,7 @@
 	}
 
 	function commentAddClick() {
-		quill.getModule('comment').addComment(' ');
+		if (!quill.selectedContainsComment()) quill.getModule('comment').addComment(' ');
 		drawerStore.open(drawerSettings);
 		showComments = true;
 		showIllustrations = false;
@@ -429,11 +429,13 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
-		quill.getModule('illustration').addIllustration({
-			src: '',
-			alt: '',
-			caption: ''
-		});
+		if (!quill.selectedContainsIllustration()) {
+			quill.getModule('illustration').addIllustration({
+				src: '',
+				alt: '',
+				caption: ''
+			});
+		}
 		drawerStore.open(drawerSettings);
 		showIllustrations = true;
 		showComments = false;
