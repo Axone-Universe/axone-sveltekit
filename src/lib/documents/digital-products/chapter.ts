@@ -178,7 +178,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 		// use a transaction to make sure everything saves
 		await session.withTransaction(async () => {
-			chapter.isNew = true
+			chapter.isNew = true;
 			await chapter.save({ session });
 
 			const storyline = await Storyline.aggregate(

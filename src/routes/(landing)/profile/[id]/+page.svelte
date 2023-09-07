@@ -16,8 +16,8 @@
 	export let data: PageData;
 	export let { userResponse } = data;
 
-	const userGenres = userNode.genres;
-	const userLabels = userNode.labels;
+	const userGenres = userResponse.genres;
+	const userLabels = userResponse.labels;
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
@@ -39,7 +39,7 @@
 						{/if}
 					</h3>
 					<div class="flex gap-2 flex-wrap">
-						{#if userNode.labels}
+						{#if userResponse.labels}
 							{#each userLabels ?? [] as label}
 								<div class="chip variant-filled">{label}</div>
 							{/each}

@@ -50,17 +50,13 @@
 					disabled
 				/>
 			</label>
-
+			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label>
 				About
-				<textarea class="textarea" bind:value={userProperties.about} />
+				<TextArea maxLength={500} bind:textContent={userProperties.about} />
 			</label>
 		</div>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
-		<label>
-			About
-			<TextArea maxLength={500} bind:textContent={userProperties.about} />
-		</label>
 	</Step>
 
 	<Step>
