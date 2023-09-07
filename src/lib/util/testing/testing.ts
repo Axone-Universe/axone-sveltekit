@@ -3,7 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import mongoose, { type HydratedDocument } from 'mongoose';
 import { ulid } from 'ulid';
 
-import { GenresBuilder } from '$lib/shared/genre';
+import { GenresBuilder, type Genre } from '$lib/shared/genre';
 import type { StorylineProperties } from '$lib/shared/storyline';
 import { router } from '$lib/trpc/router';
 
@@ -89,20 +89,17 @@ export function createTestSession(supabaseUser: User) {
 /**
  * Creates a book from a given title ans session
  * @param session
- * @param title
  * @returns
  */
-export async function createBook(session: Session, title: string) {
-	const caller = router.createCaller({ session: session });
-
-	const genres = new GenresBuilder().with('Action');
+export async function createBook(testSession: Session, title?: string, genres: Genre[] = []) {
+	const caller = router.createCaller({ session: testSession });
 
 	const book = await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: Array.from(genres.build()),
-		description: '',
-		published: true
+		title: title ? title : faker.commerce.productName() + ' But a Book',
+		description: faker.commerce.productDescription(),
+		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
+		published: true,
+		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
 
 	return book;
@@ -170,7 +167,7 @@ export async function cleanUpDatabase(isPartOfDBSetup = false) {
  * @param session
  * @returns
  */
-export const createDBUser = async (session: Session) => {
+export async function createDBUser(session: Session, genres: Genre[] = []) {
 	const caller = router.createCaller({ session });
 
 	const supabaseUser = session.user;
@@ -182,6 +179,7 @@ export const createDBUser = async (session: Session) => {
 	userProperties.firstName = supabaseUser.user_metadata.firstName;
 	userProperties.lastName = supabaseUser.user_metadata.lastName;
 	userProperties.email = session.user.email;
+	userProperties.genres = genres;
 
 	return await caller.users.create(userProperties);
-};
+}
