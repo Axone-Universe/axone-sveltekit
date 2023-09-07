@@ -26,7 +26,7 @@
 <Stepper on:complete={submit}>
 	<Step>
 		<svelte:fragment slot="header">Basic Information</svelte:fragment>
-		<div class="min-h-[calc(60vh)]">
+		<div class="min-h-[calc(60vh)] space-y-4">
 			<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
 			<label>
 				*First name
@@ -50,23 +50,18 @@
 					disabled
 				/>
 			</label>
-
+			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label>
 				About
-				<textarea class="textarea" bind:value={userProperties.about} />
+				<TextArea maxLength={500} bind:textContent={userProperties.about} />
 			</label>
 		</div>
-		<!-- svelte-ignore a11y-label-has-associated-control -->
-		<label>
-			About
-			<TextArea maxLength={500} bind:textContent={userProperties.about} />
-		</label>
 	</Step>
 
 	<Step>
 		<svelte:fragment slot="header">Genre Preferences</svelte:fragment>
 		<div class="min-h-[calc(60vh)]">
-			<div class="flex flex-wrap gap-4 space-x-4">
+			<div class="flex flex-wrap gap-2">
 				{#each GENRES as genre}
 					<button
 						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
@@ -87,18 +82,18 @@
 	</Step>
 	<Step>
 		<svelte:fragment slot="header">User Role</svelte:fragment>
-		<div class="min-h-[calc(60vh)]">
+		<div class="min-h-[calc(60vh)] space-y-4">
 			<div>
 				You can have multiple roles as a user on the Axone platform. You are given the Reader role
 				by default and you can have Writer, Editor, and Illustrator as additional roles. These roles
 				are important for determining how we can provide you exposure should you be looking to
 				collaborate on the platform.
 			</div>
-			<div class="flex-col items-center space-y-4">
-				{#each USER_LABELS as userLabel}
-					<div>
+			<div class="flex justify-center">
+				<div class="btn-group variant-filled w-fit">
+					{#each USER_LABELS as userLabel}
 						<button
-							class="chip {labels.includes(userLabel) ? 'variant-filled' : 'variant-soft'}"
+							class={labels.includes(userLabel) ? 'variant-filled-primary' : 'variant-soft'}
 							on:click={() => {
 								const index = labels.indexOf(userLabel);
 								if (index > -1) {
@@ -111,8 +106,8 @@
 						>
 							{userLabel}
 						</button>
-					</div>
-				{/each}
+					{/each}
+				</div>
 			</div>
 		</div>
 	</Step>
