@@ -1,6 +1,5 @@
 import { label, type BookProperties } from '$lib/shared/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
-import { genresSchemaProperties } from './genres';
 import { label as UserLabel } from '$lib/shared/user';
 import {
 	addDeletePermissionFilter,
@@ -8,6 +7,7 @@ import {
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
+import { GENRES } from '$lib/shared/genre';
 
 export const bookSchema = new Schema<BookProperties>({
 	_id: { type: String, required: true },
@@ -18,7 +18,12 @@ export const bookSchema = new Schema<BookProperties>({
 	tags: String,
 	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
-	genres: genresSchemaProperties
+	genres: [
+		{
+			type: String,
+			enum: GENRES
+		}
+	]
 });
 
 bookSchema.pre(['find', 'findOne'], function () {
@@ -75,4 +80,6 @@ function populate(pipeline: PipelineStage[]) {
 	);
 }
 
-export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);
+export const Book = mongoose.models[label]
+	? model<BookProperties>(label)
+	: model<BookProperties>(label, bookSchema);

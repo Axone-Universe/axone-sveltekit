@@ -20,7 +20,7 @@ export const load = (async (event) => {
 	}
 
 	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		searchTerm: bookID
+		id: bookID
 	})) as HydratedDocument<BookProperties>;
 
 	const storylineResponse = (await trpc(event).storylines.getById.query({

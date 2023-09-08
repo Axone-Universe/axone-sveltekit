@@ -1,6 +1,9 @@
-import { GenresBuilder, type Genres } from './genres';
+import type { Genre } from './genre';
 
 export const label = 'User';
+
+export const USER_LABELS = ['Writer', 'Illustrator', 'Editor'] as const;
+export type UserLabel = (typeof USER_LABELS)[number];
 
 export interface UserProperties {
 	_id: string;
@@ -12,24 +15,14 @@ export interface UserProperties {
 	facebook?: string;
 	instagram?: string;
 	twitter?: string;
-	genres?: Genres;
-	labels?: Users;
-}
-
-export interface Users {
-	Writer: boolean;
-	Illustrator: boolean;
-	Editor: boolean;
+	genres?: Genre[];
+	labels?: UserLabel[];
 }
 
 export class UserPropertyBuilder {
 	private readonly _properties: UserProperties;
 
 	constructor() {
-		const genresBuilder = new GenresBuilder();
-		const genres = genresBuilder.getGenres();
-		const labels: Users = { Writer: false, Illustrator: false, Editor: false };
-
 		this._properties = {
 			_id: '',
 			firstName: '',
@@ -39,8 +32,8 @@ export class UserPropertyBuilder {
 			facebook: '',
 			instagram: '',
 			twitter: '',
-			labels: labels,
-			genres: genres
+			labels: [],
+			genres: []
 		};
 	}
 

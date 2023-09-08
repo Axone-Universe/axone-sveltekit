@@ -12,7 +12,7 @@ export const load = (async (event) => {
 		console.log('** get user dets');
 		// check if user has a profile
 		const userProperties = (await trpc(event).users.getById.query({
-			searchTerm: session.user.id
+			id: session.user.id
 		})) as HydratedDocument<UserProperties>;
 
 		return { userProperties };

@@ -1,68 +1,65 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { BookProperties } from '$lib/shared/book';
 import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
+import type { Genre } from '$lib/shared/genre';
+import { UsersRepository } from './usersRepository';
 
 export class BooksRepository extends Repository {
-	async getAll(
+	async get(
 		session: Session | null,
 		limit?: number,
-		skip?: number
+		cursor?: string,
+		genres?: Genre[],
+		title?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline = [];
+		const filter: any = {};
 
-		pipeline.push({ $match: {} });
+		if (title) {
+			filter.title = title;
+		}
+
+		if (genres) {
+			if (genres.length > 0) {
+				filter.genres = { $all: genres };
+			}
+		} else {
+			const userRepo = new UsersRepository();
+			const user = await userRepo.getById(session, session?.user.id);
+			if (user && user.genres) {
+				filter.genres = { $in: user.genres };
+			}
+		}
+
+		if (cursor) {
+			filter._id = { $gt: cursor };
+		}
+
+		pipeline.push({ $match: filter });
+
 		if (limit) pipeline.push({ $limit: limit });
-		if (skip) pipeline.push({ $skip: skip });
 
-		const books = (await Book.aggregate(pipeline, {
+		const query = Book.aggregate(pipeline, {
 			userID: session?.user.id
-		})) as HydratedDocument<BookProperties>[];
-
-		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
-			resolve(books);
 		});
-	}
 
-	async getByTitle(
-		session: Session | null,
-		title?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<BookProperties>[]> {
-		const pipeline = [];
-
-		pipeline.push({ $match: { title: title } });
-		if (limit) pipeline.push({ $limit: limit });
-		if (skip) pipeline.push({ $skip: skip });
-
-		const books = (await Book.aggregate(pipeline, {
-			userID: session?.user.id
-		})) as HydratedDocument<BookProperties>[];
-
-		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
-			resolve(books);
-		});
+		return await query;
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
-		const book = await Book.aggregate([{ $match: { _id: id } }], {
+		const query = Book.aggregate([{ $match: { _id: id } }], {
 			userID: session?.user.id
 		})
 			.cursor()
 			.next();
 
-		return new Promise<HydratedDocument<BookProperties>>((resolve) => {
-			resolve(book);
-		});
+		return await query;
 	}
 
 	async count(): Promise<number> {
-		const count = await Book.count();
-
-		return new Promise<number>((resolve) => {
-			resolve(count);
-		});
+		return await Book.count();
 	}
 }

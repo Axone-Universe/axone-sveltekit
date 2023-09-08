@@ -1,8 +1,8 @@
 import { DocumentBuilder } from './documentBuilder';
 import type { HydratedDocument } from 'mongoose';
 import { User } from '$lib/models/user';
-import type { UserProperties, Users } from '$lib/shared/user';
-import type { Genres } from '$lib/shared/genres';
+import type { UserProperties, UserLabel } from '$lib/shared/user';
+import type { Genre } from '$lib/shared/genre';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
@@ -54,12 +54,12 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
-	genres(genres: Genres): UserBuilder {
+	genres(genres: Genre[]): UserBuilder {
 		this._userProperties.genres = genres;
 		return this;
 	}
 
-	labels(labels: Users): UserBuilder {
+	labels(labels: UserLabel[]): UserBuilder {
 		this._userProperties.labels = labels;
 		return this;
 	}
@@ -80,7 +80,6 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 
 	async build(): Promise<HydratedDocument<UserProperties>> {
 		if (this._userProperties._id === '') throw new Error('Must provide userID to build user.');
-
 		const user = new User(this._userProperties);
 		await user.save();
 

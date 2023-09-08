@@ -2,7 +2,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { ChapterProperties } from './chapter';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
-import { GenresBuilder, type Genres } from './genres';
+import { GenresBuilder, type Genre } from './genre';
 import type { PermissionProperties } from './permission';
 
 export const label = 'Storyline';
@@ -21,7 +21,7 @@ export interface StorylineProperties {
 	description?: string;
 	imageURL?: string;
 	tags?: string[];
-	genres?: Genres;
+	genres?: Genre[];
 	parent?: string;
 	parentChapter?: string;
 }
@@ -31,7 +31,7 @@ export class StorylinePropertyBuilder {
 
 	constructor() {
 		const genresBuilder = new GenresBuilder();
-		const genres = genresBuilder.getGenres();
+		const genres = genresBuilder.build();
 
 		this._properties = {
 			_id: '',

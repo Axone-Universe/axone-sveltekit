@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
 	import {
 		Accordion,
