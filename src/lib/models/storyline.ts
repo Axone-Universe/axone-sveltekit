@@ -98,5 +98,6 @@ function populate(pipeline: PipelineStage[]) {
 	);
 }
 
-export const Storyline =
-	mongoose.models[label] || model<StorylineProperties>(label, storylineSchema);
+export const Storyline = mongoose.models[label]
+	? model<StorylineProperties>(label)
+	: model<StorylineProperties>(label, storylineSchema);

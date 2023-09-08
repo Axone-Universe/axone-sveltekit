@@ -42,11 +42,11 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, '/login');
 		}
 	} else {
-		const users = await userRepo.getById(session, session.user.id);
+		const user = await userRepo.getById(session, session.user.id);
 
 		// if the user is not created yet in the DB, create the user
 		if (
-			users.length === 0 &&
+			!user &&
 			event.url.pathname !== '/profile/create' &&
 			event.url.pathname !== '/trpc/users.create'
 		) {
@@ -58,7 +58,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, '/home');
 		}
 
-		if (users.length === 1 && event.url.pathname === '/profile/create') {
+		if (user && event.url.pathname === '/profile/create') {
 			// user already has a profile - go to it instead of creating one
 			throw redirect(303, `/profile/${session.user.id}`);
 		}

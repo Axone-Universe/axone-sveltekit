@@ -8,17 +8,19 @@ export class CampaignsRepository extends Repository {
 	async get(
 		title?: string,
 		limit?: number,
-		skip?: number
+		cursor?: string
 	): Promise<HydratedDocument<CampaignProperties>[]> {
-		let query = Campaign.find(title ? { title: title } : {});
+		const filter: any = {};
 
-		if (skip) {
-			query = query.skip(skip);
+		if (title) {
+			filter.title = title;
 		}
 
-		if (limit) {
-			query = query.limit(limit);
+		if (cursor) {
+			filter._id = { $gt: cursor };
 		}
+
+		const query = Campaign.find(filter, null, { limit });
 
 		const campaigns = await query;
 
@@ -38,20 +40,7 @@ export class CampaignsRepository extends Repository {
 		});
 	}
 
-	getById(
-		session: Session | null,
-		searchTerm?: string | undefined,
-		limit?: number | undefined,
-		skip?: number | undefined
-	): Promise<unknown> {
-		throw new Error('Method not implemented.');
-	}
-
-	getByTitle(
-		searchTerm?: string | undefined,
-		limit?: number | undefined,
-		skip?: number | undefined
-	): Promise<unknown[]> {
+	getById(session: Session | null, id?: string): Promise<unknown> {
 		throw new Error('Method not implemented.');
 	}
 }

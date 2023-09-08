@@ -1,5 +1,5 @@
 import type { HydratedDocument } from 'mongoose';
-import { GenresBuilder, type Genres } from './genres';
+import type { Genre } from './genre';
 import type { UserProperties } from './user';
 import type { PermissionProperties } from './permission';
 
@@ -16,23 +16,20 @@ export interface BookProperties {
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
-	genres?: Genres;
+	genres?: Genre[];
 }
 
 export class BookPropertyBuilder {
 	private readonly _properties: BookProperties;
 
 	constructor() {
-		const genresBuilder = new GenresBuilder();
-		const genres = genresBuilder.getGenres();
-
 		this._properties = {
 			_id: '',
 			title: '',
 			user: '',
 			description: '',
 			imageURL: '',
-			genres: genres,
+			genres: [],
 			tags: [],
 			permissions: {},
 			published: true

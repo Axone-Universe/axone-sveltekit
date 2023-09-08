@@ -2,18 +2,23 @@
 	import { Avatar, Step, Stepper } from '@skeletonlabs/skeleton';
 
 	import defaultUserImage from '$lib/assets/default-user.png';
-	import type { UserProperties } from '$lib/shared/user';
+	import { USER_LABELS, type UserProperties } from '$lib/shared/user';
 	import TextArea from '$lib/components/TextArea.svelte';
+	import { GENRES } from '$lib/shared/genre';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
 
-	const genres = userProperties.genres as unknown as Record<string, boolean>;
-	const labels = userProperties.labels as unknown as Record<string, boolean>;
+	let genres = userProperties.genres ?? [];
+	let labels = userProperties.labels ?? [];
+
+	const aboutMaxLength = 500;
 
 	let profileImage = defaultUserImage;
 
 	async function submit() {
+		userProperties.genres = genres;
+		userProperties.labels = labels;
 		onSubmit(userProperties);
 	}
 </script>
@@ -21,90 +26,107 @@
 <Stepper on:complete={submit}>
 	<Step>
 		<svelte:fragment slot="header">Basic Information</svelte:fragment>
-		<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
-		<label>
-			*First name
-			<input class="input" type="text" bind:value={userProperties.firstName} />
-			<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
-		</label>
+		<div class="min-h-[calc(60vh)] space-y-4">
+			<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
+			<label>
+				*First name
+				<input class="input" type="text" bind:value={userProperties.firstName} />
+				<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
+			</label>
 
-		<label>
-			*Last name
-			<input class="input" type="text" bind:value={userProperties.lastName} />
-			<!-- {#if lastNameError}<p class="text-error-500">Last name is required.</p>{/if} -->
-		</label>
+			<label>
+				*Last name
+				<input class="input" type="text" bind:value={userProperties.lastName} />
+				<!-- {#if lastNameError}<p class="text-error-500">Last name is required.</p>{/if} -->
+			</label>
 
-		<label>
-			Email address
-			<input
-				name="firstName"
-				class="input"
-				type="text"
-				bind:value={userProperties.email}
-				disabled
-			/>
-		</label>
-
+			<label>
+				Email address
+				<input
+					name="firstName"
+					class="input"
+					type="text"
+					bind:value={userProperties.email}
+					disabled
+				/>
+			</label>
+			<!-- svelte-ignore a11y-label-has-associated-control -->
+			<label>
+				About
+				<TextArea maxLength={500} bind:textContent={userProperties.about} />
+			</label>
+		</div>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
-		<label>
-			About
-			<TextArea maxLength={500} bind:textContent={userProperties.about} />
-		</label>
 	</Step>
 
 	<Step>
 		<svelte:fragment slot="header">Genre Preferences</svelte:fragment>
-		<div class="flex flex-wrap gap-4 space-x-4">
-			{#each Object.keys(genres) as genre}
-				<span
-					class="chip {genres[genre] ? 'variant-filled' : 'variant-soft'}"
-					on:click={() => {
-						genres[genre] = !genres[genre];
-					}}
-					on:keypress
-				>
-					<span>{genre}</span>
-				</span>
-			{/each}
+		<div class="min-h-[calc(60vh)]">
+			<div class="flex flex-wrap gap-2">
+				{#each GENRES as genre}
+					<button
+						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+						on:click={() => {
+							const index = genres.indexOf(genre);
+							if (index > -1) {
+								genres = genres.filter((v) => v !== genre);
+							} else {
+								genres = [...genres, genre];
+							}
+						}}
+					>
+						{genre}
+					</button>
+				{/each}
+			</div>
 		</div>
 	</Step>
 	<Step>
 		<svelte:fragment slot="header">User Role</svelte:fragment>
-		<div>
-			You can have multiple roles as a user on the Axone platform. You are given the Reader role by
-			default and you can have Writer, Editor, and Illustrator as additional roles. These roles are
-			important for determining how we can provide you exposure should you be looking to collaborate
-			on the platform.
-		</div>
-		<div class="flex-col items-center space-y-4">
-			{#each Object.keys(labels) as label}
-				<div>
-					<span
-						class="chip {labels[label] ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
-							labels[label] = !labels[label];
-						}}
-						on:keypress
-					>
-						<span>{label}</span>
-					</span>
+		<div class="min-h-[calc(60vh)] space-y-4">
+			<div>
+				You can have multiple roles as a user on the Axone platform. You are given the Reader role
+				by default and you can have Writer, Editor, and Illustrator as additional roles. These roles
+				are important for determining how we can provide you exposure should you be looking to
+				collaborate on the platform.
+			</div>
+			<div class="flex justify-center">
+				<div class="btn-group variant-filled w-fit">
+					{#each USER_LABELS as userLabel}
+						<button
+							class={labels.includes(userLabel) ? 'variant-filled-primary' : 'variant-soft'}
+							on:click={() => {
+								const index = labels.indexOf(userLabel);
+								if (index > -1) {
+									labels = labels.filter((v) => v !== userLabel);
+								} else {
+									labels = [...labels, userLabel];
+								}
+							}}
+							on:keypress
+						>
+							{userLabel}
+						</button>
+					{/each}
 				</div>
-			{/each}
+			</div>
 		</div>
 	</Step>
 	<Step>
 		<svelte:fragment slot="header">Social Media</svelte:fragment>
-		<label>
-			Facebook profile link
-			<input class="input" type="text" bind:value={userProperties.facebook} />
-		</label>
-		<label>
-			Instagram handle
-			<input class="input" type="text" bind:value={userProperties.instagram} />
-		</label>
-		<label>
-			Twitter handle
-			<input class="input" type="text" bind:value={userProperties.twitter} />
-		</label>
+		<div class="min-h-[calc(60vh)]">
+			<label>
+				Facebook profile link
+				<input class="input" type="text" bind:value={userProperties.facebook} />
+			</label>
+			<label>
+				Instagram handle
+				<input class="input" type="text" bind:value={userProperties.instagram} />
+			</label>
+			<label>
+				Twitter handle
+				<input class="input" type="text" bind:value={userProperties.twitter} />
+			</label>
+		</div>
 	</Step>
 </Stepper>

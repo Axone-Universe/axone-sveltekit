@@ -2,7 +2,7 @@ import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/shared/book';
-import type { Genres } from '$lib/shared/genres';
+import type { Genre } from '$lib/shared/genre';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
 import mongoose from 'mongoose';
@@ -24,7 +24,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			imageURL: '',
 			description: '',
 			permissions: {},
-			published: false
+			published: false,
+			genres: []
 		};
 		this._userID = {};
 	}
@@ -52,7 +53,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	genres(genres: Genres) {
+	genres(genres: Genre[]) {
 		this._bookProperties.genres = genres;
 		return this;
 	}

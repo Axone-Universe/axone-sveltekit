@@ -6,14 +6,15 @@
 	import { afterUpdate } from 'svelte';
 	import type { StorylineProperties } from '$lib/shared/storyline';
 	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
+	import type { Genre } from '$lib/shared/genre';
 
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylineData: HydratedDocument<StorylineProperties>;
 
-	let bookGenres: Record<string, boolean>;
+	let bookGenres: Genre[] | undefined;
 
 	afterUpdate(() => {
-		bookGenres = bookData.genres as unknown as Record<string, boolean>;
+		bookGenres = bookData.genres;
 	});
 
 	const infoPopup: PopupSettings = {
@@ -88,10 +89,8 @@
 				</div>
 				<div class="space-x-2 line-clamp-1">
 					{#if bookGenres}
-						{#each Object.keys(bookGenres) as genre}
-							{#if bookGenres[genre]}
-								<div class="chip variant-filled">{genre}</div>
-							{/if}
+						{#each bookGenres as genre}
+							<div class="chip variant-filled">{genre}</div>
 						{/each}
 					{/if}
 				</div>

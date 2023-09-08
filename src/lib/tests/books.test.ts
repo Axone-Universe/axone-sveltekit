@@ -1,16 +1,12 @@
 import { router } from '$lib/trpc/router';
-import type { HydratedDocument } from 'mongoose';
 import {
 	connectTestDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	testUserOne,
-	testUserTwo,
-	testUserThree,
-	createBook
+	createBook,
+	generateTestUser
 } from '$lib/util/testing/testing';
-import type { UserProperties } from '$lib/shared/user';
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -21,15 +17,19 @@ describe('books', () => {
 		await cleanUpDatabase();
 	});
 
-	test('create book', async () => {
+	const testUserOne = generateTestUser();
+	const testUserTwo = generateTestUser();
+	const testUserThree = generateTestUser();
+
+	test('create a book', async () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
-		const userResponse = await createDBUser(testUserOneSession);
+		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		await caller.storylines.getAll({
 			bookID: bookResponse._id
 		});
 
@@ -41,23 +41,84 @@ describe('books', () => {
 		await createDBUser(createTestSession(testUserTwo));
 		await createDBUser(createTestSession(testUserThree));
 
-		const testBookTitle1 = 'My Book 1';
-		const testBookTitle2 = 'My Book 2';
-		const testBookTitle3 = 'My Book 3';
-
-		const bookResponse1 = await createBook(createTestSession(testUserOne), testBookTitle1);
-		const bookResponse2 = await createBook(createTestSession(testUserTwo), testBookTitle2);
-		const bookResponse3 = await createBook(createTestSession(testUserThree), testBookTitle3);
+		const bookResponse1 = await createBook(createTestSession(testUserOne));
+		const bookResponse2 = await createBook(createTestSession(testUserTwo));
+		const bookResponse3 = await createBook(createTestSession(testUserThree));
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.getAll();
+		const bookResponses = await caller.books.get({});
 
-		expect(bookResponses.map((a) => a._id).sort()).toEqual(
+		expect(bookResponses.result.map((a) => a._id).sort()).toEqual(
 			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
 		);
 	});
 
-	test('get single book', async () => {
+	test('get all books with limit and cursor', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(testUserThree));
+
+		const bookResponse1 = await createBook(createTestSession(testUserOne));
+		const bookResponse2 = await createBook(createTestSession(testUserTwo));
+		const bookResponse3 = await createBook(createTestSession(testUserThree));
+
+		const caller = router.createCaller({ session: null });
+		const bookResponses = await caller.books.get({ limit: 2 });
+		const bookResponses2 = await caller.books.get({ limit: 2, cursor: bookResponses.cursor });
+
+		expect([...bookResponses.result, ...bookResponses2.result].map((a) => a._id).sort()).toEqual(
+			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
+		);
+	});
+
+	test('get books by genres', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(testUserThree));
+
+		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
+			'Action',
+			'Adventure'
+		]);
+		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+			'Action',
+			'Adventure',
+			'Fantasy'
+		]);
+		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+
+		const caller = router.createCaller({ session: null });
+		const bookResponses = await caller.books.get({ genres: ['Action', 'Adventure'] });
+
+		expect(bookResponses.result.map((a) => a._id).sort()).toEqual(
+			[bookResponse1._id, bookResponse2._id].sort()
+		);
+	});
+
+	test('get recommended books', async () => {
+		const session = createTestSession(testUserOne);
+		await createDBUser(session, ['Fantasy', 'Horror']);
+
+		const bookResponse1 = await createBook(createTestSession(testUserTwo), '', [
+			'Action',
+			'Fantasy'
+		]);
+		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', ['Horror']);
+		const bookResponse3 = await createBook(createTestSession(testUserTwo), '', [
+			'Fantasy',
+			'Horror'
+		]);
+		await createBook(createTestSession(testUserTwo), '', ['Autobiographies', 'Historical']);
+
+		const caller = router.createCaller({ session });
+		const bookResponses = await caller.books.get({});
+
+		expect(bookResponses.result.map((a) => a._id).sort()).toEqual(
+			[bookResponse1._id, bookResponse2._id, bookResponse3._id].sort()
+		);
+	});
+
+	test('get book by title', async () => {
 		await createDBUser(createTestSession(testUserOne));
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
@@ -65,9 +126,9 @@ describe('books', () => {
 		await createBook(createTestSession(testUserOne), testBookTitle2);
 
 		const caller = router.createCaller({ session: null });
-		const bookResponses = await caller.books.getByTitle({ searchTerm: testBookTitle1 });
+		const bookResponses = await caller.books.get({ title: testBookTitle1 });
 
-		expect(bookResponses.length).toEqual(1);
-		expect(bookResponses.pop()?._id).toEqual(bookResponse._id);
+		expect(bookResponses.result.length).toEqual(1);
+		expect(bookResponses.result.pop()?._id).toEqual(bookResponse._id);
 	});
 });

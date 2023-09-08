@@ -35,4 +35,6 @@ deltaSchema.pre(
 	}
 );
 
-export const Delta = mongoose.models[label] || model<DeltaProperties>(label, deltaSchema);
+export const Delta = mongoose.models[label]
+	? model<DeltaProperties>(label)
+	: model<DeltaProperties>(label, deltaSchema);

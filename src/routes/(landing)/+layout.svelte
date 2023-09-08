@@ -3,22 +3,16 @@
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import { Modal } from '@skeletonlabs/skeleton';
 
-	import { AppShell } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
+	import Drawer from '$lib/components/drawer/Drawer.svelte';
 
 	export let data: PageData;
 </script>
 
 <Modal />
-
-<!-- App Shell -->
-<AppShell slotPageContent="w-full">
-	<svelte:fragment slot="header">
-		<Header {data} />
-	</svelte:fragment>
-	<!-- Page Route Content -->
+<Header {data} />
+<Drawer {data} />
+<div class="pt-16 min-h-[calc(90vh)]">
 	<slot />
-	<svelte:fragment slot="pageFooter">
-		<Footer />
-	</svelte:fragment>
-</AppShell>
+</div>
+<Footer />
