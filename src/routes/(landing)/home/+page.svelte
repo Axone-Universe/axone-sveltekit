@@ -1,19 +1,25 @@
 <script lang="ts">
-	import { Accordion, AccordionItem, SlideToggle } from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
-	import filter from 'svelte-awesome/icons/filter';
+	import { arrowUp, filter } from 'svelte-awesome/icons';
 
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
-	import { GenresBuilder, GENRES, type Genre } from '$lib/shared/genre';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
 	import type { BookProperties } from '$lib/shared/book';
+	import { GenresBuilder, GENRES } from '$lib/shared/genre';
 	import { trpcWithQuery } from '$lib/trpc/client';
 
+	export let data: PageData;
+
 	const LOAD_DEBOUNCE_SECONDS = 1.0;
-	const TAGS = ['Trending', 'Recommended', 'Reading', 'Newest'] as const;
+	// Only "recommended" is implemented for now
+	// recommended looks at the user genre preferences to select books from there
+	const TAGS = ['Recommended'] as const;
+	// const TAGS = ['Trending', 'Recommended', 'Reading', 'Newest'] as const;
+
 	let last_load_epoch = 0;
 	let genresBuilder = new GenresBuilder();
 
@@ -22,10 +28,8 @@
 
 	let accordionOpen = false;
 
-	export let data: PageData;
-
 	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
-		{ limit: 10, genres: recommendedSelected ? undefined : genresBuilder.build() },
+		{ limit: 20, genres: recommendedSelected ? undefined : genresBuilder.build() },
 		{
 			queryKey: ['booksHome', recommendedSelected ? undefined : genresBuilder.build()],
 			getNextPageParam: (lastPage) => lastPage.cursor
@@ -38,7 +42,7 @@
 		  ) as HydratedDocument<BookProperties>[])
 		: [];
 
-	function onClearClick() {
+	function handleClear() {
 		genresBuilder = genresBuilder.reset();
 	}
 
@@ -52,6 +56,10 @@
 			last_load_epoch = Date.now();
 			$getBooksInfinite.fetchNextPage();
 		}
+	}
+
+	function handleScrollToTop() {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 </script>
 
@@ -88,7 +96,7 @@
 						<hr />
 						<div class="flex justify-between items-center">
 							<p class="font-bold">Genres</p>
-							<button class="btn btn-sm variant-filled-surface h-fit" on:click={onClearClick}>
+							<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
 								Clear
 							</button>
 						</div>
@@ -116,14 +124,30 @@
 	</div>
 
 	{#if $getBooksInfinite.isLoading}
-		Loading...
+		<div class="mt-8 flex justify-center h-16">
+			<img src="/tail-spin.svg" alt="Loading spinner" />
+		</div>
 	{:else if $getBooksInfinite.isError}
-		{$getBooksInfinite.error}
-	{:else if items.length == 0}
-		<p>No books!</p>
+		<div class="mt-8 text-center space-y-8">
+			<div>
+				<p class="text-6xl">🤕</p>
+				<h4>Something went wrong while fetching books!</h4>
+				<p>How about trying again?</p>
+			</div>
+			<button class="btn variant-filled-primary">Try again</button>
+		</div>
+	{:else if items.length === 0}
+		<div class="mt-8 text-center space-y-8">
+			<div>
+				<p class="text-6xl">😲</p>
+				<h4>We've come up empty!</h4>
+				<p>Why not write your own book?</p>
+			</div>
+			<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
+		</div>
 	{:else}
 		<div
-			class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 grid-flow-row gap-2 w-full"
+			class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
 		>
 			{#each items as item (item.title + item.imageURL)}
 				<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
@@ -132,7 +156,11 @@
 			{/each}
 		</div>
 		{#if !$getBooksInfinite.hasNextPage}
-			<p class="flex justify-center my-12 italic font-bold">~ END ~</p>
+			<div class="flex justify-center my-12 italic font-bold">
+				<button class="btn-icon variant-filled" on:click={handleScrollToTop}
+					><Icon data={arrowUp} /></button
+				>
+			</div>
 		{/if}
 	{/if}
 </Container>

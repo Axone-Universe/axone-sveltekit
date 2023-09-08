@@ -140,7 +140,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			);
 
 			// update delta permissions as well
-			if (chapter.delta) {
+			if (chapter?.delta) {
 				await Delta.findOneAndUpdate(
 					{ _id: chapter.delta },
 					{ permissions: this._chapterProperties.permissions },

@@ -23,21 +23,6 @@ export const books = t.router({
 			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
-	getByTitle: t.procedure
-		.use(logger)
-		.input(search.optional())
-		.query(async ({ input, ctx }) => {
-			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getByTitle(
-				ctx.session!,
-				input?.title,
-				input?.limit,
-				input?.cursor
-			);
-
-			return result;
-		}),
-
 	getById: t.procedure
 		.use(logger)
 		.input(search.optional())

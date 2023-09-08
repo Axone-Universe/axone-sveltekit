@@ -7,7 +7,8 @@ import {
 	createDBUser,
 	createTestSession,
 	createChapter,
-	generateTestUser
+	generateTestUser,
+	createBook
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -43,22 +44,6 @@ test(
 	'db setup',
 	async () => {
 		console.log('SETTING UP DB WITH TEST DATA');
-
-		const createBook = async (testSession: Session) => {
-			const caller = router.createCaller({ session: testSession });
-
-			const genres = new GenresBuilder().random(0.3).build();
-
-			const book = await caller.books.create({
-				title: faker.commerce.productName() + ' But a Book',
-				description: faker.commerce.productDescription(),
-				genres: Array.from(genres.values()),
-				published: true,
-				imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
-			});
-
-			return book;
-		};
 
 		const sessions: Session[] = [];
 		const caller = router.createCaller({ session: null });

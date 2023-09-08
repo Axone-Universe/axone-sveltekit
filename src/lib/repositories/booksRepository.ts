@@ -49,33 +49,6 @@ export class BooksRepository extends Repository {
 		return await query;
 	}
 
-	async getByTitle(
-		session: Session | null,
-		title?: string,
-		limit?: number,
-		cursor?: string
-	): Promise<HydratedDocument<BookProperties>[]> {
-		const pipeline = [];
-
-		const filter: any = {};
-
-		if (title) {
-			filter.title = title;
-		}
-
-		if (cursor) {
-			filter._id = { $gt: cursor };
-		}
-
-		pipeline.push({ $match: filter });
-
-		const query = Book.aggregate(pipeline, {
-			userID: session?.user.id
-		});
-
-		return await query;
-	}
-
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
 		const query = Book.aggregate([{ $match: { _id: id } }], {
 			userID: session?.user.id
