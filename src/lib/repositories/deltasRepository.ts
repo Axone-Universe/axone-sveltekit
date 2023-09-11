@@ -10,26 +10,14 @@ export class DeltasRepository extends Repository {
 	}
 
 	async getById(session: Session | null, id?: string): Promise<HydratedDocument<DeltaProperties>> {
-		const delta = await Delta.aggregate([{ $match: { _id: id } }], {
+		return await Delta.aggregate([{ $match: { _id: id } }], {
 			userID: session?.user.id
 		})
 			.cursor()
 			.next();
-
-		return new Promise<HydratedDocument<DeltaProperties>>((resolve) => {
-			resolve(delta);
-		});
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {
-		throw new Error('not Implemented');
-	}
-
-	async getByTitle(
-		title?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<DeltaProperties>[]> {
+	async get(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {
 		throw new Error('not Implemented');
 	}
 

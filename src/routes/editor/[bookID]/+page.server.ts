@@ -13,7 +13,7 @@ export const load = (async (event) => {
 	const storylineID = event.url.searchParams.get('storylineID');
 
 	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		searchTerm: bookID,
+		id: bookID,
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 
@@ -41,7 +41,8 @@ export const load = (async (event) => {
 		chapterResponses[chapterResponse._id] = chapterResponse;
 	});
 
-	console.log('** chp resp');
-	console.log(chapterResponses);
+	console.log('** chp resp ');
+	console.log(storylineResponse);
+
 	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
 }) satisfies PageServerLoad;

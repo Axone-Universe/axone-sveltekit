@@ -14,4 +14,6 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	about: String
 });
 
-export const Campaign = mongoose.models[label] || model<CampaignProperties>(label, campaignSchema);
+export const Campaign = mongoose.models[label]
+	? model<CampaignProperties>(label)
+	: model<CampaignProperties>(label, campaignSchema);

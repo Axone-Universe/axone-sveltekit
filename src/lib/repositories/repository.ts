@@ -5,11 +5,6 @@ export interface Count {
 }
 
 export abstract class Repository {
-	abstract getById(
-		session: Session,
-		searchTerm?: string,
-		limit?: number,
-		skip?: number
-	): Promise<unknown>;
+	abstract getById(session: Session | null, id?: string): Promise<unknown>;
 	abstract count(): Promise<number>;
 }

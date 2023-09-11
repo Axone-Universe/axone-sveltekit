@@ -16,8 +16,8 @@
 	export let data: PageData;
 	export let { userResponse } = data;
 
-	const userGenres = userResponse.genres as unknown as Record<string, boolean>;
-	const userLabels = userResponse.labels as unknown as Record<string, boolean>;
+	const userGenres = userResponse.genres;
+	const userLabels = userResponse.labels;
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
@@ -40,12 +40,8 @@
 					</h3>
 					<div class="flex gap-2 flex-wrap">
 						{#if userResponse.labels}
-							{#each Object.keys(userLabels) as label}
-								{#if userLabels[label]}
-									<div class="chip variant-filled">{label}</div>
-								{:else}
-									<div class="chip">{label}</div>
-								{/if}
+							{#each userLabels ?? [] as label}
+								<div class="chip variant-filled">{label}</div>
 							{/each}
 						{/if}
 					</div>
@@ -84,15 +80,11 @@
 			<h2 class="mb-4">Genre Preferences</h2>
 			<div class="gap-4 w-full">
 				<div class="card p-4">
-					{#if userResponse.genres}
+					{#if userGenres}
 						<div class="flex gap-2 flex-wrap">
-							{#if userGenres.genres}
-								{#each Object.keys(userGenres) as genre}
-									{#if userGenres[genre]}
-										<div class="chip variant-filled">{genre}</div>
-									{/if}
-								{/each}
-							{/if}
+							{#each userGenres as genre}
+								<div class="chip variant-filled">{genre}</div>
+							{/each}
 						</div>
 					{:else}
 						<div class="chip variant-soft">None</div>

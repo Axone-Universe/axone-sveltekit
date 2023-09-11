@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { trpc } from '$lib/trpc/client';
+	import { trpcWithQuery } from '$lib/trpc/client';
 	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
@@ -11,6 +11,8 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import type { PermissionProperties } from '$lib/shared/permission';
+
+	const createBookMutation = trpcWithQuery($page).books.create.createMutation();
 
 	let input: HTMLInputElement;
 	let image: HTMLElement;
@@ -23,6 +25,19 @@
 	export { customClass as class };
 
 	let genres = book.genres as unknown as Record<string, boolean>;
+
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
+
+	$: {
+		if ($createBookMutation.isSuccess) {
+			const t: ToastSettings = {
+				message: 'Book created successfully',
+				background: 'variant-filled-primary'
+			};
+			toastStore.trigger(t);
+			goto(`/editor/${($createBookMutation.data as HydratedDocument<BookProperties>)._id}`);
+		}
+	}
 
 	async function createBook() {
 		if (!imageFile) {
@@ -67,23 +82,13 @@
 			book.imageURL = imageURL;
 		}
 
-		trpc($page)
-			.books.create.mutate({
-				title: book.title,
-				description: book.description,
-				imageURL: book.imageURL,
-				genres: book.genres,
-				permissions: book.permissions,
-				published: book.published
-			})
-			.then((bookResponse) => {
-				const t: ToastSettings = {
-					message: 'Book created successfully',
-					background: 'variant-filled-primary'
-				};
-				toastStore.trigger(t);
-				goto(`/editor/${(bookResponse as HydratedDocument<BookProperties>)._id}`);
-			});
+		$createBookMutation.mutate({
+			title: book.title,
+			description: book.description,
+			imageURL: book.imageURL,
+			genres: book.genres,
+			permissions: Object.fromEntries(permissions) as any
+		});
 	}
 
 	/**

@@ -140,7 +140,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			);
 
 			// update delta permissions as well
-			if (chapter.delta) {
+			if (chapter?.delta) {
 				await Delta.findOneAndUpdate(
 					{ _id: chapter.delta },
 					{ permissions: this._chapterProperties.permissions },
@@ -178,6 +178,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 		// use a transaction to make sure everything saves
 		await session.withTransaction(async () => {
+			chapter.isNew = true;
 			await chapter.save({ session });
 
 			const storyline = await Storyline.aggregate(

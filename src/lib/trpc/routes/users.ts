@@ -3,17 +3,16 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, update } from '$lib/trpc/schemas/users';
-import { search } from '$lib/trpc/schemas/shared';
+import { create, search, update } from '$lib/trpc/schemas/users';
 
 const usersRepo = new UsersRepository();
 
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(search)
 		.query(async ({ input, ctx }) => {
-			const result = await usersRepo.getAll(ctx.session, input?.limit, input?.skip);
+			const result = await usersRepo.get(ctx.session, input.id);
 
 			return result;
 		}),
@@ -22,7 +21,7 @@ export const users = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
-			const result = await usersRepo.getById(ctx.session, input.searchTerm);
+			const result = await usersRepo.getById(ctx.session, input.id);
 
 			return result;
 		}),
@@ -31,10 +30,11 @@ export const users = t.router({
 		.use(logger)
 		.input(search)
 		.query(async ({ input, ctx }) => {
-			const result = await usersRepo.getByDetails(ctx.session, input.searchTerm ?? '');
+			const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
 
 			return result;
 		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)
