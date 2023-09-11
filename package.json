@@ -42,6 +42,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@axone-network/quill-illustration": "^1.0.0",
 		"@egjs/svelte-infinitegrid": "^4.10.2",
 		"@floating-ui/dom": "^1.2.8",
 		"@splidejs/svelte-splide": "^0.2.9",
