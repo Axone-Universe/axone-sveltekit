@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@egjs/svelte-infinitegrid':
-    specifier: ^4.10.2
-    version: 4.10.2
   '@floating-ui/dom':
     specifier: ^1.2.8
     version: 1.2.8
@@ -172,63 +169,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
-    dev: false
-
-  /@cfcs/core@0.0.24:
-    resolution: {integrity: sha512-feB38qu+eDk0Pggh/yR7gjaNmvUYA2uCxHP3Pz2MLE4LZ/9jPdtu8bzCSI47yTEhWyZCF5Pk698hdz8IN2mTjA==}
-    dependencies:
-      '@egjs/component': 3.0.4
-    dev: false
-
-  /@cfcs/core@0.0.5:
-    resolution: {integrity: sha512-TZ/RXKV7MUrqFpiX+16uaaptv5jgChWNsuE6w8Rn3eJbO1PFd4Wpn25zeJbii7ch46ck8/ZIIYCcW3pHiYtm4Q==}
-    dependencies:
-      '@egjs/component': 3.0.4
-    dev: false
-
-  /@egjs/children-differ@1.0.1:
-    resolution: {integrity: sha512-DRvyqMf+CPCOzAopQKHtW+X8iN6Hy6SFol+/7zCUiE5y4P/OB8JP8FtU4NxtZwtafvSL4faD5KoQYPj3JHzPFQ==}
-    dependencies:
-      '@egjs/list-differ': 1.0.1
-    dev: false
-
-  /@egjs/component@3.0.4:
-    resolution: {integrity: sha512-sXA7bGbIeLF2OAw/vpka66c6QBBUPcA4UUhR4WGJfnp2XWdiI8QrnJGJMr/UxpE/xnevX9tN3jvNPlW8WkHl3g==}
-    dev: false
-
-  /@egjs/grid@1.14.2:
-    resolution: {integrity: sha512-MOIL6zdFmEFYVmlsrPr8eNPybDZqRKzJo1sceFiamAvxWJ+5yG17tVRP9zMSeXogjsShWhNUKqoPOUC4rClFAQ==}
-    dependencies:
-      '@egjs/children-differ': 1.0.1
-      '@egjs/component': 3.0.4
-      '@egjs/imready': 1.4.1
-    dev: false
-
-  /@egjs/imready@1.4.1:
-    resolution: {integrity: sha512-JIOBs4lB7FYdsKi5uvz2j3SObX8eShtZjtqlOH41tm185aJOQZwiKBK8+V4MxzG4X6DqVhpdN8UcuVwBbElfsg==}
-    dependencies:
-      '@cfcs/core': 0.0.24
-      '@egjs/component': 3.0.4
-    dev: false
-
-  /@egjs/infinitegrid@4.10.1:
-    resolution: {integrity: sha512-hucrUJgSGeze6jH9HdWtLmDKR0ssx42JyXFDGQ2MrOZDmf6WQlky0fXer8FJzBaKQdraODH9bz0TKjIWzG7gaA==}
-    dependencies:
-      '@cfcs/core': 0.0.5
-      '@egjs/children-differ': 1.0.1
-      '@egjs/component': 3.0.4
-      '@egjs/grid': 1.14.2
-      '@egjs/list-differ': 1.0.1
-    dev: false
-
-  /@egjs/list-differ@1.0.1:
-    resolution: {integrity: sha512-OTFTDQcWS+1ZREOdCWuk5hCBgYO4OsD30lXcOCyVOAjXMhgL5rBRDnt/otb6Nz8CzU0L/igdcaQBDLWc4t9gvg==}
-    dev: false
-
-  /@egjs/svelte-infinitegrid@4.10.2:
-    resolution: {integrity: sha512-LTd/g+yoCaoSxb9Nz3Ya/lb/ozDXR762hPo+LJk5Nv87G2hBo8oo8vPysr+jB3TTQO/IDEV8hvw3Btu58PM3QQ==}
-    dependencies:
-      '@egjs/infinitegrid': 4.10.1
     dev: false
 
   /@esbuild/android-arm64@0.17.19:

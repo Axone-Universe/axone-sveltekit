@@ -1,6 +1,6 @@
 import { Note } from '$lib/models/note';
 import { Repository } from '$lib/repositories/repository';
-import type { NoteProperties } from '$lib/shared/note';
+import type { NoteProperties } from '$lib/properties/note';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 

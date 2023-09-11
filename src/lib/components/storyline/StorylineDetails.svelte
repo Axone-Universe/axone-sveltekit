@@ -13,13 +13,13 @@
 	} from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { check } from 'svelte-awesome/icons';
-	import type { StorylineProperties } from '$lib/shared/storyline';
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { StorylineProperties } from '$lib/properties/storyline';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { HydratedDocument } from 'mongoose';
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import { onMount } from 'svelte';
 	import ManagePermissions from '../permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/shared/permission';
+	import type { PermissionProperties } from '$lib/properties/permission';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let storyline: HydratedDocument<StorylineProperties>;

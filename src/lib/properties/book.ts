@@ -17,6 +17,7 @@ export interface BookProperties {
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
 	genres?: Genre[];
+	rating: number;
 }
 
 export class BookPropertyBuilder {
@@ -32,7 +33,8 @@ export class BookPropertyBuilder {
 			genres: [],
 			tags: [],
 			permissions: {},
-			published: true
+			published: true,
+			rating: 0
 		};
 	}
 

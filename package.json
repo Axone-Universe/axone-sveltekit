@@ -42,7 +42,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@egjs/svelte-infinitegrid": "^4.10.2",
 		"@floating-ui/dom": "^1.2.8",
 		"@splidejs/svelte-splide": "^0.2.9",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",

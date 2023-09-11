@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 
 	export let bookData: HydratedDocument<BookProperties>;
@@ -35,7 +35,7 @@
 		additionalClasses="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden"
 	/>
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
-		<header class="space-y-2">
+		<header class="space-y-2 w-full">
 			<p class="text-lg font-bold line-clamp-2">{bookData.title}</p>
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}

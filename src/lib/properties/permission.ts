@@ -1,8 +1,8 @@
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from './user';
-import { label as BookLabel } from '$lib/shared/book';
-import { label as ChapterLabel } from '$lib/shared/chapter';
-import { label as StorylineLabel } from '$lib/shared/storyline';
+import { label as BookLabel } from '$lib/properties/book';
+import { label as ChapterLabel } from '$lib/properties/chapter';
+import { label as StorylineLabel } from '$lib/properties/storyline';
 
 export const label = 'Permission';
 

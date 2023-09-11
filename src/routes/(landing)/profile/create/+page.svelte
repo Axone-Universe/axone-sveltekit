@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { UserPropertyBuilder, type UserProperties } from '$lib/shared/user';
+	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
 	import UserProfileDetails from '$lib/components/user/UserProfileDetails.svelte';
 	import { user } from 'svelte-awesome/icons';
 

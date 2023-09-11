@@ -6,11 +6,11 @@
 	import { Icon } from 'svelte-awesome';
 	import { check, pencil } from 'svelte-awesome/icons';
 	import type { StorageError } from '$lib/util/types';
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/shared/permission';
+	import type { PermissionProperties } from '$lib/properties/permission';
 
 	const createBookMutation = trpcWithQuery($page).books.create.createMutation();
 

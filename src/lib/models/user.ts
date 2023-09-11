@@ -1,5 +1,5 @@
-import { GENRES } from '$lib/shared/genre';
-import { label, USER_LABELS, type UserProperties } from '$lib/shared/user';
+import { GENRES } from '$lib/properties/genre';
+import { label, USER_LABELS, type UserProperties } from '$lib/properties/user';
 import mongoose, { Schema, model } from 'mongoose';
 
 export const userSchema = new Schema<UserProperties>({

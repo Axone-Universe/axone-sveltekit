@@ -1,9 +1,9 @@
-import { label, type ChapterProperties } from '$lib/shared/chapter';
+import { label, type ChapterProperties } from '$lib/properties/chapter';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
-import { label as BookLabel } from '$lib/shared/book';
-import { label as StorylineLabel } from '$lib/shared/storyline';
-import { label as UserLabel } from '$lib/shared/user';
-import { label as DeltaLabel } from '$lib/shared/delta';
+import { label as BookLabel } from '$lib/properties/book';
+import { label as StorylineLabel } from '$lib/properties/storyline';
+import { label as UserLabel } from '$lib/properties/user';
+import { label as DeltaLabel } from '$lib/properties/delta';
 import {
 	addDeletePermissionFilter,
 	addPermissionsPipeline,

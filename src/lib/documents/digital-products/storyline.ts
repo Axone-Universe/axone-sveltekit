@@ -1,9 +1,9 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { StorylineProperties } from '$lib/shared/storyline';
+import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { PermissionProperties } from '$lib/properties/permission';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -12,7 +12,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	// If a storyline has no parent it is the default storyline
 	private _parentStorylineID?: string;
 	private _branchOffChapterID?: string;
-	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -20,7 +19,9 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			_id: id ? id : ulid(),
 			main: false,
 			permissions: {},
-			published: false
+			published: false,
+			cumulativeRating: 0,
+			numRatings: 0,
 		};
 	}
 
@@ -81,11 +82,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	published(published: boolean) {
 		this._storylineProperties.published = published;
-		return this;
-	}
-
-	sessionUserID(sessionUserID: string): StorylineBuilder {
-		this._sessionUserID = sessionUserID;
 		return this;
 	}
 
