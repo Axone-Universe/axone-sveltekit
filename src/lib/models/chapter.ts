@@ -95,6 +95,4 @@ function populate(pipeline: PipelineStage[]) {
 	);
 }
 
-export const Chapter = mongoose.models[label]
-	? model<ChapterProperties>(label)
-	: model<ChapterProperties>(label, chapterSchema);
+export const Chapter = mongoose.models[label] || model<ChapterProperties>(label, chapterSchema);

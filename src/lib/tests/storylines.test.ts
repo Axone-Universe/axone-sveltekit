@@ -5,7 +5,8 @@ import {
 	createDBUser,
 	createBook,
 	createTestSession,
-	testUserOne
+	testUserOne,
+	testUserTwo
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
@@ -25,7 +26,11 @@ describe('storylines', () => {
 		const chapter2_2Title = 'Chapter 2_2';
 
 		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
+
 		await createDBUser(testUserOneSession);
+		await createDBUser(testUserTwoSession);
+
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
@@ -61,21 +66,26 @@ describe('storylines', () => {
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
-		// Create a new storyline
+		// Create a new storyline using user 2
+		caller = router.createCaller({ session: testUserTwoSession });
 		let storyline2 = await caller.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
 			book: bookResponse._id,
 			parent: storylines[0]._id,
-			parentChapter: chapter1Response._id
+			parentChapter: chapter1Response._id,
+			published: true
 		});
 
+		// let user one create chapter on user one storyline
+		caller = router.createCaller({ session: testUserOneSession });
 		const chapter2_2Response = await caller.chapters.create({
 			title: chapter2_2Title,
 			description: 'My chapter 2',
 			storylineID: storyline2._id,
 			bookID: bookResponse._id,
-			prevChapterID: chapter1Response._id
+			prevChapterID: chapter1Response._id,
+			published: true
 		});
 
 		storyline2 = await caller.storylines.getById({
@@ -85,6 +95,9 @@ describe('storylines', () => {
 		const storyline_2Chapters = await caller.chapters.getByStoryline({
 			storylineChapterIDs: storyline2.chapters as string[]
 		});
+
+		console.log('** stroyline chapts');
+		console.log(storyline2.chapters);
 
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2_1Response.title).toEqual(chapter2_1Title);
