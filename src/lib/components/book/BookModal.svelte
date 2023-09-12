@@ -66,7 +66,7 @@
 		</header>
 		<div class="h-full">
 			<hr class="opacity-50" />
-			<p class="font-thin overflow-scroll my-2">
+			<p class="font-thin overflow-y-auto my-2">
 				{bookData.description}
 			</p>
 		</div>
