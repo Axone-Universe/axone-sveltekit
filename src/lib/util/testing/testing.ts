@@ -1,8 +1,11 @@
+import { faker } from '@faker-js/faker';
 import type { Session, User } from '@supabase/supabase-js';
-import { router } from '$lib/trpc/router';
 import mongoose, { type HydratedDocument } from 'mongoose';
-import { GenresBuilder } from '$lib/shared/genres';
-import type { PermissionProperties } from '$lib/shared/permission';
+import { ulid } from 'ulid';
+
+import { GenresBuilder, type Genre } from '$lib/shared/genre';
+import type { StorylineProperties } from '$lib/shared/storyline';
+import { router } from '$lib/trpc/router';
 
 import {
 	TEST_MONGO_PASSWORD,
@@ -17,8 +20,7 @@ import {
 	TEST_USER_FIRST_NAME,
 	TEST_USER_LAST_NAME
 } from '$env/static/private';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import { ulid } from 'ulid';
+import { UserPropertyBuilder } from '$lib/shared/user';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -51,6 +53,23 @@ export const testUserThree: User = {
 	created_at: ''
 };
 
+export function generateTestUser(): User {
+	const id = `test-${ulid()}`;
+	const firstName = faker.person.firstName();
+	const lastName = faker.person.lastName();
+	return {
+		id,
+		email: `${firstName}.${lastName}.${id.substring(id.length - 5, id.length - 1)}@test.com`,
+		user_metadata: {
+			firstName,
+			lastName
+		},
+		app_metadata: {},
+		aud: '',
+		created_at: ''
+	};
+}
+
 /**
  * Creates a session from a given user supabase
  * @param supabaseUser
@@ -70,21 +89,17 @@ export function createTestSession(supabaseUser: User) {
 /**
  * Creates a book from a given title ans session
  * @param session
- * @param title
  * @returns
  */
-export async function createBook(session: Session, title: string) {
-	const caller = router.createCaller({ session: session });
-
-	const genres = new GenresBuilder();
-	genres.genre('Action');
+export async function createBook(testSession: Session, title?: string, genres: Genre[] = []) {
+	const caller = router.createCaller({ session: testSession });
 
 	const book = await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: '',
-		published: true
+		title: title ? title : faker.commerce.productName() + ' But a Book',
+		description: faker.commerce.productDescription(),
+		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
+		published: true,
+		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
 
 	return book;
@@ -134,8 +149,17 @@ export async function connectDevDatabase() {
 	await mongoose.connect(MONGO_URL, options);
 }
 
-export async function cleanUpDatabase() {
-	await mongoose.connection.db.dropDatabase();
+export async function cleanUpDatabase(isPartOfDBSetup = false) {
+	await Promise.all(
+		Object.values(mongoose.connection.collections).map(async (collection) => {
+			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
+				await collection.deleteMany({ _id: /^test-/ });
+			} else {
+				await collection.deleteMany({});
+			}
+		})
+	);
+	// await mongoose.connection.db.dropDatabase();
 }
 
 /**
@@ -143,15 +167,19 @@ export async function cleanUpDatabase() {
  * @param session
  * @returns
  */
-export const createDBUser = async (session: Session) => {
+export async function createDBUser(session: Session, genres: Genre[] = []) {
 	const caller = router.createCaller({ session });
 
 	const supabaseUser = session.user;
-	const userDetails = {
-		_id: '',
-		firstName: supabaseUser.user_metadata.firstName,
-		lastName: supabaseUser.user_metadata.lastName,
-		email: session.user.email
-	};
-	return await caller.users.create(userDetails);
-};
+
+	const userPropertyBuilder = new UserPropertyBuilder();
+	const userProperties = userPropertyBuilder.getProperties();
+
+	userProperties._id = '';
+	userProperties.firstName = supabaseUser.user_metadata.firstName;
+	userProperties.lastName = supabaseUser.user_metadata.lastName;
+	userProperties.email = session.user.email;
+	userProperties.genres = genres;
+
+	return await caller.users.create(userProperties);
+}

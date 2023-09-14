@@ -5,27 +5,16 @@ import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 
 export class UsersRepository extends Repository {
-	async getById(
-		session: Session | null,
-		uid?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<UserProperties>[]> {
-		let query = User.find(uid ? { _id: uid } : {});
+	async get(session: Session | null, id?: string): Promise<HydratedDocument<UserProperties>[]> {
+		const query = User.find(id ? { _id: id } : {});
 
-		if (skip) {
-			query = query.skip(skip);
-		}
+		return await query;
+	}
 
-		if (limit) {
-			query = query.limit(limit);
-		}
+	async getById(session: Session | null, id?: string): Promise<HydratedDocument<UserProperties> | null> {
+		const query = User.findById(id);
 
-		const users = await query;
-
-		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
-			resolve(users);
-		});
+		return await query;
 	}
 
 	/**
@@ -58,11 +47,7 @@ export class UsersRepository extends Repository {
 			query = query.limit(limit);
 		}
 
-		const users = await query;
-
-		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
-			resolve(users);
-		});
+		return await query;
 	}
 
 	async count(): Promise<number> {

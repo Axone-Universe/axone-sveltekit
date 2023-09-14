@@ -23,7 +23,7 @@
 	import Quill from 'quill';
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
-	import '$lib/util/editor/quill.illustration';
+	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 
@@ -51,7 +51,7 @@
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
-	import type { IllustrationObject } from '$lib/util/editor/quill.illustration';
+	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -309,7 +309,7 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
-		modalComponent.props = { storylineNode: storylineResponse };
+		modalComponent.props = { storylineNode: storylineResponse, chapterID: selectedChapterNode._id };
 		modalStore.trigger(modalSettings);
 	};
 
@@ -366,8 +366,8 @@
 			toggleShowComments();
 		}
 		showIllustrations = !showIllustrations;
-		// if (showIllustrations) quill.getModule('quillIllustration').addIllustrationStyle('green')
-		// else quill.getModule('quillIllustration').addIllustrationStyle('transparent')
+		// if (showIllustrations) quill.getModule('illustration').addIllustrationStyle('green')
+		// else quill.getModule('illustration').addIllustrationStyle('transparent')
 	}
 
 	function removeComment(id: string) {
@@ -435,24 +435,41 @@
 	}
 
 	function commentAddClick() {
-		quill.getModule('comment').addComment(' ');
-		drawerStore.open(drawerSettings);
-		showComments = true;
-		showIllustrations = false;
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration())
+			quill.getModule('comment').addComment(' ');
+
+		if (quill.selectedContainsIllustration()) {
+			drawerStore.open(drawerSettings);
+			showComments = false;
+			showIllustrations = true;
+		} else {
+			drawerStore.open(drawerSettings);
+			showComments = true;
+			showIllustrations = false;
+		}
 	}
 
 	/**
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
-		quill.getModule('quillIllustration').addIllustration({
-			src: '',
-			alt: '',
-			caption: ''
-		});
-		drawerStore.open(drawerSettings);
-		showIllustrations = true;
-		showComments = false;
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
+			quill.getModule('illustration').addIllustration({
+				src: '',
+				alt: '',
+				caption: ''
+			});
+		}
+
+		if (quill.selectedContainsComment()) {
+			drawerStore.open(drawerSettings);
+			showComments = true;
+			showIllustrations = false;
+		} else {
+			drawerStore.open(drawerSettings);
+			showComments = false;
+			showIllustrations = true;
+		}
 	}
 
 	/**
@@ -652,7 +669,7 @@
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
 					},
-					quillIllustration: {
+					illustration: {
 						enabled: true,
 						color: 'transparent',
 						illustrationAuthorId: session?.user.id,
@@ -704,14 +721,14 @@
 									class="soft-listbox"
 									value="book"
 								>
-									{bookData.title}
+									<p class="line-clamp-1">{bookData.title}</p>
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
 					</AccordionItem>
 					<AccordionItem open>
 						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Storylines</p>
+							<p class="text-lg font-bold">Storyline</p>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<ListBox>
@@ -722,7 +739,7 @@
 									class="soft-listbox"
 									value="storyline"
 								>
-									{storylineResponse.title}
+									<p class="line-clamp-1">{storylineResponse.title}</p>
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>

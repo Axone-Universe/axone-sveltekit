@@ -3,7 +3,7 @@ import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import type { DeltaProperties } from './delta';
 import type { PermissionProperties } from './permission';
-import type { Genres } from './genres';
+import type { Genre } from './genre';
 import type { StorylineProperties } from './storyline';
 
 export const label = 'Chapter';
@@ -19,7 +19,7 @@ export interface ChapterProperties {
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean }; // Has the current session user permission details
-	genres?: Genres;
+	genres?: Genre[];
 	title?: string;
 	description?: string;
 }

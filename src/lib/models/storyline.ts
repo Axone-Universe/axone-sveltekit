@@ -24,6 +24,10 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	imageURL: String
 });
 
+interface StorylineMethods extends StorylineProperties {
+	addChapter: (chapterID: string) => Promise<void>;
+}
+
 storylineSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
 });
@@ -62,6 +66,21 @@ storylineSchema.pre(
 );
 
 /**
+ * Adding a chapter to storyline.chapters array cannot use findOneAndUpdate because of permission restrictions
+ * Use this method instead, by
+ * 1. getting the storyline using aggregate
+ * 2. Creating model instance of Storyline from the returned object
+ * 3. calling addChapter on the model instance
+ * @param chapterID
+ * @returns
+ */
+storylineSchema.methods.addChapter = async function (chapterID: string) {
+	this.chapters.push(chapterID);
+	await this.save();
+	return Promise.resolve();
+};
+
+/**
  * Add fields you want to be populated by default here
  * @param query
  */
@@ -98,5 +117,6 @@ function populate(pipeline: PipelineStage[]) {
 	);
 }
 
-export const Storyline =
-	mongoose.models[label] || model<StorylineProperties>(label, storylineSchema);
+export const Storyline = mongoose.models[label]
+	? model<StorylineMethods>(label)
+	: model<StorylineMethods>(label, storylineSchema);

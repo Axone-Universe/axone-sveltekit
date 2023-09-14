@@ -117,7 +117,7 @@
 	async function loadUsers(query: string) {
 		emptyState = 'Loading...';
 		let usersResponse = (await trpc($page).users.getByDetails.query({
-			searchTerm: query
+			id: query
 		})) as HydratedDocument<UserProperties>[];
 
 		if (usersResponse.length === 0) {

@@ -13,7 +13,7 @@ export const chapters = t.router({
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
-			const result = await chaptersRepo.getAll(ctx.session, input?.limit, input?.skip);
+			const result = await chaptersRepo.get(ctx.session, input?.limit, input?.skip);
 
 			return result;
 		}),

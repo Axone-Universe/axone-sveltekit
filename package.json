@@ -11,9 +11,10 @@
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
 		"test": "vitest --no-threads -t '^((?!db).)*$' ",
-		"test-data": "vitest db-data --no-threads"
+		"test-data": "vitest run db-data"
 	},
 	"devDependencies": {
+		"@faker-js/faker": "^8.0.2",
 		"@skeletonlabs/skeleton": "^1.11.0",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/adapter-vercel": "^2.4.3",
@@ -41,11 +42,14 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@axone-network/quill-illustration": "^1.0.0",
+		"@egjs/svelte-infinitegrid": "^4.10.2",
 		"@floating-ui/dom": "^1.2.8",
 		"@splidejs/svelte-splide": "^0.2.9",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
 		"@supabase/supabase-js": "^2.22.0",
 		"@tailwindcss/line-clamp": "^0.4.4",
+		"@tanstack/svelte-query": "^4.33.0",
 		"@trpc/client": "^10.27.1",
 		"@trpc/server": "^10.27.1",
 		"date-fns": "^2.30.0",
@@ -53,8 +57,6 @@
 		"happy-dom": "^9.20.1",
 		"mongoose": "^7.3.4",
 		"mongoose-autopopulate": "^1.0.1",
-		"neo4j-driver": "^5.8.1",
-		"neo4j-driver-core": "^5.8.1",
 		"parchment": "^2.0.1",
 		"quill": "^1.3.7",
 		"quill-comment": "^1.3.0",
@@ -62,6 +64,8 @@
 		"stringify-object": "^5.0.0",
 		"svelte-awesome": "^3.2.0",
 		"svelte-quill": "^1.2.0",
+		"tailwindcss-animated": "^1.0.1",
+		"trpc-svelte-query-adapter": "^2.1.0",
 		"trpc-sveltekit": "^3.5.8",
 		"ulid": "^2.3.0",
 		"zod": "^3.21.4"

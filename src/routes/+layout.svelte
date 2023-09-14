@@ -3,17 +3,12 @@
 	import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
 	// If you have source.organizeImports set to true in VSCode, then it will auto change this ordering
 	import '@skeletonlabs/skeleton/styles/all.css';
+	import { QueryClientProvider } from '@tanstack/svelte-query';
 	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
 
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import {
-		storePopup,
-		Toast,
-		Modal,
-		type ModalComponent,
-		LightSwitch
-	} from '@skeletonlabs/skeleton';
+	import { storePopup, Toast, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	import { invalidate } from '$app/navigation';
@@ -40,11 +35,8 @@
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
-<slot />
-<!-- LightSwitch needed at root for it to work properly
-	hide it as we implement it in the navbar in children layouts -->
-<div hidden>
-	<!-- <LightSwitch /> -->
-</div>
-<Modal components={modalComponentRegistry} />
-<Toast />
+<QueryClientProvider client={data.queryClient}>
+	<slot />
+	<Modal components={modalComponentRegistry} />
+	<Toast />
+</QueryClientProvider>

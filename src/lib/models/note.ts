@@ -1,20 +1,27 @@
-import { label, type DeltaProperties } from '$lib/shared/delta';
+import { label, TAGS, type NoteProperties } from '$lib/shared/note';
 import { label as ChapterLabel } from '$lib/shared/chapter';
 import mongoose, { Schema, model } from 'mongoose';
 import { addRestrictionsPipeline, addUpdatePermissionFilter, permissionSchema } from './permission';
 
-export const deltaSchema = new Schema<DeltaProperties>({
+export const noteSchema = new Schema<NoteProperties>({
 	_id: { type: String, required: true },
+	title: { type: String, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
-	ops: Object
+	tags: [
+		{
+			type: String,
+			enum: TAGS
+		}
+	],
+	note: String
 });
 
-deltaSchema.pre(['find', 'findOne'], function () {
+noteSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
 });
 
-deltaSchema.pre('aggregate', function (next) {
+noteSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
@@ -22,19 +29,11 @@ deltaSchema.pre('aggregate', function (next) {
 	next();
 });
 
-deltaSchema.pre(
+noteSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
-		const filter = this.getFilter();
-
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
-		this.setQuery(updatedFilter);
-
 		next();
 	}
 );
 
-export const Delta = mongoose.models[label]
-	? model<DeltaProperties>(label)
-	: model<DeltaProperties>(label, deltaSchema);
+export const Note = mongoose.models[label] || model<NoteProperties>(label, noteSchema);

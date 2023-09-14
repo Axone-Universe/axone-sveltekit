@@ -229,7 +229,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			for (const chapter of parentStoryline.chapters) {
 				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
 
-				storyline.chapters.push(chapterID);
+				storyline.chapters?.push(chapterID);
 				if (chapterID === this._branchOffChapterID) {
 					break;
 				}

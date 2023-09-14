@@ -5,8 +5,6 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/storylines';
 import { search } from '$lib/trpc/schemas/storylines';
-import type { HydratedDocument } from 'mongoose';
-import type { PermissionProperties } from '$lib/shared/permission';
 
 export const storylines = t.router({
 	getAll: t.procedure

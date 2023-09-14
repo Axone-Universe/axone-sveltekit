@@ -13,7 +13,7 @@ export const campaigns = t.router({
 		.use(logger)
 		.input(search.optional())
 		.query(async ({ input }) => {
-			const result = await campaignsRepo.get(input?.searchTerm, input?.limit, input?.skip);
+			const result = await campaignsRepo.get(input?.searchTerm, input?.limit, input?.cursor);
 
 			return result;
 		}),
