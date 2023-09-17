@@ -971,6 +971,11 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
+					{#if !selectedChapterNode.userPermissions?.edit}
+						<button class="btn fixed variant-filled-primary font-sans top-32">
+							<span>No Edit Permissions</span>
+						</button>
+					{/if}
 					<textarea
 						id="message"
 						rows="4"
