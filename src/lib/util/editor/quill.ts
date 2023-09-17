@@ -347,10 +347,12 @@ export class QuillEditor extends Quill {
 	 * when adding a comment, each letter of the selection contains an attribute for the comment
 	 */
 	selectedContainsComment(): boolean {
-		return this.selectedDelta &&
+		return (
+			this.selectedDelta &&
 			this.selectedDelta.ops &&
 			this.selectedDelta.ops[0].attributes &&
-			this.selectedDelta.ops[0].attributes.commentId;
+			this.selectedDelta.ops[0].attributes.commentId
+		);
 	}
 
 	/**
@@ -358,10 +360,12 @@ export class QuillEditor extends Quill {
 	 * when adding an illustration, each letter of the selection contains an attribute for the illustration
 	 */
 	selectedContainsIllustration(): boolean {
-		return this.selectedDelta &&
+		return (
+			this.selectedDelta &&
 			this.selectedDelta.ops &&
 			this.selectedDelta.ops[0].attributes &&
-			this.selectedDelta.ops[0].attributes.illustrationId;
+			this.selectedDelta.ops[0].attributes.illustrationId
+		);
 	}
 
 	addComment(op: Op): boolean {

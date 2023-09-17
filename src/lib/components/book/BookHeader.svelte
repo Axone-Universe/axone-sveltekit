@@ -27,7 +27,7 @@
 	};
 </script>
 
-<div class="bg-center bg-no-repeat w-full" style="background-image: url({bookData.imageURL})">
+<div class="bg-center bg-no-repeat bg-cover" style="background-image: url({bookData.imageURL})">
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
         [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%
