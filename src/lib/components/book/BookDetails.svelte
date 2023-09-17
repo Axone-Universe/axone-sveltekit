@@ -1,4 +1,4 @@
-<script lang="ts" >
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
@@ -11,8 +11,8 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import type { PermissionProperties } from '$lib/shared/permission';
-	import type {PopupSettings} from '$lib/util/popup/types';
-	import {popup} from '$lib/util/popup/popup';
+	import type { PopupSettings } from '$lib/util/popup/types';
+	import { popup } from '$lib/util/popup/popup';
 
 	let input: HTMLInputElement;
 	let image: HTMLElement;
@@ -123,147 +123,139 @@
 		input.click();
 	}
 
-
 	let creatorsMenuList = [
-			{ funct : upload, label: 'Upload Cover' },
-			{ funct : adobeCreateCover, label: 'Create Cover' },
-			{ funct : adobeEditCover, label: 'Edit Cover' },
-		];;
-	
+		{ funct: upload, label: 'Upload Cover' },
+		{ funct: adobeCreateCover, label: 'Create Cover' },
+		{ funct: adobeEditCover, label: 'Edit Cover' }
+	];
 
-	
-	
-	async function adobeEditCover(){
-
+	async function adobeEditCover() {
 		const ccEverywhere = await window.CCEverywhere.initialize({
-                /* Get credentials at Adobe Developer Console.
+			/* Get credentials at Adobe Developer Console.
                 During beta, your client will need to be enabled. 
                 Email your client ID (API Key) to amandah@adobe.com
                 */
-                clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
-                appName: 'Axone',
-				appVersion: { major: 1, minor: 0 }, 
-    			platformCategory: 'web'
-            });
+			clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+			appName: 'Axone',
+			appVersion: { major: 1, minor: 0 },
+			platformCategory: 'web'
+		});
 
+		const createDesignCallback = {
+			onCancel: () => {},
+			onPublish: (publishParams) => {
+				const localData = {
+					project: publishParams.asset[0].projectId,
+					image: publishParams.asset[0].data
+				};
+				//image_data.src = localData.image;
+				//project_id = localData.project;
 
-			const createDesignCallback = {
-                    onCancel: () => {},
-                    onPublish: (publishParams) => {
-                        const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
-                        //image_data.src = localData.image;
-                        //project_id = localData.project;
-                        
-                        //let img = document.getElementById('savedDesign');
-                        
-                        //let blob = new Blob(localData.image, {type: 'text/plain'});
-                        //img.src = URL.createObjectURL(blob);
-                        //console.log("Created from asset", localData, img);
-						const t: ToastSettings = {
-							message: 'Book created successfully',
-							background: 'variant-filled-primary'
-						};
-						toastStore.trigger(t);
-                    },
-                    onError: (err) => {
+				//let img = document.getElementById('savedDesign');
 
-						let t: ToastSettings = {
-							message: `Something wrong happened. Please try again.`,
-							background: 'variant-filled-error',
-							autohide: true
-						};
+				//let blob = new Blob(localData.image, {type: 'text/plain'});
+				//img.src = URL.createObjectURL(blob);
+				//console.log("Created from asset", localData, img);
+				const t: ToastSettings = {
+					message: 'Book created successfully',
+					background: 'variant-filled-primary'
+				};
+				toastStore.trigger(t);
+			},
+			onError: (err) => {
+				let t: ToastSettings = {
+					message: `Something wrong happened. Please try again.`,
+					background: 'variant-filled-error',
+					autohide: true
+				};
 
-						toastStore.trigger(t);
-		
-                        console.error('Error received is', err.toString());
-                    },
-                };
+				toastStore.trigger(t);
 
-                if(imageFile) {
-                    ccEverywhere.createDesign({
-                        callbacks: createDesignCallback,
-                        inputParams: {
-                            asset: {
-                                data: image.getAttribute('src'), 
-                                dataType: 'base64', 
-                                type: 'image'
-                            }, 
-                        },
-                        outputParams: {
-                            outputType: "url",
-                    }})
-                } else {
-                    console.log("no input image provided")
-                } 
-				ccEverywhere.terminate();
+				console.error('Error received is', err.toString());
+			}
+		};
 
-
+		if (imageFile) {
+			ccEverywhere.createDesign({
+				callbacks: createDesignCallback,
+				inputParams: {
+					asset: {
+						data: image.getAttribute('src'),
+						dataType: 'base64',
+						type: 'image'
+					}
+				},
+				outputParams: {
+					outputType: 'url'
+				}
+			});
+		} else {
+			console.log('no input image provided');
+		}
+		ccEverywhere.terminate();
 	}
-	async function adobeCreateCover(){
-		let ccEverywhere=  await window.CCEverywhere.initialize({
-					/* Get credentials at Adobe Developer Console.
+	async function adobeCreateCover() {
+		let ccEverywhere = await window.CCEverywhere.initialize({
+			/* Get credentials at Adobe Developer Console.
 					During beta, your client will need to be enabled. 
 					Email your client ID (API Key) to amandah@adobe.com
 					*/
-					clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
-					appName: 'Axone',
-					appVersion: { major: 1, minor: 0 }, 
-					platformCategory: 'web'
-				}); ;
-		
+			clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+			appName: 'Axone',
+			appVersion: { major: 1, minor: 0 },
+			platformCategory: 'web'
+		});
 
-			
-			const createDesignCallback = {
-					
-                    onCancel: () => {},
-                    onPublish: (publishParams) => {
-                        const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
-                        //image_data.src = localData.image;
-                        //project_id = localData.project;
-                        console.log("Created from scratch", localData)
-						const t: ToastSettings = {
-							message: 'Book created successfully',
-							background: 'variant-filled-primary'
-						};
-						toastStore.trigger(t);
-                    },
-                    onError: (err) => {
+		const createDesignCallback = {
+			onCancel: () => {},
+			onPublish: (publishParams) => {
+				const localData = {
+					project: publishParams.asset[0].projectId,
+					image: publishParams.asset[0].data
+				};
+				//image_data.src = localData.image;
+				//project_id = localData.project;
+				console.log('Created from scratch', localData);
+				const t: ToastSettings = {
+					message: 'Book created successfully',
+					background: 'variant-filled-primary'
+				};
+				toastStore.trigger(t);
+			},
+			onError: (err) => {
+				let t: ToastSettings = {
+					message: `Something wrong happened. Please try Again.`,
+					background: 'variant-filled-error',
+					autohide: true
+				};
 
-						let t: ToastSettings = {
-							message: `Something wrong happened. Please try Again.`,
-							background: 'variant-filled-error',
-							autohide: true
-						};
+				toastStore.trigger(t);
+				console.error('Error received is', err.toString());
+			}
+		};
 
-						toastStore.trigger(t);
-                        console.error('Error received is', err.toString());
-                    },
-                };
-                 
-                ccEverywhere.createDesign({
-                    callbacks: createDesignCallback,
-                    modalParams: {
-                        // borderRadius: 2,
-                        // padding: 2,
-                        // backgroundColor: 'purple',
-                        // size: {
-                        //     height: 500,
-                        //     width: 1000,
-                        //     unit: 'px'
-                        // }
-                    },
-                    inputParams: {
-                        editorPanelView: 'yourStuff',
-                        // panelSearchText: 'school'
-                    },
-                    outputParams: {
-                        outputType: "base64",
-                    }
-                });
+		ccEverywhere.createDesign({
+			callbacks: createDesignCallback,
+			modalParams: {
+				// borderRadius: 2,
+				// padding: 2,
+				// backgroundColor: 'purple',
+				// size: {
+				//     height: 500,
+				//     width: 1000,
+				//     unit: 'px'
+				// }
+			},
+			inputParams: {
+				editorPanelView: 'yourStuff'
+				// panelSearchText: 'school'
+			},
+			outputParams: {
+				outputType: 'base64'
+			}
+		});
 
-
-				ccEverywhere.terminate();
-
+		ccEverywhere.terminate();
 	}
 	const popupSettings = (target: string) => {
 		let settings: PopupSettings = {
@@ -274,13 +266,12 @@
 		return settings;
 	};
 	const dropdownEditOptions: PopupSettings = popupSettings('dropdownEditOptions');
-
 </script>
 
 <div class={`${customClass}`}>
 	<div class="card mx-2 w-5/6 md:w-2/6 aspect-[10/17] h-fit pb-2 card-hover">
 		<div class="h-[87%]">
-			<button use:popup={dropdownEditOptions} >
+			<button use:popup={dropdownEditOptions}>
 				<img
 					bind:this={image}
 					class="{imageFile ? '' : 'hidden'} object-cover w-full aspect-[5/8]"
@@ -288,12 +279,9 @@
 					alt="cover"
 				/>
 			</button>
-			
 		</div>
-		<div data-popup="dropdownEditOptions" class='card p-4 w-fit' >
+		<div data-popup="dropdownEditOptions" class="card p-4 w-fit">
 			<ul class="list">
-
-			
 				{#each creatorsMenuList as menuItem}
 					<li>
 						<button on:click={menuItem.funct} class="w-full">{menuItem.label}</button>
@@ -303,7 +291,11 @@
 		</div>
 		<footer class="flex flex-col items-center">
 			<div class="overflow-hidden flex-auto flex items-center">
-				<button use:popup={dropdownEditOptions} type="button" class="btn-icon bg-surface-200-700-token">
+				<button
+					use:popup={dropdownEditOptions}
+					type="button"
+					class="btn-icon bg-surface-200-700-token"
+				>
 					<Icon class="p-2" data={pencil} scale={2.5} />
 				</button>
 				<input on:change={onImageChange} bind:this={input} type="file" hidden />
@@ -343,7 +335,6 @@
 					</span>
 				{/each}
 			</div>
-
 		</label>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
