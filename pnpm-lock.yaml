@@ -1,10 +1,9 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
+  '@axone-network/quill-illustration':
+    specifier: ^1.0.0
+    version: 1.0.0
   '@egjs/svelte-infinitegrid':
     specifier: ^4.10.2
     version: 4.10.2
@@ -166,6 +165,14 @@ packages:
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  /@axone-network/quill-illustration@1.0.0:
+    resolution: {integrity: sha512-H9pa3t9vKZ6Lqc1BvLoiHehaOFQH0pCocIOuVbpNnFhXR00F0KWUWTRZQw0/FmRZUOMAmfBXjhtjRXwrgJtS5A==}
+    dependencies:
+      parchment: 2.0.1
+      quill: 1.3.7
+      quill-delta: 3.6.3
+    dev: false
 
   /@babel/runtime@7.21.5:
     resolution: {integrity: sha512-8jI69toZqqcsnqGGqwGS4Qb1VwLOEp4hz+CXPywcvjs60u3B4Pom/U/7rm4W8tMOYEB+E9wgD0mW1l3r8qlI9Q==}
@@ -3795,3 +3802,7 @@ packages:
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

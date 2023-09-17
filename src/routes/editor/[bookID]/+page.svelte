@@ -23,7 +23,7 @@
 	import Quill from 'quill';
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
-	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts'
+	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 
@@ -51,7 +51,7 @@
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
-	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts'
+	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -435,9 +435,10 @@
 	}
 
 	function commentAddClick() {
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) quill.getModule('comment').addComment(' ');
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration())
+			quill.getModule('comment').addComment(' ');
 
-		if (quill.selectedContainsIllustration()){
+		if (quill.selectedContainsIllustration()) {
 			drawerStore.open(drawerSettings);
 			showComments = false;
 			showIllustrations = true;
@@ -446,7 +447,6 @@
 			showComments = true;
 			showIllustrations = false;
 		}
-
 	}
 
 	/**
@@ -461,7 +461,7 @@
 			});
 		}
 
-		if (quill.selectedContainsComment()){
+		if (quill.selectedContainsComment()) {
 			drawerStore.open(drawerSettings);
 			showComments = true;
 			showIllustrations = false;
@@ -721,14 +721,14 @@
 									class="soft-listbox"
 									value="book"
 								>
-									{bookData.title}
+									<p class="line-clamp-1">{bookData.title}</p>
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
 					</AccordionItem>
 					<AccordionItem open>
 						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Storylines</p>
+							<p class="text-lg font-bold">Storyline</p>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<ListBox>
@@ -739,7 +739,7 @@
 									class="soft-listbox"
 									value="storyline"
 								>
-									{storylineResponse.title}
+									<p class="line-clamp-1">{storylineResponse.title}</p>
 								</ListBoxItem>
 							</ListBox>
 						</svelte:fragment>
