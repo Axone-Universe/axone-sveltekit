@@ -180,7 +180,7 @@
 
 <form
 	on:submit|preventDefault
-	class={`modal-example-form card p-4 w-modal w-full space-y-4 ${customClass}`}
+	class={`modal-example-form card p-4 w-full space-y-4 ${customClass}`}
 >
 	<div class="modal-form p-4 space-y-4 rounded-container-token">
 		<label>

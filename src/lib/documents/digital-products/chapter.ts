@@ -8,6 +8,7 @@ import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
+import type { StorylineProperties } from '$lib/shared/storyline';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -143,7 +144,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			);
 
 			// update delta permissions as well
-			if (chapter.delta) {
+			if (chapter?.delta) {
 				await Delta.findOneAndUpdate(
 					{ _id: chapter.delta },
 					{ permissions: this._chapterProperties.permissions },
@@ -185,26 +186,24 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				chapter.isNew = true;
 				await chapter.save({ session });
 
-				const storyline = await Storyline.aggregate(
-					[
-						{
-							$match: {
-								_id: this._storylineID
+				const storyline = new Storyline(
+					await Storyline.aggregate(
+						[
+							{
+								$match: {
+									_id: this._storylineID
+								}
 							}
+						],
+						{
+							userID: this._chapterProperties.user
 						}
-					],
-					{
-						userID: this._chapterProperties.user
-					}
-				)
-					.cursor()
-					.next();
-
-				storyline.chapters.push(chapter._id);
-				await Storyline.findOneAndUpdate({ _id: storyline._id }, storyline, {
-					userID: this._sessionUserID,
-					session: session
-				});
+					)
+						.cursor()
+						.next()
+				);
+				storyline.isNew = false;
+				await storyline.addChapter(chapter._id);
 
 				if (this._prevChapterID) {
 					const prevChapter = await Chapter.aggregate(

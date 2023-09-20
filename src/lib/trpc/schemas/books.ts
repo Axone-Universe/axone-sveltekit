@@ -33,3 +33,11 @@ export const submitToCampaign = z.object({
 	bookID: z.string(),
 	campaignID: z.string()
 });
+
+export const search = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	genres: genreSchema.optional(),
+	title: z.string().optional(),
+	id: z.string().optional()
+});

@@ -35,7 +35,7 @@
 		additionalClasses="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden"
 	/>
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
-		<header class="space-y-2 w-full">
+		<header class="space-y-2">
 			<p class="text-lg font-bold line-clamp-2">{bookData.title}</p>
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
@@ -66,7 +66,7 @@
 		</header>
 		<div class="h-full">
 			<hr class="opacity-50" />
-			<p class="font-thin overflow-scroll my-2">
+			<p class="font-thin overflow-y-auto my-2">
 				{bookData.description}
 			</p>
 		</div>

@@ -15,8 +15,7 @@ export const load = (async (event) => {
 			id: event.params.id
 		})) as HydratedDocument<UserProperties>;
 		if (userResponse) {
-			const userNode = userResponse;
-			return { userNode };
+			return { userResponse };
 		}
 	}
 

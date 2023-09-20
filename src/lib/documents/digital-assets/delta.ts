@@ -76,11 +76,25 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 	async update(): Promise<HydratedDocument<DeltaProperties>> {
 		if (!this._deltaProperties._id) throw new Error('Must provide a deltaID to update the delta.');
 
-		const delta = await Delta.findOneAndUpdate(
-			{ _id: this._deltaProperties._id },
-			this._deltaProperties,
-			{ new: true }
-		);
+		await Delta.findOneAndUpdate({ _id: this._deltaProperties._id }, this._deltaProperties, {
+			new: true
+			// userID: this._sessionUserID
+		});
+
+		const delta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: this._deltaProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
 
 		return delta;
 	}

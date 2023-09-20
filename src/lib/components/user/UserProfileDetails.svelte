@@ -56,6 +56,7 @@
 				<TextArea maxLength={500} bind:textContent={userProperties.about} />
 			</label>
 		</div>
+		<!-- svelte-ignore a11y-label-has-associated-control -->
 	</Step>
 
 	<Step>

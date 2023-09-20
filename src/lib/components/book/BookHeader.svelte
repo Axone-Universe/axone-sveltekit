@@ -7,6 +7,7 @@
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
+	import type { Genre } from '$lib/shared/genre';
 
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylineData: HydratedDocument<StorylineProperties>;
@@ -27,7 +28,7 @@
 	};
 </script>
 
-<div class="bg-center bg-no-repeat w-full" style="background-image: url({bookData.imageURL})">
+<div class="bg-center bg-no-repeat bg-cover" style="background-image: url({bookData.imageURL})">
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
         [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%
