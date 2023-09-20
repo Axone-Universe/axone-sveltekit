@@ -1,4 +1,4 @@
-import { label, type CampaignProperties } from '$lib/shared/campaign';
+import { label, type CampaignProperties } from '$lib/properties/campaign';
 import mongoose, { Schema, model } from 'mongoose';
 
 export const campaignSchema = new Schema<CampaignProperties>({

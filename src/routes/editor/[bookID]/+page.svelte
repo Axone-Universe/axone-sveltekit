@@ -47,7 +47,7 @@
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
-	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/shared/chapter';
+	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';

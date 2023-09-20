@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { BookPropertyBuilder } from '$lib/shared/book';
+	import { BookPropertyBuilder } from '$lib/properties/book';
 	import type { PageData } from './$types';
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import BookDetails from '$lib/components/book/BookDetails.svelte';
 

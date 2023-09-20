@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genre';
+import { GenresBuilder } from '$lib/properties/genre';
 import {
 	cleanUpDatabase,
 	connectDevDatabase,
