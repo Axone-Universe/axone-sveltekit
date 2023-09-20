@@ -7,7 +7,7 @@
 	import Container from '$lib/components/Container.svelte';
 	import { trpc } from '$lib/trpc/client';
 	import type { HydratedDocument } from 'mongoose';
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 
 	export let data: PageData;
 	const { supabase } = data;

@@ -15,3 +15,10 @@ export const create = z.object({
 	rewards: z.string(),
 	previewText: z.string()
 }) satisfies z.ZodType<CampaignProperties>;
+
+
+export const read = z.object({
+	title: z.string().optional(),
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+});

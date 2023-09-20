@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import { PermissionsEnum } from '$lib/shared/permission';
-	import type { BookProperties } from '$lib/shared/book';
-	import type { StorylineProperties } from '$lib/shared/storyline';
+	import { PermissionsEnum } from '$lib/properties/permission';
+	import type { BookProperties } from '$lib/properties/book';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { Icon } from 'svelte-awesome';
 	import { lock, check, close } from 'svelte-awesome/icons';
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 	import { onMount } from 'svelte';
 
 	export let document:

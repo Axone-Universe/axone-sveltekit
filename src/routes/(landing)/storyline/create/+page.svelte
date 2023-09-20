@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
-	import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/shared/storyline';
+	import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/properties/storyline';
 	import { beforeUpdate, onMount } from 'svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
 	import type { HydratedDocument } from 'mongoose';

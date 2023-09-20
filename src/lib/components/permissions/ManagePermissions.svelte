@@ -16,16 +16,16 @@
 		PermissionsEnum,
 		type PermissionProperties,
 		PermissionPropertyBuilder
-	} from '$lib/shared/permission';
-	import { UserPropertyBuilder, type UserProperties } from '$lib/shared/user';
-	import type { BookProperties } from '$lib/shared/book';
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	} from '$lib/properties/permission';
+	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
+	import type { BookProperties } from '$lib/properties/book';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 	import { Icon } from 'svelte-awesome';
 	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
 	import StorylineDetails from '../storyline/StorylineDetails.svelte';
-	import type { StorylineProperties } from '$lib/shared/storyline';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
@@ -180,7 +180,7 @@
 
 <form
 	on:submit|preventDefault
-	class={`modal-example-form card p-4 w-modal w-full space-y-4 ${customClass}`}
+	class={`modal-example-form card p-4 w-full space-y-4 ${customClass}`}
 >
 	<div class="modal-form p-4 space-y-4 rounded-container-token">
 		<label>

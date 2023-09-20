@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { NotePropertyBuilder, type NoteProperties, TAGS, type Tag } from '$lib/shared/note';
+	import { NotePropertyBuilder, type NoteProperties, TAGS, type Tag } from '$lib/properties/note';
 	import {
 		modalStore,
 		toastStore,

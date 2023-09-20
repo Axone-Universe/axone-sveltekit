@@ -3,14 +3,14 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, search, update } from '$lib/trpc/schemas/users';
+import { create, read, update } from '$lib/trpc/schemas/users';
 
 const usersRepo = new UsersRepository();
 
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const result = await usersRepo.get(ctx.session, input.id);
 
@@ -19,7 +19,7 @@ export const users = t.router({
 
 	getById: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const result = await usersRepo.getById(ctx.session, input.id);
 
@@ -28,7 +28,7 @@ export const users = t.router({
 
 	getByDetails: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
 

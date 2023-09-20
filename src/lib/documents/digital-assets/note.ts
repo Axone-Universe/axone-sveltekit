@@ -1,7 +1,7 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { NoteProperties, Tag } from '$lib/shared/note';
+import type { NoteProperties, Tag } from '$lib/properties/note';
 import { Note } from '$lib/models/note';
 import type mongoose from 'mongoose';
 

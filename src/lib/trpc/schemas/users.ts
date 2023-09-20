@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { genreSchema } from './shared';
-import { USER_LABELS, type UserProperties } from '$lib/shared/user';
+import { genreSchema } from './genres';
+import { USER_LABELS, type UserProperties } from '$lib/properties/user';
 
 const UserSchema = z.enum(USER_LABELS);
 
@@ -20,6 +20,13 @@ export const create = z.object({
 	labels: userSchema.optional()
 }) satisfies z.ZodType<UserProperties>;
 
+export const read = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	id: z.string().optional(),
+	detail: z.string().optional()
+});
+
 export const update = z.object({
 	_id: z.string(),
 	firstName: z.string().min(1).optional(),
@@ -32,11 +39,4 @@ export const update = z.object({
 	twitter: z.string().optional(),
 	genres: genreSchema.optional(),
 	labels: userSchema.optional()
-});
-
-export const search = z.object({
-	limit: z.number().optional(),
-	cursor: z.string().optional(),
-	id: z.string().optional(),
-	detail: z.string().optional()
 });

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import { plus, leanpub, star, infoCircle } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome';
 	import { afterUpdate } from 'svelte';
-	import type { StorylineProperties } from '$lib/shared/storyline';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
+	import type { Genre } from '$lib/properties/genre';
 	import type { Genre } from '$lib/shared/genre';
 
 	export let bookData: HydratedDocument<BookProperties>;

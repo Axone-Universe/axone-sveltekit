@@ -2,7 +2,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { NotesRepository } from '$lib/repositories/notesRepository';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { update, search, create } from '$lib/trpc/schemas/notes';
+import { update, read, create } from '$lib/trpc/schemas/notes';
 import { NoteBuilder } from '$lib/documents/digital-assets/note';
 
 export const notes = t.router({
@@ -23,9 +23,10 @@ export const notes = t.router({
 
 			return noteNodeResponse;
 		}),
+		
 	getByChapterID: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const notesRepo = new NotesRepository();
 			const result = await notesRepo.getByChapterID(ctx.session, input.chapterID);
@@ -48,6 +49,7 @@ export const notes = t.router({
 
 			return noteResponse;
 		}),
+
 	delete: t.procedure
 		.use(logger)
 		.use(auth)

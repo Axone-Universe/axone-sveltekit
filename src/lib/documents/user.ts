@@ -1,8 +1,8 @@
 import { DocumentBuilder } from './documentBuilder';
 import type { HydratedDocument } from 'mongoose';
 import { User } from '$lib/models/user';
-import type { UserProperties, UserLabel } from '$lib/shared/user';
-import type { Genre } from '$lib/shared/genre';
+import type { UserProperties, UserLabel } from '$lib/properties/user';
+import type { Genre } from '$lib/properties/genre';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
@@ -62,10 +62,6 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 	labels(labels: UserLabel[]): UserBuilder {
 		this._userProperties.labels = labels;
 		return this;
-	}
-
-	sessionUserID(sessionUserID: string): UserBuilder {
-		throw new Error('Method not implemented.');
 	}
 
 	async update(): Promise<HydratedDocument<UserProperties>> {

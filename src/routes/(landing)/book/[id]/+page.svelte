@@ -11,7 +11,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);

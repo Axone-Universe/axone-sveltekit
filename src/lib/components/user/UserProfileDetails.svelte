@@ -2,9 +2,9 @@
 	import { Avatar, Step, Stepper } from '@skeletonlabs/skeleton';
 
 	import defaultUserImage from '$lib/assets/default-user.png';
-	import { USER_LABELS, type UserProperties } from '$lib/shared/user';
+	import { USER_LABELS, type UserProperties } from '$lib/properties/user';
 	import TextArea from '$lib/components/TextArea.svelte';
-	import { GENRES } from '$lib/shared/genre';
+	import { GENRES } from '$lib/properties/genre';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;

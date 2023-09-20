@@ -5,9 +5,9 @@
 	import { star } from 'svelte-awesome/icons';
 
 	import BookModal from './BookModal.svelte';
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 
 	export let book: HydratedDocument<BookProperties>;
 
@@ -47,8 +47,17 @@
 			<p class="whitespace-normal text-sm italic">{`by ${user.firstName}`}</p>
 		</div>
 	</div>
-	<div class="overflow-hidden flex items-center absolute bottom-1 right-1 bg-white md:bg-black group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300">
-		<Icon class="w-3 h-3 text-black md:text-white group-hover:text-black duration-300" data={star} />
-		<p class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300">4.5</p>
+	<div
+		class="overflow-hidden flex items-center absolute bottom-1 right-1 bg-white md:bg-black group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+	>
+		<Icon
+			class="w-3 h-3 text-black md:text-white group-hover:text-black duration-300"
+			data={star}
+		/>
+		<p
+			class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300"
+		>
+			4.5
+		</p>
 	</div>
 </button>
