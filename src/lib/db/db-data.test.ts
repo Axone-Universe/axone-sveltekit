@@ -61,7 +61,7 @@ test(
 		for (let i = 0; i < sessions.length; i++) {
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
 				const newBook = await createBook(sessions[i]);
-				const storylines = await caller.storylines.getAll({
+				const storylines = await caller.storylines.getByBookID({
 					bookID: newBook._id
 				});
 
