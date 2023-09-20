@@ -83,14 +83,6 @@
 		</svelte:fragment>
 		<div class="hidden lg:flex">
 			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={readPopupBox}
-				>
-					<span class="capitalize">Read</span>
-					<Icon data={caretDown} />
-				</button>
-
 				<div class="card p-4 w-fit" data-popup="readPopupBox">
 					<nav class="list-nav">
 						<ul class="grid grid-cols-2 gap-2 list">
@@ -106,18 +98,8 @@
 			</div>
 
 			<div>
-				<button class="btn justify-between hover:variant-soft-primary">
-					<span class="capitalize">Trending</span>
-				</button>
-			</div>
-
-			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={collaboratePopupBox}
-				>
-					<span class="capitalize">Collaborate</span>
-					<Icon data={caretDown} />
+				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
+					<span class="capitalize">Campaigns</span>
 				</button>
 
 				<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
@@ -137,12 +119,8 @@
 			</div>
 
 			<div>
-				<button
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-					use:popup={creatorsPopupBox}
-				>
+				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
 					<span class="capitalize">Creators</span>
-					<Icon data={caretDown} />
 				</button>
 
 				<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
@@ -171,6 +149,9 @@
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
 				<div class="lg:flex gap-2 hidden">
+					<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
+						<span class="capitalize">Learn More</span>
+					</button>
 					{#if data.session && data.session.user}
 						<a
 							href="/book/create"
