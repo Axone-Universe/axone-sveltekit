@@ -138,6 +138,12 @@
 					<div class="arrow bg-surface-100-800-token" />
 				</div>
 			</div>
+
+			<div>
+				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
+					<span class="capitalize">Learn More</span>
+				</button>
+			</div>
 		</div>
 		<a
 			class="lg:hidden flex items-center text-l"
@@ -149,9 +155,6 @@
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
 				<div class="lg:flex gap-2 hidden">
-					<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
-						<span class="capitalize">Learn More</span>
-					</button>
 					{#if data.session && data.session.user}
 						<a
 							href="/book/create"

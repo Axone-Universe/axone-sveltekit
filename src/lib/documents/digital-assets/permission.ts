@@ -19,8 +19,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 	constructor(id?: string) {
 		super();
 		this._permissionProperties = {
-			_id: id ? id : ulid(),
-			public: false
+			_id: id ? id : ulid()
 		};
 	}
 
@@ -37,11 +36,6 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	permissionSetterID(permissionSetterID: string): PermissionBuilder {
 		this._sessionUserID = permissionSetterID;
-		return this;
-	}
-
-	public(isPublic: boolean): PermissionBuilder {
-		this._permissionProperties.public = isPublic;
 		return this;
 	}
 
