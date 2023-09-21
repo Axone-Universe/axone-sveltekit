@@ -51,10 +51,12 @@
 						{bookUser.lastName}
 					</p>
 				</div>
-				<div class="overflow-hidden flex items-center">
-					<Icon class="p-2" data={star} scale={2} />
-					<p class="text-sm font-bold line-clamp-1">4.5</p>
-				</div>
+				{#if bookData.rating > 0}
+					<div class="overflow-hidden flex items-center">
+						<Icon class="p-2" data={star} scale={2} />
+						<p class="text-sm font-bold line-clamp-1">{bookData.rating.toFixed(1)}</p>
+					</div>
+				{/if}
 			</div>
 			<div class="flex flex-wrap gap-2">
 				{#if bookData.genres}

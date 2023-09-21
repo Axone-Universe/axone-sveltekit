@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ulid } from 'ulid';
-import { startSession, type HydratedDocument } from 'mongoose';
+import { startSession, type HydratedDocument, type ClientSession } from 'mongoose';
 
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import { Review } from '$lib/models/review';
@@ -58,70 +58,20 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 		if (!this._reviewProperties.user) throw new Error('Must be logged in to give a review.');
 
 		const session = await startSession();
-
 		const review = new Review(this._reviewProperties);
 
 		try {
 			await session.withTransaction(async () => {
+				review.isNew = true;
 				await review.save({ session });
 
 				if (this._reviewProperties.reviewOf === 'Storyline') {
-					const storyline = await Storyline.aggregate([
-						{ $match: { _id: this._reviewProperties.item } }
-					])
-						.session(session)
-						.cursor()
-						.next();
-
-					if (storyline) {
-						await Storyline.updateOne(
-							{ _id: storyline._id },
-							{
-								$inc: {
-									numRatings: 1,
-									cumulativeRating: this._reviewProperties.rating
-								}
-							},
-							{ session, userID: storyline.user._id }
-						);
-
-						const maxStoryline = await Storyline.aggregate([
-							{
-								$match: {
-									book: storyline.book._id
-								}
-							},
-							{
-								$group: {
-									_id: null,
-									maxAvg: {
-										$max: {
-											$cond: [
-												{ $eq: ['$numRatings', 0] },
-												0,
-												{ $divide: ['$cumulativeRating', '$numRatings'] }
-											]
-										}
-									}
-								}
-							}
-						])
-							.session(session)
-							.cursor()
-							.next();
-
-						await Book.updateOne(
-							{ _id: storyline.book._id },
-							{
-								$set: {
-									rating: maxStoryline.maxAvg
-								}
-							},
-							{ session, userID: storyline.book.user }
-						);
-					} else {
-						return new Error();
-					}
+					await this.syncStorylineAndBook(
+						session,
+						this._reviewProperties.item as string,
+						1,
+						this._reviewProperties.rating
+					);
 				}
 			});
 		} finally {
@@ -146,65 +96,16 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 				const oldReview = await Review.findOneAndUpdate(
 					{ _id: this._reviewProperties._id, user: this._reviewProperties.user },
 					propsToUpdate,
-					{ session }
+					{ session, userID: this._reviewProperties.user }
 				);
 
 				if (oldReview && this._reviewProperties.reviewOf === 'Storyline') {
-					const storyline = await Storyline.aggregate([
-						{ $match: { _id: this._reviewProperties.item } }
-					])
-						.session(session)
-						.cursor()
-						.next();
-
-					if (storyline) {
-						await Storyline.updateOne(
-							{ _id: storyline._id },
-							{
-								$inc: {
-									cumulativeRating: this._reviewProperties.rating - oldReview.rating
-								}
-							},
-							{ session, userID: storyline.user._id }
-						);
-
-						const maxStoryline = await Storyline.aggregate([
-							{
-								$match: {
-									book: storyline.book._id
-								}
-							},
-							{
-								$group: {
-									_id: '$_id',
-									maxAvg: {
-										$max: {
-											$cond: [
-												{ $eq: ['$numRatings', 0] },
-												0,
-												{ $divide: ['$cumulativeRating', '$numRatings'] }
-											]
-										}
-									}
-								}
-							}
-						])
-							.session(session)
-							.cursor()
-							.next();
-
-						await Book.updateOne(
-							{ _id: storyline.book._id },
-							{
-								$set: {
-									rating: maxStoryline.maxAvg
-								}
-							},
-							{ session }
-						);
-					} else {
-						return new Error();
-					}
+					await this.syncStorylineAndBook(
+						session,
+						oldReview.item as string,
+						0,
+						this._reviewProperties.rating - oldReview.rating
+					);
 				}
 			});
 		} finally {
@@ -219,72 +120,87 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 
 		try {
 			await session.withTransaction(async () => {
-				const deletedReview = await Review.findOneAndDelete({
-					_id: this._reviewProperties._id,
-					user: this._reviewProperties.user
-				});
+				const deletedReview = await Review.findOneAndDelete(
+					{
+						_id: this._reviewProperties._id,
+						user: this._reviewProperties.user
+					},
+					{ session }
+				);
 
 				if (deletedReview && this._reviewProperties.reviewOf === 'Storyline') {
-					const storyline = await Storyline.aggregate([
-						{ $match: { _id: this._reviewProperties.item } }
-					])
-						.session(session)
-						.cursor()
-						.next();
-
-					if (storyline) {
-						await Storyline.updateOne(
-							{ _id: storyline._id },
-							{
-								$inc: {
-									numRatings: -1,
-									cumulativeRating: deletedReview.rating
-								}
-							},
-							{ session, userID: storyline.user._id }
-						);
-
-						const maxStoryline = await Storyline.aggregate([
-							{
-								$match: {
-									book: storyline.book._id
-								}
-							},
-							{
-								$group: {
-									_id: '$_id',
-									maxAvg: {
-										$max: {
-											$cond: [
-												{ $eq: ['$numRatings', 0] },
-												0,
-												{ $divide: ['$cumulativeRating', '$numRatings'] }
-											]
-										}
-									}
-								}
-							}
-						])
-							.session(session)
-							.cursor()
-							.next();
-
-						await Book.updateOne(
-							{ _id: storyline.book._id },
-							{
-								$set: {
-									rating: maxStoryline.maxAvg
-								}
-							},
-							{ session }
-						);
-					} else {
-						return new Error();
-					}
+					await this.syncStorylineAndBook(
+						session,
+						deletedReview.item as string,
+						-1,
+						deletedReview.rating * -1
+					);
 				}
 			});
 		} finally {
 			session.endSession();
+		}
+	}
+
+	async syncStorylineAndBook(
+		session: ClientSession,
+		storylineID: string,
+		numRatings: number,
+		cumulativeRating: number
+	) {
+		const storyline = await Storyline.aggregate([{ $match: { _id: storylineID } }])
+			.session(session)
+			.cursor()
+			.next();
+
+		if (storyline) {
+			await Storyline.updateOne(
+				{ _id: storyline._id },
+				{
+					$inc: {
+						numRatings,
+						cumulativeRating
+					}
+				},
+				{ session, userID: storyline.user._id }
+			);
+
+			const maxStoryline = await Storyline.aggregate([
+				{
+					$match: {
+						book: storyline.book._id
+					}
+				},
+				{
+					$group: {
+						_id: null,
+						maxAvg: {
+							$max: {
+								$cond: [
+									{ $eq: ['$numRatings', 0] },
+									0,
+									{ $divide: ['$cumulativeRating', '$numRatings'] }
+								]
+							}
+						}
+					}
+				}
+			])
+				.session(session)
+				.cursor()
+				.next();
+
+			await Book.updateOne(
+				{ _id: storyline.book._id },
+				{
+					$set: {
+						rating: maxStoryline.maxAvg
+					}
+				},
+				{ session, userID: storyline.book.user }
+			);
+		} else {
+			return new Error('Storyline does not exist!');
 		}
 	}
 }

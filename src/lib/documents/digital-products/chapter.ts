@@ -199,11 +199,12 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 							userID: this._chapterProperties.user
 						}
 					)
+						.session(session)
 						.cursor()
 						.next()
 				);
 				storyline.isNew = false;
-				await storyline.addChapter(chapter._id);
+				await storyline.addChapter(chapter._id, session);
 
 				if (this._prevChapterID) {
 					const prevChapter = await Chapter.aggregate(
@@ -218,13 +219,14 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 							userID: this._chapterProperties.user
 						}
 					)
+						.session(session)
 						.cursor()
 						.next();
 
 					prevChapter.children.push(chapter._id);
 					await Chapter.findOneAndUpdate({ _id: prevChapter._id }, prevChapter, {
 						userID: this._sessionUserID,
-						session: session
+						session
 					});
 				}
 			});

@@ -96,9 +96,6 @@ describe('storylines', () => {
 			storylineChapterIDs: storyline2.chapters as string[]
 		});
 
-		console.log('** stroyline chapts');
-		console.log(storyline2.chapters);
-
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2_1Response.title).toEqual(chapter2_1Title);
 

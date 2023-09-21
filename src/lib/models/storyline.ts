@@ -1,5 +1,5 @@
 import { label, type StorylineProperties } from '$lib/properties/storyline';
-import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as ChapterLabel } from '$lib/properties/chapter';
@@ -27,7 +27,7 @@ export const storylineSchema = new Schema<StorylineProperties>({
 });
 
 interface StorylineMethods extends StorylineProperties {
-	addChapter: (chapterID: string) => Promise<void>;
+	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
 storylineSchema.pre(['find', 'findOne'], function () {
@@ -76,10 +76,9 @@ storylineSchema.pre(
  * @param chapterID
  * @returns
  */
-storylineSchema.methods.addChapter = async function (chapterID: string) {
+storylineSchema.methods.addChapter = async function (chapterID: string, session: ClientSession) {
 	this.chapters.push(chapterID);
-	await this.save();
-	return Promise.resolve();
+	await this.save({ session });
 };
 
 /**
