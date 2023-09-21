@@ -8,7 +8,9 @@ import {
 	createTestSession,
 	createBook,
 	generateTestUser,
-	createReview
+	createReview,
+	getRandomElement,
+	getRandomKey
 } from '$lib/util/testing/testing';
 import type { Session } from '@supabase/supabase-js';
 import { format } from 'date-fns';
@@ -488,7 +490,6 @@ describe('reviews', async () => {
 		});
 
 		for (let i = 0; i < numStorylines - 1; i++) {
-			// add new storyline
 			storylineReviews.push(
 				(
 					await caller1.storylines.create({
@@ -541,67 +542,100 @@ describe('reviews', async () => {
 		expect(storyline.cumulativeRating).toEqual(5);
 	});
 
-	// test('update of a review of a storyline updates the storyline and corresponding book', async () => {
-	// 	const reviewOf = 'Storyline';
+	test('update of a review of a storyline updates the storyline and corresponding book', async () => {
+		const reviewOf = 'Storyline';
 
-	// 	const numStorylines = 3;
-	// 	const storylineReviews: string[] = [];
+		const numStorylines = 3;
+		const storylineReviews: string[] = [];
 
-	// 	const bookResponse = await createBook(testUserOneSession);
-	// 	const storylines = await caller1.storylines.getByBookID({
-	// 		bookID: bookResponse._id
-	// 	});
-	// 	storylineReviews.push(storylines[0]._id);
-	// 	const chapter1Response = await caller1.chapters.create({
-	// 		title: 'Chapter Title',
-	// 		description: 'My chapter 1',
-	// 		storylineID: storylines[0]._id,
-	// 		bookID: bookResponse._id
-	// 	});
+		const bookResponse = await createBook(testUserOneSession);
+		const storylines = await caller1.storylines.getByBookID({
+			bookID: bookResponse._id
+		});
+		storylineReviews.push(storylines[0]._id);
+		const chapter1Response = await caller1.chapters.create({
+			title: 'Chapter Title',
+			description: 'My chapter 1',
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id
+		});
 
-	// 	for (let i = 0; i < numStorylines - 1; i++) {
-	// 		// add new storyline
-	// 		storylineReviews.push(
-	// 			(
-	// 				await caller1.storylines.create({
-	// 					title: `Storyline ${i}`,
-	// 					description: `Storyline ${i}`,
-	// 					book: bookResponse._id,
-	// 					parent: storylines[0]._id,
-	// 					parentChapter: chapter1Response._id
-	// 				})
-	// 			)._id
-	// 		);
-	// 	}
+		for (let i = 0; i < numStorylines - 1; i++) {
+			storylineReviews.push(
+				(
+					await caller1.storylines.create({
+						title: `Storyline ${i}`,
+						description: `Storyline ${i}`,
+						book: bookResponse._id,
+						parent: storylines[0]._id,
+						parentChapter: chapter1Response._id
+					})
+				)._id
+			);
+		}
 
-	// 	const review1 = await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
-	// 	const review2 = await createReview(testUserThreeSession, storylineReviews[1], reviewOf, 4);
+		const review1 = await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
+		const review2 = await createReview(testUserThreeSession, storylineReviews[1], reviewOf, 4);
 
-	// 	await caller2.reviews.update({ id: review1._id, rating: 2 });
+		await caller2.reviews.update({ id: review1._id, rating: 2 });
 
-	// 	let book = await caller2.books.getById({ id: bookResponse._id });
-	// 	let storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
-	// 	expect(book.rating).toEqual(4);
-	// 	expect(storyline.numRatings).toEqual(1);
-	// 	expect(storyline.cumulativeRating).toEqual(2);
+		let book = await caller2.books.getById({ id: bookResponse._id });
+		let storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		expect(book.rating).toEqual(4);
+		expect(storyline.numRatings).toEqual(1);
+		expect(storyline.cumulativeRating).toEqual(2);
 
-	// 	await caller3.reviews.update({ id: review2._id, rating: 5 });
+		await caller3.reviews.update({ id: review2._id, rating: 5 });
 
-	// 	book = await caller2.books.getById({ id: bookResponse._id });
-	// 	storyline = await caller2.storylines.getById({ storylineID: storylineReviews[1] });
-	// 	expect(book.rating).toEqual(5);
-	// 	expect(storyline.numRatings).toEqual(1);
-	// 	expect(storyline.cumulativeRating).toEqual(5);
-	// });
+		book = await caller2.books.getById({ id: bookResponse._id });
+		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[1] });
+		expect(book.rating).toEqual(5);
+		expect(storyline.numRatings).toEqual(1);
+		expect(storyline.cumulativeRating).toEqual(5);
+	});
 
-	// test('deletion of a review of a storyline updates the storyline and corresponding book', async () => {});
+	test('deletion of a review of a storyline updates the storyline and corresponding book', async () => {
+		const reviewOf = 'Storyline';
+
+		const numStorylines = 3;
+		const storylineReviews: string[] = [];
+
+		const bookResponse = await createBook(testUserOneSession);
+		const storylines = await caller1.storylines.getByBookID({
+			bookID: bookResponse._id
+		});
+		storylineReviews.push(storylines[0]._id);
+		const chapter1Response = await caller1.chapters.create({
+			title: 'Chapter Title',
+			description: 'My chapter 1',
+			storylineID: storylines[0]._id,
+			bookID: bookResponse._id
+		});
+
+		for (let i = 0; i < numStorylines - 1; i++) {
+			storylineReviews.push(
+				(
+					await caller1.storylines.create({
+						title: `Storyline ${i}`,
+						description: `Storyline ${i}`,
+						book: bookResponse._id,
+						parent: storylines[0]._id,
+						parentChapter: chapter1Response._id
+					})
+				)._id
+			);
+		}
+
+		await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
+		await createReview(testUserThreeSession, storylineReviews[0], reviewOf, 4);
+		const review3 = await createReview(testUserThreeSession, storylineReviews[1], reviewOf, 4);
+
+		await caller3.reviews.delete({ id: review3._id });
+
+		const book = await caller2.books.getById({ id: bookResponse._id });
+		const storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		expect(book.rating).toEqual(3.5);
+		expect(storyline.numRatings).toEqual(2);
+		expect(storyline.cumulativeRating).toEqual(7);
+	});
 });
-
-function getRandomElement<T>(list: T[] | readonly T[]): T {
-	return list[Math.floor(Math.random() * list.length)];
-}
-
-function getRandomKey(obj: Record<string, unknown>): string {
-	const keys = Object.keys(obj);
-	return keys[Math.floor(Math.random() * keys.length)];
-}

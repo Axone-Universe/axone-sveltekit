@@ -210,3 +210,12 @@ export async function createDBUser(session: Session, genres: Genre[] = []) {
 
 	return await caller.users.create(userProperties);
 }
+
+export function getRandomElement<T>(list: T[] | readonly T[]): T {
+	return list[Math.floor(Math.random() * list.length)];
+}
+
+export function getRandomKey(obj: Record<string, unknown>): string {
+	const keys = Object.keys(obj);
+	return keys[Math.floor(Math.random() * keys.length)];
+}
