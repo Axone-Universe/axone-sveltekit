@@ -3,6 +3,11 @@ import type { HydratedDocument } from 'mongoose';
 import { User } from '$lib/models/user';
 import type { UserProperties, UserLabel } from '$lib/properties/user';
 import type { Genre } from '$lib/properties/genre';
+import {
+	DEFAULT as DefaultReadingList,
+	type ReadingListProperties
+} from '$lib/properties/readingList';
+import { record } from 'zod';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
@@ -10,7 +15,8 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 	constructor(id?: string) {
 		super();
 		this._userProperties = {
-			_id: id ? id : ''
+			_id: id ? id : '',
+			readingLists: []
 		};
 	}
 
@@ -64,21 +70,53 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
-	async update(): Promise<HydratedDocument<UserProperties>> {
-		const user = await User.findOneAndUpdate(
-			{ _id: this._userProperties._id },
-			this._userProperties,
-			{ new: true }
-		);
+	readingLists(readingLists: HydratedDocument<ReadingListProperties>[]) {
+		this._userProperties.readingLists = readingLists;
+		return this;
+	}
 
-		return user!;
+	async update(): Promise<HydratedDocument<UserProperties>> {
+		console.log(this._userProperties.readingLists);
+		await User.findOneAndUpdate({ _id: this._userProperties._id }, this._userProperties);
+
+		const newUser = await User.aggregate([
+			{
+				$match: {
+					_id: this._userProperties._id
+				}
+			}
+		])
+			.cursor()
+			.next();
+
+		return newUser!;
 	}
 
 	async build(): Promise<HydratedDocument<UserProperties>> {
 		if (this._userProperties._id === '') throw new Error('Must provide userID to build user.');
+
+		// Also create the default reading lists
+		for (const readingList of DefaultReadingList) {
+			const readingListProperties: ReadingListProperties = { title: readingList, books: {} };
+
+			this._userProperties.readingLists?.push(
+				readingListProperties as HydratedDocument<ReadingListProperties>
+			);
+		}
+
 		const user = new User(this._userProperties);
 		await user.save();
 
-		return user;
+		const newUser = await User.aggregate([
+			{
+				$match: {
+					_id: this._userProperties._id
+				}
+			}
+		])
+			.cursor()
+			.next();
+
+		return newUser;
 	}
 }

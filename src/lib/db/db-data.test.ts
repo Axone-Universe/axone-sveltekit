@@ -29,7 +29,7 @@ beforeAll(async () => {
 	console.log('CLEANING UP');
 
 	await connectDevDatabase();
-	await cleanUpDatabase(true);
+	await cleanUpDatabase();
 
 	console.log('CLEANED');
 }, TIMEOUT_SECONDS * 1000);

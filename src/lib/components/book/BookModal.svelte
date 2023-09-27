@@ -3,7 +3,7 @@
 	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
-	import { close, user, star } from 'svelte-awesome/icons';
+	import { close, user, star, save } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
 	import type { UserProperties } from '$lib/properties/user';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';

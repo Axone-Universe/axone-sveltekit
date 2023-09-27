@@ -16,7 +16,7 @@
 
 	export let data: LayoutData;
 
-	$: ({ supabase, session } = data);
+	$: ({ supabase, session, user } = data);
 
 	onMount(() => {
 		const {
@@ -26,7 +26,6 @@
 				invalidate('supabase:auth');
 			}
 		});
-
 		return () => subscription.unsubscribe();
 	});
 

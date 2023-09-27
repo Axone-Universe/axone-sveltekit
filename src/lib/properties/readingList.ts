@@ -1,20 +1,15 @@
 import type { HydratedDocument } from 'mongoose';
-import type { ChapterProperties } from './chapter';
-import type { PermissionProperties } from './permission';
-import type { UserProperties } from './user';
 import type { BookProperties } from './book';
 
 export const label = 'ReadingList';
 
-export const TAGS = ['event', 'character', 'location', 'prop', 'extra', 'scene', 'other'] as const;
+export const DEFAULT = ['Finished Reading', 'Currently Reading', 'Future Reading'] as const;
 
-export type Tag = (typeof TAGS)[number];
+export type Tag = (typeof DEFAULT)[number];
 
 export interface ReadingListProperties {
-	_id: string;
 	title: string;
-	user?: string | HydratedDocument<UserProperties>;
-	books?: string[] | HydratedDocument<BookProperties>[];
+	books: Record<string, string>;
 }
 
 export class ReadingListPropertyBuilder {
@@ -22,10 +17,8 @@ export class ReadingListPropertyBuilder {
 
 	constructor() {
 		this._properties = {
-			_id: '',
 			title: '',
-			user: '',
-			books: []
+			books: {}
 		};
 	}
 

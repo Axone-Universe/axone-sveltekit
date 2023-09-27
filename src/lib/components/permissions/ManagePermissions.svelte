@@ -71,7 +71,9 @@
 	async function setDocumentOwner() {
 		if (!documentOwner) {
 			documentOwner = new UserPropertyBuilder().getProperties() as HydratedDocument<UserProperties>;
+
 			documentOwner._id = $page.data.session!.user.id;
+			documentOwner.firstName = $page.data.user!.firstName;
 			documentOwner.email = $page.data.session!.user.email;
 		}
 
@@ -153,9 +155,6 @@
 			permissions[userID] = permission;
 			permissions = permissions;
 		}
-
-		console.log('** doc pers');
-		console.log(permissionedDocument.permissions);
 	}
 
 	function removePermission(userID: string) {
@@ -172,9 +171,6 @@
 		const userID = event.target.getAttribute('name');
 		const value = event.target.value;
 		permissions[userID]!.permission = value;
-
-		console.log('** doc pers');
-		console.log(permissionedDocument.permissions);
 	}
 </script>
 
@@ -197,7 +193,7 @@
 				autocomplete="off"
 			/>
 			<div
-				class="card p-2 w-2/5 xl:w-2/6 !z-10 !bg-surface-100-800-token"
+				class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 !z-10 !bg-surface-100-800-token"
 				id={autoCompleteDiv}
 				data-popup="popupAutocomplete"
 			>

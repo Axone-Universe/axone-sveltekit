@@ -56,6 +56,23 @@ describe('users', () => {
 		expect(userResponses.map((a) => a._id).sort()).toEqual([userResponse2._id].sort());
 	});
 
+	test('update user details', async () => {
+		const testSessionOne = createTestSession(testUserOne);
+		const testSessionTwo = createTestSession(testUserTwo);
+
+		await createDBUser(testSessionOne);
+		const userResponse2 = await createDBUser(testSessionTwo);
+
+		const caller = router.createCaller({ session: testSessionOne });
+		const updateUserResponse = await caller.users.update({
+			_id: userResponse2._id,
+			facebook: 'www.facebook.com/user1'
+		});
+
+		// compare sorted arrays to ignore element position differences (if any)
+		expect(updateUserResponse.facebook).toEqual('www.facebook.com/user1');
+	});
+
 	test('get single user', async () => {
 		const testSessionOne = createTestSession(testUserOne);
 		const testSessionTwo = createTestSession(testUserTwo);
