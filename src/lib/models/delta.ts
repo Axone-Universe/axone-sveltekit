@@ -1,5 +1,5 @@
-import { label, type DeltaProperties } from '$lib/shared/delta';
-import { label as ChapterLabel } from '$lib/shared/chapter';
+import { label, type DeltaProperties } from '$lib/properties/delta';
+import { label as ChapterLabel } from '$lib/properties/chapter';
 import mongoose, { Schema, model } from 'mongoose';
 import { addRestrictionsPipeline, addUpdatePermissionFilter, permissionSchema } from './permission';
 

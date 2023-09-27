@@ -1,9 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from '$lib/shared/book';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import type { ChapterProperties } from '$lib/shared/chapter';
+import type { BookProperties } from '$lib/properties/book';
+import type { StorylineProperties } from '$lib/properties/storyline';
+import type { ChapterProperties } from '$lib/properties/chapter';
 import { book } from 'svelte-awesome/icons';
 
 export const ssr = false;

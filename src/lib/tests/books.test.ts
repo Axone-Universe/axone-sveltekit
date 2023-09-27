@@ -128,7 +128,7 @@ describe('books', () => {
 		const caller = router.createCaller({ session: null });
 		const bookResponses = await caller.books.get({ title: testBookTitle1 });
 
-		expect(bookResponses.result.length).toEqual(1);
-		expect(bookResponses.result.pop()?._id).toEqual(bookResponse._id);
+		expect(bookResponses.result.length).toEqual(2);
+		expect(bookResponses.result[0]?._id).toEqual(bookResponse._id);
 	});
 });

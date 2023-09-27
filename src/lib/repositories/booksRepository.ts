@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { BookProperties } from '$lib/shared/book';
+import type { BookProperties } from '$lib/properties/book';
 import { Repository } from '$lib/repositories/repository';
-import type { HydratedDocument } from 'mongoose';
+import type { HydratedDocument, PipelineStage } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
-import type { Genre } from '$lib/shared/genre';
+import type { Genre } from '$lib/properties/genre';
 import { UsersRepository } from './usersRepository';
 
 export class BooksRepository extends Repository {
@@ -15,11 +15,11 @@ export class BooksRepository extends Repository {
 		genres?: Genre[],
 		title?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
-		const pipeline = [];
+		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
 		if (title) {
-			filter.title = title;
+			filter.$text = { $search: title };
 		}
 
 		if (genres) {
@@ -41,6 +41,10 @@ export class BooksRepository extends Repository {
 		}
 
 		pipeline.push({ $match: filter });
+
+		if (title) {
+			pipeline.push({ $sort: { score: { $meta: 'textScore' } } });
+		}
 
 		if (limit) pipeline.push({ $limit: limit });
 

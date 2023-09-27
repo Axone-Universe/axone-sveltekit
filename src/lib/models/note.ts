@@ -1,5 +1,5 @@
-import { label, TAGS, type NoteProperties } from '$lib/shared/note';
-import { label as ChapterLabel } from '$lib/shared/chapter';
+import { label, TAGS, type NoteProperties } from '$lib/properties/note';
+import { label as ChapterLabel } from '$lib/properties/chapter';
 import mongoose, { Schema, model } from 'mongoose';
 import { addRestrictionsPipeline, addUpdatePermissionFilter, permissionSchema } from './permission';
 

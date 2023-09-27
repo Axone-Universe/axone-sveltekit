@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import { plus, leanpub, star, infoCircle } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome';
 	import { afterUpdate } from 'svelte';
-	import type { StorylineProperties } from '$lib/shared/storyline';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
-	import type { Genre } from '$lib/shared/genre';
+	import type { Genre } from '$lib/properties/genre';
 
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylineData: HydratedDocument<StorylineProperties>;
@@ -27,7 +27,7 @@
 	};
 </script>
 
-<div class="bg-center bg-no-repeat w-full" style="background-image: url({bookData.imageURL})">
+<div class="bg-center bg-no-repeat bg-cover" style="background-image: url({bookData.imageURL})">
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
         [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%

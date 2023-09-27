@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { genreSchema } from './shared';
+import { genreSchema } from './genres';
 import { permissions } from './permissions';
 
 export const create = z.object({
@@ -9,6 +9,14 @@ export const create = z.object({
 	genres: genreSchema.optional(),
 	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
+});
+
+export const read = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	genres: genreSchema.optional(),
+	title: z.string().optional(),
+	id: z.string().optional()
 });
 
 export const update = z.object({

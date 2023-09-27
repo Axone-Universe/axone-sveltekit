@@ -8,13 +8,14 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
-	import type { BookProperties } from '$lib/shared/book';
-	import { GenresBuilder, GENRES } from '$lib/shared/genre';
+	import type { BookProperties } from '$lib/properties/book';
+	import { GenresBuilder, GENRES } from '$lib/properties/genre';
 	import { trpcWithQuery } from '$lib/trpc/client';
 
 	export let data: PageData;
 
 	const LOAD_DEBOUNCE_SECONDS = 1.0;
+	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	// Only "recommended" is implemented for now
 	// recommended looks at the user genre preferences to select books from there
 	const TAGS = ['Recommended'] as const;
@@ -28,11 +29,23 @@
 
 	let accordionOpen = false;
 
+	let searchValue = '';
+	let debouncedSearchValue = '';
+
 	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
-		{ limit: 20, genres: recommendedSelected ? undefined : genresBuilder.build() },
 		{
-			queryKey: ['booksHome', recommendedSelected ? undefined : genresBuilder.build()],
-			getNextPageParam: (lastPage) => lastPage.cursor
+			limit: 20,
+			genres: recommendedSelected ? undefined : genresBuilder.build(),
+			title: debouncedSearchValue ? debouncedSearchValue : undefined
+		},
+		{
+			queryKey: [
+				'booksHome',
+				recommendedSelected ? undefined : genresBuilder.build(),
+				debouncedSearchValue
+			],
+			getNextPageParam: (lastPage) => lastPage.cursor,
+			staleTime: Infinity
 		}
 	);
 
@@ -61,15 +74,38 @@
 	function handleScrollToTop() {
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
+
+	function handleTryAgain() {
+		$getBooksInfinite.refetch();
+	}
+
+	function debounce(timeout = SEARCH_DEBOUNCE_SECONDS * 1000) {
+		let timer: NodeJS.Timeout;
+
+		return () => {
+			clearTimeout(timer);
+			timer = setTimeout(() => {
+				debouncedSearchValue = searchValue;
+			}, timeout);
+		};
+	}
+
+	const onType = debounce();
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <Container class="p-4">
-	<h1 class="my-8 text-center">Home</h1>
-
-	<div class="sticky top-[4.5rem] z-[2]">
-		<Accordion hover="hover:none" regionPanel="absolute" padding="py-2" regionControl="px-4">
+	<div class="sticky top-[4.3rem] z-[2] flex flex-col gap-1">
+		<input
+			class="input text-sm h-8"
+			title="Search for books"
+			type="search"
+			placeholder="Search for a book title"
+			bind:value={searchValue}
+			on:input={onType}
+		/>
+		<Accordion hover="hover:none" regionPanel="absolute" padding="py-1" regionControl="px-4 h-8">
 			<AccordionItem bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
 				<svelte:fragment slot="summary"><p>Filters</p></svelte:fragment>
@@ -134,14 +170,14 @@
 				<h4>Something went wrong while fetching books!</h4>
 				<p>How about trying again?</p>
 			</div>
-			<button class="btn variant-filled-primary">Try again</button>
+			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Try again</button>
 		</div>
 	{:else if items.length === 0}
 		<div class="mt-8 text-center space-y-8">
 			<div>
 				<p class="text-6xl">😲</p>
 				<h4>We've come up empty!</h4>
-				<p>Why not write your own book?</p>
+				<p>Try changing your filters or write your own book!</p>
 			</div>
 			<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
 		</div>

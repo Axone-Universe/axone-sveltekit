@@ -37,3 +37,12 @@ export const create = z.object({
 	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
+
+export const read = z.object({
+	bookID: z.string().optional(),
+	storylineID: z.string().optional(),
+	main: z.boolean().optional(),
+	searchTerm: z.string().optional(),
+	limit: z.number().optional(),
+	skip: z.number().optional()
+});

@@ -4,12 +4,12 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/chapters';
-import { search } from '$lib/trpc/schemas/chapters';
+import { read } from '$lib/trpc/schemas/chapters';
 
 export const chapters = t.router({
 	getAll: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
@@ -20,7 +20,7 @@ export const chapters = t.router({
 
 	getChaptersByUserID: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
@@ -39,7 +39,7 @@ export const chapters = t.router({
 
 	getById: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 			const result = await chaptersRepo.getById(ctx.session, input.searchTerm!);
@@ -48,7 +48,7 @@ export const chapters = t.router({
 		}),
 	getByStoryline: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 

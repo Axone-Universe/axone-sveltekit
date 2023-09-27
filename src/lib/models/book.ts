@@ -1,13 +1,13 @@
-import { label, type BookProperties } from '$lib/shared/book';
+import { label, type BookProperties } from '$lib/properties/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
-import { label as UserLabel } from '$lib/shared/user';
+import { label as UserLabel } from '$lib/properties/user';
 import {
 	addDeletePermissionFilter,
 	addPermissionsPipeline,
 	addUpdatePermissionFilter,
 	permissionSchema
 } from './permission';
-import { GENRES } from '$lib/shared/genre';
+import { GENRES } from '$lib/properties/genre';
 
 export const bookSchema = new Schema<BookProperties>({
 	_id: { type: String, required: true },
@@ -23,8 +23,11 @@ export const bookSchema = new Schema<BookProperties>({
 			type: String,
 			enum: GENRES
 		}
-	]
+	],
+	rating: { type: Number, default: 0 }
 });
+
+bookSchema.index({ title: 'text' });
 
 
 

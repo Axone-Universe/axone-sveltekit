@@ -2,10 +2,10 @@ import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
 import Quill, { type QuillOptionsStatic, type Sources } from 'quill';
 import type { HydratedDocument } from 'mongoose';
-import type { ChapterProperties } from '$lib/shared/chapter';
+import type { ChapterProperties } from '$lib/properties/chapter';
 import { trpc } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
-import type { DeltaProperties } from '$lib/shared/delta';
+import type { DeltaProperties } from '$lib/properties/delta';
 import { writable } from 'svelte/store';
 import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import { QuillIllustration } from '@axone-network/quill-illustration/quill.illustration';
@@ -347,10 +347,12 @@ export class QuillEditor extends Quill {
 	 * when adding a comment, each letter of the selection contains an attribute for the comment
 	 */
 	selectedContainsComment(): boolean {
-		return this.selectedDelta &&
+		return (
+			this.selectedDelta &&
 			this.selectedDelta.ops &&
 			this.selectedDelta.ops[0].attributes &&
-			this.selectedDelta.ops[0].attributes.commentId;
+			this.selectedDelta.ops[0].attributes.commentId
+		);
 	}
 
 	/**
@@ -358,10 +360,12 @@ export class QuillEditor extends Quill {
 	 * when adding an illustration, each letter of the selection contains an attribute for the illustration
 	 */
 	selectedContainsIllustration(): boolean {
-		return this.selectedDelta &&
+		return (
+			this.selectedDelta &&
 			this.selectedDelta.ops &&
 			this.selectedDelta.ops[0].attributes &&
-			this.selectedDelta.ops[0].attributes.illustrationId;
+			this.selectedDelta.ops[0].attributes.illustrationId
+		);
 	}
 
 	addComment(op: Op): boolean {

@@ -1,4 +1,4 @@
-import type { CampaignProperties } from '$lib/shared/campaign';
+import type { CampaignProperties } from '$lib/properties/campaign';
 import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';

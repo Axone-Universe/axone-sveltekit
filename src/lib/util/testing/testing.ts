@@ -3,8 +3,8 @@ import type { Session, User } from '@supabase/supabase-js';
 import mongoose, { type HydratedDocument } from 'mongoose';
 import { ulid } from 'ulid';
 
-import { GenresBuilder, type Genre } from '$lib/shared/genre';
-import type { StorylineProperties } from '$lib/shared/storyline';
+import { GenresBuilder, type Genre } from '$lib/properties/genre';
+import type { StorylineProperties } from '$lib/properties/storyline';
 import { router } from '$lib/trpc/router';
 
 import {
@@ -20,7 +20,8 @@ import {
 	TEST_USER_FIRST_NAME,
 	TEST_USER_LAST_NAME
 } from '$env/static/private';
-import { UserPropertyBuilder } from '$lib/shared/user';
+import { UserPropertyBuilder } from '$lib/properties/user';
+import type { Rating, ReviewOf } from '$lib/properties/review';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -127,6 +128,32 @@ export async function createChapter(
 }
 
 /**
+ * Creates a test review
+ * @param testSession
+ * @returns
+ */
+export async function createReview(
+	testSession: Session,
+	itemID: string,
+	reviewOf: ReviewOf,
+	rating: Rating,
+	title?: string,
+	text?: string
+) {
+	const caller = router.createCaller({ session: testSession });
+
+	const review = await caller.reviews.create({
+		item: itemID,
+		reviewOf,
+		rating,
+		title,
+		text
+	});
+
+	return review;
+}
+
+/**
  * Differentiate the DBs so that Dev DB is not wiped out when testing
  */
 export async function connectTestDatabase() {
@@ -178,4 +205,13 @@ export async function createDBUser(session: Session, genres: Genre[] = []) {
 	userProperties.genres = genres;
 
 	return await caller.users.create(userProperties);
+}
+
+export function getRandomElement<T>(list: T[] | readonly T[]): T {
+	return list[Math.floor(Math.random() * list.length)];
+}
+
+export function getRandomKey(obj: Record<string, unknown>): string {
+	const keys = Object.keys(obj);
+	return keys[Math.floor(Math.random() * keys.length)];
 }

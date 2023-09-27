@@ -2,7 +2,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { DeltasRepository } from '$lib/repositories/deltasRepository';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { update, search, create } from '$lib/trpc/schemas/deltas';
+import { update, read, create } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 
 export const deltas = t.router({
@@ -22,7 +22,7 @@ export const deltas = t.router({
 
 	getById: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const deltasRepo = new DeltasRepository();
 			const result = await deltasRepo.getById(ctx.session, input.id);
