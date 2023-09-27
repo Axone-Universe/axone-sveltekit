@@ -3,7 +3,7 @@ import QuillDelta from 'quill-delta';
 import type { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { DeltaProperties } from '$lib/shared/delta';
+import type { DeltaProperties } from '$lib/properties/delta';
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
 
@@ -104,37 +104,40 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		const session = await mongoose.startSession();
 
-		// use a transaction to make sure everything saves
-		await session.withTransaction(async () => {
-			const chapter = await Chapter.aggregate(
-				[
-					{
-						$match: {
-							_id: this._chapterID
+		try {
+			// use a transaction to make sure everything saves
+			await session.withTransaction(async () => {
+				const chapter = await Chapter.aggregate(
+					[
+						{
+							$match: {
+								_id: this._chapterID
+							}
 						}
+					],
+					{
+						userID: this._sessionUserID
 					}
-				],
-				{
-					userID: this._sessionUserID
-				}
-			)
-				.cursor()
-				.next();
+				)
+					.cursor()
+					.next();
 
-			this._deltaProperties.permissions = chapter.permissions;
+				this._deltaProperties.permissions = chapter.permissions;
 
-			const delta = new Delta(this._deltaProperties);
-			await delta.save({ session });
+				const delta = new Delta(this._deltaProperties);
+				await delta.save({ session });
 
-			chapter.delta = delta._id;
-			await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
-				userID: this._sessionUserID,
-				session: session
+				chapter.delta = delta._id;
+				await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
+					userID: this._sessionUserID,
+					session: session
+				});
+
+				return delta;
 			});
-
-			return delta;
-		});
-		session.endSession();
+		} finally {
+			session.endSession();
+		}
 
 		const newDelta = await Delta.aggregate(
 			[

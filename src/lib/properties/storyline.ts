@@ -4,10 +4,11 @@ import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import { GenresBuilder, type Genre } from './genre';
 import type { PermissionProperties } from './permission';
+import type { ReviewableProperties } from './review';
 
 export const label = 'Storyline';
 
-export interface StorylineProperties {
+export interface StorylineProperties extends ReviewableProperties {
 	_id: string;
 	main: boolean;
 	book?: string | HydratedDocument<BookProperties>;
@@ -46,7 +47,9 @@ export class StorylinePropertyBuilder {
 			parentChapter: '',
 			tags: [],
 			permissions: {},
-			published: true
+			published: true,
+			cumulativeRating: 0,
+			numRatings: 0
 		};
 	}
 

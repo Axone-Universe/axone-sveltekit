@@ -3,12 +3,12 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, search, submitToCampaign, update } from '$lib/trpc/schemas/books';
+import { create, read, update } from '$lib/trpc/schemas/books';
 
 export const books = t.router({
 	get: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
 
@@ -25,10 +25,10 @@ export const books = t.router({
 
 	getById: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getById(ctx.session, input?.id);
+			const result = await booksRepo.getById(ctx.session, input.id);
 
 			return result;
 		}),
@@ -87,7 +87,7 @@ export const books = t.router({
 	submitToCampaign: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(submitToCampaign) // TODO: use createBook schema
+		.input(update)
 		.mutation(async () => {
 			throw new Error('not Implemented');
 		}),

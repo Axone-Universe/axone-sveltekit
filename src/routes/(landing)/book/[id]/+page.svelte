@@ -11,7 +11,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);
@@ -66,15 +66,12 @@
 				<p class="text-l md:text-3xl font-bold">Storylines</p>
 			</div>
 			<div class="flex justify-end w-2/5">
-				<button
-					class="btn variant-filled space-x-12 line-clamp-1 w-full justify-between"
-					use:popup={popupCombobox}
-				>
-					<span class="capitalize text-sm">{activeStoryline?.title ?? 'Story Lines'}</span>
-					<Icon data={caretDown} scale={1} />
+				<button class="flex btn variant-filled space-x-12 w-full" use:popup={popupCombobox}>
+					<p class="capitalize text-sm line-clamp-1">{activeStoryline?.title ?? 'Story Lines'}</p>
+					<!-- <Icon data={caretDown} scale={1} /> -->
 				</button>
 
-				<div class="card w-48 shadow-xl p-2" data-popup="popupCombobox">
+				<div class="card w-60 shadow-xl p-2" data-popup="popupCombobox">
 					<ListBox>
 						{#each Object.entries(storylines) as [id, storyline]}
 							<ListBoxItem

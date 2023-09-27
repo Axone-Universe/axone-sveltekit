@@ -2,7 +2,7 @@ import { trpc } from '$lib/trpc/client';
 import { preprocessCampaigns } from '$lib/util/preprocess';
 import type { HydratedDocument } from 'mongoose';
 import type { LayoutServerLoad } from './$types';
-import type { CampaignProperties } from '$lib/shared/campaign';
+import type { CampaignProperties } from '$lib/properties/campaign';
 
 // const campaigns = [
 // 	{

@@ -1,13 +1,13 @@
 import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from '$lib/shared/book';
-import type { Genre } from '$lib/shared/genre';
+import type { BookProperties } from '$lib/properties/book';
+import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
 import mongoose from 'mongoose';
 import { StorylineBuilder } from './storyline';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { PermissionProperties } from '$lib/properties/permission';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -25,7 +25,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			description: '',
 			permissions: {},
 			published: false,
-			genres: []
+			genres: [],
+			rating: 0
 		};
 		this._userID = {};
 	}
@@ -195,27 +196,30 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 		const book = new Book(this._bookProperties);
 
-		// use a transaction to make sure everything saves
-		await session.withTransaction(async () => {
-			await book.save({ session });
+		try {
+			// use a transaction to make sure everything saves
+			await session.withTransaction(async () => {
+				await book.save({ session });
 
-			const hydratedBook = book as HydratedDocument<BookProperties>;
+				const hydratedBook = book as HydratedDocument<BookProperties>;
 
-			// Also create the default/main storyline
-			const storylineBuilder = new StorylineBuilder()
-				.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
-				.bookID(hydratedBook._id)
-				.title(hydratedBook.title!)
-				.main(true)
-				.description(hydratedBook.description!)
-				.imageURL(hydratedBook.imageURL!)
-				.published(hydratedBook.published)
-				.permissions(hydratedBook.permissions);
+				// Also create the default/main storyline
+				const storylineBuilder = new StorylineBuilder()
+					.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
+					.bookID(hydratedBook._id)
+					.title(hydratedBook.title!)
+					.main(true)
+					.description(hydratedBook.description!)
+					.imageURL(hydratedBook.imageURL!)
+					.published(hydratedBook.published)
+					.permissions(hydratedBook.permissions);
 
-			const storyline = new Storyline(storylineBuilder.properties());
-			await storyline.save({ session });
-		});
-		session.endSession();
+				const storyline = new Storyline(storylineBuilder.properties());
+				await storyline.save({ session });
+			});
+		} finally {
+			session.endSession();
+		}
 
 		const newBook = await Book.aggregate(
 			[

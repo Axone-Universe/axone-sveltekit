@@ -1,6 +1,6 @@
 import { Delta } from '$lib/models/delta';
 import { Repository } from '$lib/repositories/repository';
-import type { DeltaProperties } from '$lib/shared/delta';
+import type { DeltaProperties } from '$lib/properties/delta';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 

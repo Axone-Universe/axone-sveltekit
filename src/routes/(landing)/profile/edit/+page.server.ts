@@ -3,7 +3,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
-import type { UserProperties } from '$lib/shared/user';
+import type { UserProperties } from '$lib/properties/user';
 
 export const load = (async (event) => {
 	const session = await event.locals.getSession();

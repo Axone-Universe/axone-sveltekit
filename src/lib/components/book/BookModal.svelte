@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 
 	export let bookData: HydratedDocument<BookProperties>;
@@ -51,10 +51,12 @@
 						{bookUser.lastName}
 					</p>
 				</div>
-				<div class="overflow-hidden flex items-center">
-					<Icon class="p-2" data={star} scale={2} />
-					<p class="text-sm font-bold line-clamp-1">4.5</p>
-				</div>
+				{#if bookData.rating > 0}
+					<div class="overflow-hidden flex items-center">
+						<Icon class="p-2" data={star} scale={2} />
+						<p class="text-sm font-bold line-clamp-1">{bookData.rating.toFixed(1)}</p>
+					</div>
+				{/if}
 			</div>
 			<div class="flex flex-wrap gap-2">
 				{#if bookData.genres}

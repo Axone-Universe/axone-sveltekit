@@ -1,6 +1,6 @@
 import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
-import type { StorylineProperties } from '$lib/shared/storyline';
+import type { StorylineProperties } from '$lib/properties/storyline';
 import type { Session } from '@supabase/supabase-js';
 import type { Document, HydratedDocument } from 'mongoose';
 
@@ -97,4 +97,10 @@ export class StorylinesRepository extends Repository {
 			resolve(count);
 		});
 	}
+
+	// async getHighestReview() {
+	// 	const storylines = (await Storyline.aggregate([{
+	// 		$group:
+	// 	}])) as HydratedDocument<StorylineProperties>[];
+	// }
 }

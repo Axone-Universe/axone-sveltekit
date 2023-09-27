@@ -2,7 +2,7 @@ import { ulid } from 'ulid';
 
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import type { HydratedDocument } from 'mongoose';
-import type { CampaignProperties } from '$lib/shared/campaign';
+import type { CampaignProperties } from '$lib/properties/campaign';
 import { Campaign } from '$lib/models/campaign';
 
 export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignProperties>> {

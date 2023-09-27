@@ -1,6 +1,6 @@
-import { PermissionsEnum, type PermissionProperties } from '$lib/shared/permission';
+import { PermissionsEnum, type PermissionProperties } from '$lib/properties/permission';
 import { Schema, type PipelineStage } from 'mongoose';
-import { label as UserLabel } from '$lib/shared/user';
+import { label as UserLabel } from '$lib/properties/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({
 	_id: { type: String, required: true },

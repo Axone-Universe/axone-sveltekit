@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/shared/permission';
+	import type { PermissionProperties } from '$lib/properties/permission';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
 	export let bookID: string;

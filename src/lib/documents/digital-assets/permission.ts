@@ -2,11 +2,11 @@ import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { PermissionProperties, Permissions } from '$lib/shared/permission';
+import type { PermissionProperties, Permissions } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
-import { label as BookLabel, type BookProperties } from '$lib/shared/book';
-import { label as ChapterLabel, type ChapterProperties } from '$lib/shared/chapter';
-import { label as StorylineLabel, type StorylineProperties } from '$lib/shared/storyline';
+import { label as BookLabel, type BookProperties } from '$lib/properties/book';
+import { label as ChapterLabel, type ChapterProperties } from '$lib/properties/chapter';
+import { label as StorylineLabel, type StorylineProperties } from '$lib/properties/storyline';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
 

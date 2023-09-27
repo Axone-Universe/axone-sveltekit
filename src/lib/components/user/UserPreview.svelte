@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserProperties } from '$lib/shared/user';
+	import type { UserProperties } from '$lib/properties/user';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';

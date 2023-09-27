@@ -28,7 +28,7 @@
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import 'quill-comment';
-	import type { ChapterProperties } from '$lib/shared/chapter';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 
