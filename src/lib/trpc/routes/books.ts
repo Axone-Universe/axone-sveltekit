@@ -58,7 +58,7 @@ export const books = t.router({
 		.input(search.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getBooksByUserID(ctx.session, input?.searchTerm);
+			const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
 
 			return result;
 		}),

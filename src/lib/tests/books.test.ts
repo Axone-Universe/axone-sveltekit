@@ -97,7 +97,7 @@ describe('books', () => {
 
 	test('get recommended books', async () => {
 		const session = createTestSession(testUserOne);
-		await createDBUser(session, ['Fantasy', 'Horror']);
+		const user = await createDBUser(session, ['Fantasy', 'Horror']);
 
 		const bookResponse1 = await createBook(createTestSession(testUserTwo), '', [
 			'Action',

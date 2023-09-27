@@ -4,7 +4,6 @@ import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
-import { User } from '$lib/models/user';
 import type { Genre } from '$lib/shared/genre';
 import { UsersRepository } from './usersRepository';
 
@@ -27,7 +26,9 @@ export class BooksRepository extends Repository {
 			if (genres.length > 0) {
 				filter.genres = { $all: genres };
 			}
-		} else {
+		}
+		// Introduces unexpected behaviour in the method. User genres should be passed through the parameter
+		else {
 			const userRepo = new UsersRepository();
 			const user = await userRepo.getById(session, session?.user.id);
 			if (user && user.genres) {

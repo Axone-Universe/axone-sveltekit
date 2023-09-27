@@ -75,7 +75,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 			{ new: true }
 		);
 
-		return user;
+		return user!;
 	}
 
 	async build(): Promise<HydratedDocument<UserProperties>> {

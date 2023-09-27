@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker';
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genre';
 import {
 	cleanUpDatabase,
 	connectDevDatabase,
@@ -8,7 +7,8 @@ import {
 	createTestSession,
 	createChapter,
 	generateTestUser,
-	createBook
+	createBook,
+	testUserOne
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -29,7 +29,7 @@ beforeAll(async () => {
 	console.log('CLEANING UP');
 
 	await connectDevDatabase();
-	await cleanUpDatabase(true);
+	await cleanUpDatabase();
 
 	console.log('CLEANED');
 }, TIMEOUT_SECONDS * 1000);
@@ -43,10 +43,13 @@ beforeAll(async () => {
 test(
 	'db setup',
 	async () => {
-		console.log('SETTING UP DB WITH TEST DATA');
+		console.log('SETTING UP DB WITH RANDOM TEST DATA');
 
 		const sessions: Session[] = [];
 		const caller = router.createCaller({ session: null });
+
+		// push default user
+		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateTestUser()));
@@ -61,7 +64,7 @@ test(
 		for (let i = 0; i < sessions.length; i++) {
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
 				const newBook = await createBook(sessions[i]);
-				const storylines = await caller.storylines.getAll({
+				const storylines = await caller.storylines.getByBookID({
 					bookID: newBook._id
 				});
 
