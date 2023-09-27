@@ -2,7 +2,7 @@
 	import { ListBox, ListBoxItem, popup, Avatar } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome';
-	import { caretDown, lock } from 'svelte-awesome/icons';
+	import { expand, lock } from 'svelte-awesome/icons';
 	import { afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
@@ -131,7 +131,7 @@
 									<a
 										class="button"
 										href="/storyline/create?bookID={bookData._id}&parentStorylineID={activeStoryline._id}&chapterID={chapter._id}"
-										>+</a
+										><Icon data={expand} scale={1.2} /></a
 									>
 								</div>
 							</div>

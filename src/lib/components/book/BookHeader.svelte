@@ -7,10 +7,11 @@
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
-	import type { Genre } from '$lib/shared/genre';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
+	import type { ReadingListProperties } from '$lib/properties/readingList';
+	import type { UserProperties } from '$lib/properties/user';
 
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylineData: HydratedDocument<StorylineProperties>;
@@ -56,7 +57,7 @@
 				_id: $page.data.user._id,
 				readingLists: readingLists
 			})
-			.then((userResponse) => {
+			.then((userResponse: any) => {
 				readingLists = userResponse.readingLists;
 			});
 	}
@@ -122,9 +123,10 @@
 
 						<div class="card p-4 w-fit shadow-xl" data-popup="readingListPopup">
 							{#each readingLists as readingList}
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
 								<div
 									class="btn hover:variant-soft-primary cursor-pointer flex space-x-4 justify-between"
-									on:click={addToReadingList(readingList)}
+									on:click={() => addToReadingList(readingList)}
 								>
 									<p class="line-clamp-1">{readingList.title}</p>
 									{#if storylineData._id in readingList.books}

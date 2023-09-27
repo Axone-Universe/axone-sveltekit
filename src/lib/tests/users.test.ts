@@ -68,8 +68,7 @@ describe('users', () => {
 			_id: userResponse2._id,
 			facebook: 'www.facebook.com/user1'
 		});
-
-		// compare sorted arrays to ignore element position differences (if any)
+		
 		expect(updateUserResponse.facebook).toEqual('www.facebook.com/user1');
 	});
 
