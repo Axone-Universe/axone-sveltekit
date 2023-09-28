@@ -176,14 +176,10 @@ export async function connectDevDatabase() {
 	await mongoose.connect(MONGO_URL, options);
 }
 
-export async function cleanUpDatabase(isPartOfDBSetup = false) {
+export async function cleanUpDatabase() {
 	await Promise.all(
 		Object.values(mongoose.connection.collections).map(async (collection) => {
-			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
-				await collection.deleteMany({ _id: /^test-/ });
-			} else {
-				await collection.deleteMany({});
-			}
+			await collection.deleteMany({});
 		})
 	);
 	// await mongoose.connection.db.dropDatabase();
@@ -209,4 +205,13 @@ export async function createDBUser(session: Session, genres: Genre[] = []) {
 	userProperties.genres = genres;
 
 	return await caller.users.create(userProperties);
+}
+
+export function getRandomElement<T>(list: T[] | readonly T[]): T {
+	return list[Math.floor(Math.random() * list.length)];
+}
+
+export function getRandomKey(obj: Record<string, unknown>): string {
+	const keys = Object.keys(obj);
+	return keys[Math.floor(Math.random() * keys.length)];
 }

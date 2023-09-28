@@ -51,10 +51,12 @@
 						{bookUser.lastName}
 					</p>
 				</div>
-				<div class="overflow-hidden flex items-center">
-					<Icon class="p-2" data={star} scale={2} />
-					<p class="text-sm font-bold line-clamp-1">4.5</p>
-				</div>
+				{#if bookData.rating > 0}
+					<div class="overflow-hidden flex items-center">
+						<Icon class="p-2" data={star} scale={2} />
+						<p class="text-sm font-bold line-clamp-1">{bookData.rating.toFixed(1)}</p>
+					</div>
+				{/if}
 			</div>
 			<div class="flex flex-wrap gap-2">
 				{#if bookData.genres}
@@ -75,7 +77,6 @@
 			<footer class="btn-group variant-filled py-1 max-w-fit">
 				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
 				<a on:click={closeModal} class="button" href="/reader/{bookData._id}">Read</a>
-				<button>+</button>
 			</footer>
 		</div>
 	</div>

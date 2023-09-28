@@ -8,7 +8,6 @@ import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
-import type { StorylineProperties } from '$lib/shared/storyline';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -199,11 +198,12 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 							userID: this._chapterProperties.user
 						}
 					)
+						.session(session)
 						.cursor()
 						.next()
 				);
 				storyline.isNew = false;
-				await storyline.addChapter(chapter._id);
+				await storyline.addChapter(chapter._id, session);
 
 				if (this._prevChapterID) {
 					const prevChapter = await Chapter.aggregate(
@@ -218,13 +218,14 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 							userID: this._chapterProperties.user
 						}
 					)
+						.session(session)
 						.cursor()
 						.next();
 
 					prevChapter.children.push(chapter._id);
 					await Chapter.findOneAndUpdate({ _id: prevChapter._id }, prevChapter, {
 						userID: this._sessionUserID,
-						session: session
+						session
 					});
 				}
 			});
