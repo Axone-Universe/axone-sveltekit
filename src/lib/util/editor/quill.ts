@@ -72,7 +72,6 @@ export class QuillEditor extends Quill {
 		changeDelta.subscribe((changeDelta) => {
 			this.changeDelta = changeDelta;
 		});
-		this.getChapterDelta();
 		if (options?.reader) {
 			this.reader = true;
 			this.disable();
