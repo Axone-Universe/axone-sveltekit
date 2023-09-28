@@ -11,6 +11,8 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import { GenresBuilder, GENRES } from '$lib/properties/genre';
 	import { trpcWithQuery } from '$lib/trpc/client';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
@@ -19,13 +21,28 @@
 	// Only "recommended" is implemented for now
 	// recommended looks at the user genre preferences to select books from there
 	const TAGS = ['Recommended'] as const;
+	const FILTERS_KEY = 'homepageFilters';
 	// const TAGS = ['Trending', 'Recommended', 'Reading', 'Newest'] as const;
 
-	let last_load_epoch = 0;
+	let lastLoadEpoch = 0;
 	let genresBuilder = new GenresBuilder();
+	let filterCount = -1;
+	let mounted = false;
 
 	let selectedTag: (typeof TAGS)[number] | null = 'Recommended';
 	$: recommendedSelected = selectedTag === 'Recommended';
+
+	$: if (browser && mounted) {
+		sessionStorage.setItem(
+			FILTERS_KEY,
+			JSON.stringify({ selectedTag, genres: genresBuilder.build() })
+		);
+		if (selectedTag) {
+			filterCount = 1;
+		} else {
+			filterCount = genresBuilder.build().length;
+		}
+	}
 
 	let accordionOpen = false;
 
@@ -64,9 +81,9 @@
 
 		if (
 			window.scrollY >= scrollableHeight * 0.7 &&
-			(last_load_epoch === 0 || Date.now() - last_load_epoch >= LOAD_DEBOUNCE_SECONDS * 1000)
+			(lastLoadEpoch === 0 || Date.now() - lastLoadEpoch >= LOAD_DEBOUNCE_SECONDS * 1000)
 		) {
-			last_load_epoch = Date.now();
+			lastLoadEpoch = Date.now();
 			$getBooksInfinite.fetchNextPage();
 		}
 	}
@@ -91,6 +108,31 @@
 	}
 
 	const onType = debounce();
+
+	onMount(() => {
+		const filters = JSON.parse(sessionStorage.getItem(FILTERS_KEY) ?? 'null');
+
+		if (filters) {
+			selectedTag = filters.selectedTag ? filters.selectedTag : null;
+			genresBuilder.withList(filters.genres ? filters.genres : []);
+		}
+
+		function onClickListener(e: MouseEvent) {
+			if (e.target) {
+				const acc = (e.target as HTMLElement).closest('.accordion');
+				if (!acc) {
+					accordionOpen = false;
+				}
+			}
+		}
+		window.addEventListener('click', onClickListener);
+
+		mounted = true;
+
+		return () => {
+			window.removeEventListener('click', onClickListener);
+		};
+	});
 </script>
 
 <svelte:window on:scroll={loadMore} />
@@ -105,10 +147,17 @@
 			bind:value={searchValue}
 			on:input={onType}
 		/>
-		<Accordion hover="hover:none" regionPanel="absolute" padding="py-1" regionControl="px-4 h-8">
+		<Accordion
+			hover="hover:none"
+			regionPanel="absolute accordion"
+			padding="py-1"
+			regionControl="px-4 h-8 accordion"
+		>
 			<AccordionItem bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
-				<svelte:fragment slot="summary"><p>Filters</p></svelte:fragment>
+				<svelte:fragment slot="summary"
+					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment
+				>
 				<svelte:fragment slot="content">
 					<div class="card p-4 space-y-2">
 						<p class="font-bold">Tags</p>

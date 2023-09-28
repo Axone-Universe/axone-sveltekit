@@ -41,8 +41,5 @@ export const load = (async (event) => {
 		chapterResponses[chapterResponse._id] = chapterResponse;
 	});
 
-	console.log('** chp resp ');
-	console.log(storylineResponse);
-
 	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
 }) satisfies PageServerLoad;
