@@ -8,7 +8,8 @@ import {
 	createTestSession,
 	createChapter,
 	generateTestUser,
-	createBook
+	createBook,
+	testUserOne
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -47,6 +48,9 @@ test(
 
 		const sessions: Session[] = [];
 		const caller = router.createCaller({ session: null });
+
+		// push default user
+		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateTestUser()));

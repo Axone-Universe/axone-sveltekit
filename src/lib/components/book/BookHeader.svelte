@@ -11,7 +11,6 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { ReadingListProperties } from '$lib/properties/readingList';
-	import type { UserProperties } from '$lib/properties/user';
 
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylineData: HydratedDocument<StorylineProperties>;
@@ -21,6 +20,7 @@
 
 	onMount(() => {
 		readingLists = JSON.parse(JSON.stringify($page.data.user.readingLists));
+		showAddedToReadingList();
 	});
 
 	afterUpdate(() => {
@@ -45,6 +45,18 @@
 		placement: 'right'
 	};
 
+	// This is a variable to check if storyline is in a reading list
+	let addedToReadingList = false;
+	function showAddedToReadingList() {
+		for (const readingList of readingLists) {
+			if (storylineData._id in readingList.books) {
+				addedToReadingList = true;
+				return;
+			}
+		}
+		addedToReadingList = false;
+	}
+
 	function addToReadingList(readingList: HydratedDocument<ReadingListProperties>) {
 		if (storylineData._id in readingList.books) {
 			delete readingList.books[storylineData._id];
@@ -59,6 +71,7 @@
 			})
 			.then((userResponse: any) => {
 				readingLists = userResponse.readingLists;
+				showAddedToReadingList();
 			});
 	}
 </script>
@@ -118,14 +131,18 @@
 					</a>
 					<div>
 						<button use:popup={readingListPopup} type="button" class="btn-icon variant-filled">
-							<Icon class="p-2" data={bookmark} scale={2.5} />
+							{#if addedToReadingList}
+								<Icon class="p-2" data={bookmark} scale={2.5} />
+							{:else}
+								<Icon class="p-2" data={bookmarkO} scale={2.5} />
+							{/if}
 						</button>
 
-						<div class="card p-4 w-fit shadow-xl" data-popup="readingListPopup">
+						<div class="card p-4 space-y-2 w-fit shadow-xl" data-popup="readingListPopup">
 							{#each readingLists as readingList}
 								<!-- svelte-ignore a11y-click-events-have-key-events -->
 								<div
-									class="btn hover:variant-soft-primary cursor-pointer flex space-x-4 justify-between"
+									class="btn variant-soft-primary cursor-pointer flex space-x-4 justify-between"
 									on:click={() => addToReadingList(readingList)}
 								>
 									<p class="line-clamp-1">{readingList.title}</p>
