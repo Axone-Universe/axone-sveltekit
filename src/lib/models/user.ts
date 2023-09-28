@@ -1,6 +1,7 @@
 import { GENRES } from '$lib/properties/genre';
 import { label, USER_LABELS, type UserProperties } from '$lib/properties/user';
 import mongoose, { Schema, model } from 'mongoose';
+import { readingListSchema } from './readingList';
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },
@@ -23,7 +24,8 @@ export const userSchema = new Schema<UserProperties>({
 			type: String,
 			enum: USER_LABELS
 		}
-	]
+	],
+	readingLists: [readingListSchema]
 });
 
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });

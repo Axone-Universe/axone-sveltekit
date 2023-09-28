@@ -8,6 +8,8 @@ import { createContext } from '$lib/trpc/context';
 import { router } from '$lib/trpc/router';
 import { sequence } from '@sveltejs/kit/hooks';
 import { startMongo } from '$lib/db/mongo';
+import type { HydratedDocument } from 'mongoose';
+import type { UserProperties } from '$lib/properties/user';
 
 const userRepo = new UsersRepository();
 
@@ -28,6 +30,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 	 * of calling `const { data: { session } } = await supabase.auth.getSession()`
 	 * you just call this `await getSession()`
 	 */
+
 	event.locals.getSession = async () => {
 		const {
 			data: { session }
@@ -43,6 +46,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 	} else {
 		const user = await userRepo.getById(session, session.user.id);
+		event.locals.user = user as UserProperties;
 
 		// if the user is not created yet in the DB, create the user
 		if (

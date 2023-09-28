@@ -1,4 +1,6 @@
+import type { HydratedDocument } from 'mongoose';
 import type { Genre } from './genre';
+import type { ReadingListProperties } from './readingList';
 
 export const label = 'User';
 
@@ -17,6 +19,7 @@ export interface UserProperties {
 	twitter?: string;
 	genres?: Genre[];
 	labels?: UserLabel[];
+	readingLists: HydratedDocument<ReadingListProperties>[];
 }
 
 export class UserPropertyBuilder {
@@ -33,7 +36,8 @@ export class UserPropertyBuilder {
 			instagram: '',
 			twitter: '',
 			labels: [],
-			genres: []
+			genres: [],
+			readingLists: []
 		};
 	}
 
