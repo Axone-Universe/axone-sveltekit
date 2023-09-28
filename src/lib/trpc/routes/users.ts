@@ -40,9 +40,10 @@ export const users = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			let userBuilder = new UserBuilder(ctx.session!.user.id)
-				.firstName(input.firstName!)
-				.lastName(input.lastName!);
+			let userBuilder = new UserBuilder(ctx.session!.user.id);
+
+			if (input.firstName) userBuilder = userBuilder.firstName(input.firstName);
+			if (input.lastName) userBuilder = userBuilder.lastName(input.lastName);
 
 			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
@@ -52,6 +53,7 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
+			if (input.readingLists) userBuilder = userBuilder.readingLists(input.readingLists as any);
 
 			const user = await userBuilder.update();
 

@@ -176,14 +176,10 @@ export async function connectDevDatabase() {
 	await mongoose.connect(MONGO_URL, options);
 }
 
-export async function cleanUpDatabase(isPartOfDBSetup = false) {
+export async function cleanUpDatabase() {
 	await Promise.all(
 		Object.values(mongoose.connection.collections).map(async (collection) => {
-			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
-				await collection.deleteMany({ _id: /^test-/ });
-			} else {
-				await collection.deleteMany({});
-			}
+			await collection.deleteMany({});
 		})
 	);
 	// await mongoose.connection.db.dropDatabase();

@@ -77,7 +77,6 @@
 			<footer class="btn-group variant-filled py-1 max-w-fit">
 				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
 				<a on:click={closeModal} class="button" href="/reader/{bookData._id}">Read</a>
-				<button>+</button>
 			</footer>
 		</div>
 	</div>

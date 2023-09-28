@@ -8,6 +8,7 @@ import {
 	createChapter,
 	generateTestUser,
 	createBook,
+	testUserOne,
 	getRandomElement
 } from '$lib/util/testing/testing';
 
@@ -30,7 +31,7 @@ beforeAll(async () => {
 	console.log('CLEANING UP');
 
 	await connectDevDatabase();
-	await cleanUpDatabase(true);
+	await cleanUpDatabase();
 
 	console.log('CLEANED');
 }, TIMEOUT_SECONDS * 1000);
@@ -48,6 +49,9 @@ test(
 
 		const sessions: Session[] = [];
 		const caller = router.createCaller({ session: null });
+
+		// push default user
+		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateTestUser()));
