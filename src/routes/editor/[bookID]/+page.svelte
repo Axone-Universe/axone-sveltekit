@@ -58,7 +58,7 @@
 	$: ({ session, userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
 
 	onMount(() => {
-		toggleDrawer();
+		drawerStore.open(drawerSettings);
 	});
 
 	/**
@@ -320,12 +320,18 @@
 	let showComments = false;
 	let showIllustrations = false;
 	let deltaChange;
+	let numComments = 0;
+	let numIllustrations = 0;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
 	changeDelta.subscribe((value) => {
 		deltaChange = value;
-		quill.comments = quill.comments;
-		quill.illustrations = quill.illustrations;
+		if (quill) {
+			quill.comments = quill.comments;
+			quill.illustrations = quill.illustrations;
+			numComments = Object.keys(quill.comments).length;
+			numIllustrations = Object.keys(quill.illustrations).length;
+		}
 	});
 
 	// Quill toolbar options
@@ -647,7 +653,7 @@
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
 	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
-	function setupEditor() {
+	async function setupEditor() {
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
 		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
@@ -684,6 +690,11 @@
 				},
 				placeholder: 'Let your voice be heard...'
 			});
+
+			await quill.getChapterDelta();
+
+			numComments = Object.keys(quill.comments).length;
+			numIllustrations = Object.keys(quill.illustrations).length;
 
 			clearInterval(saveDeltaInterval);
 			saveDeltaInterval = setInterval(quill.saveDelta.bind(quill), 2000);
@@ -782,7 +793,7 @@
 			class="md:!relative h-full !left-auto"
 		>
 			<div class="flex h-full">
-				{#if showComments && Object.keys(quill.comments).length !== 0}
+				{#if showComments && numComments !== 0}
 					<div
 						id="comments-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
@@ -816,7 +827,7 @@
 					</div>
 				{/if}
 
-				{#if showIllustrations && Object.keys(quill.illustrations).length !== 0}
+				{#if showIllustrations && numIllustrations !== 0}
 					<div
 						id="illustrations-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
@@ -896,16 +907,26 @@
 							<button
 								on:click={() => toggleShowComments()}
 								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
+								class="m-2 btn-icon bg-surface-200-700-token relative"
 							>
 								<Icon class="p-2" data={dashcube} scale={2.5} />
+								{#if numComments > 0}
+									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
+										>{numComments}</span
+									>
+								{/if}
 							</button>
 							<button
 								on:click={() => toggleShowIllustrations()}
 								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
+								class="m-2 btn-icon bg-surface-200-700-token relative"
 							>
 								<Icon class="p-2" data={image} scale={2.5} />
+								{#if numIllustrations > 0}
+									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
+										>{numIllustrations}</span
+									>
+								{/if}
 							</button>
 							<button
 								on:click={() => showChapterNotes()}

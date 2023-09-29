@@ -71,6 +71,15 @@ export class GenresBuilder {
 		return this;
 	}
 
+	withList(genres: Genre[]): GenresBuilder {
+		this.reset();
+		for (const genre of genres) {
+			this.with(genre);
+		}
+
+		return this;
+	}
+
 	random(weight: number) {
 		if (weight < 0 || weight > 1) {
 			throw Error('Weight should be between 0 and 1');
