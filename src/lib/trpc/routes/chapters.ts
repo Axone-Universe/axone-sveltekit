@@ -20,7 +20,7 @@ export const chapters = t.router({
 
 	getChaptersByUserID: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 

@@ -11,6 +11,20 @@
 	// Stylesheets
 	import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
 	import '@skeletonlabs/skeleton/styles/all.css';
+
+	import {
+		
+		ListBox,
+		ListBoxItem
+		
+	} from '@skeletonlabs/skeleton';
+
+
+	
+
+	let currentPlace = $page.params;
+	$:activeTab = ''; 
+
 	//import '../app.postcss';
 	const drawerSettings: DrawerSettings = {
 		//id: 'leftDrawer',
@@ -38,7 +52,7 @@
 
 
 <!-- App Shell -->
-<AppShell slotSidebarLeft="bg-surface-500/5 {classesSidebarLeft}">
+<AppShell slotSidebarLeft=" {classesSidebarLeft}">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
 		<AppBar>
@@ -53,7 +67,50 @@
 	</svelte:fragment>
 	<!-- Left Sidebar Slot -->
 	<svelte:fragment slot="sidebarLeft">
-		<Navigation />
+		<nav class="list-nav p-4">
+			<div>
+				<ListBox>
+					<ListBoxItem>
+				<a href={`../${currentPlace.id}/books`} on:click={() => { activeTab = 'books' }} class="{activeTab === 'books' ? 'bg-indigo-950' : ''}" >Books</a>
+			</ListBoxItem>
+			<ListBoxItem>
+				<a href={`../${currentPlace.id}/chapters`}  on:click={() => { activeTab = 'chapters' }} class="{activeTab === 'chapters' ? 'bg-indigo-950' : ''}" >Chapters</a>
+			</ListBoxItem>
+			<ListBoxItem>
+				
+			<a href={`../${currentPlace.id}/storylines`} on:click={() => { activeTab = 'storylines' }} class="{activeTab === 'storylines' ? 'bg-indigo-950' : ''}">Storylines</a>
+		</ListBoxItem>	
+		</div>
+		</ListBox>
+		</nav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+		<nav class="list-nav p-4">
+			<div>
+			
+				<a href={`../${currentPlace.id}/books`} on:click={() => { activeTab = 'books' }} class="{activeTab === 'books' ? 'bg-indigo-950' : ''}" >Books</a>
+				<a href={`../${currentPlace.id}/chapters`}  on:click={() => { activeTab = 'chapters' }} class="{activeTab === 'chapters' ? 'bg-indigo-950' : ''}" >Chapters</a>
+				<a href={`../${currentPlace.id}/storylines`} on:click={() => { activeTab = 'storylines' }} class="{activeTab === 'storylines' ? 'bg-indigo-950' : ''}">Storylines</a>
+			</div>
+			
+		</nav>
+		
+
+
+
+
+
 	</svelte:fragment>
 	<!-- Page Route Content -->
 	<slot />

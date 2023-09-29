@@ -5,10 +5,10 @@ import { trpc } from '$lib/trpc/client';
 import { create } from '$lib/trpc/schemas/users';
 import { supabaseAdmin } from '$lib/util/supabase';
 import type { HydratedDocument } from 'mongoose';
-import type { UserProperties } from '$lib/shared/user';
-import type { BookProperties } from '$lib/shared/book';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import type { ChapterProperties } from '$lib/shared/chapter';
+import type { UserProperties } from '$lib/properties/user';
+import type { BookProperties } from '$lib/properties/book';
+import type { StorylineProperties } from '$lib/properties/storyline';
+import type { ChapterProperties } from '$lib/properties/chapter';
 
 
 export const load = (async (event) => {

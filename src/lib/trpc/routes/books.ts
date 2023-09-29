@@ -53,12 +53,12 @@ export const books = t.router({
 			return bookNode;
 		}),
 
-	getBooksByUserID: t.procedure
+		getBooksByUserID: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getBooksByUserID(ctx.session, input?.searchTerm);
+			const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
 
 			return result;
 		}),
