@@ -7,14 +7,15 @@
 	import { decodeTime,  } from 'ulid';
 	import Icon from 'svelte-awesome';
 	import type { ModalSettings, ModalComponent, DrawerSettings } from '@skeletonlabs/skeleton';
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import { trpc } from '$lib/trpc/client';
 	import {
 		
 		modalStore
 	} from '@skeletonlabs/skeleton';
 	
-
+	import { onMount } from 'svelte';
+  	import { writable } from 'svelte/store';
 	
 	import {
 		
@@ -115,8 +116,43 @@
 
 
 
+	let showDropdown = 'no'
+
+function toggleDropdown() {
+	if(showDropdown === 'no'){
+		showDropdown = 'yes'
+	}else{
+		showDropdown = 'no'
+	}
+  
+}
+
+
 
 	</script>
+
+
+<style>
+	/* Styling for the dropdown container */
+	.dropdown {
+	  position: relative;
+	  display: inline-block;
+	}
+  
+	/* Styling for the dropdown content when visible */
+	.dropdown-content-visible {
+	  display: block;
+	  position: absolute;
+	  z-index: 1;
+	}
+  
+	/* Styling for the dropdown content when hidden */
+	.dropdown-content-hidden {
+	  display: none;
+	}
+  </style>
+
+
 
 <div class="container p-10 space-y-4">
 	<h1>BOOKS</h1>
@@ -141,8 +177,13 @@
 
 						<tbody>
 							{#each UserBooks as book}
-
+							<div class="dropdown">
+								<button on:click={toggleDropdown}>
+								  Click me to show/hide dropdown
+								</button>
 							
+						<div class="{ showDropdown == 'yes' ? 'dropdown-content, dropdown-content-visible' : 'dropdown-content, dropdown-content-hidden'}">
+						  
 							<button
 								on:click={() => {  showBookDetails(book)}}
 								type="button"
@@ -156,6 +197,8 @@
 								class="m-2 btn-icon bg-surface-200-700-token">
 								<Icon class="p-2" data={trash} scale={2.5} />
 						</button>
+						</div>
+					</div>
 
 
 
