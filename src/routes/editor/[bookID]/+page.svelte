@@ -52,6 +52,7 @@
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
+	import BookNav from '$lib/components/book/BookNav.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -78,7 +79,7 @@
 				selectedChapterNode = chapterResponses[chapterID];
 			}
 
-			leftDrawerList = selectedChapterNode?._id;
+			leftDrawerSelectedItem = selectedChapterNode?._id;
 		}
 	});
 
@@ -137,18 +138,16 @@
 	}
 
 	let selectedChapterNode: HydratedDocument<ChapterProperties>;
-	let leftDrawerList = 'copyright';
+	let leftDrawerSelectedItem = 'copyright';
 
-	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
-		selectedChapterNode = chapterResponses[chapter._id];
-	}
+	function navItemClicked(event: { detail: any }) {
+		let itemID = event.detail;
 
-	function bookSelected() {
-		quill.chapter = undefined;
-	}
-
-	function storylineSelected() {
-		quill.chapter = undefined;
+		if (itemID in chapterResponses) {
+			selectedChapterNode = chapterResponses[itemID];
+		} else {
+			quill.chapter = undefined;
+		}
 	}
 
 	let modalComponent: ModalComponent = {
@@ -166,7 +165,7 @@
 
 			// Update the UI
 			let chapterID = chapterNode._id;
-			leftDrawerList = chapterID;
+			leftDrawerSelectedItem = chapterID;
 
 			// afterUpdate() will run the setup editor
 			chapterResponses[chapterID] = chapterNode;
@@ -284,7 +283,7 @@
 								}
 
 								let selectedChapterID = chapterIDs[nextIndex];
-								leftDrawerList = selectedChapterID;
+								leftDrawerSelectedItem = selectedChapterID;
 
 								// delete the node first
 								delete chapterResponses[deletedID];
@@ -717,72 +716,14 @@
 			position="left"
 			class="md:!relative h-full "
 		>
-			<div class="p-4 flex flex-col items-center bg-surface-50-900-token h-full">
-				<Accordion>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Book</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								<ListBoxItem
-									on:change={() => bookSelected()}
-									bind:group={leftDrawerList}
-									name="medium"
-									class="soft-listbox"
-									value="book"
-								>
-									<p class="line-clamp-1">{bookData.title}</p>
-								</ListBoxItem>
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Storyline</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								<ListBoxItem
-									on:change={() => storylineSelected()}
-									bind:group={leftDrawerList}
-									name="medium"
-									class="soft-listbox"
-									value="storyline"
-								>
-									<p class="line-clamp-1">{storylineResponse.title}</p>
-								</ListBoxItem>
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Chapters</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								{#each Object.entries(chapterResponses) as [id, chapterResponse]}
-									<ListBoxItem
-										on:change={() => chapterSelected(chapterResponse)}
-										bind:group={leftDrawerList}
-										name="chapter"
-										class="soft-listbox"
-										value={chapterResponse._id}
-									>
-										<div class="line-clamp-1 flex justify-between items-center">
-											<p class="line-clamp-1">{chapterResponse.title}</p>
-											{#if !chapterResponse.userPermissions?.view}
-												<Icon data={lock} scale={1.2} />
-											{/if}
-										</div>
-									</ListBoxItem>
-								{/each}
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<!-- ... -->
-				</Accordion>
-			</div>
+			<BookNav
+				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
+				book={bookData}
+				chapters={Object.values(chapterResponses)}
+				storyline={storylineResponse}
+				bind:selectedItem={leftDrawerSelectedItem}
+				on:navItemClicked={navItemClicked}
+			/>
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarRight">
@@ -975,11 +916,11 @@
 	</svelte:fragment>
 	<svelte:fragment slot="default">
 		<div class="flex h-full w-full">
-			{#if leftDrawerList === 'book'}
+			{#if leftDrawerSelectedItem === 'book'}
 				<div class="mx-2 my-4 md:mx-8 xl:mx-32">
 					<BookHeader {bookData} storylineData={storylineResponse} />
 				</div>
-			{:else if leftDrawerList === 'storyline'}
+			{:else if leftDrawerSelectedItem === 'storyline'}
 				<div class="mx-2 my-4 md:mx-8 xl:mx-32">
 					<BookHeader {bookData} storylineData={storylineResponse} />
 				</div>

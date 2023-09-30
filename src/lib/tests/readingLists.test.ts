@@ -5,7 +5,6 @@ import {
 	createDBUser,
 	createTestSession,
 	testUserOne,
-	testUserTwo,
 	createBook
 } from '$lib/util/testing/testing';
 
