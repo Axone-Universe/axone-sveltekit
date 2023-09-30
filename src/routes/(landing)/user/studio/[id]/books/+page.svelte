@@ -74,7 +74,7 @@
 
 	
 	
-	let deleteBook = (book: HydratedDocument<BookProperties>) => {
+	let deleteBook = (book: HydratedDocument<BookProperties>, index:number) => {
 		
 		const modal: ModalSettings = {
 			type: 'confirm',
@@ -101,6 +101,7 @@
 							
 								
 								UserBooks = UserBooks.filter(book => book._id !== deletedID);
+								showDropdownButton.splice(index, 1);
 							
 								
 							}
@@ -116,6 +117,16 @@
 	};
 
 
+	let showDropdownButton = Array(0).fill(false);
+	onMount(() => {
+		
+	showDropdownButton = Array(UserBooks.length).fill(false);
+	});
+
+
+	function toggleDropdownButton(index) {
+		showDropdownButton[index] = !showDropdownButton[index];
+	}
 
 	let showDropdown = 'no'
 
@@ -146,17 +157,28 @@ function toggleDropdown() {
 	  display: block;
 	  position: absolute;
 	  z-index: 1;
+	   /* Add your desired background color */
+	   /*background-color: #FF0000;*/
+	   
+  	  border: 1px solid #112241;   /* Add border or other styles if needed */
+  	  padding: 10px; 
+		        /* Add padding for better appearance */
+      border-radius: 20%;
+	  max-height: 220%;        /* Set the maximum height for the dropdown */
+ 
 	}
   
 	/* Styling for the dropdown content when hidden */
 	.dropdown-content-hidden {
 	  display: none;
 	}
+
+	
   </style>
 
 
 
-<div class="container p-10 space-y-4">
+<div class="container p-10 space-y-4 pb-4">
 	<h1>BOOKS</h1>
 	<body>
 		<div class="container">
@@ -177,17 +199,17 @@ function toggleDropdown() {
 							</tr>
 						</thead>
 
-						<tbody>
+						<tbody class="h-40vh">
 							{#each UserBooks as book, index}
 							<div class="dropdown">
-								<button on:click={toggleDropdown}
+								<button on:click={() => {toggleDropdown; toggleDropdownButton(index)}}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token">
 								
 								<Icon class="p-2" data={bars} scale={2.5} />
 								</button>
 							
-						<div class="{ showDropdown == 'yes' ? 'dropdown-content dropdown-content-visible ' : 'dropdown-content dropdown-content-hidden '}">
+						<div class="{ showDropdownButton[index] ? 'dropdown-content dropdown-content-visible bg-surface-100-800-token' : 'dropdown-content dropdown-content-hidden '}">
 						  <div class="flex flex-col">
 							<button
 								on:click={() => {  showBookDetails(book)}}
@@ -197,7 +219,7 @@ function toggleDropdown() {
 								<Icon class="p-2" data={edit} scale={2.5} />
 							</button>
 							<button
-							on:click={() => deleteBook(book)}
+							on:click={() => deleteBook(book, index)}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token">
 								<Icon class="p-2" data={trash} scale={2.5} />
@@ -221,6 +243,10 @@ function toggleDropdown() {
 									<td class="w-1/4">{book.count}</td>
 								</tr>
 							{/each}
+
+							<tr>
+								<td colspan="4" class="p-4"></td>
+							  </tr>
 
 						</tbody>
 					</table>
