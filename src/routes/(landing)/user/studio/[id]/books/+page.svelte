@@ -21,7 +21,8 @@
 		
 		trash,
 		edit,
-		
+		bars,
+				
 	} from 'svelte-awesome/icons';
 	
 	import BookDetailsModal from '$lib/components/book/BookDetailsModal.svelte';
@@ -137,6 +138,7 @@ function toggleDropdown() {
 	.dropdown {
 	  position: relative;
 	  display: inline-block;
+	  
 	}
   
 	/* Styling for the dropdown content when visible */
@@ -176,14 +178,17 @@ function toggleDropdown() {
 						</thead>
 
 						<tbody>
-							{#each UserBooks as book}
+							{#each UserBooks as book, index}
 							<div class="dropdown">
-								<button on:click={toggleDropdown}>
-								  Click me to show/hide dropdown
+								<button on:click={toggleDropdown}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token">
+								
+								<Icon class="p-2" data={bars} scale={2.5} />
 								</button>
 							
-						<div class="{ showDropdown == 'yes' ? 'dropdown-content, dropdown-content-visible' : 'dropdown-content, dropdown-content-hidden'}">
-						  
+						<div class="{ showDropdown == 'yes' ? 'dropdown-content dropdown-content-visible ' : 'dropdown-content dropdown-content-hidden '}">
+						  <div class="flex flex-col">
 							<button
 								on:click={() => {  showBookDetails(book)}}
 								type="button"
@@ -197,6 +202,7 @@ function toggleDropdown() {
 								class="m-2 btn-icon bg-surface-200-700-token">
 								<Icon class="p-2" data={trash} scale={2.5} />
 						</button>
+					</div>
 						</div>
 					</div>
 
