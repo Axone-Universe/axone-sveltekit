@@ -53,6 +53,7 @@
 	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import BookNav from '$lib/components/book/BookNav.svelte';
+	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -838,77 +839,51 @@
 					<div class="h-3/4 flex flex-col items-center">
 						<LightSwitch />
 						{#if selectedChapterNode}
-							<button
-								on:click={() => showChapterDetails()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={edit} scale={2.5} />
-							</button>
-							<button
-								on:click={() => toggleShowComments()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token relative"
-							>
-								<Icon class="p-2" data={dashcube} scale={2.5} />
-								{#if numComments > 0}
-									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
-										>{numComments}</span
-									>
-								{/if}
-							</button>
-							<button
-								on:click={() => toggleShowIllustrations()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token relative"
-							>
-								<Icon class="p-2" data={image} scale={2.5} />
-								{#if numIllustrations > 0}
-									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
-										>{numIllustrations}</span
-									>
-								{/if}
-							</button>
-							<button
-								on:click={() => showChapterNotes()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={stickyNote} scale={2.5} />
-							</button>
-							<button
-								on:click={() => showChapterPermissions()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={unlock} scale={2.5} />
-							</button>
+							<EditorNav
+								menuItems={[
+									{ label: 'Details', icon: edit, callback: showChapterDetails },
+									{
+										label: 'Comments',
+										icon: dashcube,
+										callback: toggleShowComments,
+										class: 'relative',
+										notification: numComments
+									},
+									{
+										label: 'Illustrations',
+										icon: image,
+										callback: toggleShowIllustrations,
+										class: 'relative',
+										notification: numIllustrations
+									},
+									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes },
+									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+								]}
+							/>
 						{/if}
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
-						{#if deltaChange.length() > 0}
-							<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-								<Icon class="p-2" data={spinner} scale={2.5} pulse />
-							</button>
-						{:else}
-							<button type="button" class="m-2 btn-icon bg-success-300-600-token">
-								<Icon class="p-2" data={check} scale={2.5} />
-							</button>
-						{/if}
-						<button
-							on:click={() => deleteChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={trash} scale={2.5} />
-						</button>
-						<button
-							on:click={() => createChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={plus} scale={2.5} />
-						</button>
+						<EditorNav
+							menuItems={[
+								{
+									label: 'Create',
+									icon: plus,
+									callback: createChapter
+								},
+								{
+									label: 'Delete',
+									icon: trash,
+									callback: deleteChapter
+								},
+								{
+									label: 'Auto Save',
+									icon: deltaChange.length() > 0 ? spinner : check,
+									pulse: deltaChange.length() > 0 ? true : false,
+									callback: () => {},
+									class: deltaChange.length() > 0 ? '' : '!bg-success-300-600-token'
+								}
+							]}
+						/>
 					</div>
 				</div>
 			</div>

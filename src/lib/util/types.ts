@@ -1,4 +1,5 @@
 import type { Bucket, StorageError as SupabasStorageError, FileObject } from '@supabase/storage-js';
+import type { IconData } from 'svelte-awesome/components/Icon.svelte';
 
 export interface DeltaQuery {
 	id?: string;
@@ -21,6 +22,15 @@ export interface CampaignProperties {
 	submissionCriteria: string;
 	rewards: string;
 	previewText: string;
+}
+
+export interface EditorMenuItem {
+	label: string;
+	icon: Record<string, IconData>;
+	callback(): void;
+	class?: string;
+	notification?: string | number;
+	pulse?: boolean;
 }
 
 export interface NodeRelationship {
