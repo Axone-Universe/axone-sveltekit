@@ -148,7 +148,7 @@
 					project: publishParams.asset[0].projectId,
 					image: publishParams.asset[0].data
 				};
-				//image_data.src = localData.image;
+				//image.src = localData.image;
 				//project_id = localData.project;
 
 				//let img = document.getElementById('savedDesign');
@@ -192,14 +192,11 @@
 		} else {
 			console.log('no input image provided');
 		}
-		ccEverywhere.terminate();
+		//ccEverywhere.terminate();
 	}
 	async function adobeCreateCover() {
 		let ccEverywhere = await window.CCEverywhere.initialize({
-			/* Get credentials at Adobe Developer Console.
-					During beta, your client will need to be enabled. 
-					Email your client ID (API Key) to amandah@adobe.com
-					*/
+		 
 			clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
 			appName: 'Axone',
 			appVersion: { major: 1, minor: 0 },
@@ -213,6 +210,10 @@
 					project: publishParams.asset[0].projectId,
 					image: publishParams.asset[0].data
 				};
+
+				imageFile = localData.image;
+			
+			
 				//image_data.src = localData.image;
 				//project_id = localData.project;
 				console.log('Created from scratch', localData);
@@ -255,7 +256,7 @@
 			}
 		});
 
-		ccEverywhere.terminate();
+		//ccEverywhere.terminate();
 	}
 	const popupSettings = (target: string) => {
 		let settings: PopupSettings = {
