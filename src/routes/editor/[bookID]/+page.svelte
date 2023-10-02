@@ -6,15 +6,11 @@
 		ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import {
-		Accordion,
-		AccordionItem,
 		AppShell,
 		Drawer,
 		drawerStore,
 		FileDropzone,
 		LightSwitch,
-		ListBox,
-		ListBoxItem,
 		modalStore,
 		toastStore
 	} from '@skeletonlabs/skeleton';
@@ -35,12 +31,13 @@
 		dashcube,
 		edit,
 		image,
+		infoCircle,
 		plus,
 		spinner,
 		stickyNote,
 		trash,
-		lock,
-		unlock
+		unlock,
+		star
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -50,8 +47,16 @@
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
-	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
+	import type {
+		EditorModes,
+		EditorMode,
+		StorageBucketError,
+		StorageError,
+		StorageFileError
+	} from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
+	import BookNav from '$lib/components/book/BookNav.svelte';
+	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -60,6 +65,8 @@
 	onMount(() => {
 		drawerStore.open(drawerSettings);
 	});
+
+	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
 
 	/**
 	 * Set up selected chapter before the DOM is updated.
@@ -78,7 +85,7 @@
 				selectedChapterNode = chapterResponses[chapterID];
 			}
 
-			leftDrawerList = selectedChapterNode?._id;
+			leftDrawerSelectedItem = selectedChapterNode?._id;
 		}
 	});
 
@@ -137,18 +144,16 @@
 	}
 
 	let selectedChapterNode: HydratedDocument<ChapterProperties>;
-	let leftDrawerList = 'copyright';
+	let leftDrawerSelectedItem = 'copyright';
 
-	function chapterSelected(chapter: HydratedDocument<ChapterProperties>) {
-		selectedChapterNode = chapterResponses[chapter._id];
-	}
+	function navItemClicked(event: { detail: any }) {
+		let itemID = event.detail;
 
-	function bookSelected() {
-		quill.chapter = undefined;
-	}
-
-	function storylineSelected() {
-		quill.chapter = undefined;
+		if (itemID in chapterResponses) {
+			selectedChapterNode = chapterResponses[itemID];
+		} else {
+			quill.chapter = undefined;
+		}
 	}
 
 	let modalComponent: ModalComponent = {
@@ -166,7 +171,7 @@
 
 			// Update the UI
 			let chapterID = chapterNode._id;
-			leftDrawerList = chapterID;
+			leftDrawerSelectedItem = chapterID;
 
 			// afterUpdate() will run the setup editor
 			chapterResponses[chapterID] = chapterNode;
@@ -175,6 +180,8 @@
 			chapterResponses = chapterResponses;
 		}
 	};
+
+	let rateStoryline = () => {};
 
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
@@ -284,7 +291,7 @@
 								}
 
 								let selectedChapterID = chapterIDs[nextIndex];
-								leftDrawerList = selectedChapterID;
+								leftDrawerSelectedItem = selectedChapterID;
 
 								// delete the node first
 								delete chapterResponses[deletedID];
@@ -662,7 +669,7 @@
 		if (container) {
 			container.innerHTML = '';
 			quill = new QuillEditor(container, selectedChapterNode, $page, {
-				reader: false,
+				reader: mode === 'reader' ? true : false,
 				theme: 'bubble',
 				modules: {
 					toolbar: {
@@ -717,72 +724,14 @@
 			position="left"
 			class="md:!relative h-full "
 		>
-			<div class="p-4 flex flex-col items-center bg-surface-50-900-token h-full">
-				<Accordion>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Book</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								<ListBoxItem
-									on:change={() => bookSelected()}
-									bind:group={leftDrawerList}
-									name="medium"
-									class="soft-listbox"
-									value="book"
-								>
-									<p class="line-clamp-1">{bookData.title}</p>
-								</ListBoxItem>
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Storyline</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								<ListBoxItem
-									on:change={() => storylineSelected()}
-									bind:group={leftDrawerList}
-									name="medium"
-									class="soft-listbox"
-									value="storyline"
-								>
-									<p class="line-clamp-1">{storylineResponse.title}</p>
-								</ListBoxItem>
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<p class="text-lg font-bold">Chapters</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<ListBox>
-								{#each Object.entries(chapterResponses) as [id, chapterResponse]}
-									<ListBoxItem
-										on:change={() => chapterSelected(chapterResponse)}
-										bind:group={leftDrawerList}
-										name="chapter"
-										class="soft-listbox"
-										value={chapterResponse._id}
-									>
-										<div class="line-clamp-1 flex justify-between items-center">
-											<p class="line-clamp-1">{chapterResponse.title}</p>
-											{#if !chapterResponse.userPermissions?.view}
-												<Icon data={lock} scale={1.2} />
-											{/if}
-										</div>
-									</ListBoxItem>
-								{/each}
-							</ListBox>
-						</svelte:fragment>
-					</AccordionItem>
-					<!-- ... -->
-				</Accordion>
-			</div>
+			<BookNav
+				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
+				book={bookData}
+				chapters={Object.values(chapterResponses)}
+				storyline={storylineResponse}
+				bind:selectedItem={leftDrawerSelectedItem}
+				on:navItemClicked={navItemClicked}
+			/>
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarRight">
@@ -897,77 +846,68 @@
 					<div class="h-3/4 flex flex-col items-center">
 						<LightSwitch />
 						{#if selectedChapterNode}
-							<button
-								on:click={() => showChapterDetails()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={edit} scale={2.5} />
-							</button>
-							<button
-								on:click={() => toggleShowComments()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token relative"
-							>
-								<Icon class="p-2" data={dashcube} scale={2.5} />
-								{#if numComments > 0}
-									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
-										>{numComments}</span
-									>
-								{/if}
-							</button>
-							<button
-								on:click={() => toggleShowIllustrations()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token relative"
-							>
-								<Icon class="p-2" data={image} scale={2.5} />
-								{#if numIllustrations > 0}
-									<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
-										>{numIllustrations}</span
-									>
-								{/if}
-							</button>
-							<button
-								on:click={() => showChapterNotes()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={stickyNote} scale={2.5} />
-							</button>
-							<button
-								on:click={() => showChapterPermissions()}
-								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={unlock} scale={2.5} />
-							</button>
+							<EditorNav
+								{mode}
+								menuItems={[
+									{
+										label: 'Details',
+										icon: mode === 'reader' ? infoCircle : edit,
+										callback: showChapterDetails
+									},
+									{
+										label: 'Rate',
+										icon: star,
+										callback: rateStoryline,
+										mode: 'reader'
+									},
+									{
+										label: 'Comments',
+										icon: dashcube,
+										callback: toggleShowComments,
+										class: 'relative',
+										notification: numComments,
+										mode: 'writer'
+									},
+									{
+										label: 'Illustrations',
+										icon: image,
+										callback: toggleShowIllustrations,
+										class: 'relative',
+										notification: numIllustrations,
+										mode: 'writer'
+									},
+									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes, mode: 'writer' },
+									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+								]}
+							/>
 						{/if}
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
-						{#if deltaChange.length() > 0}
-							<button type="button" class="m-2 btn-icon bg-surface-200-700-token">
-								<Icon class="p-2" data={spinner} scale={2.5} pulse />
-							</button>
-						{:else}
-							<button type="button" class="m-2 btn-icon bg-success-300-600-token">
-								<Icon class="p-2" data={check} scale={2.5} />
-							</button>
-						{/if}
-						<button
-							on:click={() => deleteChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={trash} scale={2.5} />
-						</button>
-						<button
-							on:click={() => createChapter()}
-							type="button"
-							class="m-2 btn-icon bg-surface-200-700-token"
-						>
-							<Icon class="p-2" data={plus} scale={2.5} />
-						</button>
+						<EditorNav
+							{mode}
+							menuItems={[
+								{
+									label: 'Create',
+									icon: plus,
+									callback: createChapter,
+									mode: 'writer'
+								},
+								{
+									label: 'Delete',
+									icon: trash,
+									callback: deleteChapter,
+									mode: 'writer'
+								},
+								{
+									label: 'Auto Save',
+									icon: deltaChange.length() > 0 ? spinner : check,
+									pulse: deltaChange.length() > 0 ? true : false,
+									callback: () => {},
+									class: deltaChange.length() > 0 ? '' : '!bg-success-300-600-token',
+									mode: 'writer'
+								}
+							]}
+						/>
 					</div>
 				</div>
 			</div>
@@ -975,11 +915,11 @@
 	</svelte:fragment>
 	<svelte:fragment slot="default">
 		<div class="flex h-full w-full">
-			{#if leftDrawerList === 'book'}
+			{#if leftDrawerSelectedItem === 'book'}
 				<div class="mx-2 my-4 md:mx-8 xl:mx-32">
 					<BookHeader {bookData} storylineData={storylineResponse} />
 				</div>
-			{:else if leftDrawerList === 'storyline'}
+			{:else if leftDrawerSelectedItem === 'storyline'}
 				<div class="mx-2 my-4 md:mx-8 xl:mx-32">
 					<BookHeader {bookData} storylineData={storylineResponse} />
 				</div>

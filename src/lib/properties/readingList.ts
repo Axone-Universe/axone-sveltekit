@@ -1,6 +1,3 @@
-import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from './book';
-
 export const label = 'ReadingList';
 
 export const DEFAULT = ['Finished Reading', 'Currently Reading', 'Future Reading'] as const;

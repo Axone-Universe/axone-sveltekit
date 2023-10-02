@@ -76,7 +76,6 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 	}
 
 	async update(): Promise<HydratedDocument<UserProperties>> {
-		console.log(this._userProperties.readingLists);
 		await User.findOneAndUpdate({ _id: this._userProperties._id }, this._userProperties);
 
 		const newUser = await User.aggregate([

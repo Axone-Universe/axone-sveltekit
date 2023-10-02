@@ -125,7 +125,7 @@
 				</div>
 
 				<div class="flex flex-row space-x-2">
-					<a href="/reader/{bookData._id}" class="btn variant-filled py-1">
+					<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
 						<Icon class="p-2" data={leanpub} scale={2.5} />
 						Read
 					</a>
