@@ -10,10 +10,8 @@
 	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 	import StorylineDetailsModal from '$lib/components/storyline/StorylineDetailsModal.svelte';
 	import {
-		
 		modalStore
 	} from '@skeletonlabs/skeleton';
-	
 	import type {  StorylineProperties } from '$lib/properties/storyline';
 	import { onMount } from 'svelte';
 	import {
@@ -24,11 +22,8 @@
 		
 	} from 'svelte-awesome/icons';
 
-
-
 	export let data: PageData;
 	$: ({  UserStorylines} = data);
-
 
 	let modalComponent: ModalComponent = {
 		ref: undefined
@@ -43,18 +38,11 @@
 				return;
 			}
 
-			
 			let chapterID = storylineNode._id;
-			
-
-			
 			UserStorylines[chapterID] = storylineNode;
-
-			
 			UserStorylines = UserStorylines;
 		}
 	};
-
 
 	let showChapterDetails = (storyline: HydratedDocument<StorylineProperties>) => {
 		
@@ -72,10 +60,10 @@
 	
 		const modal: ModalSettings = {
 			type: 'confirm',
-			// Data
+		
 			title: storyline.title,
 			body: 'Are you sure you wish to delete this chapter?',
-			// TRUE if confirm pressed, FALSE if cancel pressed
+		
 			response: (r: boolean) => {
 				if (r) {
 					trpc($page)
@@ -96,7 +84,7 @@
 								
 								UserStorylines = UserStorylines.filter(storyline => storyline._id !== deletedID);
 								UserStorylines = UserStorylines;
-								// setup the editor
+							
 								
 							}
 						})
@@ -126,14 +114,14 @@
 
 
 <style>
-	/* Styling for the dropdown container */
+	
 	.dropdown {
 	  position: relative;
 	  display: inline-block;
 	  
 	}
   
-	/* Styling for the dropdown content when visible */
+	
 	.dropdown-content-visible {
 	  display: block;
 	  position: absolute;
@@ -147,13 +135,13 @@
  
 	}
   
-	/* Styling for the dropdown content when hidden */
+	
 	.dropdown-content-hidden {
 	  display: none;
 	}
 	.custom-padding {
     padding-top: 1rem;
-    /* Add other padding/margin styles as needed */
+   
   	}
 
 	

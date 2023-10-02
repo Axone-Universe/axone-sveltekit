@@ -11,12 +11,9 @@
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import { afterUpdate } from 'svelte';
 	import {
-		
 		modalStore
 	} from '@skeletonlabs/skeleton';
-	
 	import type {  ChapterProperties } from '$lib/properties/chapter';
-	
 	import { onMount } from 'svelte';
 	import {
 		
@@ -57,11 +54,6 @@
 	};
 
 
-	/*afterUpdate(() => {
-    console.log('New update');
-	UserChapters = UserChapters;
-	
-  	});*/
 
 	let showChapterDetails = (bookID: string, chapId: string) => {
 		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
@@ -83,10 +75,10 @@
 		const foundChapter = UserChapters.find((chapter) => chapter._id === chapId);
 		const modal: ModalSettings = {
 			type: 'confirm',
-			// Data
+		
 			title: foundChapter.title,
 			body: 'Are you sure you wish to delete this chapter?',
-			// TRUE if confirm pressed, FALSE if cancel pressed
+			
 			response: (r: boolean) => {
 				if (r) {
 					
@@ -140,32 +132,32 @@
 	</script>
 
 <style>
-	/* Styling for the dropdown container */
+	
 	.dropdown {
 	  position: relative;
 	  display: inline-block;
 	  
 	}
   
-	/* Styling for the dropdown content when visible */
+	
 	.dropdown-content-visible {
 	  display: block;
 	  position: absolute;
 	  z-index: 1;
-  	  border: 1px solid #112241;   /* Add border or other styles if needed */
+  	  border: 1px solid #112241;  
   	  padding: 10px; 
 	  border-radius: 20%;
 	  max-height: 220%;   
 	  max-width:110%;  
 	}
   
-	/* Styling for the dropdown content when hidden */
+	
 	.dropdown-content-hidden {
 	  display: none;
 	}
 	.custom-padding {
     padding-top: 1rem;
-    /* Add other padding/margin styles as needed */
+  
   	}
 	
   </style>

@@ -13,10 +13,8 @@
 		
 		modalStore
 	} from '@skeletonlabs/skeleton';
-	
 	import { onMount } from 'svelte';
   	import { writable } from 'svelte/store';
-	
 	import {
 		
 		trash,
@@ -48,14 +46,8 @@
 				return;
 			}
 
-			// Update the UI
 			let bookID = bookData._id;
-			
-
-			// afterUpdate() will run the setup editor
 			UserBooks[bookID] = bookData;
-
-			
 			UserBooks = UserBooks;
 		}
 		
@@ -78,10 +70,10 @@
 		
 		const modal: ModalSettings = {
 			type: 'confirm',
-			// Data
+		
 			title: book.title,
 			body: 'Are you sure you wish to delete this chapter?',
-			// TRUE if confirm pressed, FALSE if cancel pressed
+		
 			response: (r: boolean) => {
 				if (r) {
 					trpc($page)
@@ -163,7 +155,7 @@
 
 	.custom-padding {
     padding-top: 1rem;
-    /* Add other padding/margin styles as needed */
+    
   	}
 	
   </style>
