@@ -14,7 +14,7 @@
 	} from '@skeletonlabs/skeleton';
 
 	let currentPlace = $page.params;
-	$:activeTab = 'books'; 
+	
 	let studioNavList = 'book';
 
 	
@@ -34,15 +34,15 @@
 
 
 	function goToBooks(){
-		activeTab = 'books';
+		
 		goto(`../${currentPlace.id}/books`);
 	}
 	function goToChapters(){
-		activeTab = 'chapters';
+		
 		goto(`../${currentPlace.id}/chapters`);
 	}
 	function goToStorylines(){
-		activeTab = 'storylines';
+		
 		goto(`../${currentPlace.id}/storylines`);
 	}
 </script>
@@ -57,15 +57,15 @@
 			<div class="border-r border-gray-300 pr-4 h-full flex flex-col">
 				<strong class="text-2xl pb-4">Studio</strong>
 				<ListBox class="flex flex-col h-full" >
-					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { console.log(activeTab) ; goToBooks()}} class='soft-listbox' value='book'>
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { goToBooks()}} class='soft-listbox' value='book'>
 						Books
 					</ListBoxItem >
 			
-					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { console.log(activeTab) ; goToChapters()}} class= 'soft-listbox'value='chapter'>
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => {  goToChapters()}} class= 'soft-listbox'value='chapter'>
 						Chapters
 					</ListBoxItem >
 					
-					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => {  console.log(activeTab) ; goToStorylines()}} class='soft-listbox' value='storyline'>
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { goToStorylines()}} class='soft-listbox' value='storyline'>
 						Storylines
 					</ListBoxItem>	
 				</ListBox>
