@@ -143,6 +143,15 @@
 
 		const createDesignCallback = {
 			onCancel: () => {},
+			onLoadStart: () => {
+				try {
+					const ccERoot = [...document.body.children].find(c => c.tagName.toLowerCase().startsWith('cc-everywhere'));
+					ccERoot.style.position = 'absolute';
+					ccERoot.style.zIndex = 2000;
+					} catch (err) {
+					console.log('ERROR', err);
+					}
+			},
 			onPublish: (publishParams) => {
 				const localData = {
 					project: publishParams.asset[0].projectId,
@@ -205,6 +214,15 @@
 
 		const createDesignCallback = {
 			onCancel: () => {},
+			onLoadStart: () => {
+				try {
+					const ccERoot = [...document.body.children].find(c => c.tagName.toLowerCase().startsWith('cc-everywhere'));
+					ccERoot.style.position = 'absolute';
+					ccERoot.style.zIndex = 2000;
+					} catch (err) {
+					console.log('ERROR', err);
+					}
+			},
 			onPublish: (publishParams) => {
 				const localData = {
 					project: publishParams.asset[0].projectId,
@@ -212,11 +230,11 @@
 				};
 
 				imageFile = localData.image;
-			
-			
+
+
 				//image_data.src = localData.image;
 				//project_id = localData.project;
-				console.log('Created from scratch', localData);
+				console.log('Created from scratch', localData.image);
 				const t: ToastSettings = {
 					message: 'Book created successfully',
 					background: 'variant-filled-primary'
