@@ -168,7 +168,7 @@
   </style>
 
 <div class="container p-10 space-y-4 pb-4">
-	<strong class="text-2xl ">CHAPTERS</strong>
+	<strong class="text-2xl ">Chapters</strong>
 	
 	<body>
 		<div class="container">

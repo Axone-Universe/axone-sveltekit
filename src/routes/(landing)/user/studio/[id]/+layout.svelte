@@ -38,6 +38,7 @@
 
 	let currentPlace = $page.params;
 	$:activeTab = 'books'; 
+	let studioNavList = 'book';
 
 	//import '../app.postcss';
 	const drawerSettings: DrawerSettings = {
@@ -75,10 +76,10 @@
 
 
 <!-- App Shell -->
-<AppShell slotSidebarLeft=" {classesSidebarLeft}" class="flex flex-col h-full bg-transparent">
+<AppShell slotSidebarLeft=" {classesSidebarLeft}" class="flex flex-col h-full !bg-transparent">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar >
+		<AppBar class="!bg-transparent">
 			<svelte:fragment slot="lead">
 				<div class="flex items-center bg-transparent">
 					
@@ -93,15 +94,15 @@
 		<nav class="list-nav p-4 flex flex-col h-full" >
 			<div class="border-r border-gray-300 pr-4 h-full flex flex-col">
 				<ListBox class="flex flex-col h-full" >
-					<ListBoxItem name="{activeTab === 'books' ? '' : 'medium'}" on:click={() => { console.log(activeTab) ; goToBooks()}} class="{activeTab === 'books' ? 'bg-indigo-950' : 'soft-listbox'}" value="{activeTab === 'books' ? '' : 'book'}">
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { console.log(activeTab) ; goToBooks()}} class='soft-listbox' value='book'>
 						Books
 					</ListBoxItem >
 			
-					<ListBoxItem name="{activeTab === 'chapters' ? '' : 'medium'}" on:click={() => { console.log(activeTab) ; goToChapters()}} class="{activeTab === 'chapters' ? 'bg-indigo-950' : 'soft-listbox'}" value="{activeTab === 'chapters' ? '' : 'book'}">
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { console.log(activeTab) ; goToChapters()}} class= 'soft-listbox'value='chapter'>
 						Chapters
 					</ListBoxItem >
 					
-					<ListBoxItem name="{activeTab === 'storylines' ? '' : 'medium'}" on:click={() => {  console.log(activeTab) ; goToStorylines()}} class="{activeTab === 'storylines' ? 'bg-indigo-950' : 'soft-listbox'}" value="{activeTab === 'storylines' ? '' : 'book'}">
+					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => {  console.log(activeTab) ; goToStorylines()}} class='soft-listbox' value='storyline'>
 						Storylines
 					</ListBoxItem>	
 				</ListBox>

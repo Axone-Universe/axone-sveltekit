@@ -157,7 +157,7 @@
 
 
 <div class="container p-10 space-y-4">
-	<strong class="text-2xl ">STORYLINES</strong>
+	<strong class="text-2xl ">Storylines</strong>
 	
 	<body>
 		<div class="container">

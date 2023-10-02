@@ -167,7 +167,7 @@
 
 
 <div class="container p-10 space-y-4  ">
-	<strong class="text-2xl ">BOOKS</strong>
+	<strong class="text-2xl ">Books</strong>
 	<body>
 		<div class="container">
 			<div class="row">
