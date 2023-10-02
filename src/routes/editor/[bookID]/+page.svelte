@@ -6,15 +6,11 @@
 		ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import {
-		Accordion,
-		AccordionItem,
 		AppShell,
 		Drawer,
 		drawerStore,
 		FileDropzone,
 		LightSwitch,
-		ListBox,
-		ListBoxItem,
 		modalStore,
 		toastStore
 	} from '@skeletonlabs/skeleton';
@@ -35,12 +31,13 @@
 		dashcube,
 		edit,
 		image,
+		infoCircle,
 		plus,
 		spinner,
 		stickyNote,
 		trash,
-		lock,
-		unlock
+		unlock,
+		star
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -50,7 +47,13 @@
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
-	import type { StorageBucketError, StorageError, StorageFileError } from '$lib/util/types';
+	import type {
+		EditorModes,
+		EditorMode,
+		StorageBucketError,
+		StorageError,
+		StorageFileError
+	} from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
@@ -62,6 +65,8 @@
 	onMount(() => {
 		drawerStore.open(drawerSettings);
 	});
+
+	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
 
 	/**
 	 * Set up selected chapter before the DOM is updated.
@@ -175,6 +180,8 @@
 			chapterResponses = chapterResponses;
 		}
 	};
+
+	let rateStoryline = () => {};
 
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
@@ -662,7 +669,7 @@
 		if (container) {
 			container.innerHTML = '';
 			quill = new QuillEditor(container, selectedChapterNode, $page, {
-				reader: false,
+				reader: mode === 'reader' ? true : false,
 				theme: 'bubble',
 				modules: {
 					toolbar: {
@@ -840,23 +847,36 @@
 						<LightSwitch />
 						{#if selectedChapterNode}
 							<EditorNav
+								{mode}
 								menuItems={[
-									{ label: 'Details', icon: edit, callback: showChapterDetails },
+									{
+										label: 'Details',
+										icon: mode === 'reader' ? infoCircle : edit,
+										callback: showChapterDetails
+									},
+									{
+										label: 'Rate',
+										icon: star,
+										callback: rateStoryline,
+										mode: 'reader'
+									},
 									{
 										label: 'Comments',
 										icon: dashcube,
 										callback: toggleShowComments,
 										class: 'relative',
-										notification: numComments
+										notification: numComments,
+										mode: 'writer'
 									},
 									{
 										label: 'Illustrations',
 										icon: image,
 										callback: toggleShowIllustrations,
 										class: 'relative',
-										notification: numIllustrations
+										notification: numIllustrations,
+										mode: 'writer'
 									},
-									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes },
+									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes, mode: 'writer' },
 									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
 								]}
 							/>
@@ -864,23 +884,27 @@
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						<EditorNav
+							{mode}
 							menuItems={[
 								{
 									label: 'Create',
 									icon: plus,
-									callback: createChapter
+									callback: createChapter,
+									mode: 'writer'
 								},
 								{
 									label: 'Delete',
 									icon: trash,
-									callback: deleteChapter
+									callback: deleteChapter,
+									mode: 'writer'
 								},
 								{
 									label: 'Auto Save',
 									icon: deltaChange.length() > 0 ? spinner : check,
 									pulse: deltaChange.length() > 0 ? true : false,
 									callback: () => {},
-									class: deltaChange.length() > 0 ? '' : '!bg-success-300-600-token'
+									class: deltaChange.length() > 0 ? '' : '!bg-success-300-600-token',
+									mode: 'writer'
 								}
 							]}
 						/>

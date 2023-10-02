@@ -120,12 +120,12 @@
 								<div class="btn-group variant-filled">
 									<a
 										class="button"
-										href="/reader/{bookData._id}?storylineID={activeStoryline._id}&chapterID={chapter._id}"
+										href="/editor/{bookData._id}?mode=reader&storylineID={activeStoryline._id}&chapterID={chapter._id}"
 										>Read</a
 									>
 									<a
 										class="button"
-										href="/editor/{bookData._id}?storylineID={activeStoryline._id}&chapterID={chapter._id}"
+										href="/editor/{bookData._id}?mode=writer&storylineID={activeStoryline._id}&chapterID={chapter._id}"
 										>Edit</a
 									>
 									<a

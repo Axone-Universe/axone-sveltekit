@@ -76,7 +76,7 @@
 			<hr class="opacity-50 min-w-full" />
 			<footer class="btn-group variant-filled py-1 max-w-fit">
 				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
-				<a on:click={closeModal} class="button" href="/reader/{bookData._id}">Read</a>
+				<a on:click={closeModal} class="button" href="/editor/{bookData._id}?mode=reader">Read</a>
 			</footer>
 		</div>
 	</div>

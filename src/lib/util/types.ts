@@ -24,6 +24,9 @@ export interface CampaignProperties {
 	previewText: string;
 }
 
+export const EditorModes = ['reader', 'writer'] as const;
+export type EditorMode = (typeof EditorModes)[number];
+
 export interface EditorMenuItem {
 	label: string;
 	icon: Record<string, IconData>;
@@ -31,6 +34,7 @@ export interface EditorMenuItem {
 	class?: string;
 	notification?: string | number;
 	pulse?: boolean;
+	mode?: EditorMode;
 }
 
 export interface NodeRelationship {

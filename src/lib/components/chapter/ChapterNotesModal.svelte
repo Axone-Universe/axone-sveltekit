@@ -236,6 +236,8 @@
 		</footer>
 	</form>
 
+	<hr class="opacity-100 mx-4" />
+
 	<div class="p-4">
 		<div>
 			<div class="flex input px-4 my-4 items-center">
