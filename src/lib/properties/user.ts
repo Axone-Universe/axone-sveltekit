@@ -1,10 +1,9 @@
-import type { HydratedDocument } from 'mongoose';
 import type { Genre } from './genre';
-import type { ReadingListProperties } from './readingList';
 
 export const label = 'User';
 
 export const USER_LABELS = ['Writer', 'Illustrator', 'Editor'] as const;
+export const DEFAULT_READING_LIST = 'All';
 export type UserLabel = (typeof USER_LABELS)[number];
 
 export interface UserProperties {
@@ -19,7 +18,7 @@ export interface UserProperties {
 	twitter?: string;
 	genres?: Genre[];
 	labels?: UserLabel[];
-	readingLists: HydratedDocument<ReadingListProperties>[];
+	readingLists: Map<string, string[]>;
 }
 
 export class UserPropertyBuilder {
@@ -37,7 +36,7 @@ export class UserPropertyBuilder {
 			twitter: '',
 			labels: [],
 			genres: [],
-			readingLists: []
+			readingLists: new Map([[DEFAULT_READING_LIST, []]])
 		};
 	}
 

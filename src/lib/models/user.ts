@@ -1,7 +1,7 @@
 import { GENRES } from '$lib/properties/genre';
-import { label, USER_LABELS, type UserProperties } from '$lib/properties/user';
+import { DEFAULT_READING_LIST, label, USER_LABELS, type UserProperties } from '$lib/properties/user';
+import { label as StorylineLabel } from '$lib/properties/storyline';
 import mongoose, { Schema, model } from 'mongoose';
-import { readingListSchema } from './readingList';
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },
@@ -25,7 +25,16 @@ export const userSchema = new Schema<UserProperties>({
 			enum: USER_LABELS
 		}
 	],
-	readingLists: [readingListSchema]
+	readingLists: {
+		type: Map,
+		of: [
+			{
+				type: String,
+				ref: StorylineLabel
+			}
+		],
+		default: new Map([[DEFAULT_READING_LIST, []]])
+	}
 });
 
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });

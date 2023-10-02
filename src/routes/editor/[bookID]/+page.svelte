@@ -37,7 +37,8 @@
 		stickyNote,
 		trash,
 		unlock,
-		star
+		star,
+		bookmark
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -45,19 +46,12 @@
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
-	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
-	import type {
-		EditorModes,
-		EditorMode,
-		StorageBucketError,
-		StorageError,
-		StorageFileError
-	} from '$lib/util/types';
+	import type { EditorMode, StorageFileError } from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
-	import type { StorylineProperties } from '$lib/properties/storyline';
+	import type { UserProperties } from '$lib/properties/user';
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
 
 	export let data: PageData;
@@ -67,9 +61,22 @@
 	let selectedStorylineChapters: { [key: string]: HydratedDocument<ChapterProperties> } = {};
 	$: navChapters = Object.values(selectedStorylineChapters);
 
+	let user: HydratedDocument<UserProperties> | undefined = undefined;
+
 	onMount(() => {
 		loadChapters();
 		drawerStore.open(drawerSettings);
+
+		async function getUser() {
+			if (session) {
+				const maybeUser = await trpc($page).users.getById.query({ id: session?.user.id });
+				if (maybeUser) {
+					user = maybeUser as HydratedDocument<UserProperties>;
+				}
+			}
+		}
+
+		getUser();
 	});
 
 	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
@@ -189,6 +196,15 @@
 		}
 	};
 
+	const readingListModal: ModalSettings = {
+		type: 'component',
+		component: 'readingListModal',
+		title: 'Add to Reading List',
+		response: (r) => {
+			if (r) addToReadingList(r);
+		}
+	};
+
 	let rateStoryline = () => {
 		modalComponent.ref = StorylineReviewModal;
 		modalComponent.props = {
@@ -196,6 +212,26 @@
 		};
 		modalStore.trigger(modalSettings);
 	};
+
+	async function addToReadingList(names: string[]) {
+		try {
+			user = (await trpc($page).users.updateReadingLists.mutate({
+				names,
+				storylineID: selectedStoryline._id
+			})) as HydratedDocument<UserProperties>;
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
+	function openReadingListModal() {
+		readingListModal.meta = {
+			user,
+			storylineID: selectedStoryline._id
+		};
+		readingListModal.body = `Select the reading lists to add "${selectedStoryline.title}" to.`;
+		modalStore.trigger(readingListModal);
+	}
 
 	/**
 	 * Chapters
@@ -942,7 +978,14 @@
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes, mode: 'writer' },
+									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions },
+									{
+										label: 'Add to Reading List',
+										icon: bookmark,
+										callback: openReadingListModal,
+										mode: 'reader'
+									}
 								]}
 							/>
 						{/if}

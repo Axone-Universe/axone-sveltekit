@@ -11,6 +11,8 @@
 	import { storePopup, Toast, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
+	import ReadingListModal from '$lib/components/modal/ReadingListModal.svelte';
+
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
 
@@ -29,7 +31,11 @@
 		return () => subscription.unsubscribe();
 	});
 
-	const modalComponentRegistry: Record<string, ModalComponent> = {};
+	const modalComponentRegistry: Record<string, ModalComponent> = {
+		readingListModal: {
+			ref: ReadingListModal
+		}
+	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>

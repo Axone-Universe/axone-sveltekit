@@ -1,25 +1,14 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
-	import {
-		leanpub,
-		star,
-		infoCircle,
-		bookmark,
-		bookmarkO,
-		lock,
-		eyeSlash,
-		caretDown
-	} from 'svelte-awesome/icons';
+	import { leanpub, star, infoCircle, caretDown, eyeSlash } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { type PopupSettings, popup, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 
-	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
-	import type { ReadingListProperties } from '$lib/properties/readingList';
 
 	let customClass = '';
 	export { customClass as class };
@@ -30,11 +19,10 @@
 	let dispatch = createEventDispatcher();
 
 	let bookGenres: Genre[] | undefined;
-	let readingLists: HydratedDocument<ReadingListProperties>[] = [];
+	let readingLists: string[] = [];
 
 	onMount(() => {
-		readingLists = JSON.parse(JSON.stringify($page.data.user.readingLists));
-		showAddedToReadingList();
+		readingLists = $page.data.user.readingLists;
 	});
 
 	afterUpdate(() => {
@@ -66,36 +54,6 @@
 		placement: 'bottom',
 		closeQuery: '.listbox-item'
 	};
-
-	// This is a variable to check if storyline is in a reading list
-	let addedToReadingList = false;
-	function showAddedToReadingList() {
-		for (const readingList of readingLists) {
-			if (storylineData._id in readingList.books) {
-				addedToReadingList = true;
-				return;
-			}
-		}
-		addedToReadingList = false;
-	}
-
-	function addToReadingList(readingList: HydratedDocument<ReadingListProperties>) {
-		if (storylineData._id in readingList.books) {
-			delete readingList.books[storylineData._id];
-		} else {
-			readingList.books[storylineData._id] = storylineData._id;
-		}
-
-		trpc($page)
-			.users.update.mutate({
-				_id: $page.data.user._id,
-				readingLists: readingLists
-			})
-			.then((userResponse: any) => {
-				readingLists = userResponse.readingLists;
-				showAddedToReadingList();
-			});
-	}
 
 	const storylineClicked = (id: string) => {
 		storylineData = storylines[id];
@@ -192,32 +150,6 @@
 						<Icon class="p-2" data={leanpub} scale={2.5} />
 						Read
 					</a>
-					<div>
-						<button use:popup={readingListPopup} type="button" class="btn-icon variant-filled">
-							{#if addedToReadingList}
-								<Icon class="p-2" data={bookmark} scale={2.5} />
-							{:else}
-								<Icon class="p-2" data={bookmarkO} scale={2.5} />
-							{/if}
-						</button>
-
-						<div class="card p-4 space-y-2 w-fit shadow-xl" data-popup="readingListPopup">
-							{#each readingLists as readingList}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<div
-									class="btn variant-soft-primary cursor-pointer flex space-x-4 justify-between"
-									on:click={() => addToReadingList(readingList)}
-								>
-									<p class="line-clamp-1">{readingList.title}</p>
-									{#if storylineData._id in readingList.books}
-										<Icon data={bookmark} scale={1.2} />
-									{:else}
-										<Icon data={bookmarkO} scale={1.2} />
-									{/if}
-								</div>
-							{/each}
-						</div>
-					</div>
 				</div>
 				<div class="space-x-2 line-clamp-1">
 					{#if bookGenres}
@@ -237,6 +169,8 @@
 		</div>
 	</div>
 </div>
+
+<!-- TODO: fix this file -->
 
 <style>
 	@font-face {
