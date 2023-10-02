@@ -14,12 +14,13 @@
 		modalStore
 	} from '@skeletonlabs/skeleton';
 	
-	import type {  StorylineProperties } from '$lib/shared/storyline';
-	
+	import type {  StorylineProperties } from '$lib/properties/storyline';
+	import { onMount } from 'svelte';
 	import {
 	
 		trash,
 		edit,
+		bars
 		
 	} from 'svelte-awesome/icons';
 
@@ -110,12 +111,53 @@
 	
 	
 
+	let showDropdownButton = Array(0).fill(false);
+	onMount(() => {
+		
+	showDropdownButton = Array(UserStorylines.length).fill(false);
+	});
+
+
+	function toggleDropdownButton(index) {
+		showDropdownButton[index] = !showDropdownButton[index];
+	}
+	
+</script>
+
+
+<style>
+	/* Styling for the dropdown container */
+	.dropdown {
+	  position: relative;
+	  display: inline-block;
+	  
+	}
+  
+	/* Styling for the dropdown content when visible */
+	.dropdown-content-visible {
+	  display: block;
+	  position: absolute;
+	  z-index: 1;
+  	  border: 1px solid #112241;  
+  	  padding: 10px; 
+      border-radius: 20%;
+	  max-width:110%;
+	  max-height: 220%;   
+	  
+ 
+	}
+  
+	/* Styling for the dropdown content when hidden */
+	.dropdown-content-hidden {
+	  display: none;
+	}
 
 	
-	</script>
+  </style>
+
 
 <div class="container p-10 space-y-4">
-	<h1>STORYLINES</h1>
+	<strong class="text-2xl ">STORYLINES</strong>
 	
 	<body>
 		<div class="container">
@@ -138,8 +180,17 @@
 						</thead>
 
 						<tbody>
-							{#each UserStorylines as storyline}
+							{#each UserStorylines as storyline, index}
+							<div class="dropdown">
+								<button on:click={() => { toggleDropdownButton(index)}}
+								type="button"
+								class="m-2 btn-icon bg-surface-200-700-token">
+								
+								<Icon class="p-2" data={bars} scale={2.5} />
+								</button>
 							
+							<div class="{ showDropdownButton[index] ? 'dropdown-content dropdown-content-visible bg-surface-100-800-token' : 'dropdown-content dropdown-content-hidden '}">
+						  	<div class="flex flex-col justify-center items-center">
 							<button
 								on:click={() => showChapterDetails(storyline)}
 								type="button"
@@ -153,14 +204,17 @@
 											class="m-2 btn-icon bg-surface-200-700-token">
 											<Icon class="p-2" data={trash} scale={2.5} />
 									</button>
+								</div>
+							</div>
+						</div>
 							
 								<tr>
 									<td class="w-1/5">
 									<div class="flex items-center">
 										
-										{#if storyline.book?.imageURL}
+										
        										 <img src={storyline.book?.imageURL} alt="Book Cover" class="w-20 h-20  mr-2  p-1" />
-   										{/if}
+   									
 										{#if storyline.book == null}
 											<h3 class="w-20 h-20 mr-2 p-1">place holder</h3>
 										{/if}
@@ -181,7 +235,9 @@
 								</tr>
 								
 							{/each}
-
+							<tr>
+								<td colspan="4" class="p-4"></td>
+							</tr>
 						</tbody>
 					</table>
 				</div>

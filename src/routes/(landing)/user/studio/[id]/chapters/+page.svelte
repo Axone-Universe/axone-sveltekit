@@ -15,13 +15,15 @@
 		modalStore
 	} from '@skeletonlabs/skeleton';
 	
-	import type {  ChapterProperties } from '$lib/shared/chapter';
+	import type {  ChapterProperties } from '$lib/properties/chapter';
 	
+	import { onMount } from 'svelte';
 	import {
 		
 		
 		trash,
 		edit,
+		bars
 		
 	} from 'svelte-awesome/icons';
 
@@ -121,23 +123,60 @@
 		
 		
 	};
-	
+	let showDropdownButton = Array(0).fill(false);
+	onMount(() => {
+		
+	showDropdownButton = Array(UserChapters.length).fill(false);
+	});
+
+
+	function toggleDropdownButton(index) {
+		showDropdownButton[index] = !showDropdownButton[index];
+	}
 	
 
 
 	
 	</script>
 
-<div class="container p-10 space-y-4">
-	<h1>CHAPTERS</h1>
+<style>
+	/* Styling for the dropdown container */
+	.dropdown {
+	  position: relative;
+	  display: inline-block;
+	  
+	}
+  
+	/* Styling for the dropdown content when visible */
+	.dropdown-content-visible {
+	  display: block;
+	  position: absolute;
+	  z-index: 1;
+  	  border: 1px solid #112241;   /* Add border or other styles if needed */
+  	  padding: 10px; 
+	  border-radius: 20%;
+	  max-height: 220%;   
+	  max-width:110%;  
+	}
+  
+	/* Styling for the dropdown content when hidden */
+	.dropdown-content-hidden {
+	  display: none;
+	}
+
+	
+  </style>
+
+<div class="container p-10 space-y-4 pb-4">
+	<strong class="text-2xl ">CHAPTERS</strong>
 	
 	<body>
 		<div class="container">
 
 			<div class="row">
 
-				<div class="relative overflow-x-auto">
-					<table class="table">
+				<div class="relative overflow-x-auto min-h-2000">
+					<table class="table ">
 						<thead class="uppercase text-xl">
 							<tr>
 								
@@ -151,30 +190,40 @@
 							</tr>
 						</thead>
 
-						<tbody>
-							{#each UserChapters as chapter}
-							
-							<button
-								on:click={() => showChapterDetails(chapter.book._id, chapter._id)}
+						<tbody class="min-h-2000">
+							{#each UserChapters as chapter, index}
+
+							<div class="dropdown">
+								<button on:click={() => { toggleDropdownButton(index)}}
 								type="button"
-								class="m-2 btn-icon bg-surface-200-700-token"
-							>
-								<Icon class="p-2" data={edit} scale={2.5} />
-							</button>
-							<button
-										on:click={() => deleteChapter(chapter._id)}
-											type="button"
-											class="m-2 btn-icon bg-surface-200-700-token">
-											<Icon class="p-2" data={trash} scale={2.5} />
+								class="m-2 btn-icon bg-surface-200-700-token">
+								
+								<Icon class="p-2" data={bars} scale={2.5} />
+								</button>
+								<div class="{ showDropdownButton[index] ? 'dropdown-content dropdown-content-visible bg-surface-100-800-token' : 'dropdown-content dropdown-content-hidden '}">
+								<div class="flex flex-col justify-center items-center ">
+									<button
+										on:click={() => showChapterDetails(chapter.book._id, chapter._id)}
+										type="button"
+										class="m-2 btn-icon bg-surface-200-700-token">
+									<Icon class="p-2" data={edit} scale={2.5} />
 									</button>
-							
+									<button
+												on:click={() => deleteChapter(chapter._id)}
+													type="button"
+													class="m-2 btn-icon bg-surface-200-700-token">
+													<Icon class="p-2" data={trash} scale={2.5} />
+									</button>
+									</div>
+								</div>
+							</div>
 								<tr>
 									<td class="w-1/4">
 									<div class="flex items-center">
 										
-										{#if chapter.book?.imageURL}
-       										 <img src={chapter.book?.imageURL} alt="Book Cover" class="w-20 h-20 mr-2  p-1 " />
-   										{/if}
+										
+       									<img src={chapter.book?.imageURL} alt="Book Cover" class="w-20 h-20 mr-2  p-1 " />
+   										
 										{#if chapter.book == null}
 											<h3 class="w-20 h-20 mr-2 p-1">place holder</h3>
 										{/if}
@@ -194,6 +243,9 @@
 								</tr>
 								
 							{/each}
+							<tr>
+								<td colspan="4" class="p-4"></td>
+							</tr>
 
 						</tbody>
 					</table>

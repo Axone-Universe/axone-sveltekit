@@ -128,16 +128,7 @@
 		showDropdownButton[index] = !showDropdownButton[index];
 	}
 
-	let showDropdown = 'no'
-
-function toggleDropdown() {
-	if(showDropdown === 'no'){
-		showDropdown = 'yes'
-	}else{
-		showDropdown = 'no'
-	}
-  
-}
+	
 
 
 
@@ -145,30 +136,27 @@ function toggleDropdown() {
 
 
 <style>
-	/* Styling for the dropdown container */
+	
 	.dropdown {
 	  position: relative;
 	  display: inline-block;
 	  
 	}
   
-	/* Styling for the dropdown content when visible */
+	
 	.dropdown-content-visible {
 	  display: block;
 	  position: absolute;
 	  z-index: 1;
-	   /* Add your desired background color */
-	   /*background-color: #FF0000;*/
-	   
-  	  border: 1px solid #112241;   /* Add border or other styles if needed */
+  	  border: 1px solid #112241;   
   	  padding: 10px; 
-		        /* Add padding for better appearance */
       border-radius: 20%;
-	  max-height: 220%;        /* Set the maximum height for the dropdown */
+	  max-height: 220%;   
+	  max-width:110%;     
  
 	}
   
-	/* Styling for the dropdown content when hidden */
+	
 	.dropdown-content-hidden {
 	  display: none;
 	}
@@ -178,8 +166,8 @@ function toggleDropdown() {
 
 
 
-<div class="container p-10 space-y-4 pb-4">
-	<h1>BOOKS</h1>
+<div class="container p-10 space-y-4  ">
+	<strong class="text-2xl ">BOOKS</strong>
 	<body>
 		<div class="container">
 			<div class="row">
@@ -202,7 +190,7 @@ function toggleDropdown() {
 						<tbody class="h-40vh">
 							{#each UserBooks as book, index}
 							<div class="dropdown">
-								<button on:click={() => {toggleDropdown; toggleDropdownButton(index)}}
+								<button on:click={() => { toggleDropdownButton(index)}}
 								type="button"
 								class="m-2 btn-icon bg-surface-200-700-token">
 								
@@ -210,7 +198,7 @@ function toggleDropdown() {
 								</button>
 							
 						<div class="{ showDropdownButton[index] ? 'dropdown-content dropdown-content-visible bg-surface-100-800-token' : 'dropdown-content dropdown-content-hidden '}">
-						  <div class="flex flex-col">
+						  <div class="flex flex-col justify-center items-center">
 							<button
 								on:click={() => {  showBookDetails(book)}}
 								type="button"
@@ -224,9 +212,9 @@ function toggleDropdown() {
 								class="m-2 btn-icon bg-surface-200-700-token">
 								<Icon class="p-2" data={trash} scale={2.5} />
 						</button>
-					</div>
 						</div>
 					</div>
+				</div>
 
 
 
@@ -246,7 +234,7 @@ function toggleDropdown() {
 
 							<tr>
 								<td colspan="4" class="p-4"></td>
-							  </tr>
+							</tr>
 
 						</tbody>
 					</table>

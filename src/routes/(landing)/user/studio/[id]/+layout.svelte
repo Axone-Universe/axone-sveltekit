@@ -75,14 +75,14 @@
 
 
 <!-- App Shell -->
-<AppShell slotSidebarLeft=" {classesSidebarLeft}" class="flex flex-col h-full">
+<AppShell slotSidebarLeft=" {classesSidebarLeft}" class="flex flex-col h-full bg-transparent">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar>
+		<AppBar >
 			<svelte:fragment slot="lead">
-				<div class="flex items-center">
+				<div class="flex items-center bg-transparent">
 					
-					<strong class="text-4xl ">Studio</strong>
+					<strong class="text-2xl ">Studio</strong>
 				</div>
 			</svelte:fragment>
 			
