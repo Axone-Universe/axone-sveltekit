@@ -77,22 +77,13 @@
 
 <!-- App Shell -->
 <AppShell slotSidebarLeft=" {classesSidebarLeft}" class="flex flex-col h-full !bg-transparent">
-	<svelte:fragment slot="header">
-		<!-- App Bar -->
-		<AppBar class="!bg-transparent">
-			<svelte:fragment slot="lead">
-				<div class="flex items-center bg-transparent">
-					
-					<strong class="text-2xl ">Studio</strong>
-				</div>
-			</svelte:fragment>
-			
-		</AppBar>
-	</svelte:fragment>
+	
 	<!-- Left Sidebar Slot -->
 	<svelte:fragment slot="sidebarLeft">
 		<nav class="list-nav p-4 flex flex-col h-full" >
+			
 			<div class="border-r border-gray-300 pr-4 h-full flex flex-col">
+				<strong class="text-2xl pb-4">Studio</strong>
 				<ListBox class="flex flex-col h-full" >
 					<ListBoxItem bind:group={studioNavList} name='medium' on:click={() => { console.log(activeTab) ; goToBooks()}} class='soft-listbox' value='book'>
 						Books

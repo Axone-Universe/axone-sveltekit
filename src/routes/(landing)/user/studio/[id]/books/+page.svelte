@@ -161,12 +161,16 @@
 	  display: none;
 	}
 
+	.custom-padding {
+    padding-top: 1rem;
+    /* Add other padding/margin styles as needed */
+  	}
 	
   </style>
 
 
 
-<div class="container p-10 space-y-4  ">
+<div class="container pr-10 pl-10 custom-padding pb-10 space-y-4  ">
 	<strong class="text-2xl ">Books</strong>
 	<body>
 		<div class="container">
