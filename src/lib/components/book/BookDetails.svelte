@@ -104,6 +104,8 @@
 
 		imageFile = input.files[0];
 
+		console.log(imageFile);
+
 		if (imageFile) {
 			const reader = new FileReader();
 			reader.addEventListener('load', function () {
@@ -129,18 +131,25 @@
 		{ funct: adobeEditCover, label: 'Edit Cover' }
 	];
 
-	async function adobeEditCover() {
-		const ccEverywhere = await window.CCEverywhere.initialize({
-			/* Get credentials at Adobe Developer Console.
-                During beta, your client will need to be enabled. 
-                Email your client ID (API Key) to amandah@adobe.com
-                */
-			clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
-			appName: 'Axone',
-			appVersion: { major: 1, minor: 0 },
-			platformCategory: 'web'
-		});
+	//Store ccEverywhere for initialisation between methods
+	let ccEverywhere ;
+	//Used to check if adobe was initialised
+	let adobeSDKIsInitialized = false;
 
+	async function adobeEditCover() {
+
+		if(!adobeSDKIsInitialized){
+			ccEverywhere = await window.CCEverywhere.initialize({
+			
+				clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+				appName: 'Axone',
+				appVersion: { major: 1, minor: 0 },
+				platformCategory: 'web'
+			});
+
+			adobeSDKIsInitialized = true;
+		}
+		
 		const createDesignCallback = {
 			onCancel: () => {},
 			onLoadStart: () => {
@@ -203,14 +212,20 @@
 		}
 		//ccEverywhere.terminate();
 	}
+	
 	async function adobeCreateCover() {
-		let ccEverywhere = await window.CCEverywhere.initialize({
-		 
-			clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
-			appName: 'Axone',
-			appVersion: { major: 1, minor: 0 },
-			platformCategory: 'web'
-		});
+
+		if(!adobeSDKIsInitialized){
+			ccEverywhere = await window.CCEverywhere.initialize({
+			
+				clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+				appName: 'Axone',
+				appVersion: { major: 1, minor: 0 },
+				platformCategory: 'web'
+			});
+
+			adobeSDKIsInitialized = true;
+		}
 
 		const createDesignCallback = {
 			onCancel: () => {},
@@ -229,7 +244,17 @@
 					image: publishParams.asset[0].data
 				};
 
-				imageFile = localData.image;
+				console.log(localData.image);
+				console.log(publishParams);
+
+				imageFile = publishParams.asset[0];
+				if (imageFile) {
+					const reader = new FileReader();
+					reader.addEventListener('load', function () {
+						image.setAttribute('src', reader.result as string);
+					});
+					reader.readAsDataURL(imageFile);
+				}
 
 
 				//image_data.src = localData.image;
