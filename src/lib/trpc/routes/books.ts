@@ -53,6 +53,16 @@ export const books = t.router({
 			return bookNode;
 		}),
 
+		getBooksByUserID: t.procedure
+		.use(logger)
+		.input(read.optional())
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+			const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
+
+			return result;
+		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)
@@ -80,5 +90,15 @@ export const books = t.router({
 		.input(update)
 		.mutation(async () => {
 			throw new Error('not Implemented');
+		}),
+
+	delete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const response = await bookBuilder.delete();
+			return response;
 		})
 });

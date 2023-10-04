@@ -29,6 +29,8 @@ export const bookSchema = new Schema<BookProperties>({
 
 bookSchema.index({ title: 'text' });
 
+
+
 bookSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
 });

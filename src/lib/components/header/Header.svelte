@@ -185,6 +185,13 @@
 									<button class="btn hover:variant-soft-primary" on:click={onLogoutButtonClick}
 										>Logout</button
 									>
+									<hr class="!my-2 variant-fill-primary" />
+									<a
+										class="btn hover:variant-soft-primary"
+										href={`/user/studio/${data.session.user.id}/books`}
+									>
+										Studio</a
+									>
 								</div>
 								<div class="arrow bg-surface-100-800-token" />
 							</div>

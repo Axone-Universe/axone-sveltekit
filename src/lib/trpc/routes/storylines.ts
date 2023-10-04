@@ -3,8 +3,9 @@ import { StorylinesRepository } from '$lib/repositories/storyLinesRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create } from '$lib/trpc/schemas/storylines';
+import { create, update } from '$lib/trpc/schemas/storylines';
 import { read } from '$lib/trpc/schemas/storylines';
+import { search } from '$lib/trpc/schemas/storylines';
 
 export const storylines = t.router({
 	getAll: t.procedure
@@ -37,6 +38,34 @@ export const storylines = t.router({
 			return result;
 		}),
 
+	getStorylinesByUserID: t.procedure
+		.use(logger)
+		.input(search)
+		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
+			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);;
+
+			return result;
+		}),
+
+
+	update: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
+
+			if (input.published) storylineBuilder.published(input.published);
+			if (input.description) storylineBuilder.description(input.description);
+			if (input.title) storylineBuilder.title(input.title);
+			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
+
+			const chapterNode = await storylineBuilder.update();
+			return chapterNode;
+		}),
+			
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)
@@ -59,5 +88,15 @@ export const storylines = t.router({
 			const storylineNode = await storylineBuilder.build();
 
 			return storylineNode;
+		}),
+
+	delete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const response = await storylineBuilder.delete();
+			return response;
 		})
 });
