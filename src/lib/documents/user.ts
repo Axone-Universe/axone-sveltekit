@@ -88,7 +88,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 			.cursor()
 			.next();
 
-		return newUser!;
+		return user!;
 	}
 
 	async build(): Promise<HydratedDocument<UserProperties>> {

@@ -26,7 +26,9 @@ export class BooksRepository extends Repository {
 			if (genres.length > 0) {
 				filter.genres = { $all: genres };
 			}
-		} else {
+		}
+		// Introduces unexpected behaviour in the method. User genres should be passed through the parameter
+		else {
 			const userRepo = new UsersRepository();
 			const user = await userRepo.getById(session, session?.user.id);
 			if (user && user.genres) {
@@ -65,5 +67,53 @@ export class BooksRepository extends Repository {
 
 	async count(): Promise<number> {
 		return await Book.count();
+	}
+	/*async getBooksByUserID(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>[]> {
+		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
+		const books = await Book.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
+
+
+		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
+			resolve(books);
+		});
+	}*/
+
+	async getBooksByUserID(
+		session: Session | null,
+		id?: string
+	): Promise<HydratedDocument<BookProperties>[]> {
+		const pipeline = [];
+
+		pipeline.push(
+			{ $match: { user: id } },
+			{
+				$lookup: {
+					from: 'storylines',
+
+					localField: '_id',
+
+					foreignField: 'book',
+
+					as: 'storylines'
+				}
+			},
+
+			{
+				$addFields: {
+					count: { $size: '$storylines' }
+				}
+			}
+		);
+		// If you want to limit or skip, you can add those stages here
+		// if (limit) pipeline.push({ $limit: limit });
+		// if (skip) pipeline.push({ $skip: skip });
+
+		const books = (await Book.aggregate(pipeline, {
+			userID: session?.user.id
+		})) as HydratedDocument<BookProperties>[];
+
+		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
+			resolve(books);
+		});
 	}
 }

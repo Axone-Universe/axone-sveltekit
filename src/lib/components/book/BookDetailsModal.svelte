@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { ChapterProperties } from '$lib/properties/chapter';
+	import type { BookProperties } from '$lib/shared/book';
 	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/properties/permission';
+	import type { PermissionProperties } from '$lib/shared/permission';
 
-	export let chapterNode: HydratedDocument<ChapterProperties>;
-	export let bookID: string;
-	export let storylineID: string;
-	export let prevChapterID: string;
+	export let bookData: HydratedDocument<BookProperties>;
+	
 
 	let customClass = '';
 	export { customClass as class };
+
+	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
 
 	let closeModal = () => {
 		modalStore.close();
@@ -22,35 +22,32 @@
 
 	async function submit() {
 		// permissions = permissions.map
-		if (chapterNode._id) {
-			updateChapter();
+		if (bookData._id) {
+			updateBook();
 		} else {
-			createChapter();
+			createBook();
 		}
 
 		return false;
 	}
-
-	async function createChapter() {
+	async function createBook() {
 		let toastMessage = 'Creation Failed';
 		let toastBackground = 'bg-warning-500';
 
 		trpc($page)
-			.chapters.create.mutate({
-				title: chapterNode.title!,
-				bookID: bookID,
-				storylineID: storylineID,
-				prevChapterID: prevChapterID ? prevChapterID : '',
-				description: chapterNode.description!,
-				permissions: chapterNode.permissions,
-				published: chapterNode.published
+			.books.create.mutate({
+				title: bookData.title!,
+				description: bookData.description!,
+				imageURL: bookData.imageURL,
+				genres: bookData.genres,
+				permissions: Object.fromEntries(permissions) as any
 			})
-			.then((chapterNodeResponse) => {
-				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
+			.then((bookNodeResponses) => {
+				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
 				toastMessage = 'Sunccessfully Created';
 				toastBackground = 'bg-success-500';
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(chapterNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(bookData) : '';
 				}
 			})
 			.finally(() => {
@@ -64,28 +61,27 @@
 			});
 	}
 
-	async function updateChapter() {
+	async function updateBook() {
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
-		console.log('** sv per,s');
-		console.log(chapterNode.permissions);
-
 		trpc($page)
-			.chapters.update.mutate({
-				id: chapterNode._id,
-				title: chapterNode.title,
-				description: chapterNode.description,
-				permissions: chapterNode.permissions,
-				published: chapterNode.published
+			.books.update.mutate({
+				id: bookData._id,
+				title: bookData.title,
+				description: bookData.description,
+				imageURL: bookData.imageURL,
+				genres: bookData.genres,
+				permissions: Object.fromEntries(permissions) as any
 			})
-			.then((chapterNodeResponse) => {
-				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
+			.then((bookNodeResponses) => {
+				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
 				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
+				
 
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(chapterNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(bookData) : '';
 				}
 			})
 			.finally(() => {
@@ -106,28 +102,28 @@
 >
 	<div class="modal-form p-4 space-y-4 rounded-container-token">
 		<label>
-			* Chapter Title
+			* Book Title
 
 			<input
 				class="input"
 				type="text"
-				bind:value={chapterNode.title}
+				bind:value={bookData.title}
 				placeholder="Chapter Title"
 				required
 			/>
 		</label>
 		<label>
-			* Chapter Description
+			* Book Description
 			<textarea
 				class="textarea h-44 overflow-hidden"
-				bind:value={chapterNode.description}
+				bind:value={bookData.description}
 				required
 			/>
 		</label>
 
 		<div>
 			Permissions
-			<ManagePermissions bind:permissionedDocument={chapterNode} />
+			<ManagePermissions {permissions} permissionedDocument={bookData} />
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">
