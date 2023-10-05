@@ -60,9 +60,8 @@
 <div class={`${customClass}`}>
 	<BookNav
 		class="card mx-2 w-5/6 md:w-2/6 h-full p-2"
-		{book}
-		{storyline}
-		bind:selectedItem={leftDrawerSelectedItem}
+		storylines={[storyline]}
+		bind:selectedChapter={leftDrawerSelectedItem}
 	/>
 	<form on:submit|preventDefault={createStoryline} class="card p-4 h-full space-y-4 md:w-4/6">
 		<label>

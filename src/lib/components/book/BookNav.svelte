@@ -5,14 +5,14 @@
 	import { Accordion, AccordionItem, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
-	import { lock } from 'svelte-awesome/icons';
+	import { lock, eyeSlash } from 'svelte-awesome/icons';
 
 	import { createEventDispatcher } from 'svelte';
 
-	export let book: HydratedDocument<BookProperties>;
-	export let storyline: HydratedDocument<StorylineProperties>;
-	export let chapters = storyline.chapters!;
-	export let selectedItem = '';
+	export let storylines: HydratedDocument<StorylineProperties>[];
+	export let chapters = storylines[0].chapters!;
+	export let selectedChapter = '';
+	export let selectedStoryline = '';
 
 	let customClass = '';
 	export { customClass as class };
@@ -28,37 +28,30 @@
 	<Accordion>
 		<AccordionItem open>
 			<svelte:fragment slot="summary">
-				<p class="text-lg font-bold">Book</p>
+				<p class="text-lg font-bold">Storylines</p>
 			</svelte:fragment>
 			<svelte:fragment slot="content">
 				<ListBox>
-					<ListBoxItem
-						on:change={() => navItemClicked(book._id)}
-						bind:group={selectedItem}
-						name="medium"
-						class="soft-listbox"
-						value="book"
-					>
-						<p class="line-clamp-1">{book.title}</p>
-					</ListBoxItem>
-				</ListBox>
-			</svelte:fragment>
-		</AccordionItem>
-		<AccordionItem open>
-			<svelte:fragment slot="summary">
-				<p class="text-lg font-bold">Storyline</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<ListBox>
-					<ListBoxItem
-						on:change={() => navItemClicked(storyline._id)}
-						bind:group={selectedItem}
-						name="medium"
-						class="soft-listbox"
-						value="storyline"
-					>
-						<p class="line-clamp-1">{storyline.title ? storyline.title : 'New Storyline'}</p>
-					</ListBoxItem>
+					{#each Object.entries(storylines) as [id, storyline]}
+						<ListBoxItem
+							on:change={() => navItemClicked(storyline._id)}
+							bind:group={selectedStoryline}
+							name="storyline"
+							class="soft-listbox"
+							value={storyline._id}
+						>
+							<div class="line-clamp-1 flex justify-between items-center">
+								<p class="w-5/6 line-clamp-1">
+									{storyline.title ? storyline.title : 'New Storyline'}
+								</p>
+								<div class="line-clamp-1 flex justify-end space-x-2 items-center">
+									{#if !storyline.userPermissions?.view}
+										<Icon data={eyeSlash} scale={1.2} />
+									{/if}
+								</div>
+							</div>
+						</ListBoxItem>
+					{/each}
 				</ListBox>
 			</svelte:fragment>
 		</AccordionItem>
@@ -71,16 +64,21 @@
 					{#each Object.entries(chapters) as [id, chapter]}
 						<ListBoxItem
 							on:change={() => navItemClicked(chapter._id)}
-							bind:group={selectedItem}
+							bind:group={selectedChapter}
 							name="chapter"
 							class="soft-listbox"
 							value={chapter._id}
 						>
 							<div class="line-clamp-1 flex justify-between items-center">
 								<p class="line-clamp-1">{chapter.title}</p>
-								{#if !chapter.userPermissions?.view}
-									<Icon data={lock} scale={1.2} />
-								{/if}
+								<div class="line-clamp-1 flex justify-end space-x-2 items-center">
+									{#if !chapter.userPermissions?.view}
+										<Icon data={eyeSlash} scale={1.2} />
+									{/if}
+									{#if !chapter.userPermissions?.edit}
+										<Icon data={lock} scale={1.2} />
+									{/if}
+								</div>
 							</div>
 						</ListBoxItem>
 					{/each}

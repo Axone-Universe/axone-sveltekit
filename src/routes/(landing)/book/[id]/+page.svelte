@@ -17,7 +17,7 @@
 	$: ({ bookData, storylines, activeStoryline } = data);
 
 	afterUpdate(() => {
-		loadChapters(activeStoryline._id);
+		loadChapters({ detail: activeStoryline._id });
 		storylinesList = activeStoryline?._id;
 	});
 
@@ -29,7 +29,8 @@
 		closeQuery: '.listbox-item'
 	};
 
-	async function loadChapters(storylineID: string) {
+	async function loadChapters(event: { detail: any }) {
+		let storylineID = event.detail;
 		let activateStoryline = storylines[storylineID];
 
 		if (!activateStoryline.chapters) {
@@ -58,40 +59,17 @@
 	}
 </script>
 
-<Container class="mx-2 md:mx-40 xl:mx-96">
-	<BookHeader {bookData} storylineData={activeStoryline} />
-	<div class="px-4 md:px-10 overflow-hidden space-y-4">
+<Container class="mx-2 md:mx-20 xl:mx-96">
+	<BookHeader
+		{bookData}
+		storylineData={activeStoryline}
+		{storylines}
+		on:storylineClicked={loadChapters}
+	/>
+	<div class="px-4 md:px-10 overflow-hidden space-y-4 bg-surface-50-900-token">
 		<div class="flex w-full p-4 space-x-4">
 			<div class="flex items-center justify-start w-3/5">
-				<p class="text-l md:text-3xl font-bold">Storylines</p>
-			</div>
-			<div class="flex justify-end w-2/5">
-				<button class="flex btn variant-filled space-x-12 w-full" use:popup={popupCombobox}>
-					<p class="capitalize text-sm line-clamp-1">{activeStoryline?.title ?? 'Story Lines'}</p>
-					<!-- <Icon data={caretDown} scale={1} /> -->
-				</button>
-
-				<div class="card w-60 shadow-xl p-2" data-popup="popupCombobox">
-					<ListBox>
-						{#each Object.entries(storylines) as [id, storyline]}
-							<ListBoxItem
-								on:click={() => loadChapters(id)}
-								bind:group={storylinesList}
-								name=""
-								class="soft-listbox"
-								value={storyline._id}
-							>
-								<div class="line-clamp-1 flex justify-between items-center">
-									<p class="line-clamp-1">{storyline.title}</p>
-									{#if !storyline.userPermissions?.view}
-										<Icon data={lock} scale={1.2} />
-									{/if}
-								</div>
-							</ListBoxItem>
-						{/each}
-					</ListBox>
-					<div class="arrow bg-surface-100-800-token" />
-				</div>
+				<p class="text-l md:text-3xl font-bold">Chapters</p>
 			</div>
 		</div>
 		<div class="flex flex-col w-full space-y-4">

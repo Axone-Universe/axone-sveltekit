@@ -35,6 +35,7 @@ export interface EditorMenuItem {
 	notification?: string | number;
 	pulse?: boolean;
 	mode?: EditorMode;
+	hidden?: boolean;
 }
 
 export interface NodeRelationship {
