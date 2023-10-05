@@ -3,8 +3,6 @@ import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type { StorylineProperties } from '$lib/properties/storyline';
-import type { ChapterProperties } from '$lib/properties/chapter';
-import { book } from 'svelte-awesome/icons';
 
 export const ssr = false;
 
@@ -17,29 +15,19 @@ export const load = (async (event) => {
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
 
-	let storylineResponse: HydratedDocument<StorylineProperties>;
+	const storylineResponses = (await trpc(event).storylines.getByBookID.query({
+		bookID: bookID
+	})) as HydratedDocument<StorylineProperties>[];
 
-	if (storylineID) {
-		storylineResponse = (await trpc(event).storylines.getById.query({
-			storylineID: storylineID
-		})) as HydratedDocument<StorylineProperties>;
-	} else {
-		storylineResponse = (
-			await trpc(event).storylines.getByBookID.query({
-				bookID: bookID,
-				main: true
-			})
-		)[0] as HydratedDocument<StorylineProperties>;
-	}
+	const storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
+	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineResponses[0];
 
-	const storylineChapters = (await trpc(event).chapters.getByStoryline.query({
-		storylineChapterIDs: storylineResponse.chapters as string[]
-	})) as HydratedDocument<ChapterProperties>[];
-
-	const chapterResponses: { [key: string]: HydratedDocument<ChapterProperties> } = {};
-	storylineChapters.forEach((chapterResponse) => {
-		chapterResponses[chapterResponse._id] = chapterResponse;
+	storylineResponses.forEach((storylineResponse) => {
+		if (storylineResponse._id === storylineID) {
+			selectedStoryline = storylineResponse;
+		}
+		storylines[storylineResponse._id] = storylineResponse;
 	});
 
-	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
+	return { userAuthoredBookResponse, storylines, selectedStoryline };
 }) satisfies PageServerLoad;

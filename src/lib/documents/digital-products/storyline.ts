@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
-import { Delta } from '$lib/models/delta';
+
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
 	private _userID?: string;
@@ -13,6 +13,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	// If a storyline has no parent it is the default storyline
 	private _parentStorylineID?: string;
 	private _branchOffChapterID?: string;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
@@ -22,7 +23,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			permissions: {},
 			published: false,
 			cumulativeRating: 0,
-			numRatings: 0,
+			numRatings: 0
 		};
 	}
 
@@ -85,15 +86,12 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		this._storylineProperties.published = published;
 		return this;
 	}
+
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
 	}
 
-
-
-
-	
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
 
@@ -151,7 +149,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	async update(): Promise<HydratedDocument<StorylineProperties>> {
 		const session = await mongoose.startSession();
 		await session.withTransaction(async () => {
-			const storyline = await Storyline.findOneAndUpdate(
+			await Storyline.findOneAndUpdate(
 				{ _id: this._storylineProperties._id },
 				this._storylineProperties,
 				{
@@ -160,15 +158,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 					session: session
 				}
 			);
-
-			// update delta permissions as well
-			if (storyline.delta) {
-				await Delta.findOneAndUpdate(
-					{ _id: storyline.delta },
-					{ permissions: this._storylineProperties.permissions },
-					{ session }
-				);
-			}
 		});
 		session.endSession();
 
@@ -189,8 +178,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 		return storyline;
 	}
-
-
 
 	/**
 	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters

@@ -11,7 +11,7 @@
 
 <div class={`${customClass}`}>
 	{#each menuItems as menuItem}
-		{#if !menuItem.mode || menuItem.mode === mode}
+		{#if !menuItem.hidden && (!menuItem.mode || menuItem.mode === mode)}
 			<button
 				on:click={menuItem.callback}
 				type="button"

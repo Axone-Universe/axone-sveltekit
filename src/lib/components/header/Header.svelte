@@ -14,7 +14,7 @@
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 
 	import Icon from 'svelte-awesome';
-	import { caretDown, navicon, pencil, user } from 'svelte-awesome/icons';
+	import { caretDown, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
@@ -175,23 +175,30 @@
 								<Icon data={caretDown} />
 							</button>
 
-							<div class="card p-4 shadow-xl" data-popup="profilePopupBox">
+							<div class="card p-2 shadow-xl" data-popup="profilePopupBox">
 								<div class="grid grid-cols-1">
 									<a
-										class="btn hover:variant-soft-primary"
-										href={`/profile/${data.session.user.id}`}>Profile</a
+										class="btn space-x-6 hover:variant-soft-primary"
+										href={`/profile/${data.session.user.id}`}
 									>
+										<Icon data={user} />
+										<span class="hidden md:inline-block">Profile</span>
+									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<button class="btn hover:variant-soft-primary" on:click={onLogoutButtonClick}
-										>Logout</button
-									>
+									<button
+										class="btn space-x-6 hover:variant-soft-primary"
+										on:click={onLogoutButtonClick}
+										><Icon data={powerOff} />
+										<span class="hidden md:inline-block">Logout</span>
+									</button>
 									<hr class="!my-2 variant-fill-primary" />
 									<a
-										class="btn hover:variant-soft-primary"
+										class="btn space-x-6 hover:variant-soft-primary"
 										href={`/user/studio/${data.session.user.id}/books`}
 									>
-										Studio</a
-									>
+										<Icon data={pencil} />
+										<span class="hidden md:inline-block">Studio</span>
+									</a>
 								</div>
 								<div class="arrow bg-surface-100-800-token" />
 							</div>

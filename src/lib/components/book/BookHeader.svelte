@@ -1,19 +1,33 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
-	import { plus, leanpub, star, infoCircle, bookmark, bookmarkO } from 'svelte-awesome/icons';
+	import {
+		leanpub,
+		star,
+		infoCircle,
+		bookmark,
+		bookmarkO,
+		lock,
+		eyeSlash,
+		caretDown
+	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome';
-	import { afterUpdate, onMount } from 'svelte';
+	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
+	import { type PopupSettings, popup, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { ReadingListProperties } from '$lib/properties/readingList';
 
+	let customClass = '';
+	export { customClass as class };
 	export let bookData: HydratedDocument<BookProperties>;
+	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
 	export let storylineData: HydratedDocument<StorylineProperties>;
+
+	let dispatch = createEventDispatcher();
 
 	let bookGenres: Genre[] | undefined;
 	let readingLists: HydratedDocument<ReadingListProperties>[] = [];
@@ -45,6 +59,14 @@
 		placement: 'right'
 	};
 
+	let selectedStoryline = '';
+	const storylinesPopup: PopupSettings = {
+		event: 'focus-click',
+		target: 'storylinesPopup',
+		placement: 'bottom',
+		closeQuery: '.listbox-item'
+	};
+
 	// This is a variable to check if storyline is in a reading list
 	let addedToReadingList = false;
 	function showAddedToReadingList() {
@@ -74,14 +96,22 @@
 				showAddedToReadingList();
 			});
 	}
+
+	const storylineClicked = (id: string) => {
+		storylineData = storylines[id];
+		dispatch('storylineClicked', id);
+	};
 </script>
 
-<div class="bg-center bg-no-repeat bg-cover" style="background-image: url({bookData.imageURL})">
+<div
+	class={`bg-center bg-no-repeat bg-cover ${customClass}`}
+	style="background-image: url({bookData.imageURL})"
+>
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
-        [.dark_&]:via-[rgba(var(--color-surface-800))] via-[rgba(var(--color-surface-100))] via-50%
-        [.dark_&]:to-[rgba(var(--color-surface-800))] to-[rgba(var(--color-surface-100))]
-        w-full space-x-4"
+        [.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
+        [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
+        w-full space-x-4 h-full"
 	>
 		<div class="px-4 md:px-10 pt-60 overflow-hidden space-y-4">
 			<div class="p-2 space-y-4">
@@ -90,10 +120,7 @@
 						{bookData.title}
 					</p>
 				</div>
-				<div class="flex flex-row p-2 space-x-2">
-					<p class="book-title text-2xl text-center font-bold line-clamp-1">
-						{storylineData.title}
-					</p>
+				<div class="flex flex-row items-center p-2">
 					<div>
 						<button use:popup={infoPopup}>
 							<Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
@@ -101,7 +128,7 @@
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
-									<p class="font-bold">Storylines</p>
+									<p class="font-bold">Pick A Storyline</p>
 									<p class="opacity-50">@Storyline</p>
 								</div>
 								<p>
@@ -118,9 +145,45 @@
 							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;" />
 						</div>
 					</div>
+					<div class="flex w-4/5 p-2 space-x-4">
+						<div class="flex">
+							<button class="flex space-x-12 w-full !bg-transparent" use:popup={storylinesPopup}>
+								<p class="book-title text-2xl text-center font-bold line-clamp-1">
+									{storylineData.title}
+								</p>
+								<Icon data={caretDown} scale={1.5} />
+							</button>
+
+							<div class="card w-96 shadow-xl p-2" data-popup="storylinesPopup">
+								<ListBox>
+									{#each Object.entries(storylines) as [id, storyline]}
+										<ListBoxItem
+											on:click={() => storylineClicked(id)}
+											bind:group={selectedStoryline}
+											name=""
+											class="soft-listbox"
+											value={storyline._id}
+										>
+											<div class="line-clamp-1 flex justify-between items-center">
+												<p class="w-5/6 line-clamp-1">
+													{storyline.title ? storyline.title : 'New Storyline'}
+												</p>
+												<div class="line-clamp-1 flex justify-end space-x-2 items-center">
+													{#if !storyline.userPermissions?.view}
+														<Icon data={eyeSlash} scale={1.2} />
+													{/if}
+												</div>
+											</div>
+										</ListBoxItem>
+									{/each}
+								</ListBox>
+								<div class="arrow bg-surface-100-800-token" />
+							</div>
+						</div>
+					</div>
 					<div class="overflow-hidden flex items-center">
 						<Icon class="p-2" data={star} scale={2} />
-						<p class="text-sm font-bold line-clamp-1">4.5</p>
+						<p class="text-lg font-bold">{storylineData.numRatings}</p>
 					</div>
 				</div>
 
