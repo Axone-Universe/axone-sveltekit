@@ -36,7 +36,9 @@
 				background: 'variant-filled-primary'
 			};
 			toastStore.trigger(t);
-			goto(`/editor/${($createBookMutation.data as HydratedDocument<BookProperties>)._id}`);
+			goto(
+				`/editor/${($createBookMutation.data as HydratedDocument<BookProperties>)._id}?mode=writer`
+			);
 		}
 	}
 

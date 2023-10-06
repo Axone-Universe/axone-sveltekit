@@ -156,7 +156,7 @@
 			selectedChapter = selectedStorylineChapters[itemID];
 		} else {
 			quill.chapter = undefined;
-
+			selectedChapter = undefined;
 			selectedStoryline = storylines[itemID];
 			loadChapters();
 		}
@@ -247,6 +247,7 @@
 		let chapterProperties = new ChapterPropertyBuilder().getProperties();
 		let newChapterNode: HydratedDocument<ChapterProperties> =
 			chapterProperties as HydratedDocument<ChapterProperties>;
+		newChapterNode.user = $page.data.user;
 
 		let prevChapterID = '';
 
@@ -981,7 +982,7 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					{#if !selectedChapter.userPermissions?.edit}
+					{#if mode === 'writer' && !selectedChapter.userPermissions?.edit}
 						<button class="btn fixed variant-filled-primary font-sans top-32">
 							<span>No Edit Permissions</span>
 						</button>

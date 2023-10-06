@@ -111,7 +111,6 @@
 		<div class="modal-form p-4 space-y-4 rounded-container-token">
 			<label>
 				* Chapter Title
-
 				<input
 					class="input"
 					type="text"
