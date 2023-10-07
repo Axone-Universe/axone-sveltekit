@@ -2,15 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import {
-		Accordion,
-		AccordionItem,
-		ListBox,
-		ListBoxItem,
-		InputChip,
-		type ToastSettings,
-		toastStore
-	} from '@skeletonlabs/skeleton';
+	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { check } from 'svelte-awesome/icons';
 	import type { StorylineProperties } from '$lib/properties/storyline';
@@ -19,7 +11,8 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import { onMount } from 'svelte';
 	import ManagePermissions from '../permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/properties/permission';
+	import BookNav from '../book/BookNav.svelte';
+	import { GENRES, type Genre } from '$lib/properties/genre';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let storyline: HydratedDocument<StorylineProperties>;
@@ -27,17 +20,15 @@
 	let customClass = '';
 	export { customClass as class };
 
-	let bookGenres: Record<string, boolean> = {};
-	let genres: Record<string, boolean> = {};
+	let bookGenres: Genre[] = [];
+	let genres: Genre[] = [];
 
 	onMount(() => {
-		bookGenres = book.genres as unknown as Record<string, boolean>;
-		genres = storyline.genres as unknown as Record<string, boolean>;
-		console.log(storyline.parent);
+		bookGenres = book.genres ?? [];
+		genres = storyline.genres ?? [];
 	});
 
 	async function createStoryline() {
-		console.log(storyline);
 		trpc($page)
 			.storylines.create.mutate({
 				title: storyline.title,
@@ -63,83 +54,15 @@
 			});
 	}
 
-	function filter(genre: string) {
-		if (bookGenres[genre]) {
-			return;
-		}
-		genres[genre] = !genres[genre];
-	}
-
-	let leftDrawerList: string;
-	function drawerItemSelected(chapter?: HydratedDocument<ChapterProperties>) {}
+	let leftDrawerSelectedItem: string;
 </script>
 
 <div class={`${customClass}`}>
-	<div class="card mx-2 w-5/6 md:w-2/6 h-full p-2">
-		<Accordion>
-			<AccordionItem open>
-				<svelte:fragment slot="summary">
-					<p class="text-lg font-bold">Book</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
-					<ListBox>
-						<ListBoxItem
-							on:change={() => drawerItemSelected()}
-							bind:group={leftDrawerList}
-							name="medium"
-							class="soft-listbox"
-							value="book"
-						>
-							{book.title}
-						</ListBoxItem>
-					</ListBox>
-				</svelte:fragment>
-			</AccordionItem>
-			<AccordionItem open>
-				<svelte:fragment slot="summary">
-					<p class="text-lg font-bold">Storylines</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
-					<ListBox>
-						<ListBoxItem
-							on:change={() => drawerItemSelected()}
-							bind:group={leftDrawerList}
-							name="medium"
-							class="soft-listbox"
-							value="copyright"
-						>
-							{storyline.title ? storyline.title : 'New Storyline'}
-						</ListBoxItem>
-					</ListBox>
-				</svelte:fragment>
-			</AccordionItem>
-			<AccordionItem open>
-				<svelte:fragment slot="summary">
-					<p class="text-lg font-bold">Chapters</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
-					<ListBox>
-						{#if storyline.chapters}
-							{#each storyline.chapters as chapter}
-								{#if typeof chapter !== 'string'}
-									<ListBoxItem
-										on:change={() => drawerItemSelected()}
-										bind:group={leftDrawerList}
-										name="chapter"
-										class="soft-listbox"
-										value={chapter._id}
-									>
-										<p class="line-clamp-1">{chapter.title}</p>
-									</ListBoxItem>
-								{/if}
-							{/each}
-						{/if}
-					</ListBox>
-				</svelte:fragment>
-			</AccordionItem>
-			<!-- ... -->
-		</Accordion>
-	</div>
+	<BookNav
+		class="card mx-2 w-5/6 md:w-2/6 h-full p-2"
+		storylines={[storyline]}
+		bind:selectedChapter={leftDrawerSelectedItem}
+	/>
 	<form on:submit|preventDefault={createStoryline} class="card p-4 h-full space-y-4 md:w-4/6">
 		<label>
 			* Storyline Title
@@ -159,15 +82,20 @@
 		<label>
 			Genres
 			<div class="space-x-4 space-y-4 w-full h-auto">
-				{#each Object.keys(genres) as genre}
+				{#each GENRES as genre}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<span
-						class="chip {genres[genre] ? 'variant-filled' : 'variant-soft'}"
+						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
 						on:click={() => {
-							filter(genre);
+							const index = genres.indexOf(genre);
+							if (index > -1) {
+								genres = genres.filter((v) => v !== genre);
+							} else {
+								genres = [...genres, genre];
+							}
 						}}
-						on:keypress
 					>
-						{#if genres[genre]}<span><Icon data={check} /></span>{/if}
+						{#if genres.includes(genre)}<span><Icon data={check} /></span>{/if}
 						<span class="capitalize">{genre}</span>
 					</span>
 				{/each}

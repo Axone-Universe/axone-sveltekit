@@ -11,6 +11,7 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import type { PermissionProperties } from '$lib/properties/permission';
+	import { GENRES } from '$lib/properties/genre';
 
 	const createBookMutation = trpcWithQuery($page).books.create.createMutation();
 
@@ -24,7 +25,7 @@
 	let customClass = '';
 	export { customClass as class };
 
-	let genres = book.genres as unknown as Record<string, boolean>;
+	let genres = book.genres ?? [];
 
 	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
 
@@ -35,7 +36,9 @@
 				background: 'variant-filled-primary'
 			};
 			toastStore.trigger(t);
-			goto(`/editor/${($createBookMutation.data as HydratedDocument<BookProperties>)._id}`);
+			goto(
+				`/editor/${($createBookMutation.data as HydratedDocument<BookProperties>)._id}?mode=writer`
+			);
 		}
 	}
 
@@ -112,10 +115,6 @@
 		}
 	}
 
-	function filter(genre: string) {
-		genres[genre] = !genres[genre];
-	}
-
 	function upload() {
 		input.click();
 	}
@@ -162,15 +161,20 @@
 		<label>
 			Genres
 			<div class="space-x-4 space-y-4 w-full h-auto">
-				{#each Object.keys(genres) as genre}
+				{#each GENRES as genre}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<span
-						class="chip {genres[genre] ? 'variant-filled' : 'variant-soft'}"
+						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
 						on:click={() => {
-							filter(genre);
+							const index = genres.indexOf(genre);
+							if (index > -1) {
+								genres = genres.filter((v) => v !== genre);
+							} else {
+								genres = [...genres, genre];
+							}
 						}}
-						on:keypress
 					>
-						{#if genres[genre]}<span><Icon data={check} /></span>{/if}
+						{#if genres.includes(genre)}<span><Icon data={check} /></span>{/if}
 						<span class="capitalize">{genre}</span>
 					</span>
 				{/each}

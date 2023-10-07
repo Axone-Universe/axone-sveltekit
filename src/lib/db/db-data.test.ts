@@ -45,7 +45,7 @@ beforeAll(async () => {
 test(
 	'db setup',
 	async () => {
-		console.log('SETTING UP DB WITH TEST DATA');
+		console.log('SETTING UP DB WITH RANDOM TEST DATA');
 
 		const sessions: Session[] = [];
 		const caller = router.createCaller({ session: null });

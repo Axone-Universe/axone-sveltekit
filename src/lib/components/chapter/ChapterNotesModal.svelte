@@ -15,8 +15,9 @@
 	import { onMount } from 'svelte';
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
 	import { Icon } from 'svelte-awesome';
+	import type { ChapterProperties } from '$lib/properties/chapter';
 
-	export let chapterID: string;
+	export let chapterNode: HydratedDocument<ChapterProperties>;
 
 	let customClass = '';
 	export { customClass as class };
@@ -25,8 +26,11 @@
 
 	let chapterNotes: HydratedDocument<NoteProperties>[] = [];
 	let filteredChapterNotes: HydratedDocument<NoteProperties>[] = [];
-
 	let chapterNotesList = '';
+
+	let disabled =
+		$page.data.user._id !==
+		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
 
 	onMount(() => {
 		getChapterNotes();
@@ -78,7 +82,7 @@
 	function getChapterNotes() {
 		trpc($page)
 			.notes.getByChapterID.query({
-				chapterID: chapterID
+				chapterID: chapterNode._id
 			})
 			.then((noteResponse) => {
 				chapterNotes = noteResponse as HydratedDocument<NoteProperties>[];
@@ -103,7 +107,7 @@
 		trpc($page)
 			.notes.create.mutate({
 				title: note.title!,
-				chapterID: chapterID,
+				chapterID: chapterNode._id,
 				note: note.note!,
 				tags: note.tags
 			})
@@ -188,53 +192,61 @@
 
 <div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
 	<form on:submit|preventDefault={submit}>
-		<div class="modal-form p-4 space-y-4 rounded-container-token">
-			<!-- svelte-ignore a11y-label-has-associated-control -->
-			<label>
-				Select Tags
+		<fieldset {disabled}>
+			<div class="modal-form p-4 space-y-4 rounded-container-token">
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label>
+					Select Tags
 
-				<div class="space-x-2 my-4">
-					{#each TAGS as tag}
-						<button
-							class="chip {note.tags && note.tags.includes(tag)
-								? 'variant-filled'
-								: 'variant-soft'}"
-							on:click={() => tagSelected(tag)}
-							type="button"
-						>
-							{tag}
-						</button>
-					{/each}
-				</div>
-			</label>
-			<label>
-				* Title
+					<div class="space-x-2 my-4">
+						{#each TAGS as tag}
+							<button
+								class="chip {note.tags && note.tags.includes(tag)
+									? 'variant-filled'
+									: 'variant-soft'}"
+								on:click={() => tagSelected(tag)}
+								type="button"
+							>
+								{tag}
+							</button>
+						{/each}
+					</div>
+				</label>
+				<label>
+					* Title
 
-				<input
-					class="input"
-					type="text"
-					placeholder="e.g. Harry Potter"
-					bind:value={note.title}
-					required
-				/>
-			</label>
+					<input
+						class="input"
+						type="text"
+						placeholder="e.g. Harry Potter"
+						bind:value={note.title}
+						required
+					/>
+				</label>
 
-			<!-- svelte-ignore a11y-label-has-associated-control -->
-			<label>
-				* Note
-				<TextArea
-					maxLength={500}
-					bind:textContent={note.note}
-					required={true}
-					placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
-				/>
-			</label>
-		</div>
-		<footer class="modal-footer flex justify-end space-x-2">
-			<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
-			<button class="btn variant-filled" type="submit">{note._id ? 'Edit' : 'Create'}</button>
-		</footer>
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label>
+					* Note
+					<TextArea
+						maxLength={500}
+						bind:textContent={note.note}
+						required={true}
+						placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
+					/>
+				</label>
+			</div>
+			{#if !disabled}
+				<footer class="modal-footer flex justify-end space-x-2">
+					<button on:click={closeModal} class="btn variant-ghost-surface" type="button"
+						>Cancel</button
+					>
+					<button class="btn variant-filled" type="submit">{note._id ? 'Edit' : 'Create'}</button>
+				</footer>
+			{/if}
+		</fieldset>
 	</form>
+
+	<hr class="opacity-100 mx-4" />
 
 	<div class="p-4">
 		<div>

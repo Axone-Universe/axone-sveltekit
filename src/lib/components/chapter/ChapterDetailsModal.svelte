@@ -6,12 +6,15 @@
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/properties/permission';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
 	export let bookID: string;
 	export let storylineID: string;
 	export let prevChapterID: string;
+
+	let disabled =
+		$page.data.user._id !==
+		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
 
 	let customClass = '';
 	export { customClass as class };
@@ -81,7 +84,7 @@
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
-				toastMessage = 'Sunccessfully Saved';
+				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {
@@ -104,34 +107,38 @@
 	on:submit|preventDefault={submit}
 	class={`modal-example-form card p-4 w-modal h-[780px] shadow-xl space-y-4 overflow-y-auto ${customClass}`}
 >
-	<div class="modal-form p-4 space-y-4 rounded-container-token">
-		<label>
-			* Chapter Title
+	<fieldset {disabled}>
+		<div class="modal-form p-4 space-y-4 rounded-container-token">
+			<label>
+				* Chapter Title
+				<input
+					class="input"
+					type="text"
+					bind:value={chapterNode.title}
+					placeholder="Chapter Title"
+					required
+				/>
+			</label>
+			<label>
+				* Chapter Description
+				<textarea
+					class="textarea h-44 overflow-hidden"
+					bind:value={chapterNode.description}
+					required
+				/>
+			</label>
 
-			<input
-				class="input"
-				type="text"
-				bind:value={chapterNode.title}
-				placeholder="Chapter Title"
-				required
-			/>
-		</label>
-		<label>
-			* Chapter Description
-			<textarea
-				class="textarea h-44 overflow-hidden"
-				bind:value={chapterNode.description}
-				required
-			/>
-		</label>
-
-		<div>
-			Permissions
-			<ManagePermissions bind:permissionedDocument={chapterNode} />
+			<div>
+				Permissions
+				<ManagePermissions bind:permissionedDocument={chapterNode} />
+			</div>
 		</div>
-	</div>
-	<footer class="modal-footer flex justify-end space-x-2">
-		<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
-		<button class="btn variant-filled" type="submit">Save</button>
-	</footer>
+		{#if !disabled}
+			<footer class="modal-footer flex justify-end space-x-2">
+				<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button
+				>
+				<button class="btn variant-filled" type="submit">Save</button>
+			</footer>
+		{/if}
+	</fieldset>
 </form>

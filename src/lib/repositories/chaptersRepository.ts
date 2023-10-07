@@ -89,6 +89,31 @@ export class ChaptersRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
+
+	async getChaptersByUserID(session: Session | null, id?: string): Promise<HydratedDocument<ChapterProperties>[]> {
+		const pipeline = [];
+	
+		pipeline.push({ $match: { user: id } });
+		pipeline.push({ $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' } });
+		pipeline.push({ $unwind: '$book' });
+	
+		const chapters = await Chapter.aggregate(pipeline, {
+			userID: session?.user.id
+		}) as HydratedDocument<ChapterProperties>[];
+	
+		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
+			resolve(chapters);
+		});
+	}
+	/*async getChaptersByUserID(session: Session | null, id?: string): Promise<HydratedDocument<ChapterProperties>[]> {
+		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
+		const chapters = await Chapter.find({ user: id}, null, { userID: session?.user.id }).populate('book'); // Find books by the user's _id
+
+		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
+			resolve(chapters);
+		});
+	}*/
+
 	async count(): Promise<number> {
 		const count = await Chapter.count();
 
