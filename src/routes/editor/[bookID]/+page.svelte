@@ -58,6 +58,7 @@
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
+	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -188,7 +189,13 @@
 		}
 	};
 
-	let rateStoryline = () => {};
+	let rateStoryline = () => {
+		modalComponent.ref = StorylineReviewModal;
+		modalComponent.props = {
+			storyline: selectedStoryline
+		};
+		modalStore.trigger(modalSettings);
+	};
 
 	/**
 	 * Chapters
@@ -746,7 +753,7 @@
 						maxStack: 500
 					}
 				},
-				placeholder: 'Let your voice be heard...'
+				placeholder: mode === 'writer' ? 'Let your voice be heard...' : 'Coming soon...'
 			});
 
 			await quill.getChapterDelta();
