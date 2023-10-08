@@ -1,15 +1,13 @@
 <script lang="ts">
-	import type { StorylineProperties } from '$lib/shared/storyline';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/shared/permission';
 
 	export let storylineNode: HydratedDocument<StorylineProperties>;
-	
 
 	let customClass = '';
 	export { customClass as class };
@@ -36,8 +34,8 @@
 		trpc($page)
 			.storylines.create.mutate({
 				title: storylineNode.title!,
-                description: storylineNode.description!,
-                book: storylineNode.book!,
+				description: storylineNode.description!,
+				book: storylineNode.book!,
 				imageURL: storylineNode.imageURL!,
 				parent: storylineNode.parent!,
 				parentChapter: storylineNode.parentChapter!,

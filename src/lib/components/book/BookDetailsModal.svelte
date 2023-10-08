@@ -1,15 +1,14 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/shared/book';
+	import type { BookProperties } from '$lib/properties/book';
 	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/shared/permission';
+	import type { PermissionProperties } from '$lib/properties/permission';
 
 	export let bookData: HydratedDocument<BookProperties>;
-	
 
 	let customClass = '';
 	export { customClass as class };
@@ -78,7 +77,6 @@
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
 				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
-				
 
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(bookData) : '';
@@ -114,11 +112,7 @@
 		</label>
 		<label>
 			* Book Description
-			<textarea
-				class="textarea h-44 overflow-hidden"
-				bind:value={bookData.description}
-				required
-			/>
+			<textarea class="textarea h-44 overflow-hidden" bind:value={bookData.description} required />
 		</label>
 
 		<div>
