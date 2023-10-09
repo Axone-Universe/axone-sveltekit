@@ -18,6 +18,7 @@
 	let image: HTMLElement;
 	let imageFile: File;
 
+
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
 
@@ -109,6 +110,7 @@
 		if (imageFile) {
 			const reader = new FileReader();
 			reader.addEventListener('load', function () {
+				console.log(reader.result);
 				image.setAttribute('src', reader.result as string);
 			});
 			reader.readAsDataURL(imageFile);
@@ -132,7 +134,7 @@
 	];
 
 	//Store ccEverywhere for initialisation between methods
-	let ccEverywhere ;
+	let ccEverywhere = null ;
 	//Used to check if adobe was initialised
 	let adobeSDKIsInitialized = false;
 
@@ -166,14 +168,11 @@
 					project: publishParams.asset[0].projectId,
 					image: publishParams.asset[0].data
 				};
-				//image.src = localData.image;
-				//project_id = localData.project;
 
-				//let img = document.getElementById('savedDesign');
+				
+				image.setAttribute('src', localData.image);
 
-				//let blob = new Blob(localData.image, {type: 'text/plain'});
-				//img.src = URL.createObjectURL(blob);
-				//console.log("Created from asset", localData, img);
+
 				const t: ToastSettings = {
 					message: 'Book created successfully',
 					background: 'variant-filled-primary'
@@ -204,13 +203,23 @@
 					}
 				},
 				outputParams: {
+					
 					outputType: 'url'
 				}
 			});
 		} else {
+
+			let t: ToastSettings = {
+					message: `Upload Image Cover`,
+					background: 'variant-filled-error',
+					autohide: true
+				};
+
+			toastStore.trigger(t);
+	
 			console.log('no input image provided');
 		}
-		//ccEverywhere.terminate();
+		
 	}
 	
 	async function adobeCreateCover() {
@@ -244,22 +253,8 @@
 					image: publishParams.asset[0].data
 				};
 
-				console.log(localData.image);
-				console.log(publishParams);
+				image.setAttribute('src', localData.image);
 
-				imageFile = publishParams.asset[0];
-				if (imageFile) {
-					const reader = new FileReader();
-					reader.addEventListener('load', function () {
-						image.setAttribute('src', reader.result as string);
-					});
-					reader.readAsDataURL(imageFile);
-				}
-
-
-				//image_data.src = localData.image;
-				//project_id = localData.project;
-				console.log('Created from scratch', localData.image);
 				const t: ToastSettings = {
 					message: 'Book created successfully',
 					background: 'variant-filled-primary'
@@ -281,25 +276,15 @@
 		ccEverywhere.createDesign({
 			callbacks: createDesignCallback,
 			modalParams: {
-				// borderRadius: 2,
-				// padding: 2,
-				// backgroundColor: 'purple',
-				// size: {
-				//     height: 500,
-				//     width: 1000,
-				//     unit: 'px'
-				// }
+				
 			},
 			inputParams: {
-				editorPanelView: 'yourStuff'
-				// panelSearchText: 'school'
+				canvasSize: 'BookCover',
 			},
 			outputParams: {
-				outputType: 'base64'
+				outputType: 'url'
 			}
 		});
-
-		//ccEverywhere.terminate();
 	}
 	const popupSettings = (target: string) => {
 		let settings: PopupSettings = {
