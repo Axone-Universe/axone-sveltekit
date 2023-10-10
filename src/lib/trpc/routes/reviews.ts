@@ -41,7 +41,7 @@ export const reviews = t.router({
 				const storylinesRepo = new StorylinesRepository();
 				const storyline = await storylinesRepo.getById(ctx.session, input.item);
 				if (storyline && (storyline.user as UserProperties)._id === ctx.session?.user.id) {
-					throw new TRPCError({ code: 'FORBIDDEN' });
+					throw new TRPCError({ code: 'FORBIDDEN', message: 'Self reviews are not allowed' });
 				}
 			}
 
