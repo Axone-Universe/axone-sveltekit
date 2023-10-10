@@ -39,7 +39,6 @@
 				toastBackground = 'bg-success-500';
 			})
 			.catch((response) => {
-				console.log(response);
 				if (response.message.includes('E11000')) {
 					toastMessage = 'Review already submitted';
 				} else {
