@@ -42,7 +42,7 @@
 				if (response.message.includes('E11000')) {
 					toastMessage = 'Review already submitted';
 				} else {
-					toastMessage = response.data.message;
+					toastMessage = response.data.message || response.message;
 				}
 			})
 			.finally(() => {
@@ -63,10 +63,6 @@
 >
 	<div class="flex flex-col modal-form p-4 space-y-4 rounded-container-token items-center">
 		<header class="modal-header text-2xl font-bold">Rating for {storyline.title}</header>
-		<div class="overflow-hidden flex items-center">
-			<Icon class="p-2" data={star} scale={2} />
-			<p class="text-lg font-bold">{storyline.numRatings}</p>
-		</div>
 		<p class="tracking-wide leading-8">
 			<i>Your feedback helps fellow readers and authors as well.</i>
 		</p>
