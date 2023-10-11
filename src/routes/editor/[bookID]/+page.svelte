@@ -810,7 +810,7 @@
 <!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<AppShell class="editor-shell">
+<AppShell class="editor-shell min-h-screen">
 	<svelte:fragment slot="sidebarLeft">
 		<Drawer
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
@@ -978,7 +978,6 @@
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
-									{ label: 'Notes', icon: stickyNote, callback: showChapterNotes, mode: 'writer' },
 									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions },
 									{
 										label: 'Add to Reading List',

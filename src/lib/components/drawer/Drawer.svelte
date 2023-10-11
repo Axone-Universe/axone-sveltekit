@@ -2,7 +2,7 @@
 	import { AppRail, AppRailTile, drawerStore } from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome';
-	import { leanpub, lineChart, handshakeO, pencil, user } from 'svelte-awesome/icons';
+	import { leanpub, lineChart, handshakeO, pencil, user, trash } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
@@ -111,6 +111,57 @@
 			</section>
 		</div>
 	{:else if $drawerStore.id === 'library'}
-		<div />
+		<div
+			class="h-screen sticky flex flex-col justify-between bg-surface-100-800-token pt-4 p-2 gap-2"
+		>
+			<div class="flex flex-col gap-2">
+				{#each $drawerStore.meta.readingLists as list}
+					<button
+						class="flex justify-between items-center btn btn-sm {$drawerStore.meta.selectedList ===
+						list
+							? 'variant-filled-primary'
+							: 'variant-filled'} py-1"
+						on:click={() => {
+							$drawerStore.meta.selectedList = list;
+							$drawerStore.meta.selectList(list);
+							drawerStore.close();
+						}}
+					>
+						<p class="truncate w-full text-left">
+							{list}
+						</p>
+						<div class="flex">
+							<button
+								class="btn-icon btn-icon-sm"
+								on:click={() => {
+									drawerStore.close();
+									$drawerStore.meta.handleRenameReadingList(list);
+								}}
+							>
+								<Icon data={pencil} scale={1.2} />
+							</button>
+							<button
+								class="btn-icon btn-icon-sm"
+								on:click={() => {
+									drawerStore.close();
+									$drawerStore.meta.handleDeleteReadingList(list);
+								}}
+							>
+								<Icon data={trash} scale={1.2} />
+							</button>
+						</div>
+					</button>
+				{/each}
+			</div>
+			<button
+				class="btn variant-filled-secondary"
+				on:click={() => {
+					drawerStore.close();
+					$drawerStore.meta.handleCreateReadingList();
+				}}
+			>
+				+
+			</button>
+		</div>
 	{/if}
 </Drawer>
