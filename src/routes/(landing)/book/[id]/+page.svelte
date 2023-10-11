@@ -61,6 +61,7 @@
 
 <Container class="mx-2 md:mx-20 xl:mx-96">
 	<BookHeader
+		session={data.session}
 		{bookData}
 		storylineData={activeStoryline}
 		{storylines}
