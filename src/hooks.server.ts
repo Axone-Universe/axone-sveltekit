@@ -8,7 +8,6 @@ import { createContext } from '$lib/trpc/context';
 import { router } from '$lib/trpc/router';
 import { sequence } from '@sveltejs/kit/hooks';
 import { startMongo } from '$lib/db/mongo';
-import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
 
 const userRepo = new UsersRepository();

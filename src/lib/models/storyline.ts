@@ -30,10 +30,6 @@ interface StorylineMethods extends StorylineProperties {
 	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
-storylineSchema.pre(['find', 'findOne'], function () {
-	throw new Error('Please use aggregate.');
-});
-
 storylineSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();

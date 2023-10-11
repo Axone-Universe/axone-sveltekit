@@ -1,13 +1,14 @@
 import { DocumentBuilder } from './documentBuilder';
 import type { HydratedDocument } from 'mongoose';
 import { User } from '$lib/models/user';
-import type { UserProperties, UserLabel } from '$lib/properties/user';
+import { type UserProperties, type UserLabel, DEFAULT_READING_LIST } from '$lib/properties/user';
 import type { Genre } from '$lib/properties/genre';
-import {
-	DEFAULT as DefaultReadingList,
-	type ReadingListProperties
-} from '$lib/properties/readingList';
-import { record } from 'zod';
+import type {
+	CreateDeleteReadingList,
+	RenameReadingList,
+	UpdateReadingList as UpdateReadingLists
+} from '$lib/trpc/schemas/users';
+import { Storyline } from '$lib/models/storyline';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
@@ -16,7 +17,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		super();
 		this._userProperties = {
 			_id: id ? id : '',
-			readingLists: []
+			readingLists: new Map([[DEFAULT_READING_LIST, []]])
 		};
 	}
 
@@ -70,38 +71,107 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
-	readingLists(readingLists: HydratedDocument<ReadingListProperties>[]) {
-		this._userProperties.readingLists = readingLists;
-		return this;
+	async update(): Promise<HydratedDocument<UserProperties> | null> {
+		const user = await User.findOneAndUpdate(
+			{ _id: this._userProperties._id },
+			this._userProperties,
+			{ new: true }
+		);
+
+		return user;
 	}
 
-	async update(): Promise<HydratedDocument<UserProperties>> {
-		await User.findOneAndUpdate({ _id: this._userProperties._id }, this._userProperties);
+	async updateReadingLists(
+		updateReadingLists: UpdateReadingLists
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const maybeStoryline = await Storyline.findOne({
+			_id: updateReadingLists.storylineID
+		});
 
-		const newUser = await User.aggregate([
-			{
-				$match: {
-					_id: this._userProperties._id
+		if (maybeStoryline) {
+			const user = await User.findById(this._userProperties._id);
+
+			if (user) {
+				for (const listName of user.readingLists.keys()) {
+					if (updateReadingLists.names.includes(listName)) {
+						if (!user.readingLists.get(listName)?.includes(updateReadingLists.storylineID)) {
+							user.readingLists.get(listName)!.push(updateReadingLists.storylineID);
+						}
+					} else {
+						user.readingLists.set(
+							listName,
+							user.readingLists.get(listName)!.filter((v) => v !== updateReadingLists.storylineID)
+						);
+					}
 				}
-			}
-		])
-			.cursor()
-			.next();
 
-		return newUser;
+				const saved = await user.save();
+				return saved;
+			}
+		}
+
+		throw Error('storyline does not exist');
+	}
+
+	async createReadingList(
+		createReadingList: CreateDeleteReadingList
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const maybeUser = await User.findOne({
+			_id: this._userProperties._id,
+			[`readingLists.${createReadingList.name}`]: { $exists: true }
+		});
+
+		if (!maybeUser) {
+			const user = await User.findOneAndUpdate(
+				{ _id: this._userProperties._id },
+				{
+					$set: {
+						[`readingLists.${createReadingList.name}`]: []
+					}
+				},
+				{ new: true }
+			);
+
+			return user;
+		}
+
+		throw Error('duplicate key error');
+	}
+
+	async deleteReadingList(
+		createReadingList: CreateDeleteReadingList
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const user = await User.findOneAndUpdate(
+			{ _id: this._userProperties._id },
+			{
+				$unset: {
+					[`readingLists.${createReadingList.name}`]: []
+				}
+			},
+			{ new: true }
+		);
+
+		return user;
+	}
+
+	async renameReadingList(
+		renameReadingList: RenameReadingList
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const user = await User.findOneAndUpdate(
+			{ _id: this._userProperties._id },
+			{
+				$rename: {
+					[`readingLists.${renameReadingList.oldName}`]: `readingLists.${renameReadingList.newName}`
+				}
+			},
+			{ new: true }
+		);
+
+		return user!;
 	}
 
 	async build(): Promise<HydratedDocument<UserProperties>> {
 		if (this._userProperties._id === '') throw new Error('Must provide userID to build user.');
-
-		// Also create the default reading lists
-		for (const readingList of DefaultReadingList) {
-			const readingListProperties: ReadingListProperties = { title: readingList, books: {} };
-
-			this._userProperties.readingLists?.push(
-				readingListProperties as HydratedDocument<ReadingListProperties>
-			);
-		}
 
 		const user = new User(this._userProperties);
 		await user.save();

@@ -8,22 +8,25 @@ import {
 	createChapter,
 	generateTestUser,
 	createBook,
-	testUserOne,
 	getRandomElement
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
 
 import {
+	TEST_DATA_CHAPTERS_PER_STORYLINE,
 	TEST_DATA_NUM_USERS,
 	TEST_DATA_NUM_BOOKS_PER_USER,
-	TEST_DATA_CHAPTERS_PER_BOOK
+	TEST_DATA_NUM_STORYLINES_PER_BOOK
 } from '$env/static/private';
 import { RATING } from '$lib/properties/review';
+import type { ChapterProperties } from '$lib/properties/chapter';
+import type { HydratedDocument } from 'mongoose';
 
-const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '50');
-const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '5');
-const CHAPTERS_PER_BOOK = parseInt(TEST_DATA_CHAPTERS_PER_BOOK ?? '10');
+const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
+const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '3');
+const CHAPTERS_PER_STORYLINE = parseInt(TEST_DATA_CHAPTERS_PER_STORYLINE ?? '5');
+const NUM_STORYLINES_PER_BOOK = parseInt(TEST_DATA_NUM_STORYLINES_PER_BOOK ?? '3');
 
 const TIMEOUT_SECONDS = 60;
 
@@ -31,7 +34,7 @@ beforeAll(async () => {
 	console.log('CLEANING UP');
 
 	await connectDevDatabase();
-	await cleanUpDatabase();
+	await cleanUpDatabase(true);
 
 	console.log('CLEANED');
 }, TIMEOUT_SECONDS * 1000);
@@ -45,13 +48,9 @@ beforeAll(async () => {
 test(
 	'db setup',
 	async () => {
-		console.log('SETTING UP DB WITH RANDOM TEST DATA');
+		console.log('SETTING UP DB WITH TEST DATA');
 
 		const sessions: Session[] = [];
-		const caller = router.createCaller({ session: null });
-
-		// push default user
-		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateTestUser()));
@@ -71,21 +70,42 @@ test(
 		}
 
 		for (let i = 0; i < sessions.length; i++) {
+			const caller = router.createCaller({ session: sessions[i] });
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
 				const newBook = await createBook(sessions[i]);
 				const storylines = await caller.storylines.getByBookID({
 					bookID: newBook._id
 				});
+				const chapters: HydratedDocument<ChapterProperties>[] = [];
 
-				[...Array(CHAPTERS_PER_BOOK).keys()].map(
-					async () =>
+				for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
+					chapters.push(
 						await createChapter(
 							sessions[i],
 							`${faker.person.firstName()} in ${faker.location.city()}`,
 							`${faker.commerce.productDescription()} But a chapter.`,
 							storylines[0]
 						)
-				);
+					);
+				}
+
+				for (let l = 0; l < NUM_STORYLINES_PER_BOOK; l++) {
+					const storyline = await caller.storylines.create({
+						title: `Storyline ${l}`,
+						description: `Storyline ${l} description`,
+						book: newBook._id,
+						parent: storylines[0]._id,
+						parentChapter: getRandomElement(chapters)._id
+					});
+					for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
+						await createChapter(
+							sessions[i],
+							`${faker.person.firstName()} in ${faker.location.city()}`,
+							`${faker.commerce.productDescription()} But a chapter.`,
+							storyline
+						);
+					}
+				}
 
 				const num = Math.random();
 
