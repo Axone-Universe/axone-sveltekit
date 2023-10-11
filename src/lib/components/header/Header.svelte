@@ -185,16 +185,10 @@
 										<Icon data={user} />
 										<span>Profile</span>
 									</a>
+									<hr class="!my-2 variant-fill-primary" />
 									<a class="btn space-x-6 hover:variant-soft-primary" href={`/library`}>
 										<Icon data={listUl} /><span>Library</span>
 									</a>
-									<hr class="!my-2 variant-fill-primary" />
-									<button
-										class="btn space-x-6 hover:variant-soft-primary"
-										on:click={onLogoutButtonClick}
-										><Icon data={powerOff} />
-										<span>Logout</span>
-									</button>
 									<hr class="!my-2 variant-fill-primary" />
 									<a
 										class="btn space-x-6 hover:variant-soft-primary"
@@ -203,6 +197,13 @@
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>
+									<hr class="!my-2 variant-fill-primary" />
+									<button
+										class="btn space-x-6 hover:variant-soft-primary"
+										on:click={onLogoutButtonClick}
+										><Icon data={powerOff} />
+										<span>Logout</span>
+									</button>
 								</div>
 								<div class="arrow bg-surface-100-800-token" />
 							</div>
