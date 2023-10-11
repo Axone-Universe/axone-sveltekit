@@ -14,7 +14,7 @@
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 
 	import Icon from 'svelte-awesome';
-	import { caretDown, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
+	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
@@ -38,7 +38,7 @@
 	const profilePopupBox: PopupSettings = popupSettings('profilePopupBox');
 
 	const drawerSettings: DrawerSettings = {
-		id: 'example-3',
+		id: 'landing',
 		bgDrawer: 'bg-surface-100-800-token',
 		bgBackdrop: 'bg-gradient-to-tr from-indigo-500/50 via-purple-500/50 to-pink-500/50',
 		width: 'w-4/6 md:w-1/4',
@@ -62,7 +62,7 @@
 	};
 </script>
 
-<div class="fixed top-0 z-40 w-full">
+<div class="sticky top-0 z-50 w-full">
 	<AppBar
 		gridColumns="grid-cols-3"
 		slotDefault="flex justify-center"
@@ -162,7 +162,8 @@
 						<a
 							href="/book/create"
 							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-							><Icon data={pencil} />
+						>
+							<Icon data={pencil} />
 							<span class="hidden md:inline-block">Write</span>
 						</a>
 
@@ -185,23 +186,27 @@
 										href={`/profile/${data.session.user.id}`}
 									>
 										<Icon data={user} />
-										<span class="hidden md:inline-block">Profile</span>
+										<span>Profile</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<button
-										class="btn space-x-6 hover:variant-soft-primary"
-										on:click={onLogoutButtonClick}
-										><Icon data={powerOff} />
-										<span class="hidden md:inline-block">Logout</span>
-									</button>
+									<a class="btn space-x-6 hover:variant-soft-primary" href={`/library`}>
+										<Icon data={listUl} /><span>Library</span>
+									</a>
 									<hr class="!my-2 variant-fill-primary" />
 									<a
 										class="btn space-x-6 hover:variant-soft-primary"
 										href={`/user/studio/${data.session.user.id}/books`}
 									>
 										<Icon data={pencil} />
-										<span class="hidden md:inline-block">Studio</span>
+										<span>Studio</span>
 									</a>
+									<hr class="!my-2 variant-fill-primary" />
+									<button
+										class="btn space-x-6 hover:variant-soft-primary"
+										on:click={onLogoutButtonClick}
+										><Icon data={powerOff} />
+										<span>Logout</span>
+									</button>
 								</div>
 								<div class="arrow bg-surface-100-800-token" />
 							</div>

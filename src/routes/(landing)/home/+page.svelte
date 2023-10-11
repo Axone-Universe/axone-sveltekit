@@ -80,7 +80,7 @@
 		const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
 
 		if (
-			window.scrollY >= scrollableHeight * 0.7 &&
+			window.scrollY >= scrollableHeight * 0.6 &&
 			(lastLoadEpoch === 0 || Date.now() - lastLoadEpoch >= LOAD_DEBOUNCE_SECONDS * 1000)
 		) {
 			lastLoadEpoch = Date.now();
@@ -137,7 +137,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
-<Container class="p-4">
+<Container>
 	<div class="sticky top-[4.3rem] z-[2] flex flex-col gap-1">
 		<input
 			class="input text-sm h-8"
@@ -209,11 +209,13 @@
 	</div>
 
 	{#if $getBooksInfinite.isLoading}
-		<div class="mt-8 flex justify-center h-16">
-			<img src="/tail-spin.svg" alt="Loading spinner" />
+		<div class="h-screen">
+			<div class="mt-8 flex justify-center h-16">
+				<img src="/tail-spin.svg" alt="Loading spinner" />
+			</div>
 		</div>
 	{:else if $getBooksInfinite.isError}
-		<div class="mt-8 text-center space-y-8">
+		<div class="mt-8 text-center space-y-8 h-screen">
 			<div>
 				<p class="text-6xl">🤕</p>
 				<h4>Something went wrong while fetching books!</h4>
@@ -222,30 +224,40 @@
 			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Try again</button>
 		</div>
 	{:else if items.length === 0}
-		<div class="mt-8 text-center space-y-8">
+		<div class="mt-8 text-center space-y-8 h-screen">
 			<div>
 				<p class="text-6xl">😲</p>
 				<h4>We've come up empty!</h4>
-				<p>Try changing your filters or write your own book!</p>
+				{#if recommendedSelected}
+					<p>
+						We can't find any books that match your genre preferences. Try changing your filters!
+					</p>
+				{:else}
+					<p>Try changing your filters or write your own book!</p>
+				{/if}
 			</div>
-			<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
+			{#if !recommendedSelected}
+				<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
+			{/if}
 		</div>
 	{:else}
-		<div
-			class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
-		>
-			{#each items as item (item.title + item.imageURL)}
-				<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-					<BookPreview book={item} />
-				</div>
-			{/each}
-		</div>
-		{#if !$getBooksInfinite.hasNextPage}
-			<div class="flex justify-center my-12 italic font-bold">
-				<button class="btn-icon variant-filled" on:click={handleScrollToTop}
-					><Icon data={arrowUp} /></button
-				>
+		<div class="min-h-screen">
+			<div
+				class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
+			>
+				{#each items as item (item._id)}
+					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
+						<BookPreview book={item} />
+					</div>
+				{/each}
 			</div>
-		{/if}
+			{#if !$getBooksInfinite.hasNextPage}
+				<div class="flex justify-center my-12 italic font-bold">
+					<button class="btn-icon variant-filled" on:click={handleScrollToTop}>
+						<Icon data={arrowUp} />
+					</button>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </Container>

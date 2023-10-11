@@ -3,7 +3,15 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, read, update } from '$lib/trpc/schemas/users';
+import {
+	create,
+	createDeleteReadingList,
+	read,
+	getReadingList,
+	update,
+	updateReadingLists,
+	renameReadingList
+} from '$lib/trpc/schemas/users';
 
 const usersRepo = new UsersRepository();
 
@@ -53,12 +61,12 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
-			if (input.readingLists) userBuilder = userBuilder.readingLists(input.readingLists as any);
 
 			const user = await userBuilder.update();
 
 			return user;
 		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)
@@ -78,6 +86,56 @@ export const users = t.router({
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
 
 			const user = await userBuilder.build();
+
+			return user;
+		}),
+
+	getReadingList: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(getReadingList)
+		.query(async ({ input, ctx }) => {
+			const result = await usersRepo.getReadingList(ctx.session!.user.id, input.name);
+
+			return result;
+		}),
+
+	createReadingList: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(createDeleteReadingList)
+		.mutation(async ({ input, ctx }) => {
+			const user = new UserBuilder(ctx.session!.user.id).createReadingList(input);
+
+			return user;
+		}),
+
+	deleteReadingList: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(createDeleteReadingList)
+		.mutation(async ({ input, ctx }) => {
+			const user = new UserBuilder(ctx.session!.user.id).deleteReadingList(input);
+
+			return user;
+		}),
+
+	renameReadingList: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(renameReadingList)
+		.mutation(async ({ input, ctx }) => {
+			const user = new UserBuilder(ctx.session!.user.id).renameReadingList(input);
+
+			return user;
+		}),
+
+	updateReadingLists: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(updateReadingLists)
+		.mutation(async ({ input, ctx }) => {
+			const user = new UserBuilder(ctx.session!.user.id).updateReadingLists(input);
 
 			return user;
 		})

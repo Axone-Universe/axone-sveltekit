@@ -3,7 +3,6 @@
 
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import emblaCarouselSvelte from 'embla-carousel-svelte';
 	import UserPreview from '$lib/components/user/UserPreview.svelte';
 
 	import Author_1 from '$lib/assets/author-1.svelte';
@@ -149,9 +148,10 @@
 					_id: '',
 					firstName: 'Takunda',
 					lastName: 'Chirema',
-					labels: { Writer: false, Illustrator: false, Editor: true },
+					labels: ['Writer'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
-					about: '"Axone has allowed me to publish and monetize my unfinished book"'
+					about: '"Axone has allowed me to publish and monetize my unfinished book"',
+					readingLists: []
 				}}
 			/>
 			<UserPreview
@@ -160,10 +160,11 @@
 					_id: '',
 					firstName: 'Lindi',
 					lastName: 'Kers',
-					labels: { Writer: false, Illustrator: false, Editor: true },
+					labels: ['Writer', 'Editor'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
-						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
+						'"I have found inspiration for continuing my stories and my creativity has been awakened!"',
+					readingLists: []
 				}}
 			/>
 			<UserPreview
@@ -172,10 +173,11 @@
 					_id: '',
 					firstName: 'Danae',
 					lastName: 'Bouwer',
-					labels: { Writer: false, Illustrator: false, Editor: true },
+					labels: ['Illustrator'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
-						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
+						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"',
+					readingLists: []
 				}}
 			/>
 		</BookCarousel>

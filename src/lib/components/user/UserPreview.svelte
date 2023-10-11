@@ -39,12 +39,8 @@
 	<footer class="p-4 flex justify-center items-center space-x-4">
 		<div class="flex justify-center space-x-2">
 			{#if userData.labels}
-				{#each Object.keys(userLabels) as label}
-					{#if userLabels[label]}
-						<div class="chip variant-filled">{label}</div>
-					{:else}
-						<div class="chip">{label}</div>
-					{/if}
+				{#each userData.labels as label}
+					<div class="chip variant-filled">{label}</div>
 				{/each}
 			{/if}
 		</div>
