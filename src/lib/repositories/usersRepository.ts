@@ -1,5 +1,6 @@
 import { User } from '$lib/models/user';
 import { Repository } from '$lib/repositories/repository';
+import { label as StorylineLabel } from '$lib/properties/storyline';
 import type { UserProperties } from '$lib/properties/user';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
@@ -18,6 +19,64 @@ export class UsersRepository extends Repository {
 		const query = User.findById(id);
 
 		return await query;
+	}
+
+	async getReadingList(id: string, name?: string) {
+		const query = await User.aggregate([
+			{
+				$match: { _id: id }
+			},
+			{
+				$project: {
+					item: 1,
+					readingLists: { $objectToArray: '$readingLists' }
+				}
+			},
+			{
+				$unwind: '$readingLists'
+			},
+			...(name
+				? [
+						{
+							$match: { 'readingLists.k': name }
+						}
+				  ]
+				: []),
+			{
+				$lookup: {
+					from: 'storylines',
+					localField: 'readingLists.v',
+					foreignField: '_id',
+					as: 'storylines'
+				}
+			},
+			{
+				$unwind: '$storylines'
+			},
+			{
+				$replaceRoot: { newRoot: '$storylines' }
+			},
+			{
+				$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+			},
+			{
+				$unwind: {
+					path: '$user',
+					preserveNullAndEmptyArrays: true
+				}
+			},
+			{
+				$lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' }
+			},
+			{
+				$unwind: {
+					path: '$book',
+					preserveNullAndEmptyArrays: true
+				}
+			}
+		]);
+
+		return query;
 	}
 
 	/**

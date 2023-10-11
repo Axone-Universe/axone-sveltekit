@@ -1,40 +1,50 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
-	import {
-		leanpub,
-		star,
-		infoCircle,
-		bookmark,
-		bookmarkO,
-		lock,
-		eyeSlash,
-		caretDown
-	} from 'svelte-awesome/icons';
+	import { leanpub, star, infoCircle, caretDown, eyeSlash, bookmark } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { type PopupSettings, popup, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+	import {
+		type PopupSettings,
+		popup,
+		ListBox,
+		ListBoxItem,
+		type ModalSettings,
+		modalStore
+	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 
-	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
-	import type { ReadingListProperties } from '$lib/properties/readingList';
+	import type { UserProperties } from '$lib/properties/user';
+	import { trpc } from '$lib/trpc/client';
+	import type { Session } from '@supabase/supabase-js';
 
 	let customClass = '';
 	export { customClass as class };
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
+	export let session: Session | null;
 	export let storylineData: HydratedDocument<StorylineProperties>;
 
 	let dispatch = createEventDispatcher();
 
 	let bookGenres: Genre[] | undefined;
-	let readingLists: HydratedDocument<ReadingListProperties>[] = [];
+	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
 	onMount(() => {
-		readingLists = JSON.parse(JSON.stringify($page.data.user.readingLists));
-		showAddedToReadingList();
+		async function getUser() {
+			if (session) {
+				const maybeUser = await trpc($page).users.getById.query({
+					id: session.user.id
+				});
+				if (maybeUser) {
+					user = maybeUser as HydratedDocument<UserProperties>;
+				}
+			}
+		}
+
+		getUser();
 	});
 
 	afterUpdate(() => {
@@ -50,16 +60,16 @@
 		placement: 'top'
 	};
 
-	const readingListPopup: PopupSettings = {
-		// Represents the type of event that opens/closed the popup
-		event: 'click',
-		// Matches the data-popup value on your popup element
-		target: 'readingListPopup',
-		// Defines which side of your trigger the popup will appear
-		placement: 'right'
+	const readingListModal: ModalSettings = {
+		type: 'component',
+		component: 'readingListModal',
+		title: 'Add to Reading List',
+		response: (r) => {
+			if (r) addToReadingList(r);
+		}
 	};
 
-	let selectedStoryline = '';
+	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineData;
 	const storylinesPopup: PopupSettings = {
 		event: 'focus-click',
 		target: 'storylinesPopup',
@@ -67,40 +77,30 @@
 		closeQuery: '.listbox-item'
 	};
 
-	// This is a variable to check if storyline is in a reading list
-	let addedToReadingList = false;
-	function showAddedToReadingList() {
-		for (const readingList of readingLists) {
-			if (storylineData._id in readingList.books) {
-				addedToReadingList = true;
-				return;
-			}
-		}
-		addedToReadingList = false;
-	}
-
-	function addToReadingList(readingList: HydratedDocument<ReadingListProperties>) {
-		if (storylineData._id in readingList.books) {
-			delete readingList.books[storylineData._id];
-		} else {
-			readingList.books[storylineData._id] = storylineData._id;
-		}
-
-		trpc($page)
-			.users.update.mutate({
-				_id: $page.data.user._id,
-				readingLists: readingLists
-			})
-			.then((userResponse: any) => {
-				readingLists = userResponse.readingLists;
-				showAddedToReadingList();
-			});
-	}
-
 	const storylineClicked = (id: string) => {
 		storylineData = storylines[id];
 		dispatch('storylineClicked', id);
 	};
+
+	function openReadingListModal() {
+		readingListModal.meta = {
+			user,
+			storylineID: selectedStoryline!._id
+		};
+		readingListModal.body = `Select the reading lists to add "${selectedStoryline!.title}" to.`;
+		modalStore.trigger(readingListModal);
+	}
+
+	async function addToReadingList(names: string[]) {
+		try {
+			user = (await trpc($page).users.updateReadingLists.mutate({
+				names,
+				storylineID: selectedStoryline!._id
+			})) as HydratedDocument<UserProperties>;
+		} catch (e) {
+			console.log(e);
+		}
+	}
 </script>
 
 <div
@@ -139,8 +139,10 @@
 									class="btn variant-soft w-full"
 									href="/storylines"
 									target="_blank"
-									rel="noreferrer">More</a
+									rel="noreferrer"
 								>
+									More
+								</a>
 							</div>
 							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;" />
 						</div>
@@ -162,7 +164,7 @@
 											bind:group={selectedStoryline}
 											name=""
 											class="soft-listbox"
-											value={storyline._id}
+											value={storyline}
 										>
 											<div class="line-clamp-1 flex justify-between items-center">
 												<p class="w-5/6 line-clamp-1">
@@ -192,32 +194,11 @@
 						<Icon class="p-2" data={leanpub} scale={2.5} />
 						Read
 					</a>
-					<div>
-						<button use:popup={readingListPopup} type="button" class="btn-icon variant-filled">
-							{#if addedToReadingList}
-								<Icon class="p-2" data={bookmark} scale={2.5} />
-							{:else}
-								<Icon class="p-2" data={bookmarkO} scale={2.5} />
-							{/if}
+					{#if session}
+						<button class="btn-icon variant-filled" on:click={openReadingListModal}>
+							<Icon class="p-2" data={bookmark} scale={2.5} />
 						</button>
-
-						<div class="card p-4 space-y-2 w-fit shadow-xl" data-popup="readingListPopup">
-							{#each readingLists as readingList}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<div
-									class="btn variant-soft-primary cursor-pointer flex space-x-4 justify-between"
-									on:click={() => addToReadingList(readingList)}
-								>
-									<p class="line-clamp-1">{readingList.title}</p>
-									{#if storylineData._id in readingList.books}
-										<Icon data={bookmark} scale={1.2} />
-									{:else}
-										<Icon data={bookmarkO} scale={1.2} />
-									{/if}
-								</div>
-							{/each}
-						</div>
-					</div>
+					{/if}
 				</div>
 				<div class="space-x-2 line-clamp-1">
 					{#if bookGenres}
@@ -237,6 +218,8 @@
 		</div>
 	</div>
 </div>
+
+<!-- TODO: fix this file -->
 
 <style>
 	@font-face {

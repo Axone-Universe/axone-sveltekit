@@ -44,7 +44,7 @@
 			class="opacity-100 md:opacity-0 md:group-hover:opacity-100 flex flex-col justify-between duration-300 p-2"
 		>
 			<p class="whitespace-normal text-sm sm:text-base font-bold line-clamp-2">{book.title}</p>
-			<p class="whitespace-normal text-sm italic">{`by ${user.firstName}`}</p>
+			<p class="whitespace-normal text-sm italic">{`by ${user.firstName} ${user.lastName}`}</p>
 		</div>
 	</div>
 	{#if book.rating > 0}

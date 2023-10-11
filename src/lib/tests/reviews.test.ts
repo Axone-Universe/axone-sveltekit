@@ -638,4 +638,6 @@ describe('reviews', async () => {
 		expect(storyline.numRatings).toEqual(2);
 		expect(storyline.cumulativeRating).toEqual(7);
 	});
+
+	// TODO: test cascading deletes of storylines
 });
