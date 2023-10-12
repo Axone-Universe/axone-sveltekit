@@ -40,7 +40,6 @@
 	const drawerSettings: DrawerSettings = {
 		id: 'landing',
 		bgDrawer: 'bg-surface-100-800-token',
-		bgBackdrop: 'bg-gradient-to-tr from-indigo-500/50 via-purple-500/50 to-pink-500/50',
 		width: 'w-4/6 md:w-1/4',
 		padding: 'p-4',
 		rounded: 'rounded-xl'

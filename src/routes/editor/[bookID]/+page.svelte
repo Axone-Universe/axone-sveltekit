@@ -978,13 +978,13 @@
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions },
 									{
 										label: 'Add to Reading List',
 										icon: bookmark,
 										callback: openReadingListModal,
 										mode: 'reader'
-									}
+									},
+									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
 								]}
 							/>
 						{/if}
