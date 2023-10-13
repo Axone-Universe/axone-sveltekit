@@ -2,7 +2,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { DeltasRepository } from '$lib/repositories/deltasRepository';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { update, read, create } from '$lib/trpc/schemas/deltas';
+import { update, read, create, history } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 
 export const deltas = t.router({
@@ -40,9 +40,24 @@ export const deltas = t.router({
 				.chapterID(input.chapterID);
 
 			if (input.ops) {
-				await deltaBuilder.delta(input.id, input.ops);
+				await deltaBuilder.delta(input.ops);
 			}
 
+			const deltaResponse = await deltaBuilder.update();
+
+			return deltaResponse;
+		}),
+
+	createVersion: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(history)
+		.mutation(async ({ input, ctx }) => {
+			const deltaBuilder = new DeltaBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.chapterID(input.chapterID);
+
+			await deltaBuilder.createVersion();
 			const deltaResponse = await deltaBuilder.update();
 
 			return deltaResponse;

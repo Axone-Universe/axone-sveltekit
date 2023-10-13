@@ -74,7 +74,7 @@ describe('reviews', async () => {
 
 		expect(
 			async () => await createReview(testUserOneSession, storylines[0]._id, reviewOf, rating)
-		).rejects.toThrowError('FORBIDDEN');
+		).rejects.toThrowError('Self reviews are not allowed');
 	});
 
 	test('throws on creating more than one review for the same storyline', async () => {

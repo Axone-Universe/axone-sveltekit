@@ -43,7 +43,7 @@ export interface UploadFileToBucketParams {
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	illustrations: { [key: string]: Illustration } = {};
-	selectedDelta: Delta = undefined;
+	selectedDelta: Delta | undefined = undefined;
 	ops: Op[] | undefined;
 	page: Page;
 	chapter: HydratedDocument<ChapterProperties> | undefined;

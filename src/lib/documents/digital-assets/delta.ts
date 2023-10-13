@@ -16,7 +16,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		super();
 		this._deltaProperties = {
 			_id: id ? id : ulid(),
-			ops: []
+			versions: []
 		};
 	}
 
@@ -28,7 +28,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 	ops(ops: string): DeltaBuilder {
 		const opsJSON = JSON.parse(ops);
-		this._deltaProperties.ops = opsJSON;
+		this._deltaProperties.versions = opsJSON;
 		return this;
 	}
 
@@ -41,7 +41,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 	 * Mostly used for incremental autosaving
 	 * @param delta
 	 */
-	async delta(id: string, ops: string) {
+	async delta(ops: string) {
 		const deltaOps = JSON.parse(ops);
 		const quillDelta = new QuillDelta(deltaOps);
 
@@ -49,7 +49,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			[
 				{
 					$match: {
-						_id: id
+						_id: this._deltaProperties._id
 					}
 				}
 			],
@@ -60,7 +60,12 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			.cursor()
 			.next();
 
-		const currentOpsJSON = delta.ops;
+		let currentVersion = delta.versions.pop();
+		if (!currentVersion) {
+			currentVersion = { date: this.formatDate(new Date()), ops: [] };
+		}
+
+		const currentOpsJSON = currentVersion.ops;
 
 		// convert current ops to a delta
 		const currentOps = currentOpsJSON ? currentOpsJSON : [];
@@ -68,9 +73,44 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		// merge the 2 deltas
 		const newQuillDelta = currentQuillDelta.compose(quillDelta);
+		currentVersion.ops = newQuillDelta.ops;
 
-		this._deltaProperties.ops = newQuillDelta.ops;
+		delta.versions.push(currentVersion);
+
+		this._deltaProperties.versions = delta.versions;
 		return this;
+	}
+
+	async createVersion() {
+		const delta = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: this._deltaProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		delta.versions.push([]);
+
+		this._deltaProperties.versions = delta.versions;
+		return this;
+	}
+
+	formatDate(date: Date) {
+		return date.toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric'
+		});
 	}
 
 	async update(): Promise<HydratedDocument<DeltaProperties>> {
