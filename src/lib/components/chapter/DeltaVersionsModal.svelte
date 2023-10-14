@@ -118,7 +118,6 @@
 					type="text"
 					placeholder="e.g. Version 1"
 					bind:value={version.title}
-					required
 					disabled={!!selectedVersionID}
 				/>
 			</label>
