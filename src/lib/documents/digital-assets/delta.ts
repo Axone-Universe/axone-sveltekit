@@ -3,7 +3,7 @@ import QuillDelta from 'quill-delta';
 import type { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { DeltaProperties } from '$lib/properties/delta';
+import { VersionPropertyBuilder, type DeltaProperties } from '$lib/properties/delta';
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
 
@@ -62,7 +62,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		let currentVersion = delta.versions.pop();
 		if (!currentVersion) {
-			currentVersion = { date: this.formatDate(new Date()), ops: [] };
+			currentVersion = new VersionPropertyBuilder().getProperties();
 		}
 
 		const currentOpsJSON = currentVersion.ops;
@@ -81,7 +81,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		return this;
 	}
 
-	async createVersion() {
+	async createVersion(title?: string) {
 		const delta = await Delta.aggregate(
 			[
 				{
@@ -97,20 +97,18 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			.cursor()
 			.next();
 
-		delta.versions.push([]);
+		const currentVersion = delta.versions.at(-1);
+		if (currentVersion && currentVersion.ops.length === 0) {
+			throw new Error('The current version is new');
+		}
+
+		const version = new VersionPropertyBuilder().getProperties();
+		version.title = title;
+
+		delta.versions.push(version);
 
 		this._deltaProperties.versions = delta.versions;
 		return this;
-	}
-
-	formatDate(date: Date) {
-		return date.toLocaleDateString(undefined, {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: 'numeric'
-		});
 	}
 
 	async update(): Promise<HydratedDocument<DeltaProperties>> {

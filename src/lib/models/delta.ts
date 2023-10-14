@@ -5,7 +5,8 @@ import { addRestrictionsPipeline, addUpdatePermissionFilter, permissionSchema } 
 import type Op from 'quill-delta/dist/Op';
 import QuillDelta from 'quill-delta';
 
-export const versionSchema = new Schema({
+export const versionSchema = new Schema<VersionProperties>({
+	_id: String,
 	date: String,
 	title: String,
 	ops: Object
@@ -15,7 +16,7 @@ export const deltaSchema = new Schema<DeltaProperties>({
 	_id: { type: String, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
-	versions: [{ type: Map, of: versionSchema }]
+	versions: [versionSchema]
 });
 
 deltaSchema.pre(['find', 'findOne'], function () {

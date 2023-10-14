@@ -57,7 +57,8 @@ export const deltas = t.router({
 				.sessionUserID(ctx.session!.user.id)
 				.chapterID(input.chapterID);
 
-			await deltaBuilder.createVersion();
+			console.log('** delta trpc');
+			await deltaBuilder.createVersion(input.title);
 			const deltaResponse = await deltaBuilder.update();
 
 			return deltaResponse;

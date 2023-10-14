@@ -38,7 +38,8 @@
 		trash,
 		unlock,
 		star,
-		bookmark
+		bookmark,
+		history
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -53,6 +54,7 @@
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
+	import DeltaVersionsModal from '$lib/components/chapter/DeltaVersionsModal.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -407,6 +409,12 @@
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
 		modalComponent.props = { storylineNode: selectedStoryline, chapterNode: selectedChapter };
+		modalStore.trigger(modalSettings);
+	};
+
+	let versionHistory = () => {
+		modalComponent.ref = DeltaVersionsModal;
+		modalComponent.props = { delta: selectedChapter!.delta };
 		modalStore.trigger(modalSettings);
 	};
 
@@ -1004,6 +1012,13 @@
 									icon: trash,
 									callback: deleteChapter,
 									mode: 'writer'
+								},
+								{
+									label: 'History',
+									icon: history,
+									callback: versionHistory,
+									mode: 'writer',
+									hidden: selectedChapter ? false : true
 								},
 								{
 									label: 'Auto Save',
