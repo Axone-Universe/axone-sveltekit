@@ -38,7 +38,8 @@
 		trash,
 		unlock,
 		star,
-		bookmark
+		bookmark,
+		history
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -53,6 +54,8 @@
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
+	import DeltaVersionsModal from '$lib/components/chapter/DeltaVersionsModal.svelte';
+	import type { DeltaProperties } from '$lib/properties/delta';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -178,22 +181,7 @@
 		type: 'component',
 		// Pass the component directly:
 		component: modalComponent,
-		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
-			if (!chapterNode) {
-				return;
-			}
-
-			// Update the UI
-			let chapterID = chapterNode._id;
-			leftDrawerSelectedItem = chapterID;
-
-			// afterUpdate() will run the setup editor
-			selectedStorylineChapters[chapterID] = chapterNode;
-			selectedStoryline.chapters?.push(chapterNode as any);
-
-			selectedChapter = chapterNode;
-			selectedStorylineChapters = selectedStorylineChapters;
-		}
+		response: () => {}
 	};
 
 	const readingListModal: ModalSettings = {
@@ -307,7 +295,25 @@
 			prevChapterID: prevChapterID
 		};
 
+		modalSettings.response = createChapterCallback;
 		modalStore.trigger(modalSettings);
+	};
+
+	let createChapterCallback = (chapterNode: HydratedDocument<ChapterProperties>) => {
+		if (!chapterNode) {
+			return;
+		}
+
+		// Update the UI
+		let chapterID = chapterNode._id;
+		leftDrawerSelectedItem = chapterID;
+
+		// afterUpdate() will run the setup editor
+		selectedStorylineChapters[chapterID] = chapterNode;
+		selectedStoryline.chapters?.push(chapterNode as any);
+
+		selectedChapter = chapterNode;
+		selectedStorylineChapters = selectedStorylineChapters;
 	};
 
 	/**
@@ -408,6 +414,24 @@
 		modalComponent.ref = ChapterNotesModal;
 		modalComponent.props = { storylineNode: selectedStoryline, chapterNode: selectedChapter };
 		modalStore.trigger(modalSettings);
+	};
+
+	let versionHistory = () => {
+		modalComponent.ref = DeltaVersionsModal;
+		modalComponent.props = { delta: quill.chapter!.delta };
+
+		modalSettings.response = createVersionCallback;
+		modalStore.trigger(modalSettings);
+	};
+
+	let createVersionCallback = (delta: HydratedDocument<DeltaProperties>) => {
+		if (!delta) {
+			return;
+		}
+
+		// Update the Chapter
+		selectedChapter!.delta = delta;
+		setupEditor();
 	};
 
 	/**
@@ -978,13 +1002,13 @@
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions },
 									{
 										label: 'Add to Reading List',
 										icon: bookmark,
 										callback: openReadingListModal,
 										mode: 'reader'
-									}
+									},
+									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
 								]}
 							/>
 						{/if}
@@ -1004,6 +1028,13 @@
 									icon: trash,
 									callback: deleteChapter,
 									mode: 'writer'
+								},
+								{
+									label: 'History',
+									icon: history,
+									callback: versionHistory,
+									mode: 'writer',
+									hidden: selectedChapter ? false : true
 								},
 								{
 									label: 'Auto Save',

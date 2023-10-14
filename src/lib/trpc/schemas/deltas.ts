@@ -13,3 +13,10 @@ export const update = z.object({
 	chapterID: z.string(),
 	ops: z.string().optional()
 });
+
+export const versions = z.object({
+	id: z.string(),
+	chapterID: z.string(),
+	versionID: z.string().optional(),
+	title: z.string().optional()
+});

@@ -26,7 +26,7 @@ import type { Rating, ReviewOf } from '$lib/properties/review';
 /** Supabase Test User Infos */
 export const testUserOne: User = {
 	id: TEST_USER_ID ? TEST_USER_ID : '1',
-	email: 'user_one@test.com',
+	email: 'test.user.one@test.com',
 	user_metadata: {
 		firstName: TEST_USER_FIRST_NAME ? TEST_USER_FIRST_NAME : 'user',
 		lastName: TEST_USER_LAST_NAME ? TEST_USER_LAST_NAME : 'one'
@@ -38,7 +38,7 @@ export const testUserOne: User = {
 
 export const testUserTwo: User = {
 	id: '2',
-	email: 'user_two@test.com',
+	email: 'test.user.two@test.com',
 	user_metadata: { firstName: 'user', lastName: 'two' },
 	app_metadata: {},
 	aud: '',
@@ -47,7 +47,7 @@ export const testUserTwo: User = {
 
 export const testUserThree: User = {
 	id: '3',
-	email: 'user_three@test.com',
+	email: 'test.user.three@test.com',
 	user_metadata: { firstName: 'user', lastName: 'three' },
 	app_metadata: {},
 	aud: '',
@@ -180,7 +180,7 @@ export async function cleanUpDatabase(isPartOfDBSetup = false) {
 	await Promise.all(
 		Object.values(mongoose.connection.collections).map(async (collection) => {
 			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
-				await collection.deleteMany({ _id: /^test-/ });
+				await collection.deleteMany({ $or: [{ _id: /^test-/ }, { email: /^test./ }] });
 			} else {
 				await collection.deleteMany({});
 			}
