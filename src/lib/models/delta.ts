@@ -32,12 +32,9 @@ deltaSchema.pre('aggregate', function (next) {
 });
 
 deltaSchema.post('aggregate', function (docs) {
-	console.log('** docs');
-
 	for (const doc of docs) {
 		doc.ops = createDeltaOps(doc.versions);
 	}
-	console.log(docs);
 });
 
 function createDeltaOps(versions: VersionProperties[]) {

@@ -3,9 +3,14 @@ import QuillDelta from 'quill-delta';
 import type { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import { VersionPropertyBuilder, type DeltaProperties } from '$lib/properties/delta';
+import {
+	VersionPropertyBuilder,
+	type DeltaProperties,
+	type VersionProperties
+} from '$lib/properties/delta';
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
+import type Op from 'quill-delta/dist/Op';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
@@ -16,7 +21,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		super();
 		this._deltaProperties = {
 			_id: id ? id : ulid(),
-			versions: []
+			versions: [new VersionPropertyBuilder().getProperties()]
 		};
 	}
 
@@ -60,11 +65,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			.cursor()
 			.next();
 
-		let currentVersion = delta.versions.pop();
-		if (!currentVersion) {
-			currentVersion = new VersionPropertyBuilder().getProperties();
-		}
-
+		const currentVersion = delta.versions.pop();
 		const currentOpsJSON = currentVersion.ops;
 
 		// convert current ops to a delta
@@ -111,14 +112,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		return this;
 	}
 
-	async update(): Promise<HydratedDocument<DeltaProperties>> {
-		if (!this._deltaProperties._id) throw new Error('Must provide a deltaID to update the delta.');
-
-		await Delta.findOneAndUpdate({ _id: this._deltaProperties._id }, this._deltaProperties, {
-			new: true
-			// userID: this._sessionUserID
-		});
-
+	async restoreVersion(versionID: string) {
 		const delta = await Delta.aggregate(
 			[
 				{
@@ -134,6 +128,78 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			.cursor()
 			.next();
 
+		const {
+			diffDelta: diffQuillDelta,
+			versionDelta: versionQuillDelta,
+			version: restoredVersion
+		} = this.getDiffDelta(delta.versions, versionID);
+
+		// Create the inverting delta
+		// When applied to the current version, the inverting delta will revert to the specified version.
+		const inversion = diffQuillDelta.invert(versionQuillDelta);
+
+		const version = new VersionPropertyBuilder().getProperties();
+		version.title = 'Restored from ' + restoredVersion?.date;
+		version.ops = inversion.ops;
+
+		delta.versions.push(version);
+
+		this._deltaProperties.versions = delta.versions;
+		return this;
+	}
+
+	/**
+	 * 1. Gets ops from delta initiation up to
+	 * @param versions
+	 * @param versionID
+	 * @returns
+	 */
+	getDiffDelta(versions: VersionProperties[], versionID: string) {
+		let diffDelta = new QuillDelta();
+		let versionDelta = new QuillDelta();
+
+		let composeVersionDelta = true;
+		let version;
+		for (const deltaVersion of versions) {
+			if (composeVersionDelta) {
+				const delta = new QuillDelta(deltaVersion.ops as Op[]);
+				versionDelta = versionDelta.compose(delta);
+			} else {
+				const delta = new QuillDelta(deltaVersion.ops as Op[]);
+				diffDelta = diffDelta.compose(delta);
+			}
+
+			if (deltaVersion._id === versionID) {
+				composeVersionDelta = false;
+				version = deltaVersion;
+			}
+		}
+		return { diffDelta, versionDelta, version } as const;
+	}
+
+	async update(): Promise<HydratedDocument<DeltaProperties>> {
+		if (!this._deltaProperties._id) throw new Error('Must provide a deltaID to update the delta.');
+
+		await Delta.findOneAndUpdate({ _id: this._deltaProperties._id }, this._deltaProperties, {
+			new: true
+			// userID: this._sessionUserID
+		});
+
+		const deltas = await Delta.aggregate(
+			[
+				{
+					$match: {
+						_id: this._deltaProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		).exec();
+
+		// We don't user a cursor here so that the middleware for delta model is called.
+		const delta = deltas[0];
 		return delta;
 	}
 
@@ -177,7 +243,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			session.endSession();
 		}
 
-		const newDelta = await Delta.aggregate(
+		const newDeltas = await Delta.aggregate(
 			[
 				{
 					$match: {
@@ -188,10 +254,10 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 			{
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		).exec();
 
+		// We don't user a cursor here so that the middleware for delta model is called.
+		const newDelta = newDeltas[0];
 		return newDelta;
 	}
 }

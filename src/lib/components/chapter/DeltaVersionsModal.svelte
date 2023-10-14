@@ -24,11 +24,16 @@
 
 	let version: VersionProperties = new VersionPropertyBuilder().getProperties();
 	let selectedVersionID = '';
-	let versions = delta.versions?.reverse() ?? [];
+	let versions = delta.versions ? createVersionCopy(delta.versions).reverse() : [];
 
 	let closeModal = () => {
 		modalStore.close();
 	};
+
+	function createVersionCopy(versions: VersionProperties[]): VersionProperties[] {
+		const versionsCopy = JSON.parse(JSON.stringify(versions)) as VersionProperties[];
+		return versionsCopy;
+	}
 
 	async function createVersion() {
 		let toastMessage = 'Creation Failed';
@@ -45,7 +50,11 @@
 				toastBackground = 'bg-success-500';
 
 				delta = deltaResponse as HydratedDocument<DeltaProperties>;
-				versions = delta.versions!.reverse();
+				versions = createVersionCopy(delta.versions!).reverse();
+
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(delta) : '';
+				}
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -57,13 +66,41 @@
 			});
 	}
 
-	function restoreVersion() {}
+	function restoreVersion() {
+		let toastMessage = 'Restore Failed';
+		let toastBackground = 'bg-warning-500';
+
+		trpc($page)
+			.deltas.restoreVersion.mutate({
+				chapterID: typeof delta.chapter === 'string' ? delta.chapter : delta.chapter!._id,
+				id: delta._id,
+				versionID: version._id
+			})
+			.then((deltaResponse) => {
+				toastMessage = 'Restoration Successful';
+				toastBackground = 'bg-success-500';
+
+				delta = deltaResponse as HydratedDocument<DeltaProperties>;
+				versions = createVersionCopy(delta.versions!).reverse();
+
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(delta) : '';
+				}
+			})
+			.finally(() => {
+				let t: ToastSettings = {
+					message: toastMessage,
+					background: toastBackground,
+					autohide: true
+				};
+				toastStore.trigger(t);
+			});
+	}
 
 	function versionSelected(selectedVersion?: VersionProperties) {
 		if (selectedVersion) {
 			version = selectedVersion;
 			version = version;
-			console.log(selectedVersion);
 		} else {
 			version = new VersionPropertyBuilder().getProperties();
 		}
@@ -96,7 +133,7 @@
 			<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
 			{#if !selectedVersionID}
 				<button class="btn variant-filled" type="submit">Create</button>
-			{:else}
+			{:else if selectedVersionID !== versions[0]._id}
 				<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button>
 			{/if}
 		</footer>

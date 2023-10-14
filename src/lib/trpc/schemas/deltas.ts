@@ -14,8 +14,9 @@ export const update = z.object({
 	ops: z.string().optional()
 });
 
-export const history = z.object({
+export const versions = z.object({
 	id: z.string(),
 	chapterID: z.string(),
+	versionID: z.string().optional(),
 	title: z.string().optional()
 });

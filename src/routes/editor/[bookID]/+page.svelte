@@ -55,6 +55,7 @@
 	import type { UserProperties } from '$lib/properties/user';
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
 	import DeltaVersionsModal from '$lib/components/chapter/DeltaVersionsModal.svelte';
+	import type { DeltaProperties } from '$lib/properties/delta';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -180,22 +181,7 @@
 		type: 'component',
 		// Pass the component directly:
 		component: modalComponent,
-		response: (chapterNode: HydratedDocument<ChapterProperties>) => {
-			if (!chapterNode) {
-				return;
-			}
-
-			// Update the UI
-			let chapterID = chapterNode._id;
-			leftDrawerSelectedItem = chapterID;
-
-			// afterUpdate() will run the setup editor
-			selectedStorylineChapters[chapterID] = chapterNode;
-			selectedStoryline.chapters?.push(chapterNode as any);
-
-			selectedChapter = chapterNode;
-			selectedStorylineChapters = selectedStorylineChapters;
-		}
+		response: () => {}
 	};
 
 	const readingListModal: ModalSettings = {
@@ -309,7 +295,25 @@
 			prevChapterID: prevChapterID
 		};
 
+		modalSettings.response = createChapterCallback;
 		modalStore.trigger(modalSettings);
+	};
+
+	let createChapterCallback = (chapterNode: HydratedDocument<ChapterProperties>) => {
+		if (!chapterNode) {
+			return;
+		}
+
+		// Update the UI
+		let chapterID = chapterNode._id;
+		leftDrawerSelectedItem = chapterID;
+
+		// afterUpdate() will run the setup editor
+		selectedStorylineChapters[chapterID] = chapterNode;
+		selectedStoryline.chapters?.push(chapterNode as any);
+
+		selectedChapter = chapterNode;
+		selectedStorylineChapters = selectedStorylineChapters;
 	};
 
 	/**
@@ -414,8 +418,20 @@
 
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
-		modalComponent.props = { delta: selectedChapter!.delta };
+		modalComponent.props = { delta: quill.chapter!.delta };
+
+		modalSettings.response = createVersionCallback;
 		modalStore.trigger(modalSettings);
+	};
+
+	let createVersionCallback = (delta: HydratedDocument<DeltaProperties>) => {
+		if (!delta) {
+			return;
+		}
+
+		// Update the Chapter
+		selectedChapter!.delta = delta;
+		setupEditor();
 	};
 
 	/**
