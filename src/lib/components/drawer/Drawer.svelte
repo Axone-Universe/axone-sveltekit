@@ -112,7 +112,7 @@
 		</div>
 	{:else if $drawerStore.id === 'library'}
 		<div
-			class="h-screen sticky flex flex-col justify-between bg-surface-100-800-token pt-4 p-2 gap-2"
+			class="h-full sticky flex flex-col justify-between bg-surface-100-800-token pt-4 p-2 gap-2"
 		>
 			<div class="flex flex-col gap-2">
 				{#each $drawerStore.meta.readingLists as list}

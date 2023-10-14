@@ -8,7 +8,8 @@ import {
 	createChapter,
 	generateTestUser,
 	createBook,
-	getRandomElement
+	getRandomElement,
+	testUserOne
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -51,6 +52,9 @@ test(
 		console.log('SETTING UP DB WITH TEST DATA');
 
 		const sessions: Session[] = [];
+
+		// push default user
+		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateTestUser()));
