@@ -2,7 +2,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import type { DeltaProperties } from './delta';
-import { PermissionPropertyBuilder, type PermissionProperties } from './permission';
+import type { PermissionProperties } from './permission';
 import type { Genre } from './genre';
 import type { StorylineProperties } from './storyline';
 
@@ -36,8 +36,7 @@ export class ChapterPropertyBuilder {
 			title: '',
 			description: '',
 			permissions: {
-				public:
-					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
 			}
 		};
 	}

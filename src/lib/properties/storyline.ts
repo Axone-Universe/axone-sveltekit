@@ -3,7 +3,7 @@ import type { ChapterProperties } from './chapter';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import { GenresBuilder, type Genre } from './genre';
-import { PermissionPropertyBuilder, type PermissionProperties } from './permission';
+import type { PermissionProperties } from './permission';
 import type { ReviewableProperties } from './review';
 
 export const label = 'Storyline';
@@ -46,8 +46,7 @@ export class StorylinePropertyBuilder {
 			parentChapter: '',
 			tags: [],
 			permissions: {
-				public:
-					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
 			},
 			cumulativeRating: 0,
 			numRatings: 0

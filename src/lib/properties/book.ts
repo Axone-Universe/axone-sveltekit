@@ -1,7 +1,7 @@
 import type { HydratedDocument } from 'mongoose';
 import type { Genre } from './genre';
 import type { UserProperties } from './user';
-import { PermissionPropertyBuilder, type PermissionProperties } from './permission';
+import type { PermissionProperties } from './permission';
 
 export const label = 'Book';
 
@@ -32,8 +32,7 @@ export class BookPropertyBuilder {
 			genres: [],
 			tags: [],
 			permissions: {
-				public:
-					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
 			},
 			rating: 0
 		};
