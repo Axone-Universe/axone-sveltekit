@@ -21,7 +21,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			_id: id ? id : ulid(),
 			main: false,
 			permissions: {},
-			published: false,
 			cumulativeRating: 0,
 			numRatings: 0
 		};
@@ -79,11 +78,6 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._storylineProperties.permissions = permissions;
-		return this;
-	}
-
-	published(published: boolean) {
-		this._storylineProperties.published = published;
 		return this;
 	}
 

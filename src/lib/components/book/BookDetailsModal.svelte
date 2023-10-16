@@ -6,14 +6,11 @@
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
-	import type { PermissionProperties } from '$lib/properties/permission';
 
 	export let bookData: HydratedDocument<BookProperties>;
 
 	let customClass = '';
 	export { customClass as class };
-
-	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
 
 	let closeModal = () => {
 		modalStore.close();
@@ -39,7 +36,7 @@
 				description: bookData.description!,
 				imageURL: bookData.imageURL,
 				genres: bookData.genres,
-				permissions: Object.fromEntries(permissions) as any
+				permissions: bookData.permissions
 			})
 			.then((bookNodeResponses) => {
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
@@ -71,7 +68,7 @@
 				description: bookData.description,
 				imageURL: bookData.imageURL,
 				genres: bookData.genres,
-				permissions: Object.fromEntries(permissions) as any
+				permissions: bookData.permissions
 			})
 			.then((bookNodeResponses) => {
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
@@ -117,7 +114,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions {permissions} permissionedDocument={bookData} />
+			<ManagePermissions permissionedDocument={bookData} />
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">

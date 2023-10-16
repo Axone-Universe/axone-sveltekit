@@ -22,6 +22,7 @@ import {
 } from '$env/static/private';
 import { UserPropertyBuilder } from '$lib/properties/user';
 import type { Rating, ReviewOf } from '$lib/properties/review';
+import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -99,7 +100,10 @@ export async function createBook(testSession: Session, title?: string, genres: G
 		title: title ? title : faker.commerce.productName() + ' But a Book',
 		description: faker.commerce.productDescription(),
 		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
-		published: true,
+		permissions: {
+			public:
+				new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+		},
 		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
 
@@ -121,7 +125,10 @@ export async function createChapter(
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
-		published: true
+		permissions: {
+			public:
+				new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+		}
 	});
 
 	return chapter;

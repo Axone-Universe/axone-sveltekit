@@ -1,3 +1,4 @@
+import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
@@ -8,6 +9,7 @@ import {
 	testUserOne,
 	testUserTwo
 } from '$lib/util/testing/testing';
+import type { HydratedDocument } from 'mongoose';
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -74,7 +76,10 @@ describe('storylines', () => {
 			book: bookResponse._id,
 			parent: storylines[0]._id,
 			parentChapter: chapter1Response._id,
-			published: true
+			permissions: {
+				public:
+					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			}
 		});
 
 		// let user one create chapter on user one storyline
@@ -85,7 +90,10 @@ describe('storylines', () => {
 			storylineID: storyline2._id,
 			bookID: bookResponse._id,
 			prevChapterID: chapter1Response._id,
-			published: true
+			permissions: {
+				public:
+					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			}
 		});
 
 		storyline2 = await caller.storylines.getById({

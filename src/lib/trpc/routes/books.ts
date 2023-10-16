@@ -47,13 +47,12 @@ export const books = t.router({
 			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
-			if (input.published) bookBuilder.published(input.published);
 
 			const bookNode = await bookBuilder.update();
 			return bookNode;
 		}),
 
-		getBooksByUserID: t.procedure
+	getBooksByUserID: t.procedure
 		.use(logger)
 		.input(read.optional())
 		.query(async ({ input, ctx }) => {
@@ -77,7 +76,6 @@ export const books = t.router({
 
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 			if (input.genres) bookBuilder.genres(input.genres);
-			if (input.published) bookBuilder.published(input.published);
 
 			const bookNode = await bookBuilder.build();
 

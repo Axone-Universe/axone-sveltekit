@@ -9,7 +9,6 @@ export const permissionSchema = new Schema<PermissionProperties>({
 });
 
 /**
- *
  * @param userID - ID of user for the session
  * @param collection - The name of the collection that restricts access to this document e.g. storylines access is restricted by books
  * @param path - The name of the field referencing the collection
@@ -43,7 +42,7 @@ export function addPermissionsPipeline(userID: string, pipeline: PipelineStage[]
 						{
 							$or: [
 								{ $eq: ['$user._id', userID] },
-								{ $eq: ['$published', true] },
+								{ $ne: [{ $type: ['$permissions.public'] }, 'missing'] },
 								{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
 							]
 						},
@@ -58,20 +57,6 @@ export function addPermissionsPipeline(userID: string, pipeline: PipelineStage[]
 								{ $eq: ['$user._id', userID] },
 								{
 									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[1]] }, 'missing']
-								}
-							]
-						},
-						true,
-						false
-					]
-				},
-				[PermissionsEnum[2]]: {
-					$cond: [
-						{
-							$or: [
-								{ $eq: ['$user._id', userID] },
-								{
-									$ne: [{ $type: ['$permissions.' + userID + '.' + PermissionsEnum[2]] }, 'missing']
 								}
 							]
 						},
@@ -110,7 +95,7 @@ export function addRestrictionsPipeline(
 			$match: {
 				$or: [
 					{ [path + '.user']: userID },
-					{ [path + '.published']: true },
+					{ [path + '.permissions.public']: { $exists: true } },
 					{ [path + '.permissions.' + userID]: { $exists: true } }
 				]
 			}
@@ -141,7 +126,6 @@ export function addUpdatePermissionFilter(userID: string, filter: any) {
 export function addDeletePermissionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
-	// We'll only get documents with public permissions
 	if (!userID) {
 		throw new Error('Unknown user requesting delete');
 	}

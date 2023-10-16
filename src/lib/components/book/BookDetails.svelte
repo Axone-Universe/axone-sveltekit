@@ -27,8 +27,6 @@
 
 	let genres = book.genres ?? [];
 
-	let permissions: Map<string, HydratedDocument<PermissionProperties>> = new Map();
-
 	$: {
 		if ($createBookMutation.isSuccess) {
 			const t: ToastSettings = {
@@ -90,7 +88,7 @@
 			description: book.description,
 			imageURL: book.imageURL,
 			genres: book.genres,
-			permissions: Object.fromEntries(permissions) as any
+			permissions: book.permissions
 		});
 	}
 

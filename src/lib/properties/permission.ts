@@ -6,7 +6,7 @@ import { label as StorylineLabel } from '$lib/properties/storyline';
 
 export const label = 'Permission';
 
-export const PermissionsEnum = ['view', 'comment', 'edit'] as const;
+export const PermissionsEnum = ['view', 'edit'] as const;
 export type Permissions = (typeof PermissionsEnum)[number];
 
 export const PermissionedDocumentsEnum = [BookLabel, ChapterLabel, StorylineLabel] as const;
@@ -23,8 +23,8 @@ export class PermissionPropertyBuilder {
 
 	constructor() {
 		this._properties = {
-			_id: '',
-			permission: 'edit'
+			_id: 'public',
+			permission: 'view'
 		};
 	}
 
