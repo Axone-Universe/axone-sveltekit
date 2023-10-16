@@ -24,7 +24,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			imageURL: '',
 			description: '',
 			permissions: {},
-			published: false,
 			genres: [],
 			rating: 0
 		};
@@ -68,8 +67,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		this._sessionUserID = sessionUserID;
 		return this;
 	}
-
-	
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
@@ -124,12 +121,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 		return result as mongoose.mongo.DeleteResult;
 	}
-	  
-
-	published(published: boolean) {
-		this._bookProperties.published = published;
-		return this;
-	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
 		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
@@ -155,7 +146,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return newBook;
 	}
 
-
 	async build(): Promise<HydratedDocument<BookProperties>> {
 		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
 
@@ -178,7 +168,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					.main(true)
 					.description(hydratedBook.description!)
 					.imageURL(hydratedBook.imageURL!)
-					.published(hydratedBook.published)
 					.permissions(hydratedBook.permissions);
 
 				const storyline = new Storyline(storylineBuilder.properties());

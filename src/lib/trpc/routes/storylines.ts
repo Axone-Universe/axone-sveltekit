@@ -43,11 +43,10 @@ export const storylines = t.router({
 		.input(search)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);;
+			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);
 
 			return result;
 		}),
-
 
 	update: t.procedure
 		.use(logger)
@@ -56,7 +55,6 @@ export const storylines = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
-			if (input.published) storylineBuilder.published(input.published);
 			if (input.description) storylineBuilder.description(input.description);
 			if (input.title) storylineBuilder.title(input.title);
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
@@ -64,7 +62,6 @@ export const storylines = t.router({
 			const chapterNode = await storylineBuilder.update();
 			return chapterNode;
 		}),
-			
 
 	create: t.procedure
 		.use(logger)
@@ -79,7 +76,6 @@ export const storylines = t.router({
 			if (input?.parent) storylineBuilder.parentStorylineID(input.parent);
 			if (input?.parentChapter) storylineBuilder.branchOffChapterID(input.parentChapter);
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
-			if (input.published) storylineBuilder.published(input.published);
 
 			if (input?.permissions) {
 				storylineBuilder.permissions(input.permissions as any);

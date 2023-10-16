@@ -111,7 +111,7 @@
 	<form on:submit|preventDefault={createVersion}>
 		<div class="modal-form p-4 space-y-4 rounded-container-token">
 			<label>
-				* Title
+				Title
 
 				<input
 					class="input"
@@ -122,7 +122,7 @@
 				/>
 			</label>
 			<label>
-				* Date
+				Date
 
 				<input class="input" type="text" bind:value={version.date} disabled />
 			</label>

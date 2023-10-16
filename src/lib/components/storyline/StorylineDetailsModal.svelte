@@ -39,8 +39,7 @@
 				imageURL: storylineNode.imageURL!,
 				parent: storylineNode.parent!,
 				parentChapter: storylineNode.parentChapter!,
-				permissions: storylineNode.permissions,
-				published: storylineNode.published
+				permissions: storylineNode.permissions
 			})
 			.then((storylineNodeResponse) => {
 				storylineNode = storylineNodeResponse as HydratedDocument<StorylineProperties>;
@@ -73,8 +72,7 @@
 				id: storylineNode._id,
 				title: storylineNode.title,
 				description: storylineNode.description,
-				permissions: storylineNode.permissions,
-				published: storylineNode.published
+				permissions: storylineNode.permissions
 			})
 			.then((storylineNodeResponse) => {
 				storylineNode = storylineNodeResponse as HydratedDocument<StorylineProperties>;

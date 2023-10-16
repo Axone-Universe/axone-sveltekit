@@ -67,7 +67,6 @@ export const chapters = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
-			if (input.published) chapterBuilder.published(input.published);
 			if (input.description) chapterBuilder.description(input.description);
 			if (input.title) chapterBuilder.title(input.title);
 			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
@@ -89,7 +88,6 @@ export const chapters = t.router({
 				.storylineID(input.storylineID)
 				.description(input.description);
 
-			if (input.published) chapterBuilder.published(input.published);
 			if (input.prevChapterID) chapterBuilder.prevChapterID(input.prevChapterID);
 			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
 

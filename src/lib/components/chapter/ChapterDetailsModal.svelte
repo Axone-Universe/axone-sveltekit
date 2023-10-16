@@ -45,8 +45,7 @@
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
 				description: chapterNode.description!,
-				permissions: chapterNode.permissions,
-				published: chapterNode.published
+				permissions: chapterNode.permissions
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -79,8 +78,7 @@
 				id: chapterNode._id,
 				title: chapterNode.title,
 				description: chapterNode.description,
-				permissions: chapterNode.permissions,
-				published: chapterNode.published
+				permissions: chapterNode.permissions
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;

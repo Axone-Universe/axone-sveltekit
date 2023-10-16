@@ -121,10 +121,13 @@ describe('books', () => {
 			storylines[0]
 		);
 
+		const permissions = chapter1Response.permissions;
+		delete permissions['public'];
+
 		// update chapter to be private
 		chapter1Response = await caller.chapters.update({
 			id: chapter1Response._id,
-			published: false
+			permissions: permissions
 		});
 
 		expect(chapter1Response.userPermissions?.view).toEqual(true);
@@ -139,6 +142,6 @@ describe('books', () => {
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
-		expect(!storylineChapters[0].userPermissions?.view).toEqual(true);
+		expect(storylineChapters[0].userPermissions?.view).toEqual(false);
 	});
 });

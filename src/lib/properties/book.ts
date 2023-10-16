@@ -12,7 +12,6 @@ export interface BookProperties {
 	description: string;
 	imageURL: string;
 	tags?: string[];
-	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
@@ -32,8 +31,9 @@ export class BookPropertyBuilder {
 			imageURL: '',
 			genres: [],
 			tags: [],
-			permissions: {},
-			published: true,
+			permissions: {
+				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
+			},
 			rating: 0
 		};
 	}

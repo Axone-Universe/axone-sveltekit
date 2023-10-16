@@ -20,8 +20,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		super();
 		this._chapterProperties = {
 			_id: id ? id : ulid(),
-			permissions: {},
-			published: false
+			permissions: {}
 		};
 	}
 
@@ -59,11 +58,6 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._chapterProperties.permissions = permissions;
-		return this;
-	}
-
-	published(published: boolean) {
-		this._chapterProperties.published = published;
 		return this;
 	}
 

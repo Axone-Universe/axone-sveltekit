@@ -15,7 +15,6 @@ export interface StorylineProperties extends ReviewableProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	title?: string;
 	chapters?: string[] | HydratedDocument<ChapterProperties>[];
-	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
@@ -46,8 +45,9 @@ export class StorylinePropertyBuilder {
 			parent: '',
 			parentChapter: '',
 			tags: [],
-			permissions: {},
-			published: true,
+			permissions: {
+				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
+			},
 			cumulativeRating: 0,
 			numRatings: 0
 		};

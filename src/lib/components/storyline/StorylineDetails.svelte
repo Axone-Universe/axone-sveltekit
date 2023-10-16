@@ -36,8 +36,7 @@
 				book: storyline.book,
 				parent: storyline.parent,
 				parentChapter: storyline.parentChapter,
-				permissions: storyline.permissions,
-				published: storyline.published
+				permissions: storyline.permissions
 			})
 			.then(async (storyline) => {
 				const t: ToastSettings = {
