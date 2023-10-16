@@ -43,6 +43,10 @@
 	let documentOwner: HydratedDocument<UserProperties> =
 		permissionedDocument.user as HydratedDocument<UserProperties>; // creator of the document
 
+	let publicPermission: HydratedDocument<PermissionProperties> =
+		permissions['public'] ??
+		(new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>);
+
 	onMount(() => {
 		setDocumentOwner();
 		setPermissionUsers();
@@ -164,7 +168,12 @@
 
 	/** An empty user means the permission is for the public */
 	function onPublicAccessChange() {
-		permissionedDocument.published = !permissionedDocument.published;
+		if (permissions['public']) {
+			delete permissions['public'];
+			permissions = permissions;
+		} else {
+			permissions['public'] = publicPermission;
+		}
 	}
 
 	function onPermissionChanged(event: any) {
@@ -282,17 +291,42 @@
 					<small>Publish for public viewing</small>
 				</div>
 
-				<div class="flex justify-end">
-					<SlideToggle
-						name="slider-large"
-						background="bg-primary-800"
-						checked={permissionedDocument.published}
-						active="bg-primary-500"
-						size="md"
-						on:change={onPublicAccessChange}
-					>
-						{permissionedDocument.published ? 'On' : 'Off'}
-					</SlideToggle>
+				<div class="flex w-full justify-end">
+					<div class="flex-row btn-group variant-filled w-40">
+						<button
+							class="w-9/12"
+							use:popup={permissionsPopupSettings('')}
+							disabled={!('public' in permissions)}
+						>
+							<span class="flex capitalize text-sm w-full">{publicPermission.permission}</span>
+							<Icon class="border-none" data={caretDown} scale={1} />
+						</button>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<span on:click={() => onPublicAccessChange()} class="p-2 cursor-pointer w-3/12"
+							><input
+								class="radio"
+								type="radio"
+								checked={'public' in permissions}
+								name="radio-direct"
+								value="1"
+							/>
+						</span>
+					</div>
+
+					<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={''}>
+						<ListBox class="p-2 w-40 ">
+							{#each PermissionsEnum as permissionType}
+								<ListBoxItem
+									bind:group={publicPermission.permission}
+									name={''}
+									value={permissionType}
+									on:change={onPermissionChanged}
+								>
+									{permissionType}
+								</ListBoxItem>
+							{/each}
+						</ListBox>
+					</div>
 				</div>
 			</div>
 		</div>

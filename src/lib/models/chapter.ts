@@ -19,7 +19,6 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	user: { type: String, ref: UserLabel, required: true },
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
-	published: Boolean,
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String

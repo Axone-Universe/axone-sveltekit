@@ -3,7 +3,7 @@ import type { ChapterProperties } from './chapter';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import { GenresBuilder, type Genre } from './genre';
-import type { PermissionProperties } from './permission';
+import { PermissionPropertyBuilder, type PermissionProperties } from './permission';
 import type { ReviewableProperties } from './review';
 
 export const label = 'Storyline';
@@ -15,7 +15,6 @@ export interface StorylineProperties extends ReviewableProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	title?: string;
 	chapters?: string[] | HydratedDocument<ChapterProperties>[];
-	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
@@ -46,8 +45,10 @@ export class StorylinePropertyBuilder {
 			parent: '',
 			parentChapter: '',
 			tags: [],
-			permissions: {},
-			published: true,
+			permissions: {
+				public:
+					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			},
 			cumulativeRating: 0,
 			numRatings: 0
 		};

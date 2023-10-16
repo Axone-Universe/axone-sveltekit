@@ -20,7 +20,7 @@ export const load = (async (event) => {
 	switch (documentType) {
 		case 'book': {
 			document = (await trpc(event).books.getById.query({
-				searchTerm: documentID
+				id: documentID
 			})) as HydratedDocument<BookProperties>;
 			break;
 		}

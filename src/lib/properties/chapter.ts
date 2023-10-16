@@ -2,7 +2,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from './book';
 import type { UserProperties } from './user';
 import type { DeltaProperties } from './delta';
-import type { PermissionProperties } from './permission';
+import { PermissionPropertyBuilder, type PermissionProperties } from './permission';
 import type { Genre } from './genre';
 import type { StorylineProperties } from './storyline';
 
@@ -15,7 +15,6 @@ export interface ChapterProperties {
 	user?: string | HydratedDocument<UserProperties>;
 	delta?: string | HydratedDocument<DeltaProperties>;
 	children?: string[] | HydratedDocument<ChapterProperties>[];
-	published: boolean;
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
 	userPermissions?: { view: boolean; edit: boolean; comment: boolean }; // Has the current session user permission details
@@ -36,8 +35,10 @@ export class ChapterPropertyBuilder {
 			children: [],
 			title: '',
 			description: '',
-			permissions: {},
-			published: true
+			permissions: {
+				public:
+					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			}
 		};
 	}
 

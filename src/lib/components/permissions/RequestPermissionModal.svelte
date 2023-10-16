@@ -39,7 +39,7 @@
 			<h4>Permissions</h4>
 			<div class="flex flex-row space-x-2">
 				{#each PermissionsEnum as permissionType}
-					{#if document.published && permissionType === 'view'}
+					{#if document.permissions['public'] && permissionType === 'view'}
 						<span class="chip variant-filled">
 							<span><Icon data={check} /></span>
 							<span class="capitalize">{permissionType}</span>

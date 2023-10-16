@@ -71,20 +71,17 @@ export class StorylinesRepository extends Repository {
 		});
 	}
 
-
-
-	
-
-
-
-	async getStorylinesByUserID(session: Session | null, id?: string): Promise<HydratedDocument<StorylineProperties>[]> {
+	async getStorylinesByUserID(
+		session: Session | null,
+		id?: string
+	): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
 
-		pipeline.push({ $match: { user: id, main: true }});
+		pipeline.push({ $match: { user: id, main: true } });
 
-		const storyline = await Storyline.aggregate(pipeline, {
+		const storyline = (await Storyline.aggregate(pipeline, {
 			userID: session?.user.id
-		}) as HydratedDocument<StorylineProperties>[];
+		})) as HydratedDocument<StorylineProperties>[];
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storyline);
 		});

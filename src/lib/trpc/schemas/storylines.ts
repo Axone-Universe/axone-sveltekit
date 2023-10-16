@@ -15,7 +15,6 @@ export const update = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 export const search = z.object({
@@ -34,7 +33,6 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	published: z.boolean().optional(),
 	permissions: z.record(z.string(), permissions).optional()
 });
 

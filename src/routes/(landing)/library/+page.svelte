@@ -167,9 +167,9 @@
 	}
 </script>
 
-<div class="flex min-h-screen relative">
+<div class="flex relative">
 	<div
-		class="h-screen rounded-xl m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
+		class="min-h-screen rounded-xl m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="flex flex-col gap-2">
 			{#each readingLists as list}
