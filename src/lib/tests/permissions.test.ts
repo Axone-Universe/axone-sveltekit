@@ -142,6 +142,6 @@ describe('books', () => {
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
-		expect(storylineChapters[0].userPermissions?.view).toEqual(true);
+		expect(storylineChapters[0].userPermissions?.view).toEqual(false);
 	});
 });
