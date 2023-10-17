@@ -3,7 +3,7 @@ import { ChaptersRepository } from '$lib/repositories/chaptersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, update } from '$lib/trpc/schemas/chapters';
+import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 
 export const chapters = t.router({
@@ -12,7 +12,6 @@ export const chapters = t.router({
 		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
-
 			const result = await chaptersRepo.get(ctx.session, input?.limit, input?.skip);
 
 			return result;
@@ -23,14 +22,6 @@ export const chapters = t.router({
 		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
-
-			/*if (input?.storylineID) {
-				chaptersRepo.storylineID(input.storylineID);
-			}
-
-			if (input?.toChapterID) {
-				chaptersRepo.toChapterID(input.toChapterID);
-			}*/
 
 			const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.searchTerm);
 
@@ -48,12 +39,13 @@ export const chapters = t.router({
 		}),
 	getByStoryline: t.procedure
 		.use(logger)
-		.input(read)
+		.input(readFromStoryline)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
 			const result = await chaptersRepo.getByStorylineID(
 				ctx.session,
+				input.storylineID,
 				input.storylineChapterIDs,
 				input.toChapterID
 			);

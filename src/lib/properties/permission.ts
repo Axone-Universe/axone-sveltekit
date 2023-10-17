@@ -6,7 +6,7 @@ import { label as StorylineLabel } from '$lib/properties/storyline';
 
 export const label = 'Permission';
 
-export const PermissionsEnum = ['view', 'edit'] as const;
+export const PermissionsEnum = ['view', 'collaborate'] as const;
 export type Permissions = (typeof PermissionsEnum)[number];
 
 export const PermissionedDocumentsEnum = [BookLabel, ChapterLabel, StorylineLabel] as const;

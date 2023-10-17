@@ -11,8 +11,17 @@ export const create = z.object({
 });
 
 export const read = z.object({
+	id: z.string().optional(),
 	storylineChapterIDs: z.array(z.string()).optional(),
 	searchTerm: z.string().optional(),
+	toChapterID: z.string().optional(),
+	limit: z.number().optional(),
+	skip: z.number().optional()
+});
+
+export const readFromStoryline = z.object({
+	storylineID: z.string(),
+	storylineChapterIDs: z.array(z.string()),
 	toChapterID: z.string().optional(),
 	limit: z.number().optional(),
 	skip: z.number().optional()

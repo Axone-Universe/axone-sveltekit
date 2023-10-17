@@ -137,7 +137,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
-<Container>
+<Container class="w-full">
 	<div class="sticky top-[4.3rem] z-[2] flex flex-col gap-1">
 		<input
 			class="input text-sm h-8"

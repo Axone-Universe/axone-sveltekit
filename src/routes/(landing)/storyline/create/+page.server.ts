@@ -29,6 +29,7 @@ export const load = (async (event) => {
 	})) as HydratedDocument<StorylineProperties>;
 
 	const storylineChapters = (await trpc(event).chapters.getByStoryline.query({
+		storylineID: storylineResponse._id,
 		storylineChapterIDs: storylineResponse.chapters as string[],
 		toChapterID: chapterID
 	})) as HydratedDocument<ChapterProperties>[];

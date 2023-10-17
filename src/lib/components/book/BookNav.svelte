@@ -75,7 +75,7 @@
 									{#if !chapter.userPermissions?.view}
 										<Icon data={eyeSlash} scale={1.2} />
 									{/if}
-									{#if !chapter.userPermissions?.edit}
+									{#if !chapter.userPermissions?.collaborate}
 										<Icon data={lock} scale={1.2} />
 									{/if}
 								</div>

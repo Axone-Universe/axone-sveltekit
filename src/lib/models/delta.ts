@@ -1,7 +1,12 @@
 import { label, type DeltaProperties, type VersionProperties } from '$lib/properties/delta';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import mongoose, { Schema, model } from 'mongoose';
-import { addRestrictionsPipeline, addUpdatePermissionFilter, permissionSchema } from './permission';
+import {
+	addCollaborationRestrictionOnUpdate,
+	addReadRestrictionPipeline,
+	addUpdateRestrictionPipeline,
+	permissionSchema
+} from './permission';
 import type Op from 'quill-delta/dist/Op';
 import QuillDelta from 'quill-delta';
 
@@ -27,7 +32,7 @@ deltaSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	addRestrictionsPipeline(userID, pipeline, 'chapters', 'chapter');
+	addReadRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
 	next();
 });
 
@@ -52,7 +57,7 @@ deltaSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		const updatedFilter = addCollaborationRestrictionOnUpdate(userID, filter);
 		this.setQuery(updatedFilter);
 
 		next();

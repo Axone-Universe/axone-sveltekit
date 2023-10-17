@@ -4,11 +4,11 @@ import { label as BookLabel } from '$lib/properties/book';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import {
-	addDeletePermissionFilter,
-	addPermissionsPipeline,
-	addRestrictionsPipeline,
-	addUpdatePermissionFilter,
-	permissionSchema
+	addUserPermissionPipeline,
+	addReadRestrictionPipeline,
+	addUpdateRestrictionPipeline,
+	permissionSchema,
+	addCollaborationRestrictionOnSave
 } from './permission';
 
 export const storylineSchema = new Schema<StorylineProperties>({
@@ -34,8 +34,8 @@ storylineSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	addPermissionsPipeline(userID, pipeline);
-	addRestrictionsPipeline(userID, pipeline, 'books', 'book');
+	addUserPermissionPipeline(userID, pipeline);
+	addReadRestrictionPipeline(userID, pipeline, 'books', 'book');
 	next();
 });
 
@@ -43,7 +43,7 @@ storylineSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], funct
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -55,12 +55,20 @@ storylineSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 		this.setQuery(updatedFilter);
 
 		next();
 	}
 );
+
+storylineSchema.pre('save', async function (next) {
+	const userID = this.user;
+	const bookID = this.book;
+
+	await addCollaborationRestrictionOnSave(userID as string, 'Book', bookID as string);
+	next();
+});
 
 /**
  * Adding a chapter to storyline.chapters array cannot use findOneAndUpdate because of permission restrictions

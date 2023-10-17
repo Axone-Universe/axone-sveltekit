@@ -59,8 +59,8 @@ export const storylines = t.router({
 			if (input.title) storylineBuilder.title(input.title);
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
 
-			const chapterNode = await storylineBuilder.update();
-			return chapterNode;
+			const storyline = await storylineBuilder.update();
+			return storyline;
 		}),
 
 	create: t.procedure
@@ -81,9 +81,9 @@ export const storylines = t.router({
 				storylineBuilder.permissions(input.permissions as any);
 			}
 
-			const storylineNode = await storylineBuilder.build();
+			const storyline = await storylineBuilder.build();
 
-			return storylineNode;
+			return storyline;
 		}),
 
 	delete: t.procedure
