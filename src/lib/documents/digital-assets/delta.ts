@@ -181,8 +181,8 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		if (!this._deltaProperties._id) throw new Error('Must provide a deltaID to update the delta.');
 
 		await Delta.findOneAndUpdate({ _id: this._deltaProperties._id }, this._deltaProperties, {
-			new: true
-			// userID: this._sessionUserID
+			new: true,
+			userID: this._sessionUserID
 		});
 
 		const deltas = await Delta.aggregate(

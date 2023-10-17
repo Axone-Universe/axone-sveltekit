@@ -37,6 +37,7 @@ export const create = z.object({
 });
 
 export const read = z.object({
+	id: z.string().optional(),
 	bookID: z.string().optional(),
 	storylineID: z.string().optional(),
 	main: z.boolean().optional(),

@@ -53,6 +53,7 @@ describe('chapters', () => {
 		});
 
 		let storylineChapters = await caller.chapters.getByStoryline({
+			storylineID: storylines[0]._id,
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
@@ -65,6 +66,7 @@ describe('chapters', () => {
 
 		// Get up to a certain point
 		storylineChapters = await caller.chapters.getByStoryline({
+			storylineID: storylines[0]._id,
 			storylineChapterIDs: storylines[0].chapters as string[],
 			toChapterID: chapter1Response._id
 		});

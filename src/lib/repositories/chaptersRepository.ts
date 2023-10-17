@@ -52,6 +52,7 @@ export class ChaptersRepository extends Repository {
 
 	async getByStorylineID(
 		session: Session | null,
+		storylineID: string,
 		storylineChapterIDs?: string[],
 		toChapterID?: string
 	): Promise<HydratedDocument<ChapterProperties>[]> {
@@ -60,7 +61,8 @@ export class ChaptersRepository extends Repository {
 		const storylineChapters = await Chapter.aggregate(
 			[{ $match: { _id: { $in: storylineChapterIDs } } }],
 			{
-				userID: session?.user.id
+				userID: session?.user.id,
+				storylineID: storylineID
 			}
 		);
 
@@ -89,18 +91,22 @@ export class ChaptersRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
-
-	async getChaptersByUserID(session: Session | null, id?: string): Promise<HydratedDocument<ChapterProperties>[]> {
+	async getChaptersByUserID(
+		session: Session | null,
+		id?: string
+	): Promise<HydratedDocument<ChapterProperties>[]> {
 		const pipeline = [];
-	
+
 		pipeline.push({ $match: { user: id } });
-		pipeline.push({ $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' } });
+		pipeline.push({
+			$lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' }
+		});
 		pipeline.push({ $unwind: '$book' });
-	
-		const chapters = await Chapter.aggregate(pipeline, {
+
+		const chapters = (await Chapter.aggregate(pipeline, {
 			userID: session?.user.id
-		}) as HydratedDocument<ChapterProperties>[];
-	
+		})) as HydratedDocument<ChapterProperties>[];
+
 		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
 			resolve(chapters);
 		});

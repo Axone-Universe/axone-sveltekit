@@ -70,6 +70,10 @@ describe('storylines', () => {
 
 		// Create a new storyline using user 2
 		caller = router.createCaller({ session: testUserTwoSession });
+
+		const publicPermission =
+			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+		publicPermission.permission = 'collaborate';
 		let storyline2 = await caller.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
@@ -77,8 +81,7 @@ describe('storylines', () => {
 			parent: storylines[0]._id,
 			parentChapter: chapter1Response._id,
 			permissions: {
-				public:
-					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+				public: publicPermission
 			}
 		});
 
@@ -101,6 +104,7 @@ describe('storylines', () => {
 		});
 
 		const storyline_2Chapters = await caller.chapters.getByStoryline({
+			storylineID: storyline2._id,
 			storylineChapterIDs: storyline2.chapters as string[]
 		});
 

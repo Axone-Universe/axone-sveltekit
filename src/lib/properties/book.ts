@@ -14,7 +14,7 @@ export interface BookProperties {
 	tags?: string[];
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
-	userPermissions?: { view: boolean; edit: boolean; comment: boolean };
+	userPermissions?: { view: boolean; collaborate: boolean };
 	genres?: Genre[];
 	rating: number;
 }

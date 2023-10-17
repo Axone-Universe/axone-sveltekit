@@ -244,6 +244,7 @@
 
 		trpc($page)
 			.chapters.getByStoryline.query({
+				storylineID: selectedStoryline._id,
 				storylineChapterIDs: selectedStoryline.chapters as string[]
 			})
 			.then((chaptersResponse) => {
@@ -1062,9 +1063,9 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					{#if mode === 'writer' && !selectedChapter.userPermissions?.edit}
+					{#if mode === 'writer' && !selectedChapter.userPermissions?.collaborate}
 						<button class="btn fixed variant-filled-primary font-sans top-32">
-							<span>No Edit Permissions</span>
+							<span>No Collaboration Permissions</span>
 						</button>
 					{/if}
 					<textarea
@@ -1083,6 +1084,10 @@
 					{:else}
 						<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
 					{/if}
+				</div>
+			{:else if !selectedStoryline.userPermissions?.view}
+				<div class="flex h-full w-full justify-center items-center">
+					<RequestPermissionModal class="mt-4" document={selectedStoryline} />
 				</div>
 			{/if}
 		</div>

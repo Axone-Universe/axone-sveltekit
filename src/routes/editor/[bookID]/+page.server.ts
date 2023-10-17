@@ -3,6 +3,7 @@ import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type { StorylineProperties } from '$lib/properties/storyline';
+import { redirect } from '@sveltejs/kit';
 
 export const ssr = false;
 
@@ -14,6 +15,11 @@ export const load = (async (event) => {
 		id: bookID,
 		limit: 10
 	})) as HydratedDocument<BookProperties>;
+
+	// If there are no viewing permissions redirect
+	if (!userAuthoredBookResponse.userPermissions?.view) {
+		throw redirect(303, '/permissions/' + bookID + '/?documentType=book');
+	}
 
 	const storylineResponses = (await trpc(event).storylines.getByBookID.query({
 		bookID: bookID
