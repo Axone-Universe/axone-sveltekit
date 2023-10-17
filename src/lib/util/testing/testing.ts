@@ -96,13 +96,16 @@ export function createTestSession(supabaseUser: User) {
 export async function createBook(testSession: Session, title?: string, genres: Genre[] = []) {
 	const caller = router.createCaller({ session: testSession });
 
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
+
 	const book = await caller.books.create({
 		title: title ? title : faker.commerce.productName() + ' But a Book',
 		description: faker.commerce.productDescription(),
 		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
 		permissions: {
-			public:
-				new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			public: publicPermission
 		},
 		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
@@ -119,6 +122,10 @@ export async function createChapter(
 ) {
 	const caller = router.createCaller({ session: session });
 
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
+
 	const chapter = await caller.chapters.create({
 		title: title,
 		description: description,
@@ -126,8 +133,7 @@ export async function createChapter(
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
 		permissions: {
-			public:
-				new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
+			public: publicPermission
 		}
 	});
 

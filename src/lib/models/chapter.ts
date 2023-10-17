@@ -5,11 +5,11 @@ import { label as StorylineLabel } from '$lib/properties/storyline';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as DeltaLabel } from '$lib/properties/delta';
 import {
-	addDeletePermissionFilter,
-	addPermissionsPipeline,
-	addRestrictionsPipeline,
-	addUpdatePermissionFilter,
-	permissionSchema
+	addUserPermissionPipeline,
+	addReadRestrictionPipeline,
+	addUpdateRestrictionPipeline,
+	permissionSchema,
+	addCollaborationRestrictionOnSave
 } from './permission';
 
 export const chapterSchema = new Schema<ChapterProperties>({
@@ -24,17 +24,18 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	description: String
 });
 
-chapterSchema.pre(['find', 'findOne'], function (next) {
+chapterSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
 });
 
 chapterSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
+	const storylineID = this.options.storylineID;
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	addPermissionsPipeline(userID, pipeline);
-	addRestrictionsPipeline(userID, pipeline, 'storylines', 'storyline');
+	addUserPermissionPipeline(userID, pipeline);
+	addReadRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
 	next();
 });
 
@@ -42,7 +43,7 @@ chapterSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functio
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -54,12 +55,20 @@ chapterSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 		this.setQuery(updatedFilter);
 
 		next();
 	}
 );
+
+chapterSchema.pre('save', async function (next) {
+	const userID = this.user;
+	const storylineID = this.storyline;
+
+	await addCollaborationRestrictionOnSave(userID as string, 'Storyline', storylineID as string);
+	next();
+});
 
 function populate(pipeline: PipelineStage[]) {
 	pipeline.push(

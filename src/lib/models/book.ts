@@ -2,9 +2,8 @@ import { label, type BookProperties } from '$lib/properties/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
 import {
-	addDeletePermissionFilter,
-	addPermissionsPipeline,
-	addUpdatePermissionFilter,
+	addUserPermissionPipeline,
+	addUpdateRestrictionPipeline,
 	permissionSchema
 } from './permission';
 import { GENRES } from '$lib/properties/genre';
@@ -37,7 +36,7 @@ bookSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	addPermissionsPipeline(userID, pipeline);
+	addUserPermissionPipeline(userID, pipeline);
 	next();
 });
 
@@ -45,7 +44,7 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -57,7 +56,7 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
 		this.setQuery(updatedFilter);
 
 		next();

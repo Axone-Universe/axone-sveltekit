@@ -26,13 +26,13 @@ export const load = (async (event) => {
 		}
 		case 'storyline': {
 			document = (await trpc(event).storylines.getById.query({
-				searchTerm: documentID
+				id: documentID
 			})) as HydratedDocument<StorylineProperties>;
 			break;
 		}
 		case 'chapter': {
 			document = (await trpc(event).chapters.getById.query({
-				searchTerm: documentID
+				id: documentID
 			})) as HydratedDocument<ChapterProperties>;
 			break;
 		}

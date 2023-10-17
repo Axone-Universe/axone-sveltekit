@@ -17,7 +17,7 @@ export interface ChapterProperties {
 	children?: string[] | HydratedDocument<ChapterProperties>[];
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
-	userPermissions?: { view: boolean; edit: boolean; comment: boolean }; // Has the current session user permission details
+	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
 	genres?: Genre[];
 	title?: string;
 	description?: string;

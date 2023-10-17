@@ -35,7 +35,7 @@ describe('books', () => {
 		permissions[testUserTwo.id] = {
 			_id: ulid(),
 			user: testUserTwoDB._id,
-			permission: 'edit'
+			permission: 'collaborate'
 		} as HydratedDocument<PermissionProperties>;
 
 		// create a new permission
@@ -45,7 +45,7 @@ describe('books', () => {
 			permissions: permissions
 		});
 
-		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('edit');
+		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('collaborate');
 
 		permissions = updatedBookResponse.permissions;
 
@@ -76,7 +76,7 @@ describe('books', () => {
 		permissions[testUserTwo.id] = {
 			_id: ulid(),
 			user: testUserTwo.id,
-			permission: 'edit'
+			permission: 'collaborate'
 		} as HydratedDocument<PermissionProperties>;
 
 		// create a new permission
@@ -86,7 +86,7 @@ describe('books', () => {
 			permissions: permissions
 		});
 
-		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('edit');
+		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('collaborate');
 
 		// delete permission
 		permissions = updatedBookResponse.permissions;
@@ -121,7 +121,7 @@ describe('books', () => {
 			storylines[0]
 		);
 
-		const permissions = chapter1Response.permissions;
+		let permissions = chapter1Response.permissions;
 		delete permissions['public'];
 
 		// update chapter to be private
@@ -138,10 +138,29 @@ describe('books', () => {
 			bookID: createBookResponse._id
 		});
 
-		const storylineChapters = await caller.chapters.getByStoryline({
+		let storylineChapters = await caller.chapters.getByStoryline({
+			storylineID: storylines[0]._id,
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
 		expect(storylineChapters[0].userPermissions?.view).toEqual(false);
+
+		// update storyline to be private
+		permissions = storylines[0].permissions;
+		delete permissions['public'];
+
+		caller = router.createCaller({ session: createTestSession(testUserOne) });
+		await caller.storylines.update({
+			id: storylines[0]._id,
+			permissions: permissions
+		});
+
+		caller = router.createCaller({ session: createTestSession(testUserTwo) });
+		storylineChapters = await caller.chapters.getByStoryline({
+			storylineID: storylines[0]._id,
+			storylineChapterIDs: storylines[0].chapters as string[]
+		});
+
+		expect(storylineChapters.length).toEqual(0);
 	});
 });
