@@ -61,7 +61,7 @@
 	}
 </script>
 
-<Container class="mx-2 md:mx-20 xl:mx-96">
+<Container class="mx-2 md:mx-40 xl:mx-96">
 	<BookHeader
 		session={data.session}
 		{bookData}
@@ -115,12 +115,14 @@
 										>
 											Edit
 										</a>
-										<a
-											class="button"
-											href="/storyline/create?bookID={bookData._id}&parentStorylineID={activeStoryline._id}&chapterID={chapter._id}"
-										>
-											<Icon data={expand} scale={1.2} />
-										</a>
+										{#if bookData.userPermissions?.collaborate}
+											<a
+												class="button"
+												href="/storyline/create?bookID={bookData._id}&parentStorylineID={activeStoryline._id}&chapterID={chapter._id}"
+											>
+												<Icon data={expand} scale={1.2} />
+											</a>
+										{/if}
 									</div>
 								</div>
 

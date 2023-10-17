@@ -1063,11 +1063,18 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
+					{#if !selectedChapter.userPermissions?.view}
+						<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
+							<span>No Viewing Permissions</span>
+						</button>
+					{/if}
+
 					{#if mode === 'writer' && !selectedChapter.userPermissions?.collaborate}
-						<button class="btn fixed variant-filled-primary font-sans top-32">
+						<button class="btn fixed variant-filled-primary font-sans top-44 w-1/6">
 							<span>No Collaboration Permissions</span>
 						</button>
 					{/if}
+
 					<textarea
 						id="message"
 						rows="4"
