@@ -44,6 +44,8 @@ export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	illustrations: { [key: string]: Illustration } = {};
 	selectedDelta: Delta | undefined = undefined;
+	selectedRange: { index: number; length: number } | undefined | null = undefined;
+	oldSelectedRange: { index: number; length: number } | undefined | null = undefined;
 	ops: Op[] | undefined;
 	page: Page;
 	chapter: HydratedDocument<ChapterProperties> | undefined;
@@ -244,6 +246,8 @@ export class QuillEditor extends Quill {
 		}
 
 		const delta = this.getContents(range.index, 1);
+		this.oldSelectedRange = oldRange;
+		this.selectedRange = range;
 		this.selectedDelta = delta;
 
 		if (!this.isComment(delta.ops[0]) && !this.isIllustration(delta.ops[0])) {

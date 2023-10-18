@@ -501,6 +501,7 @@
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -536,6 +537,8 @@
 					toastStore.trigger(successUploadToast);
 				}
 			});
+
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -563,8 +566,15 @@
 	}
 
 	function commentAddClick() {
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration())
+
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()){
 			quill.getModule('comment').addComment(' ');
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
+		}
 
 		if (quill.selectedContainsIllustration()) {
 			drawerStore.open(drawerSettings);
@@ -581,12 +591,18 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
+
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
 		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('illustration').addIllustration({
 				src: '',
 				alt: '',
 				caption: ''
 			});
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
 		}
 
 		if (quill.selectedContainsComment()) {
