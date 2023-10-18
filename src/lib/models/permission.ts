@@ -1,17 +1,10 @@
 import {
 	PermissionsEnum,
 	type Permissions,
-	type PermissionProperties,
-	type PermissionedDocument
+	type PermissionProperties
 } from '$lib/properties/permission';
-import { Schema, type PipelineStage, type HydratedDocument } from 'mongoose';
+import { Schema, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
-import { Book } from './book';
-import type { BookProperties } from '$lib/properties/book';
-import type { ChapterProperties } from '$lib/properties/chapter';
-import type { StorylineProperties } from '$lib/properties/storyline';
-import { Chapter } from './chapter';
-import { Storyline } from './storyline';
 
 export const permissionSchema = new Schema<PermissionProperties>({
 	_id: { type: String, required: true },
@@ -189,11 +182,7 @@ export function addCollaborationRestrictionOnUpdate(userID: string, filter: any)
  * @param collection
  * @param documentID
  */
-export async function addCollaborationRestrictionOnSave(
-	userID: string,
-	collection: PermissionedDocument,
-	documentID: string
-) {
+export function addCollaborationRestrictionOnSave(userID: string, documentID: string) {
 	const filter = [
 		{
 			$match: {
@@ -205,29 +194,5 @@ export async function addCollaborationRestrictionOnSave(
 		userID: userID
 	};
 
-	let document!:
-		| HydratedDocument<BookProperties>
-		| HydratedDocument<ChapterProperties>
-		| HydratedDocument<StorylineProperties>;
-
-	switch (collection) {
-		case 'Book':
-			document = await Book.aggregate(filter, options).cursor().next();
-			break;
-
-		case 'Storyline':
-			document = await Storyline.aggregate(filter, options).cursor().next();
-			break;
-
-		case 'Chapter':
-			document = await Chapter.aggregate(filter, options).cursor().next();
-			break;
-
-		default:
-			break;
-	}
-
-	if (document && !document.userPermissions?.collaborate) {
-		throw new Error('You have no permission to collaborate on this document');
-	}
+	return { filter, options };
 }
