@@ -141,36 +141,20 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	}
 
 	async update(): Promise<HydratedDocument<StorylineProperties>> {
-		const session = await mongoose.startSession();
-		await session.withTransaction(async () => {
-			await Storyline.findOneAndUpdate(
-				{ _id: this._storylineProperties._id },
-				this._storylineProperties,
-				{
-					new: true,
-					userID: this._sessionUserID,
-					session: session
-				}
-			);
-		});
-		session.endSession();
-
-		const storyline = await Storyline.aggregate(
-			[
-				{
-					$match: {
-						_id: this._storylineProperties._id
-					}
-				}
-			],
+		const storyline = await Storyline.findOneAndUpdate(
+			{ _id: this._storylineProperties._id },
+			this._storylineProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return storyline;
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
 	}
 
 	/**

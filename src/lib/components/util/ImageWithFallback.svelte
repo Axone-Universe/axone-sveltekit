@@ -1,8 +1,6 @@
 <script lang="ts">
 	export let src: string;
 	export let alt: string;
-	export let additionalClasses: string = '';
-
 	export let didError = false;
 
 	function handleError(e: Event) {
@@ -15,8 +13,6 @@
 <img
 	{src}
 	on:error={handleError}
-	{alt}
-	class={`${didError ? '' : 'object-cover'} ${
-		additionalClasses ? additionalClasses : 'w-full h-full'
-	}`}
+	alt={didError ? alt : ''}
+	class="{didError ? '' : 'object-cover'} w-full h-full"
 />

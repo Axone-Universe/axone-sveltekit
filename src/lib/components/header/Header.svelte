@@ -154,13 +154,13 @@
 			<div class="flex gap-2 items-center">
 				<div class="lg:flex gap-2 hidden">
 					{#if data.session && data.session.user}
-						<a
+						<!-- <a
 							href="/book/create"
 							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 						>
 							<Icon data={pencil} />
 							<span class="hidden md:inline-block">Write</span>
-						</a>
+						</a> -->
 
 						<div>
 							<button
@@ -188,10 +188,7 @@
 										<Icon data={listUl} /><span>Library</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<a
-										class="btn space-x-6 hover:variant-soft-primary"
-										href={`/user/studio/${data.session.user.id}/books`}
-									>
+									<a class="btn space-x-6 hover:variant-soft-primary" href={`/studio`}>
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>

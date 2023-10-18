@@ -3,30 +3,33 @@ import { Repository } from '$lib/repositories/repository';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import type { Session } from '@supabase/supabase-js';
 import type { Document, HydratedDocument } from 'mongoose';
+import type { ReadStoryline } from '$lib/trpc/schemas/storylines';
 
 export class StorylinesRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async getAll(
+	async get(
 		session: Session | null,
-		limit?: number,
-		skip?: number
+		readStoryline: ReadStoryline
 	): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
+		const filter: any = {};
 
-		pipeline.push({ $match: {} });
-		if (limit) pipeline.push({ $limit: limit });
-		if (skip) pipeline.push({ $skip: skip });
+		if (readStoryline.user) filter.user = readStoryline.user;
+		if (readStoryline.bookID) filter.book = readStoryline.bookID;
+		if (readStoryline.cursor) filter._id = { $gt: readStoryline.cursor };
 
-		const storylines = (await Storyline.aggregate(pipeline, {
+		pipeline.push({ $match: filter });
+
+		if (readStoryline.limit) pipeline.push({ $limit: readStoryline.limit });
+
+		const query = Storyline.aggregate(pipeline, {
 			userID: session?.user.id
-		})) as HydratedDocument<StorylineProperties>[];
-
-		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
-			resolve(storylines);
 		});
+
+		return await query;
 	}
 
 	async getByTitle(

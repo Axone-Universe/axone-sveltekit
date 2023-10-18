@@ -18,7 +18,10 @@ export const read = z.object({
 	searchTerm: z.string().optional(),
 	toChapterID: z.string().optional(),
 	limit: z.number().optional(),
-	skip: z.number().optional()
+	skip: z.number().optional(),
+	storylineID: z.string().optional(),
+	cursor: z.string().optional(),
+	user: z.string().optional()
 });
 
 export const readFromStoryline = z.object({
@@ -36,3 +39,5 @@ export const update = z.object({
 	permissions: z.record(z.string(), permissions).optional(),
 	notifications: z.record(z.string(), userNotification).optional()
 });
+
+export type ReadChapter = z.infer<typeof read>;

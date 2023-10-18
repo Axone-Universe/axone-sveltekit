@@ -29,7 +29,7 @@ describe('chapters', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		let storylines = await caller.storylines.getAll({
+		let storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -48,7 +48,7 @@ describe('chapters', () => {
 			chapter1Response._id
 		);
 
-		storylines = await caller.storylines.getAll({
+		storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -90,7 +90,7 @@ describe('chapters', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		const storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -122,7 +122,7 @@ describe('chapters', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		const storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -155,7 +155,7 @@ describe('chapters', () => {
 			id: chapter2Response._id
 		});
 
-		let storylineChapters = await caller.chapters.getAll({
+		let storylineChapters = await caller.chapters.get({
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
@@ -166,7 +166,7 @@ describe('chapters', () => {
 			id: chapter3Response._id
 		});
 
-		storylineChapters = await caller.chapters.getAll({
+		storylineChapters = await caller.chapters.get({
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 

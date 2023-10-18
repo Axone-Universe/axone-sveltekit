@@ -17,7 +17,8 @@ export const read = z.object({
 	cursor: z.string().optional(),
 	genres: genreSchema.optional(),
 	title: z.string().optional(),
-	id: z.string().optional()
+	id: z.string().optional(),
+	user: z.string().optional()
 });
 
 export const update = z.object({

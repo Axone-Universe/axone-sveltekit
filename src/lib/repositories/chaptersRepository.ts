@@ -5,6 +5,7 @@ import type { ChapterProperties } from '$lib/properties/chapter';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
+import type { ReadChapter } from '$lib/trpc/schemas/chapters';
 
 export class ChaptersRepository extends Repository {
 	constructor() {
@@ -20,22 +21,24 @@ export class ChaptersRepository extends Repository {
 	 */
 	async get(
 		session: Session | null,
-		limit?: number,
-		skip?: number
+		readChapter: ReadChapter
 	): Promise<HydratedDocument<ChapterProperties>[]> {
 		const pipeline = [];
+		const filter: any = {};
 
-		pipeline.push({ $match: {} });
-		if (limit) pipeline.push({ $limit: limit });
-		if (skip) pipeline.push({ $skip: skip });
+		if (readChapter.user) filter.user = readChapter.user;
+		if (readChapter.storylineID) filter.storyline = readChapter.storylineID;
+		if (readChapter.cursor) filter._id = { $gt: readChapter.cursor };
 
-		const chapters = (await Chapter.aggregate(pipeline, {
+		pipeline.push({ $match: filter });
+
+		if (readChapter.limit) pipeline.push({ $limit: readChapter.limit });
+
+		const query = Chapter.aggregate(pipeline, {
 			userID: session?.user.id
-		})) as HydratedDocument<ChapterProperties>[];
-
-		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
-			resolve(chapters);
 		});
+
+		return await query;
 	}
 
 	async getById(session: Session | null, id: string): Promise<HydratedDocument<ChapterProperties>> {
@@ -50,7 +53,7 @@ export class ChaptersRepository extends Repository {
 		});
 	}
 
-	async getByStorylineID(
+	async getByChapterIDs(
 		session: Session | null,
 		storylineID: string,
 		storylineChapterIDs?: string[],

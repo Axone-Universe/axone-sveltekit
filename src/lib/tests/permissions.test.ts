@@ -110,7 +110,7 @@ describe('books', () => {
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		let storylines = await caller.storylines.getAll({
+		let storylines = await caller.storylines.get({
 			bookID: createBookResponse._id
 		});
 
@@ -134,7 +134,7 @@ describe('books', () => {
 
 		caller = router.createCaller({ session: createTestSession(testUserTwo) });
 
-		storylines = await caller.storylines.getAll({
+		storylines = await caller.storylines.get({
 			bookID: createBookResponse._id
 		});
 

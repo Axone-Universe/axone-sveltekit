@@ -36,7 +36,7 @@ describe('storylines', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		const storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -64,7 +64,7 @@ describe('storylines', () => {
 			prevChapterID: chapter2_1Response._id
 		});
 
-		const storyline_1Chapters = await caller.chapters.getAll({
+		const storyline_1Chapters = await caller.chapters.get({
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 

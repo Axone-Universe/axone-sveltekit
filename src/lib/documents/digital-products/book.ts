@@ -123,27 +123,20 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
-		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
-			new: true,
-			userID: this._sessionUserID
-		});
-
-		const newBook = await Book.aggregate(
-			[
-				{
-					$match: {
-						_id: this._bookProperties._id
-					}
-				}
-			],
+		const book = await Book.findOneAndUpdate(
+			{ _id: this._bookProperties._id },
+			this._bookProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return newBook;
+		if (book) {
+			return book;
+		}
+
+		throw new Error("Couldn't update book");
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
@@ -192,6 +185,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			.cursor()
 			.next();
 
-		return newBook as unknown as HydratedDocument<BookProperties>;
+		return newBook as HydratedDocument<BookProperties>;
 	}
 }

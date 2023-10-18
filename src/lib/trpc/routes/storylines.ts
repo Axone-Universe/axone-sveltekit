@@ -9,14 +9,14 @@ import { search } from '$lib/trpc/schemas/storylines';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 
 export const storylines = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
-		.input(read.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getAll(ctx.session, input?.limit, input?.skip);
+			const result = await storylinesRepo.get(ctx.session, input);
 
-			return result;
+			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
 	getById: t.procedure
@@ -59,6 +59,7 @@ export const storylines = t.router({
 			if (input.description) storylineBuilder.description(input.description);
 			if (input.title) storylineBuilder.title(input.title);
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
+			if (input.imageURL !== undefined) storylineBuilder.imageURL(input.imageURL);
 
 			const storyline = await storylineBuilder.update();
 

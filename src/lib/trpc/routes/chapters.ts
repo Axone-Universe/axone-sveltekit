@@ -6,17 +6,17 @@ import { t } from '$lib/trpc/t';
 import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
-import type { UserNotificationProperties } from '$lib/properties/notification';
 
 export const chapters = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
-		.input(read.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
-			const result = await chaptersRepo.get(ctx.session, input?.limit, input?.skip);
 
-			return result;
+			const result = await chaptersRepo.get(ctx.session, input);
+
+			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
 	getChaptersByUserID: t.procedure
@@ -45,7 +45,7 @@ export const chapters = t.router({
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
-			const result = await chaptersRepo.getByStorylineID(
+			const result = await chaptersRepo.getByChapterIDs(
 				ctx.session,
 				input.storylineID,
 				input.storylineChapterIDs,

@@ -46,5 +46,9 @@ export const read = z.object({
 	main: z.boolean().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
-	skip: z.number().optional()
+	skip: z.number().optional(),
+	cursor: z.string().optional(),
+	user: z.string().optional()
 });
+
+export type ReadStoryline = z.infer<typeof read>;

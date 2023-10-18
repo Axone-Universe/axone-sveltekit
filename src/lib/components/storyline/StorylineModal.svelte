@@ -10,12 +10,12 @@
 	import type { BookProperties } from '$lib/properties/book';
 
 	export let storylineData: HydratedDocument<StorylineProperties>;
-	let book = storylineData.book as BookProperties;
-
+	export let isStudio = false;
 	let customClass = '';
-	const bookUser = storylineData.user as HydratedDocument<UserProperties>;
-
 	export { customClass as class };
+
+	let book = storylineData.book as BookProperties;
+	const bookUser = storylineData.user as HydratedDocument<UserProperties>;
 
 	const closeModal = (bool: boolean) => {
 		$modalStore[0].response!(bool);
@@ -32,11 +32,13 @@
 	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
-	<ImageWithFallback
-		src={storylineData.imageURL ?? ''}
-		alt={storylineData.title ?? 'Storyline Title'}
-		additionalClasses="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden"
-	/>
+	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden">
+		<ImageWithFallback
+			src={storylineData.imageURL ?? ''}
+			alt={storylineData.title ?? 'Storyline Title'}
+		/>
+	</div>
+
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
 		<header class="space-y-2">
 			<p class="text-lg font-bold line-clamp-2">{storylineData.title}</p>
@@ -83,14 +85,23 @@
 		<div class="w-full flex flex-col gap-4 items-center px-4">
 			<hr class="opacity-50 min-w-full" />
 			<footer class="btn-group variant-filled py-1 max-w-fit">
-				<a on:click={() => closeModal(false)} href="book/{book._id}">View</a>
+				<a on:click={() => closeModal(false)} href="/book/{book._id}">View</a>
 				<a
 					on:click={() => closeModal(false)}
 					href="/editor/{book._id}?mode=reader&storylineID={storylineData._id}"
 				>
 					Read
 				</a>
-				<button on:click={() => closeModal(true)}> Manage</button>
+				{#if isStudio}
+					<a
+						on:click={() => closeModal(false)}
+						href="/editor/{book._id}?mode=writer&storylineID={storylineData._id}"
+					>
+						Edit
+					</a>
+				{:else}
+					<button on:click={() => closeModal(true)}>Manage</button>
+				{/if}
 			</footer>
 		</div>
 	</div>

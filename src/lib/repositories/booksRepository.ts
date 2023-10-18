@@ -13,13 +13,18 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		cursor?: string,
 		genres?: Genre[],
-		title?: string
+		title?: string,
+		user?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
 		if (title) {
 			filter.$text = { $search: title };
+		}
+
+		if (user) {
+			filter.user = user;
 		}
 
 		if (genres) {

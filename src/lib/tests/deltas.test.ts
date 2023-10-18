@@ -28,7 +28,7 @@ describe('deltas', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
+		const storylines = await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 

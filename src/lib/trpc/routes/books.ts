@@ -18,7 +18,8 @@ export const books = t.router({
 				input.limit,
 				input.cursor,
 				input.genres,
-				input.title
+				input.title,
+				input.user
 			);
 
 			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
@@ -45,7 +46,7 @@ export const books = t.router({
 
 			if (input.title) bookBuilder.title(input.title);
 			if (input.description) bookBuilder.description(input.description);
-			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
+			if (input.imageURL !== undefined) bookBuilder.imageURL(input.imageURL);
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 

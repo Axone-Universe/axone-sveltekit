@@ -112,7 +112,7 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
+				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
 			)[0]
@@ -155,7 +155,7 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
+				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
 			)[0]
