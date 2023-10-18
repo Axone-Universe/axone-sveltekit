@@ -11,6 +11,7 @@ import {
 	permissionSchema,
 	addCollaborationRestrictionOnSave
 } from './permission';
+import { Storyline } from './storyline';
 
 export const chapterSchema = new Schema<ChapterProperties>({
 	_id: { type: String, required: true },
@@ -63,10 +64,16 @@ chapterSchema.pre(
 );
 
 chapterSchema.pre('save', async function (next) {
-	const userID = this.user;
-	const storylineID = this.storyline;
+	const userID = this.user as string;
+	const storylineID = this.storyline as string;
 
-	await addCollaborationRestrictionOnSave(userID as string, 'Storyline', storylineID as string);
+	const { filter, options } = addCollaborationRestrictionOnSave(userID, storylineID);
+	const storyline = await Storyline.aggregate(filter, options).cursor().next();
+
+	if (storyline && !storyline.userPermissions?.collaborate) {
+		throw new Error('You have no permission to collaborate on this storyline');
+	}
+
 	next();
 });
 

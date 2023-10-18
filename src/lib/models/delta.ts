@@ -4,7 +4,6 @@ import mongoose, { Schema, model } from 'mongoose';
 import {
 	addCollaborationRestrictionOnUpdate,
 	addReadRestrictionPipeline,
-	addUpdateRestrictionPipeline,
 	permissionSchema
 } from './permission';
 import type Op from 'quill-delta/dist/Op';
