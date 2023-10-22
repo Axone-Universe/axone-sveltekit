@@ -27,6 +27,9 @@
 	let profileImage = defaultUserImage;
 	updateProfilePhoto();
 
+	/**
+	 * This function updates the profile photo by retrieving the public URL of the image from a specific bucket in Supabase storage.
+	 */
 	async function updateProfilePhoto(){
 		const bucketName = `profiles/${userResponse._id}`;
 		const imageName = 'profile'

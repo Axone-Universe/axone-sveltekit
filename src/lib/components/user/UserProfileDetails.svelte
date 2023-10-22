@@ -48,11 +48,16 @@
 		onSubmit(userProperties);
 	}
 
+	/**
+	 * The avatarFileSelected function is an asynchronous function that handles the selection of an avatar image file.
+	 * It triggers a toast message to indicate the progress of the file upload, uploads the file to a specified bucket,
+	 * and then triggers a success or error toast message based on the response. Finally, it updates the profile photo.
+	 * @param event The event object that contains information about the file selection.
+	 */
 	async function avatarFileSelected(event: Event){
 		const newAvatarImage = (event.target as HTMLInputElement)?.files?.[0] as File;
 
 		const bucketName = `profiles/${userProperties._id}`;
-		//const filenameExtension = newAvatarImage.name.substring(newAvatarImage.name.lastIndexOf('.') + 1)
 
 		toastStore.trigger(progressUploadToast)
 
@@ -70,9 +75,11 @@
 
 	}
 
+	/**
+	 * This function updates the profile photo by retrieving the public URL of the image from a specific bucket in Supabase storage.
+	 */
 	async function updateProfilePhoto(){
 		const bucketName = `profiles/${userProperties._id}`;
-		const folder = `${userProperties._id}`
 		const imageName = 'profile'
 		const { data } = await supabase
 				.storage
