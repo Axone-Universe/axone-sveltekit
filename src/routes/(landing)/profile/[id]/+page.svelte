@@ -14,7 +14,7 @@
 	import { page } from '$app/stores';
 
 	export let data: PageData;
-	export let { userResponse } = data;
+	export let { userResponse, supabase } = data;
 
 	const userGenres = userResponse.genres;
 	const userLabels = userResponse.labels;
@@ -24,8 +24,21 @@
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
-	// TODO: get from bucket
 	let profileImage = defaultUserImage;
+	updateProfilePhoto();
+
+	async function updateProfilePhoto(){
+		const bucketName = `profiles/${userResponse._id}`;
+		const imageName = 'profile'
+		const { data } = await supabase
+				.storage
+				.from(bucketName)
+				.getPublicUrl(imageName)
+
+		if (data){
+			profileImage = data.publicUrl;
+		}
+	}
 </script>
 
 <Container class="w-screen lg:my-8 lg:w-full md:flex md:justify-center lg:pt-16">

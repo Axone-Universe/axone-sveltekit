@@ -113,7 +113,7 @@
 			return supabase
 					.storage
 					.from(bucketName)
-					.update(folder + "/" + newFileName, file, {
+					.upload(folder + "/" + newFileName, file, {
 						cacheControl: "0",
 						upsert: true
 					})
