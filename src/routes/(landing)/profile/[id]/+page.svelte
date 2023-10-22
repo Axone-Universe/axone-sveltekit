@@ -28,8 +28,8 @@
 	let profileImage = defaultUserImage;
 </script>
 
-<Container class="my-8 w-full flex justify-center pt-16">
-	<Container class="ml-0 mr-0 basis-3/5">
+<Container class="w-screen lg:my-8 lg:w-full md:flex md:justify-center lg:pt-16">
+	<Container class="ml-0 mr-0 md:w-3/4 lg:basis-3/5 p-0">
 		<section id="DetailsSection" class="${styles.sectionCard}">
 			<div class="flex w-full justify-center">
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
