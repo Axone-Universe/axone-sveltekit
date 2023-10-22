@@ -38,7 +38,9 @@
 		background: 'variant-filled-error'
 	};
 
+
 	let profileImage = defaultUserImage;
+	updateProfilePhoto();
 
 	async function submit() {
 		userProperties.genres = genres;
@@ -50,12 +52,12 @@
 		const newAvatarImage = (event.target as HTMLInputElement)?.files?.[0] as File;
 
 		const bucketName = `profiles/${userProperties._id}`;
-		const filenameExtension = newAvatarImage.name.substring(newAvatarImage.name.lastIndexOf('.') + 1)
+		//const filenameExtension = newAvatarImage.name.substring(newAvatarImage.name.lastIndexOf('.') + 1)
 
 		toastStore.trigger(progressUploadToast)
 
 		//upload the file
-		const response = await uploadFileToBucket({ supabase: supabase, file: newAvatarImage, bucket: bucketName, newFileName: `profile.${filenameExtension}` })
+		const response = await uploadFileToBucket({ supabase: supabase, file: newAvatarImage, bucket: bucketName, newFileName: `profile` })
 
 		toastStore.clear();
 		if (response.error){
@@ -63,8 +65,23 @@
 			toastStore.trigger(errorUploadToast)
 		}else{
 			toastStore.trigger(successUploadToast)
+			await updateProfilePhoto()
 		}
 
+	}
+
+	async function updateProfilePhoto(){
+		const bucketName = `profiles/${userProperties._id}`;
+		const folder = `${userProperties._id}`
+		const imageName = 'profile'
+		const { data } = await supabase
+				.storage
+				.from(bucketName)
+				.getPublicUrl(imageName)
+
+		if (data){
+			profileImage = data.publicUrl;
+		}
 	}
 
 	/**
@@ -97,7 +114,7 @@
 					.storage
 					.from(bucketName)
 					.update(folder + "/" + newFileName, file, {
-						cacheControl: '3600',
+						cacheControl: "0",
 						upsert: true
 					})
 		}else{
