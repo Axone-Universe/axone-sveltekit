@@ -18,6 +18,9 @@
 
 	const userGenres = userResponse.genres;
 	const userLabels = userResponse.labels;
+	const styles = {
+		sectionCard: "w-full card variant-ghost-surface p-8 flex flex-col gap-8 mb-4",
+	}
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 
@@ -26,71 +29,102 @@
 </script>
 
 <Container class="my-8 w-full flex justify-center pt-16">
-	<div class="card variant-ghost-surface p-8 max-w-2xl flex flex-col gap-8">
-		<div class="flex flex-col sm:flex-row justify-between items-center w-full gap-8">
-			<div class="flex gap-4 items-center mx-auto sm:mx-0">
+	<Container class="ml-0 mr-0 basis-3/5">
+		<section id="DetailsSection" class="${styles.sectionCard}">
+			<div class="flex w-full justify-center">
 				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
-				<div class="flex flex-col gap-1">
-					<h3 class="flex items-center gap-2">
+			</div>
+			<div class="flex w-full justify-center">
+				<div>
+					<h3 class="h3 flex items-center gap-2 mb-2">
 						{userResponse.firstName}
 						{userResponse.lastName}
 						{#if viewerIsUser}
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						{/if}
 					</h3>
-					<div class="flex gap-2 flex-wrap">
+					<!-- user type labels -->
+					<div class="flex gap-2 flex-wrap justify-center">
 						{#if userResponse.labels}
 							{#each userLabels ?? [] as label}
 								<div class="chip variant-filled">{label}</div>
 							{/each}
 						{/if}
 					</div>
-					<div class="flex gap-2">
-						{#if userResponse.facebook}
-							<Icon data={facebookIcon} scale={2} />
-						{/if}
-						{#if userResponse.instagram}
-							<Icon data={instagramIcon} scale={2} />
-						{/if}
-						{#if userResponse.twitter}
-							<Icon data={twitterIcon} scale={2} />
-						{/if}
-					</div>
 				</div>
 			</div>
-			<div class="card p-4 flex flex-col w-full sm:w-fit">
-				<p>Books read: 1</p>
-				<p>Books authored: 2</p>
-				<p>Books illustrated: 0</p>
-			</div>
-		</div>
-		<hr class="w-full" />
-		<div>
-			<h2 class="mb-4">About</h2>
-			<div class="card p-4">
-				<p>
-					{userResponse.about
+		</section>
+		<section id="AboutMeSection" class="${styles.sectionCard}">
+			<h3 class="h3">About Me</h3>
+			<p>
+				{userResponse.about
 						? userResponse.about
 						: 'Apparently, this user is really boring and did not say anything for their About section.'}
-				</p>
-			</div>
-		</div>
-		<hr class="w-full" />
-		<div>
-			<h2 class="mb-4">Genre Preferences</h2>
-			<div class="gap-4 w-full">
-				<div class="card p-4">
-					{#if userGenres}
-						<div class="flex gap-2 flex-wrap">
-							{#each userGenres as genre}
-								<div class="chip variant-filled">{genre}</div>
-							{/each}
-						</div>
-					{:else}
-						<div class="chip variant-soft">None</div>
-					{/if}
+			</p>
+		</section>
+	</Container>
+	<Container class="ml-0 mr-0">
+		<section id="StatsSection" class="${styles.sectionCard} flex-col justify-start">
+			<h3 class="h3">Stats</h3>
+			<p class="m-0 p-0">Books read: 1
+				<br/>
+				Books authored: 2
+				<br/>
+				Books illustrated: 0
+			</p>
+		</section>
+		<section id="GenrePreferencesSection" class="${styles.sectionCard}">
+			<h3 class="h3">Genre Preferences</h3>
+			{#if userGenres}
+				<div class="flex gap-2 flex-wrap">
+					{#each userGenres as genre}
+						<div class="chip variant-filled">{genre}</div>
+					{/each}
 				</div>
-			</div>
-		</div>
-	</div>
+			{:else}
+				<div class="chip variant-soft">None</div>
+			{/if}
+		</section>
+		<section id="SocialMediaSection" class="${styles.sectionCard}">
+			<h3 class="h3">Connect</h3>
+			<ul>
+				{#if userResponse.facebook}
+					<li>
+						<span class="mr-2">
+							<Icon data={facebookIcon} scale={2} />
+						</span>
+						<span class="flex-auto">
+							<a class="anchor" href="https://www.facebook.com/{userResponse.facebook}" target="_blank">
+								{userResponse.facebook}
+							</a>
+						</span>
+					</li>
+				{/if}
+				{#if userResponse.instagram}
+					<li>
+						<span class="mr-2">
+							<Icon data={instagramIcon} scale={2} />
+						</span>
+						<span class="flex-auto">
+							<a class="anchor" href="https://www.instagram.com/{userResponse.instagram}" target="_blank">
+								{userResponse.instagram}
+							</a>
+						</span>
+					</li>
+				{/if}
+				{#if userResponse.twitter}
+					<li>
+						<span class="mr-2">
+							<Icon data={twitterIcon} scale={2} />
+						</span>
+						<span class="flex-auto">
+							<a class="anchor" href="https://www.twitter.com/{userResponse.twitter}" target="_blank">
+								{userResponse.twitter}
+							</a>
+						</span>
+					</li>
+				{/if}
+			</ul>
+		</section>
+	</Container>
 </Container>
