@@ -189,9 +189,9 @@
 			<ManagePermissions bind:permissionedDocument={book} />
 		</div>
 
-		<div class="flex flex-col sm:flex-row gap-4">
-			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" type="submit">Create Book</button>
+		<div class="modal-footer flex justify-end space-x-2">
+			<a href="/campaigns" class="btn variant-ghost-surface" type="button">Cancel</a>
+			<button class="btn variant-filled" type="submit">Create Book</button>
 		</div>
 	</form>
 </div>

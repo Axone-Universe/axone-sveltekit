@@ -21,10 +21,9 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import { Icon } from 'svelte-awesome';
-	import { caretDown, trash } from 'svelte-awesome/icons';
+	import { caretDown, send, trash } from 'svelte-awesome/icons';
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
-	import StorylineDetails from '../storyline/StorylineDetails.svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 
 	export let permissionedDocument:
