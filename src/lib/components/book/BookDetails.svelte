@@ -18,6 +18,7 @@
 	let input: HTMLInputElement;
 	let image: HTMLElement;
 	let imageFile: File;
+	let notifications = {};
 
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
@@ -88,7 +89,8 @@
 			description: book.description,
 			imageURL: book.imageURL,
 			genres: book.genres,
-			permissions: book.permissions
+			permissions: book.permissions,
+			notifications: notifications
 		});
 	}
 
@@ -186,7 +188,7 @@
 
 		<div>
 			Permissions
-			<ManagePermissions bind:permissionedDocument={book} />
+			<ManagePermissions bind:permissionedDocument={book} {notifications} />
 		</div>
 
 		<div class="modal-footer flex justify-end space-x-2">

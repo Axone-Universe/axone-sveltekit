@@ -1,6 +1,9 @@
+/**
+ * This file is used on the backend
+ */
 import { Novu } from '@novu/node';
 import { NOVU_API_KEY } from '$env/static/private';
-import type { UserProperties } from '$lib/properties/user';
+import type { UserNotificationProperties } from '$lib/properties/notification';
 
 const novu = new Novu(NOVU_API_KEY);
 
@@ -8,31 +11,46 @@ const novu = new Novu(NOVU_API_KEY);
  * Sends a collaboration notification to the userID
  * @param userID
  * @param firstName
- * @param documentName
- * @param message
+ * @param notification
  */
-export async function sendCollaborationNotification(
-	sender: UserProperties,
-	receiver: UserProperties,
-	documentName: string,
-	message: string
-) {
-	// first create the subscriber / the person receiving the notification
-	await novu.subscribers.identify(receiver._id, {
-		firstName: receiver.firstName,
-		email: receiver.email
-	});
+export async function sendUserNotifications(notifications: {
+	[key: string]: UserNotificationProperties;
+}) {
+	if (!notifications || Object.keys(notifications).length === 0) {
+		return;
+	}
 
-	// send the notification
-	await novu.trigger('collaboration', {
-		to: {
-			subscriberId: receiver._id,
-			email: receiver.email
-		},
-		payload: {
-			firstName: sender.firstName,
-			documentName: documentName,
-			message: message
-		}
-	});
+	const subscriberPayloads = [];
+	const notificationPayloads = [];
+
+	for (const userID in notifications) {
+		const notification = notifications[userID];
+
+		const subscriberPayload = {
+			subscriberId: notification.receiverID,
+			firstName: notification.receiverName,
+			email: notification.receiverEmail
+		};
+		subscriberPayloads.push(subscriberPayload);
+
+		const notificationPayload = {
+			name: 'user-notification',
+			to: {
+				subscriberId: notification.receiverID,
+				email: notification.receiverEmail
+			},
+			payload: {
+				firstName: notification.senderName,
+				notification: notification.notification
+			}
+		};
+		notificationPayloads.push(notificationPayload);
+	}
+
+	// first create the subscriber / the person receiving the notification
+	await novu.subscribers.bulkCreate(subscriberPayloads);
+	// Then send the notifications
+	const result = await novu.bulkTrigger(notificationPayloads);
+
+	return result;
 }

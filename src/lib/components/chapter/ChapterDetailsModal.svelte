@@ -16,6 +16,7 @@
 		$page.data.user._id !==
 		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
 
+	let notifications = {};
 	let customClass = '';
 	export { customClass as class };
 
@@ -45,7 +46,8 @@
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
 				description: chapterNode.description!,
-				permissions: chapterNode.permissions
+				permissions: chapterNode.permissions,
+				notifications: notifications
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -78,7 +80,8 @@
 				id: chapterNode._id,
 				title: chapterNode.title,
 				description: chapterNode.description,
-				permissions: chapterNode.permissions
+				permissions: chapterNode.permissions,
+				notifications: notifications
 			})
 			.then((chapterNodeResponse) => {
 				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -128,7 +131,7 @@
 
 			<div>
 				Permissions
-				<ManagePermissions bind:permissionedDocument={chapterNode} />
+				<ManagePermissions bind:permissionedDocument={chapterNode} {notifications} />
 			</div>
 		</div>
 		{#if !disabled}

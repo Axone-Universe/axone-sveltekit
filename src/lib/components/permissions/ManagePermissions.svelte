@@ -25,11 +25,14 @@
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
 	import type { StorylineProperties } from '$lib/properties/storyline';
+	import type { UserNotificationProperties } from '$lib/properties/notification';
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>
 		| HydratedDocument<StorylineProperties>;
+
+	export let notifications: { [key: string]: UserNotificationProperties } = {};
 
 	export let customClass = '';
 	export { customClass as class };
@@ -157,11 +160,19 @@
 		if (userID !== documentOwner._id) {
 			permissions[userID] = permission;
 			permissions = permissions;
+			notifications[userID] = {
+				senderName: documentOwner.firstName!,
+				receiverID: userID,
+				receiverName: permission.user.firstName!,
+				receiverEmail: permission.user.email!,
+				notification: `${documentOwner.firstName!} has given you to collaborate!`
+			};
 		}
 	}
 
 	function removePermission(userID: string) {
 		delete permissions[userID];
+		delete notifications[userID];
 		permissions = permissions;
 	}
 

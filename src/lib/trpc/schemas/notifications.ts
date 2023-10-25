@@ -1,8 +1,14 @@
+import type { UserNotificationProperties } from '$lib/properties/notification';
 import { z } from 'zod';
 
-export const collaboration = z.object({
-	senderID: z.string(),
+export const userNotification = z.object({
+	senderName: z.string(),
 	receiverID: z.string(),
-	documentName: z.string(),
-	message: z.string()
+	receiverName: z.string(),
+	receiverEmail: z.string(),
+	notification: z.string()
+}) satisfies z.ZodType<UserNotificationProperties>;
+
+export const userNotifications = z.object({
+	notifications: z.record(z.string(), userNotification)
 });
