@@ -259,7 +259,7 @@
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
-			chapterNode: selectedChapter,
+			chapter: selectedChapter,
 			bookID: bookData._id,
 			storylineID: selectedStoryline._id
 		};
@@ -290,7 +290,7 @@
 
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
-			chapterNode: newChapterNode,
+			chapter: newChapterNode,
 			bookID: bookData._id,
 			storylineID: selectedStoryline._id,
 			prevChapterID: prevChapterID

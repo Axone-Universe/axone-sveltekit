@@ -109,8 +109,8 @@
 			<Icon data={bell} scale={1.2} />
 			{#if unreadNotifications.length > 0}
 				<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
-					>{unreadNotifications.length}</span
-				>
+					>{unreadNotifications.length}
+				</span>
 			{/if}
 		</button>
 	</div>
