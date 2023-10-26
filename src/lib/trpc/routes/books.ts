@@ -4,6 +4,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/books';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
 
 export const books = t.router({
 	get: t.procedure
@@ -49,6 +50,11 @@ export const books = t.router({
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 
 			const bookNode = await bookBuilder.update();
+
+			if (input.notifications) {
+				sendUserNotifications(input.notifications);
+			}
+
 			return bookNode;
 		}),
 
@@ -78,6 +84,10 @@ export const books = t.router({
 			if (input.genres) bookBuilder.genres(input.genres);
 
 			const bookNode = await bookBuilder.build();
+
+			if (input.notifications) {
+				sendUserNotifications(input.notifications);
+			}
 
 			return bookNode;
 		}),

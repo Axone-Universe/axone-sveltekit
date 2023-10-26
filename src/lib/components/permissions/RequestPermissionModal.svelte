@@ -44,6 +44,11 @@
 							<span><Icon data={check} /></span>
 							<span class="capitalize">{permissionType}</span>
 						</span>
+					{:else if document.permissions['public'].permission === 'collaborate' && permissionType === 'collaborate'}
+						<span class="chip variant-filled">
+							<span><Icon data={check} /></span>
+							<span class="capitalize">{permissionType}</span>
+						</span>
 					{:else if document.user._id === sessionUserID}
 						<span class="chip variant-filled">
 							<span><Icon data={check} /></span>

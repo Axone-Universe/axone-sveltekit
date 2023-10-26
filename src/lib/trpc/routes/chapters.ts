@@ -5,6 +5,8 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
+import type { UserNotificationProperties } from '$lib/properties/notification';
 
 export const chapters = t.router({
 	getAll: t.procedure
@@ -64,6 +66,11 @@ export const chapters = t.router({
 			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
 
 			const chapterNode = await chapterBuilder.update();
+
+			if (input.notifications) {
+				await sendUserNotifications(input.notifications);
+			}
+
 			return chapterNode;
 		}),
 
@@ -84,6 +91,10 @@ export const chapters = t.router({
 			if (input.permissions) chapterBuilder.permissions(input.permissions as any);
 
 			const chapterNode = await chapterBuilder.build();
+
+			if (input.notifications) {
+				await sendUserNotifications(input.notifications);
+			}
 
 			return chapterNode;
 		}),

@@ -13,13 +13,12 @@ import {
 	renameReadingList
 } from '$lib/trpc/schemas/users';
 
-const usersRepo = new UsersRepository();
-
 export const users = t.router({
 	list: t.procedure
 		.use(logger)
 		.input(read)
 		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
 			const result = await usersRepo.get(ctx.session, input.id);
 
 			return result;
@@ -29,6 +28,7 @@ export const users = t.router({
 		.use(logger)
 		.input(read)
 		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
 			const result = await usersRepo.getById(ctx.session, input.id);
 
 			return result;
@@ -38,6 +38,7 @@ export const users = t.router({
 		.use(logger)
 		.input(read)
 		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
 			const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
 
 			return result;
@@ -95,6 +96,7 @@ export const users = t.router({
 		.use(auth)
 		.input(getReadingList)
 		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
 			const result = await usersRepo.getReadingList(ctx.session!.user.id, input.name);
 
 			return result;

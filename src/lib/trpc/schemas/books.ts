@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { genreSchema } from './genres';
 import { permissions } from './permissions';
+import { userNotification } from './notifications';
 
 export const create = z.object({
 	title: z.string(),
 	description: z.string(),
 	imageURL: z.string(),
 	genres: genreSchema.optional(),
-	permissions: z.record(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const read = z.object({
@@ -24,7 +26,8 @@ export const update = z.object({
 	description: z.string().optional(),
 	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
-	permissions: z.record(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const submitToCampaign = z.object({

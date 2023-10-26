@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { permissions } from './permissions';
+import { userNotification } from './notifications';
 
 export const storylineQuerySchema = z.object({
 	bookID: z.string().optional(),
@@ -15,7 +16,8 @@ export const update = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 export const search = z.object({
 	bookID: z.string().optional(),
@@ -33,7 +35,8 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const read = z.object({

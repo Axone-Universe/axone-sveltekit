@@ -16,6 +16,8 @@
 		modalStore.close();
 	};
 
+	let notifications = {};
+
 	async function submit() {
 		// permissions = permissions.map
 		if (bookData._id) {
@@ -36,7 +38,8 @@
 				description: bookData.description!,
 				imageURL: bookData.imageURL,
 				genres: bookData.genres,
-				permissions: bookData.permissions
+				permissions: bookData.permissions,
+				notifications: notifications
 			})
 			.then((bookNodeResponses) => {
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
@@ -68,7 +71,8 @@
 				description: bookData.description,
 				imageURL: bookData.imageURL,
 				genres: bookData.genres,
-				permissions: bookData.permissions
+				permissions: bookData.permissions,
+				notifications: notifications
 			})
 			.then((bookNodeResponses) => {
 				bookData = bookNodeResponses as HydratedDocument<BookProperties>;
@@ -114,7 +118,11 @@
 
 		<div>
 			Permissions
-			<ManagePermissions permissionedDocument={bookData} />
+			<ManagePermissions
+				permissionedDocument={bookData}
+				{notifications}
+				permissionedDocumentType="Book"
+			/>
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">

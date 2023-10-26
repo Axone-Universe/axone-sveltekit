@@ -7,10 +7,12 @@
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 
-	export let storylineNode: HydratedDocument<StorylineProperties>;
+	export let storyline: HydratedDocument<StorylineProperties>;
 
 	let customClass = '';
 	export { customClass as class };
+
+	let notifications = {};
 
 	let closeModal = () => {
 		modalStore.close();
@@ -18,7 +20,7 @@
 
 	async function submit() {
 		// permissions = permissions.map
-		if (storylineNode._id) {
+		if (storyline._id) {
 			updateStoryline();
 		} else {
 			createStoryline();
@@ -33,20 +35,21 @@
 
 		trpc($page)
 			.storylines.create.mutate({
-				title: storylineNode.title!,
-				description: storylineNode.description!,
-				book: storylineNode.book!,
-				imageURL: storylineNode.imageURL!,
-				parent: storylineNode.parent!,
-				parentChapter: storylineNode.parentChapter!,
-				permissions: storylineNode.permissions
+				title: storyline.title!,
+				description: storyline.description!,
+				book: storyline.book!,
+				imageURL: storyline.imageURL!,
+				parent: storyline.parent!,
+				parentChapter: storyline.parentChapter!,
+				permissions: storyline.permissions,
+				notifications: notifications
 			})
 			.then((storylineNodeResponse) => {
-				storylineNode = storylineNodeResponse as HydratedDocument<StorylineProperties>;
+				storyline = storylineNodeResponse as HydratedDocument<StorylineProperties>;
 				toastMessage = 'Sunccessfully Created';
 				toastBackground = 'bg-success-500';
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(storylineNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(storyline) : '';
 				}
 			})
 			.finally(() => {
@@ -65,22 +68,23 @@
 		let toastBackground = 'bg-warning-500';
 
 		console.log('** sv per,s');
-		console.log(storylineNode.permissions);
+		console.log(storyline.permissions);
 
 		trpc($page)
 			.storylines.update.mutate({
-				id: storylineNode._id,
-				title: storylineNode.title,
-				description: storylineNode.description,
-				permissions: storylineNode.permissions
+				id: storyline._id,
+				title: storyline.title,
+				description: storyline.description,
+				permissions: storyline.permissions,
+				notifications: notifications
 			})
 			.then((storylineNodeResponse) => {
-				storylineNode = storylineNodeResponse as HydratedDocument<StorylineProperties>;
+				storyline = storylineNodeResponse as HydratedDocument<StorylineProperties>;
 				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(storylineNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(storyline) : '';
 				}
 			})
 			.finally(() => {
@@ -106,23 +110,23 @@
 			<input
 				class="input"
 				type="text"
-				bind:value={storylineNode.title}
+				bind:value={storyline.title}
 				placeholder="Chapter Title"
 				required
 			/>
 		</label>
 		<label>
 			* Storyline Description
-			<textarea
-				class="textarea h-44 overflow-hidden"
-				bind:value={storylineNode.description}
-				required
-			/>
+			<textarea class="textarea h-44 overflow-hidden" bind:value={storyline.description} required />
 		</label>
 
 		<div>
 			Permissions
-			<ManagePermissions bind:permissionedDocument={storylineNode} />
+			<ManagePermissions
+				bind:permissionedDocument={storyline}
+				{notifications}
+				permissionedDocumentType="Storyline"
+			/>
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">
