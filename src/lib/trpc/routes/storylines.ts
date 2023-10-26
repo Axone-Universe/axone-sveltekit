@@ -6,6 +6,7 @@ import { t } from '$lib/trpc/t';
 import { create, update } from '$lib/trpc/schemas/storylines';
 import { read } from '$lib/trpc/schemas/storylines';
 import { search } from '$lib/trpc/schemas/storylines';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
 
 export const storylines = t.router({
 	getAll: t.procedure
@@ -60,6 +61,11 @@ export const storylines = t.router({
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
 
 			const storyline = await storylineBuilder.update();
+
+			if (input.notifications) {
+				sendUserNotifications(input.notifications);
+			}
+
 			return storyline;
 		}),
 
@@ -82,6 +88,10 @@ export const storylines = t.router({
 			}
 
 			const storyline = await storylineBuilder.build();
+
+			if (input.notifications) {
+				await sendUserNotifications(input.notifications);
+			}
 
 			return storyline;
 		}),

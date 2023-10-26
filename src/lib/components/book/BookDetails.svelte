@@ -18,6 +18,7 @@
 	let input: HTMLInputElement;
 	let image: HTMLElement;
 	let imageFile: File;
+	let notifications = {};
 
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
@@ -88,7 +89,8 @@
 			description: book.description,
 			imageURL: book.imageURL,
 			genres: book.genres,
-			permissions: book.permissions
+			permissions: book.permissions,
+			notifications: notifications
 		});
 	}
 
@@ -186,12 +188,16 @@
 
 		<div>
 			Permissions
-			<ManagePermissions bind:permissionedDocument={book} />
+			<ManagePermissions
+				bind:permissionedDocument={book}
+				{notifications}
+				permissionedDocumentType="Book"
+			/>
 		</div>
 
-		<div class="flex flex-col sm:flex-row gap-4">
-			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" type="submit">Create Book</button>
+		<div class="modal-footer flex justify-end space-x-2">
+			<a href="/campaigns" class="btn variant-ghost-surface" type="button">Cancel</a>
+			<button class="btn variant-filled" type="submit">Create Book</button>
 		</div>
 	</form>
 </div>

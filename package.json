@@ -44,6 +44,8 @@
 	"dependencies": {
 		"@axone-network/quill-illustration": "^1.0.0",
 		"@floating-ui/dom": "^1.2.8",
+		"@novu/headless": "^0.20.0",
+		"@novu/node": "^0.20.0",
 		"@splidejs/svelte-splide": "^0.2.9",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
 		"@supabase/supabase-js": "^2.22.0",
@@ -54,6 +56,7 @@
 		"date-fns": "^2.30.0",
 		"embla-carousel-svelte": "8.0.0-rc05",
 		"happy-dom": "^9.20.1",
+		"javascript-time-ago": "^2.5.9",
 		"mongoose": "^7.3.4",
 		"mongoose-autopopulate": "^1.0.1",
 		"parchment": "^2.0.1",
