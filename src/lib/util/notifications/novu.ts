@@ -5,7 +5,7 @@ import { Novu } from '@novu/node';
 import { NOVU_API_KEY } from '$env/static/private';
 import type { UserNotificationProperties } from '$lib/properties/notification';
 
-const novu = new Novu(NOVU_API_KEY);
+export const novu = new Novu(NOVU_API_KEY);
 
 /**
  * Sends a collaboration notification to the userID
