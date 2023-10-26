@@ -1,4 +1,5 @@
 export interface UserNotificationProperties {
+	url: string;
 	senderName: string;
 	receiverID: string;
 	receiverName: string;

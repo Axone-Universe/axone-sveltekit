@@ -41,7 +41,8 @@ export async function sendUserNotifications(notifications: {
 			},
 			payload: {
 				firstName: notification.senderName,
-				notification: notification.notification
+				notification: notification.notification,
+				url: notification.url
 			}
 		};
 		notificationPayloads.push(notificationPayload);

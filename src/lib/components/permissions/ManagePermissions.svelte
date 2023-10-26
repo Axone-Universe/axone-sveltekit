@@ -15,7 +15,8 @@
 	import {
 		PermissionsEnum,
 		type PermissionProperties,
-		PermissionPropertyBuilder
+		PermissionPropertyBuilder,
+		type PermissionedDocument
 	} from '$lib/properties/permission';
 	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
 	import type { BookProperties } from '$lib/properties/book';
@@ -33,6 +34,7 @@
 		| HydratedDocument<StorylineProperties>;
 
 	export let notifications: { [key: string]: UserNotificationProperties } = {};
+	export let permissionedDocumentType: PermissionedDocument;
 
 	export let customClass = '';
 	export { customClass as class };
@@ -58,6 +60,46 @@
 		permissions = permissions;
 	});
 
+	function documentURL(): string {
+		let url = '';
+		switch (permissionedDocumentType) {
+			case 'Book': {
+				let book = permissionedDocument as HydratedDocument<BookProperties>;
+
+				url = `book/${book._id}`;
+				break;
+			}
+
+			case 'Storyline': {
+				let storyline = permissionedDocument as HydratedDocument<StorylineProperties>;
+				let bookId = '';
+
+				if (typeof storyline.book === 'string') bookId = storyline.book;
+				if (typeof storyline.book !== 'string') bookId = storyline.book!._id;
+
+				url = `/editor/${bookId}?mode=reader&storylineID=${storyline._id}`;
+				break;
+			}
+
+			case 'Chapter': {
+				let chapter = permissionedDocument as HydratedDocument<ChapterProperties>;
+
+				let bookId = '';
+				if (typeof chapter.book === 'string') bookId = chapter.book;
+				if (typeof chapter.book !== 'string') bookId = chapter.book!._id;
+
+				let storylineId = '';
+				if (typeof chapter.storyline === 'string') storylineId = chapter.storyline;
+				if (typeof chapter.storyline !== 'string') storylineId = chapter.storyline!._id;
+
+				url = `/editor/${bookId}?mode=reader&storylineID=${storylineId}&chapterID=${chapter._id}`;
+				break;
+			}
+		}
+
+		return url;
+	}
+
 	let autocompletePopupSettings: PopupSettings = {
 		event: 'focus-click',
 		target: 'popupAutocomplete',
@@ -79,7 +121,7 @@
 			documentOwner = new UserPropertyBuilder().getProperties() as HydratedDocument<UserProperties>;
 
 			documentOwner._id = $page.data.session!.user.id;
-			documentOwner.firstName = $page.data.user!.firstName;
+			documentOwner.firstName = $page.data.user.firstName;
 			documentOwner.email = $page.data.session!.user.email;
 		}
 
@@ -165,7 +207,10 @@
 				receiverID: userID,
 				receiverName: permission.user.firstName!,
 				receiverEmail: permission.user.email!,
-				notification: `${documentOwner.firstName!} has given you to collaborate!`
+				url: documentURL(),
+				notification: `${documentOwner.firstName!} has requested you to collaborate on the ${permissionedDocumentType} '${
+					permissionedDocument.title
+				}'!`
 			};
 		}
 	}

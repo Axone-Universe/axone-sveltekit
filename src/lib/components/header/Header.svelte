@@ -16,6 +16,7 @@
 	import Icon from 'svelte-awesome';
 	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
+	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -72,12 +73,8 @@
 			<button class="lg:hidden" on:click={openDrawer}>
 				<Icon data={navicon} scale={1.5} />
 			</button>
-			<a
-				class="hidden lg:flex items-center text-l"
-				href={data.session && data.session.user.id ? '/home' : '/'}
-			>
-				<Logo />
-				<span class="logo-name">AXONE</span>
+			<a class="hidden lg:flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
+				<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
 			</a>
 		</svelte:fragment>
 		<div class="hidden lg:flex">
@@ -151,8 +148,7 @@
 			class="lg:hidden flex items-center text-l"
 			href={data.session && data.session.user.id ? '/home' : '/'}
 		>
-			<Logo />
-			<span class="logo-name">AXONE</span>
+			<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
 		</a>
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
@@ -214,6 +210,7 @@
 						<a class="btn variant-filled-primary" href="/login"> Login </a>
 					{/if}
 				</div>
+				<NotificationCenter />
 				<LightSwitch />
 			</div>
 		</svelte:fragment>

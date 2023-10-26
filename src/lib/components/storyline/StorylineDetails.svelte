@@ -22,6 +22,7 @@
 
 	let bookGenres: Genre[] = [];
 	let genres: Genre[] = [];
+	let notifications = {};
 
 	onMount(() => {
 		bookGenres = book.genres ?? [];
@@ -36,7 +37,8 @@
 				book: storyline.book,
 				parent: storyline.parent,
 				parentChapter: storyline.parentChapter,
-				permissions: storyline.permissions
+				permissions: storyline.permissions,
+				notifications: notifications
 			})
 			.then(async (storyline) => {
 				const t: ToastSettings = {
@@ -108,7 +110,11 @@
 
 		<div>
 			Permissions
-			<ManagePermissions bind:permissionedDocument={storyline} />
+			<ManagePermissions
+				bind:permissionedDocument={storyline}
+				{notifications}
+				permissionedDocumentType="Storyline"
+			/>
 		</div>
 
 		<div class="modal-footer flex justify-end space-x-2">

@@ -5,7 +5,7 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	x="0px"
 	y="0px"
-	class="w-8 m-4"
+	class="w-5 pb-2"
 	viewBox="0 0 512 512"
 	enable-background="new 0 0 512 512"
 	xml:space="preserve"

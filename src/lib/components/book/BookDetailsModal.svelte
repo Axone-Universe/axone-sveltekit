@@ -118,7 +118,11 @@
 
 		<div>
 			Permissions
-			<ManagePermissions permissionedDocument={bookData} {notifications} />
+			<ManagePermissions
+				permissionedDocument={bookData}
+				{notifications}
+				permissionedDocumentType="Book"
+			/>
 		</div>
 	</div>
 	<footer class="modal-footer flex justify-end space-x-2">

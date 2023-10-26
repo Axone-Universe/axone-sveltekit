@@ -7,14 +7,13 @@
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 
-	export let chapterNode: HydratedDocument<ChapterProperties>;
+	export let chapter: HydratedDocument<ChapterProperties>;
 	export let bookID: string;
 	export let storylineID: string;
 	export let prevChapterID: string;
 
 	let disabled =
-		$page.data.user._id !==
-		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
+		$page.data.user._id !== (typeof chapter.user === 'string' ? chapter.user : chapter.user!._id);
 
 	let notifications = {};
 	let customClass = '';
@@ -26,7 +25,7 @@
 
 	async function submit() {
 		// permissions = permissions.map
-		if (chapterNode._id) {
+		if (chapter._id) {
 			updateChapter();
 		} else {
 			createChapter();
@@ -41,20 +40,20 @@
 
 		trpc($page)
 			.chapters.create.mutate({
-				title: chapterNode.title!,
+				title: chapter.title!,
 				bookID: bookID,
 				storylineID: storylineID,
 				prevChapterID: prevChapterID ? prevChapterID : '',
-				description: chapterNode.description!,
-				permissions: chapterNode.permissions,
+				description: chapter.description!,
+				permissions: chapter.permissions,
 				notifications: notifications
 			})
 			.then((chapterNodeResponse) => {
-				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
+				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
 				toastMessage = 'Sunccessfully Created';
 				toastBackground = 'bg-success-500';
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(chapterNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
 			})
 			.finally(() => {
@@ -73,23 +72,23 @@
 		let toastBackground = 'bg-warning-500';
 
 		console.log('** sv per,s');
-		console.log(chapterNode.permissions);
+		console.log(chapter.permissions);
 
 		trpc($page)
 			.chapters.update.mutate({
-				id: chapterNode._id,
-				title: chapterNode.title,
-				description: chapterNode.description,
-				permissions: chapterNode.permissions,
+				id: chapter._id,
+				title: chapter.title,
+				description: chapter.description,
+				permissions: chapter.permissions,
 				notifications: notifications
 			})
 			.then((chapterNodeResponse) => {
-				chapterNode = chapterNodeResponse as HydratedDocument<ChapterProperties>;
+				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
 				toastMessage = 'Successfully Saved';
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {
-					$modalStore[0].response ? $modalStore[0].response(chapterNode) : '';
+					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
 			})
 			.finally(() => {
@@ -115,23 +114,19 @@
 				<input
 					class="input"
 					type="text"
-					bind:value={chapterNode.title}
+					bind:value={chapter.title}
 					placeholder="Chapter Title"
 					required
 				/>
 			</label>
 			<label>
 				* Chapter Description
-				<textarea
-					class="textarea h-44 overflow-hidden"
-					bind:value={chapterNode.description}
-					required
-				/>
+				<textarea class="textarea h-44 overflow-hidden" bind:value={chapter.description} required />
 			</label>
 
 			<div>
 				Permissions
-				<ManagePermissions bind:permissionedDocument={chapterNode} {notifications} />
+				<ManagePermissions bind:permissionedDocument={chapter} permissionedDocumentType="Chapter" />
 			</div>
 		</div>
 		{#if !disabled}
