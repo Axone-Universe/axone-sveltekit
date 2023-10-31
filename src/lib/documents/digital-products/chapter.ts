@@ -8,6 +8,7 @@ import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
+import { DeltaBuilder } from '../digital-assets/delta';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -175,7 +176,18 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 		try {
 			await session.withTransaction(async () => {
+				// Create the delta
+				const deltaBuilder = new DeltaBuilder()
+					.sessionUserID(this._sessionUserID!)
+					.chapterID(this._chapterProperties._id)
+					.permissions(chapter.permissions);
+
+				const delta = new Delta(deltaBuilder.properties());
+				await delta.save({ session });
+
+				// Create the chapter
 				chapter.isNew = true;
+				chapter.delta = delta._id;
 				await chapter.save({ session });
 
 				const storyline = new Storyline(
