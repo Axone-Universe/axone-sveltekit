@@ -11,6 +11,7 @@ import {
 import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
 import type Op from 'quill-delta/dist/Op';
+import type { PermissionProperties } from '$lib/properties/permission';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
@@ -35,6 +36,15 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		const opsJSON = JSON.parse(ops);
 		this._deltaProperties.versions = opsJSON;
 		return this;
+	}
+
+	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
+		this._deltaProperties.permissions = permissions;
+		return this;
+	}
+
+	properties() {
+		return this._deltaProperties;
 	}
 
 	sessionUserID(sessionUserID: string): DeltaBuilder {
