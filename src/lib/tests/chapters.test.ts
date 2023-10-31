@@ -57,8 +57,13 @@ describe('chapters', () => {
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
+		const chapter1Delta = await caller.deltas.getById({ id: chapter1Response.delta as string });
+		const chapter2Delta = await caller.deltas.getById({ id: chapter2Response.delta as string });
+
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2Response.title).toEqual(chapter2Title);
+		expect(chapter1Delta.permissions).toEqual(chapter1Response.permissions);
+		expect(chapter2Delta.permissions).toEqual(chapter2Response.permissions);
 		expect(
 			typeof chapter2Response.user === 'string' ? chapter2Response.user : chapter2Response.user?._id
 		).toEqual(user._id);
