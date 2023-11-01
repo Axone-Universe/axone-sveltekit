@@ -1,5 +1,5 @@
 import { label, type ChapterProperties } from '$lib/properties/chapter';
-import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import { label as UserLabel } from '$lib/properties/user';
@@ -24,6 +24,10 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	title: String,
 	description: String
 });
+
+interface ChapterMethods extends ChapterProperties {
+	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
+}
 
 chapterSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
@@ -77,6 +81,17 @@ chapterSchema.pre('save', async function (next) {
 	next();
 });
 
+/**
+ * Adding a child to chapter.children array cannot use findOneAndUpdate because of permission restrictions
+ * Use this method instead, by calling addChild on the model instance
+ * @param chapterID
+ * @returns
+ */
+chapterSchema.methods.addChild = async function (chapterID: string, session: ClientSession) {
+	this.children.push(chapterID);
+	await this.save({ session });
+};
+
 function populate(pipeline: PipelineStage[]) {
 	pipeline.push(
 		{
@@ -111,5 +126,5 @@ function populate(pipeline: PipelineStage[]) {
 }
 
 export const Chapter = mongoose.models[label]
-	? model<ChapterProperties>(label)
-	: model<ChapterProperties>(label, chapterSchema);
+	? model<ChapterMethods>(label)
+	: model<ChapterMethods>(label, chapterSchema);

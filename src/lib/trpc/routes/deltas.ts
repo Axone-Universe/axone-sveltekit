@@ -13,6 +13,7 @@ export const deltas = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder()
 				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
 				.chapterID(input.chapterID);
 
 			const deltaNodeResponse = await deltaBuilder.build();

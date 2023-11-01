@@ -43,6 +43,11 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		return this;
 	}
 
+	userID(userID: string): DeltaBuilder {
+		this._deltaProperties.user = userID;
+		return this;
+	}
+
 	properties() {
 		return this._deltaProperties;
 	}
@@ -215,6 +220,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 	async build(): Promise<HydratedDocument<DeltaProperties>> {
 		if (!this._chapterID) throw new Error('Must provide a chapterID to build the delta.');
+		if (!this._deltaProperties.user) throw new Error('Must provide a userID to build the delta.');
 
 		const session = await mongoose.startSession();
 

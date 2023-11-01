@@ -67,9 +67,6 @@
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
-		console.log('** sv per,s');
-		console.log(storyline.permissions);
-
 		trpc($page)
 			.storylines.update.mutate({
 				id: storyline._id,
