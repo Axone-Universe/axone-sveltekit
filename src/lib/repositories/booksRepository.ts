@@ -14,7 +14,8 @@ export class BooksRepository extends Repository {
 		cursor?: string,
 		genres?: Genre[],
 		title?: string,
-		user?: string
+		user?: string,
+		archived?: boolean
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
@@ -39,6 +40,10 @@ export class BooksRepository extends Repository {
 			if (user && user.genres) {
 				filter.genres = { $in: user.genres };
 			}
+		}
+
+		if (archived !== undefined) {
+			filter.archived = archived;
 		}
 
 		if (cursor) {

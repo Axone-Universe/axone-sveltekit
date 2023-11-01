@@ -21,9 +21,10 @@ export interface ChapterProperties {
 	genres?: Genre[];
 	title?: string;
 	description?: string;
+	archived?: boolean;
 }
 
-export interface HydratedChapterProperties {
+export interface HydratedChapterProperties extends ChapterProperties {
 	_id: string;
 	book?: HydratedDocument<BookProperties>;
 	storyline?: HydratedDocument<StorylineProperties>;
@@ -36,6 +37,7 @@ export interface HydratedChapterProperties {
 	genres?: Genre[];
 	title?: string;
 	description?: string;
+	archived?: boolean;
 }
 
 export class ChapterPropertyBuilder {
@@ -52,7 +54,8 @@ export class ChapterPropertyBuilder {
 			description: '',
 			permissions: {
 				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
-			}
+			},
+			archived: false
 		};
 	}
 

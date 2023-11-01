@@ -29,6 +29,7 @@ export class ChaptersRepository extends Repository {
 		if (readChapter.user) filter.user = readChapter.user;
 		if (readChapter.storylineID) filter.storyline = readChapter.storylineID;
 		if (readChapter.cursor) filter._id = { $gt: readChapter.cursor };
+		if (readChapter.archived !== undefined) filter.archived = readChapter.archived;
 
 		pipeline.push({ $match: filter });
 

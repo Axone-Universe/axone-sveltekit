@@ -18,7 +18,7 @@
 	}
 </script>
 
-<div class="fixed top-[4.8rem] left-4 flex sm:hidden items-center gap-2 z-[100]">
+<div class="fixed top-[5.2rem] left-4 flex sm:hidden items-center gap-2 z-[100]">
 	<button class="btn-icon btn-icon-sm variant-filled" on:click={handleDrawerButton}>
 		<Icon data={arrowRight} />
 	</button>

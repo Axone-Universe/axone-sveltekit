@@ -22,7 +22,8 @@ export const bookSchema = new Schema<BookProperties>({
 			enum: GENRES
 		}
 	],
-	rating: { type: Number, default: 0 }
+	rating: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false }
 });
 
 bookSchema.index({ title: 'text' });

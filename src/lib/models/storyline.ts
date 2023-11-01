@@ -23,7 +23,8 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	description: String,
 	imageURL: String,
 	cumulativeRating: { type: Number, default: 0 },
-	numRatings: { type: Number, default: 0 }
+	numRatings: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false }
 });
 
 interface StorylineMethods extends StorylineProperties {

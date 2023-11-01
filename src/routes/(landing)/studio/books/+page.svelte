@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { trpcWithQuery } from '$lib/trpc/client';
+	import { trpc, trpcWithQuery } from '$lib/trpc/client';
 	import type { HydratedDocument } from 'mongoose';
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
@@ -50,10 +50,11 @@
 		{
 			limit: 10,
 			user: data.session?.user.id,
-			genres: []
+			genres: [],
+			archived: archiveMode
 		},
 		{
-			queryKey: ['booksStudio'],
+			queryKey: ['booksStudio', archiveMode],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -66,12 +67,28 @@
 
 	function openArchiveModal(book: HydratedDocument<BookProperties>) {
 		archiveModal.body = `Are you sure you want to archive ${book.title}?`;
+		archiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(book._id, true);
+				refetch();
+			}
+		};
 		modalStore.trigger(archiveModal);
 	}
 
 	function openUnarchiveModal(book: HydratedDocument<BookProperties>) {
 		unArchiveModal.body = `Are you sure you want to unarchive ${book.title}?`;
+		unArchiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(book._id, false);
+				refetch();
+			}
+		};
 		modalStore.trigger(unArchiveModal);
+	}
+
+	async function setArchive(id: string, archived: boolean) {
+		const resp = await trpc($page).books.setArchived.mutate({ id, archived });
 	}
 
 	function openCreateModal() {
@@ -82,8 +99,7 @@
 			supabase: data.supabase,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				$getBooksInfinite.remove();
-				$getBooksInfinite.refetch();
+				refetch();
 				modalStore.close();
 			}
 		};
@@ -96,8 +112,7 @@
 			supabase: data.supabase,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				$getBooksInfinite.remove();
-				$getBooksInfinite.refetch();
+				refetch();
 				modalStore.close();
 			}
 		};
@@ -115,39 +130,46 @@
 	function loadMore() {
 		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getBooksInfinite.fetchNextPage);
 	}
+
+	async function refetch() {
+		$getBooksInfinite.remove();
+		await $getBooksInfinite.refetch();
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen overflow-hidden w-full">
-	{#if $getBooksInfinite.isLoading}
-		<LoadingSpinner />
-	{:else if $getBooksInfinite.isError}
-		<InfoHeader
-			emoji="🤕"
-			heading="Oops!"
-			description="Something went wrong while getting your books! Please try again later."
-		/>
-	{:else if books.length === 0}
-		<InfoHeader
-			emoji="🤲"
-			heading="We've come up empty!"
-			description="It looks like you haven't created any books."
-		/>
-	{:else}
-		<div class="w-full flex flex-col gap-2 p-2">
-			<DrawerButton />
-			<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-				<ArchiveToggle bind:archiveMode />
-				<span class="divider-vertical h-6 mx-0" />
-				<button
-					type="button"
-					class="btn-icon btn-icon-sm variant-filled-primary"
-					on:click={openCreateModal}
-				>
-					<span><Icon data={plus} /></span>
-				</button>
-			</div>
+	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+		<DrawerButton />
+		<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+			<ArchiveToggle bind:archiveMode />
+			<span class="divider-vertical h-6 mx-0" />
+			<button
+				type="button"
+				class="btn-icon btn-icon-sm variant-filled-primary"
+				on:click={openCreateModal}
+			>
+				<span><Icon data={plus} /></span>
+			</button>
+		</div>
+		{#if $getBooksInfinite.isLoading}
+			<LoadingSpinner />
+		{:else if $getBooksInfinite.isError}
+			<InfoHeader
+				emoji="🤕"
+				heading="Oops!"
+				description="Something went wrong while getting your books! Please try again later."
+			/>
+		{:else if books.length === 0}
+			<InfoHeader
+				emoji="🤲"
+				heading="We've come up empty!"
+				description="It looks like you don't have any {archiveMode
+					? 'archived'
+					: 'unarchived'} books."
+			/>
+		{:else}
 			<div class="table-container min-w-full">
 				<table class="table table-hover table-compact">
 					<thead>
@@ -190,6 +212,6 @@
 			{#if !$getBooksInfinite.hasNextPage}
 				<ScrollToTopButton />
 			{/if}
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

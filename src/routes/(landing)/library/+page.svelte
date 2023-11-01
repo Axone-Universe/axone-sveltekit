@@ -218,7 +218,7 @@
 		<InfoHeader
 			emoji="🤲"
 			heading="We've come up empty!"
-			description="This reading list is empty. Why not add some storyline to it?"
+			description="This reading list is empty. Why not add some storylines to it?"
 		>
 			<a href="/home" class="btn variant-filled-primary">Browse books</a>
 		</InfoHeader>

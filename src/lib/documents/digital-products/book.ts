@@ -63,6 +63,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._bookProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): BookBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -126,6 +131,23 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		const book = await Book.findOneAndUpdate(
 			{ _id: this._bookProperties._id },
 			this._bookProperties,
+			{
+				new: true,
+				userID: this._sessionUserID
+			}
+		);
+
+		if (book) {
+			return book;
+		}
+
+		throw new Error("Couldn't update book");
+	}
+
+	async setArchived(): Promise<HydratedDocument<BookProperties>> {
+		const book = await Book.findOneAndUpdate(
+			{ _id: this._bookProperties._id },
+			{ archived: this._bookProperties.archived },
 			{
 				new: true,
 				userID: this._sessionUserID

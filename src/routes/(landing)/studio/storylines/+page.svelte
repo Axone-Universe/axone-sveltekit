@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { trpcWithQuery } from '$lib/trpc/client';
+	import { trpc, trpcWithQuery } from '$lib/trpc/client';
 	import type { HydratedDocument } from 'mongoose';
 	import type { PageData } from './$types';
-	import {
-		StorylinePropertyBuilder,
-		type StorylineProperties,
-		type HydratedStorylineProperties
-	} from '$lib/properties/storyline';
+	import type { StorylineProperties, HydratedStorylineProperties } from '$lib/properties/storyline';
 	import { decodeTime } from 'ulid';
 	import { type ModalSettings, modalStore, type ModalComponent } from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
@@ -54,11 +50,11 @@
 	$: getStorylinesInfinite = trpcWithQuery($page).storylines.get.createInfiniteQuery(
 		{
 			limit: 10,
-			user: data.session?.user.id
-			// bookID: selectedBook?._id
+			user: data.session?.user.id,
+			archived: archiveMode
 		},
 		{
-			queryKey: ['storylinesStudio', data.session?.user.id],
+			queryKey: ['storylinesStudio', archiveMode],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -71,32 +67,28 @@
 
 	function openArchiveModal(storyline: HydratedDocument<StorylineProperties>) {
 		archiveModal.body = `Are you sure you want to archive ${storyline.title}?`;
+		archiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(storyline._id, true);
+				refetch();
+			}
+		};
 		modalStore.trigger(archiveModal);
 	}
 
 	function openUnarchiveModal(storyline: HydratedDocument<StorylineProperties>) {
 		unArchiveModal.body = `Are you sure you want to unarchive ${storyline.title}?`;
+		unArchiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(storyline._id, false);
+				refetch();
+			}
+		};
 		modalStore.trigger(unArchiveModal);
 	}
 
-	function openCreateModal(storyline: HydratedDocument<StorylineProperties>) {
-		const storylinePropertyBuilder = new StorylinePropertyBuilder();
-		const s = storylinePropertyBuilder.getProperties();
-
-		storylineDetailsModalComponent.props = {
-			book: storyline.book,
-			storyline: s,
-			supabase: data.supabase,
-			cancelCallback: modalStore.close,
-			createCallback: () => {
-				$getStorylinesInfinite.remove();
-				$getStorylinesInfinite.refetch();
-				modalStore.close();
-			},
-			class:
-				'flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row lg:mx-32 xl:mx-60'
-		};
-		modalStore.trigger(storylineDetailsModal);
+	async function setArchive(id: string, archived: boolean) {
+		const resp = await trpc($page).storylines.setArchived.mutate({ id, archived });
 	}
 
 	function openEditModal(storyline: HydratedDocument<StorylineProperties>) {
@@ -106,8 +98,7 @@
 			supabase: data.supabase,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				$getStorylinesInfinite.remove();
-				$getStorylinesInfinite.refetch();
+				refetch();
 				modalStore.close();
 			},
 			class:
@@ -127,31 +118,38 @@
 	function loadMore() {
 		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getStorylinesInfinite.fetchNextPage);
 	}
+
+	async function refetch() {
+		$getStorylinesInfinite.remove();
+		await $getStorylinesInfinite.refetch();
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen w-full overflow-hidden">
-	{#if $getStorylinesInfinite.isLoading}
-		<LoadingSpinner />
-	{:else if $getStorylinesInfinite.isError}
-		<InfoHeader
-			emoji="🤕"
-			heading="Oops!"
-			description="Something went wrong while getting your storylines! Please try again later."
-		/>
-	{:else if storylines.length === 0}
-		<InfoHeader
-			emoji="🤲"
-			heading="We've come up empty!"
-			description="It looks like you haven't created any storylines."
-		/>
-	{:else}
-		<div class="w-full flex flex-col gap-2 p-2">
-			<DrawerButton />
-			<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-				<ArchiveToggle bind:archiveMode />
-			</div>
+	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+		<DrawerButton />
+		<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+			<ArchiveToggle bind:archiveMode />
+		</div>
+		{#if $getStorylinesInfinite.isLoading}
+			<LoadingSpinner />
+		{:else if $getStorylinesInfinite.isError}
+			<InfoHeader
+				emoji="🤕"
+				heading="Oops!"
+				description="Something went wrong while getting your storylines! Please try again later."
+			/>
+		{:else if storylines.length === 0}
+			<InfoHeader
+				emoji="🤲"
+				heading="We've come up empty!"
+				description="It looks like you don't have any {archiveMode
+					? 'archived'
+					: 'unarchived'} storylines."
+			/>
+		{:else}
 			<div class="table-container min-w-full">
 				<table class="table table-hover table-compact">
 					<thead>
@@ -194,6 +192,6 @@
 			{#if !$getStorylinesInfinite.hasNextPage}
 				<ScrollToTopButton />
 			{/if}
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

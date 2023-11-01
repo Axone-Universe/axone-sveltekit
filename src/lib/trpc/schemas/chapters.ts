@@ -21,7 +21,8 @@ export const read = z.object({
 	skip: z.number().optional(),
 	storylineID: z.string().optional(),
 	cursor: z.string().optional(),
-	user: z.string().optional()
+	user: z.string().optional(),
+	archived: z.boolean().optional()
 });
 
 export const readFromStoryline = z.object({

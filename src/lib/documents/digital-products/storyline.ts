@@ -81,6 +81,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._storylineProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -144,6 +149,23 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		const storyline = await Storyline.findOneAndUpdate(
 			{ _id: this._storylineProperties._id },
 			this._storylineProperties,
+			{
+				new: true,
+				userID: this._sessionUserID
+			}
+		);
+
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
+	}
+
+	async setArchived(): Promise<HydratedDocument<StorylineProperties>> {
+		const storyline = await Storyline.findOneAndUpdate(
+			{ _id: this._storylineProperties._id },
+			{ archived: this._storylineProperties.archived },
 			{
 				new: true,
 				userID: this._sessionUserID

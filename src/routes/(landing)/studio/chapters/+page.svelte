@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { trpcWithQuery } from '$lib/trpc/client';
+	import { trpc, trpcWithQuery } from '$lib/trpc/client';
 	import type { HydratedDocument } from 'mongoose';
 	import type { PageData } from './$types';
 	import type { HydratedStorylineProperties, StorylineProperties } from '$lib/properties/storyline';
@@ -45,10 +45,11 @@
 	$: getChaptersInfinite = trpcWithQuery($page).chapters.get.createInfiniteQuery(
 		{
 			limit: 10,
-			user: data.session?.user.id
+			user: data.session?.user.id,
+			archived: archiveMode
 		},
 		{
-			queryKey: ['chaptersStudio', data.session?.user.id],
+			queryKey: ['chaptersStudio', archiveMode],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -61,12 +62,28 @@
 
 	function openArchiveModal(chapter: HydratedDocument<ChapterProperties>) {
 		archiveModal.body = `Are you sure you want to archive ${chapter.title}?`;
+		archiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(chapter._id, true);
+				refetch();
+			}
+		};
 		modalStore.trigger(archiveModal);
 	}
 
 	function openUnarchiveModal(chapter: HydratedDocument<ChapterProperties>) {
 		unArchiveModal.body = `Are you sure you want to unarchive ${chapter.title}?`;
+		unArchiveModal.response = async (r: boolean) => {
+			if (r) {
+				await setArchive(chapter._id, false);
+				refetch();
+			}
+		};
 		modalStore.trigger(unArchiveModal);
+	}
+
+	async function setArchive(id: string, archived: boolean) {
+		const resp = await trpc($page).chapters.setArchived.mutate({ id, archived });
 	}
 
 	function openEditModal(chapter: HydratedDocument<ChapterProperties>) {
@@ -76,8 +93,7 @@
 			storylineID: (chapter.storyline as HydratedDocument<StorylineProperties>)._id,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				$getChaptersInfinite.remove();
-				$getChaptersInfinite.refetch();
+				refetch();
 				modalStore.close();
 			},
 			class: 'flex flex-col space-y-4 items-center'
@@ -107,31 +123,38 @@
 	function loadMore() {
 		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getChaptersInfinite.fetchNextPage);
 	}
+
+	async function refetch() {
+		$getChaptersInfinite.remove();
+		await $getChaptersInfinite.refetch();
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen w-full overflow-hidden">
-	{#if $getChaptersInfinite.isLoading}
-		<LoadingSpinner />
-	{:else if $getChaptersInfinite.isError}
-		<InfoHeader
-			emoji="🤕"
-			heading="Oops!"
-			description="Something went wrong while getting your chapters! Please try again later."
-		/>
-	{:else if chapters.length === 0}
-		<InfoHeader
-			emoji="🤲"
-			heading="We've come up empty!"
-			description="It looks like you haven't created any chapters."
-		/>
-	{:else}
-		<div class="w-full flex flex-col gap-2 p-2">
-			<DrawerButton />
-			<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-				<ArchiveToggle bind:archiveMode />
-			</div>
+	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+		<DrawerButton />
+		<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+			<ArchiveToggle bind:archiveMode />
+		</div>
+		{#if $getChaptersInfinite.isLoading}
+			<LoadingSpinner />
+		{:else if $getChaptersInfinite.isError}
+			<InfoHeader
+				emoji="🤕"
+				heading="Oops!"
+				description="Something went wrong while getting your chapters! Please try again later."
+			/>
+		{:else if chapters.length === 0}
+			<InfoHeader
+				emoji="🤲"
+				heading="We've come up empty!"
+				description="It looks like you don't have any {archiveMode
+					? 'archived'
+					: 'unarchived'} chapters."
+			/>
+		{:else}
 			<div class="table-container min-w-full">
 				<table class="table table-hover table-compact">
 					<thead>
@@ -174,6 +197,6 @@
 			{#if !$getChaptersInfinite.hasNextPage}
 				<ScrollToTopButton />
 			{/if}
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

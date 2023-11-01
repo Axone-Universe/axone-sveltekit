@@ -20,6 +20,7 @@ export class StorylinesRepository extends Repository {
 		if (readStoryline.user) filter.user = readStoryline.user;
 		if (readStoryline.bookID) filter.book = readStoryline.bookID;
 		if (readStoryline.cursor) filter._id = { $gt: readStoryline.cursor };
+		if (readStoryline.archived !== undefined) filter.archived = readStoryline.archived;
 
 		pipeline.push({ $match: filter });
 

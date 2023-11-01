@@ -6,6 +6,7 @@ import { t } from '$lib/trpc/t';
 import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { setArchived } from '../schemas/shared';
 
 export const chapters = t.router({
 	get: t.procedure
@@ -39,6 +40,7 @@ export const chapters = t.router({
 
 			return result;
 		}),
+
 	getByStoryline: t.procedure
 		.use(logger)
 		.input(readFromStoryline)
@@ -54,6 +56,7 @@ export const chapters = t.router({
 
 			return result;
 		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)
@@ -72,6 +75,21 @@ export const chapters = t.router({
 			}
 
 			return chapterNode;
+		}),
+
+	setArchived: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(setArchived)
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
+				.archived(input.archived);
+
+			const chapter = await chapterBuilder.setArchived();
+
+			return chapter;
 		}),
 
 	create: t.procedure

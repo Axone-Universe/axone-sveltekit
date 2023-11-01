@@ -37,7 +37,7 @@ describe('deltas', () => {
 			testUserOneSession,
 			chapter1Title,
 			'My chapter 1',
-			storylines[0]
+			storylines.result[0]
 		);
 
 		expect(createChapterResponse.description).toEqual('My chapter 1');
@@ -66,9 +66,11 @@ describe('deltas', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(
@@ -121,9 +123,11 @@ describe('deltas', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(

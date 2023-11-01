@@ -5,6 +5,7 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/books';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { setArchived } from '../schemas/shared';
 
 export const books = t.router({
 	get: t.procedure
@@ -19,7 +20,8 @@ export const books = t.router({
 				input.cursor,
 				input.genres,
 				input.title,
-				input.user
+				input.user,
+				input.archived
 			);
 
 			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
@@ -50,13 +52,28 @@ export const books = t.router({
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 
-			const bookNode = await bookBuilder.update();
+			const book = await bookBuilder.update();
 
 			if (input.notifications) {
 				sendUserNotifications(input.notifications);
 			}
 
-			return bookNode;
+			return book;
+		}),
+
+	setArchived: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(setArchived)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
+				.archived(input.archived);
+
+			const book = await bookBuilder.setArchived();
+
+			return book;
 		}),
 
 	getBooksByUserID: t.procedure
@@ -84,13 +101,13 @@ export const books = t.router({
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 			if (input.genres) bookBuilder.genres(input.genres);
 
-			const bookNode = await bookBuilder.build();
+			const book = await bookBuilder.build();
 
 			if (input.notifications) {
 				sendUserNotifications(input.notifications);
 			}
 
-			return bookNode;
+			return book;
 		}),
 
 	submitToCampaign: t.procedure

@@ -36,9 +36,11 @@ describe('storylines', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		caller = router.createCaller({ session: testUserOneSession });
 		const chapter1Response = await caller.chapters.create({
@@ -111,8 +113,8 @@ describe('storylines', () => {
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2_1Response.title).toEqual(chapter2_1Title);
 
-		expect(storyline_1Chapters[0].title).toEqual(chapter1Title);
-		expect(storyline_1Chapters[1].title).toEqual(chapter2_1Title);
+		expect(storyline_1Chapters.result[0].title).toEqual(chapter1Title);
+		expect(storyline_1Chapters.result[1].title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
 		// bookResponses.map((a) => a._id).sort()

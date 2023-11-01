@@ -115,7 +115,7 @@ describe('users', () => {
 				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
-			)[0]
+			).result[0]
 		];
 
 		await caller.users.createReadingList({ name: 'Favourites' });
@@ -158,7 +158,7 @@ describe('users', () => {
 				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
-			)[0]
+			).result[0]
 		];
 
 		await caller.users.updateReadingLists({

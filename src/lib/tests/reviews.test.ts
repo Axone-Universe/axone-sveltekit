@@ -40,9 +40,11 @@ describe('reviews', async () => {
 
 		const bookResponse = await createBook(testUserOneSession);
 
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
@@ -68,9 +70,11 @@ describe('reviews', async () => {
 
 		const bookResponse = await createBook(testUserOneSession);
 
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		expect(
 			async () => await createReview(testUserOneSession, storylines[0]._id, reviewOf, rating)
@@ -83,9 +87,11 @@ describe('reviews', async () => {
 
 		const bookResponse = await createBook(testUserOneSession);
 
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		await createReview(testUserTwoSession, storylines[0]._id, reviewOf, rating);
 
@@ -100,9 +106,11 @@ describe('reviews', async () => {
 
 		const bookResponse = await createBook(testUserOneSession);
 
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
@@ -125,7 +133,7 @@ describe('reviews', async () => {
 				await caller1.storylines.get({
 					bookID: bookResponse._id
 				})
-			)[0]
+			).result[0]
 		];
 
 		const chapter1Response = await caller1.chapters.create({
@@ -184,9 +192,11 @@ describe('reviews', async () => {
 	test('get reviews for a user', async () => {
 		const bookResponse = await createBook(testUserOneSession);
 
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const chapter1Response = await caller1.chapters.create({
 			title: 'Chapter Title',
@@ -235,9 +245,11 @@ describe('reviews', async () => {
 		const reviewOf = 'Storyline';
 
 		const bookResponse = await createBook(testUserOneSession);
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
@@ -262,9 +274,11 @@ describe('reviews', async () => {
 		const reviewOf = 'Storyline';
 
 		const bookResponse = await createBook(testUserOneSession);
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
@@ -289,9 +303,11 @@ describe('reviews', async () => {
 		const reviewOf = 'Storyline';
 
 		const bookResponse = await createBook(testUserOneSession);
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
@@ -314,9 +330,11 @@ describe('reviews', async () => {
 		const reviewOf = 'Storyline';
 
 		const bookResponse = await createBook(testUserOneSession);
-		const storylines = await caller1.storylines.get({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller1.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
