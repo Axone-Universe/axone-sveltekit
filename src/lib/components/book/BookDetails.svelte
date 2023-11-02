@@ -53,7 +53,7 @@
 					id: book._id,
 					title: book.title,
 					description: book.description,
-					imageURL: imageURL ?? '',
+					imageURL: imageURL ?? book.imageURL,
 					genres,
 					permissions: book.permissions
 				})) as HydratedDocument<BookProperties>;

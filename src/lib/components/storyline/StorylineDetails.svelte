@@ -49,7 +49,7 @@
 					title: storyline.title,
 					description: storyline.description,
 					permissions: storyline.permissions,
-					imageURL: imageURL ?? '',
+					imageURL: imageURL ?? storyline.imageURL,
 					notifications: notifications
 				})) as HydratedDocument<StorylineProperties>;
 			} else {

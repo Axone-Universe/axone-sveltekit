@@ -121,4 +121,26 @@ describe('storylines', () => {
 		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
 		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
 	});
+
+	test('toggling archived status', async () => {
+		const session = createTestSession(testUserOne);
+		await createDBUser(session);
+		const book = await createBook(session);
+
+		const caller = router.createCaller({ session });
+
+		const storyline = (
+			await caller.storylines.get({
+				bookID: book._id
+			})
+		).result[0];
+
+		expect(storyline.archived).toEqual(false);
+		expect(
+			(await caller.storylines.setArchived({ id: storyline._id, archived: true })).archived
+		).toEqual(true);
+		expect(
+			(await caller.storylines.setArchived({ id: storyline._id, archived: false })).archived
+		).toEqual(false);
+	});
 });

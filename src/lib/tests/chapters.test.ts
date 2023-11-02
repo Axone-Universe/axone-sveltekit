@@ -185,4 +185,28 @@ describe('chapters', () => {
 		expect(storylineChapters.length).toEqual(1);
 		expect(chapter3DeleteResponse.deletedCount).toEqual(1);
 	});
+
+	test('toggling archived status', async () => {
+		const session = createTestSession(testUserOne);
+		await createDBUser(session);
+		const book = await createBook(session);
+
+		const caller = router.createCaller({ session });
+
+		const storyline = (
+			await caller.storylines.get({
+				bookID: book._id
+			})
+		).result[0];
+
+		const chapter = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+
+		expect(chapter.archived).toEqual(false);
+		expect(
+			(await caller.chapters.setArchived({ id: chapter._id, archived: true })).archived
+		).toEqual(true);
+		expect(
+			(await caller.chapters.setArchived({ id: chapter._id, archived: false })).archived
+		).toEqual(false);
+	});
 });

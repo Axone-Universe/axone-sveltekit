@@ -131,4 +131,20 @@ describe('books', () => {
 		expect(bookResponses.result.length).toEqual(2);
 		expect(bookResponses.result[0]?._id).toEqual(bookResponse._id);
 	});
+
+	test('toggling archived status', async () => {
+		const session = createTestSession(testUserOne);
+		await createDBUser(session);
+		const book = await createBook(session);
+
+		const caller = router.createCaller({ session });
+
+		expect((await caller.books.getById({ id: book._id })).archived).toEqual(false);
+		expect((await caller.books.setArchived({ id: book._id, archived: true })).archived).toEqual(
+			true
+		);
+		expect((await caller.books.setArchived({ id: book._id, archived: false })).archived).toEqual(
+			false
+		);
+	});
 });

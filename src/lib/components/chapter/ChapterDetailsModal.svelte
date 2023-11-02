@@ -37,12 +37,12 @@
 		trpc($page)
 			.chapters.create.mutate({
 				title: chapter.title!,
-				bookID: bookID,
-				storylineID: storylineID,
-				prevChapterID: prevChapterID ? prevChapterID : '',
+				bookID,
+				storylineID,
+				prevChapterID,
 				description: chapter.description!,
 				permissions: chapter.permissions,
-				notifications: notifications
+				notifications
 			})
 			.then((chapterNodeResponse) => {
 				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
