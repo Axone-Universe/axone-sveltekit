@@ -142,46 +142,63 @@
 <div class="min-h-screen overflow-hidden w-full">
 	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
 		<DrawerButton />
-		<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-			<ArchiveToggle bind:archiveMode />
-			<span class="divider-vertical h-6 mx-0" />
-			<button
-				type="button"
-				class="btn-icon btn-icon-sm variant-filled-primary"
-				on:click={openCreateModal}
-			>
-				<span><Icon data={plus} /></span>
-			</button>
-		</div>
-		{#if $getBooksInfinite.isLoading}
-			<LoadingSpinner />
-		{:else if $getBooksInfinite.isError}
-			<InfoHeader
-				emoji="🤕"
-				heading="Oops!"
-				description="Something went wrong while getting your books! Please try again later."
-			/>
-		{:else if books.length === 0}
-			<InfoHeader
-				emoji="🤲"
-				heading="We've come up empty!"
-				description="It looks like you don't have any {archiveMode
-					? 'archived'
-					: 'unarchived'} books."
-			/>
-		{:else}
-			<div class="table-container min-w-full">
-				<table class="table table-hover table-compact">
-					<thead>
+
+		<div class="table-container min-w-full">
+			<table class="table table-hover table-compact">
+				<thead>
+					<tr>
+						<th>Cover</th>
+						<th>Title</th>
+						<th>Description</th>
+						<th>Date Created</th>
+						<th />
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td colspan="5">
+							<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+								<ArchiveToggle bind:archiveMode />
+								<span class="divider-vertical h-6 mx-0" />
+								<button
+									type="button"
+									class="btn-icon btn-icon-sm variant-filled-primary"
+									on:click={openCreateModal}
+								>
+									<span><Icon data={plus} /></span>
+								</button>
+							</div>
+						</td>
+					</tr>
+					{#if $getBooksInfinite.isLoading}
 						<tr>
-							<th>Cover</th>
-							<th>Title</th>
-							<th>Description</th>
-							<th>Date Created</th>
-							<th />
+							<td colspan="5">
+								<LoadingSpinner />
+							</td>
 						</tr>
-					</thead>
-					<tbody>
+					{:else if $getBooksInfinite.isError}
+						<tr>
+							<td colspan="5">
+								<InfoHeader
+									emoji="🤕"
+									heading="Oops!"
+									description="Something went wrong while getting your books! Please try again later."
+								/>
+							</td>
+						</tr>
+					{:else if books.length === 0}
+						<tr>
+							<td colspan="5">
+								<InfoHeader
+									emoji="🤲"
+									heading="We've come up empty!"
+									description="It looks like you don't have any {archiveMode
+										? 'archived'
+										: 'unarchived'} books."
+								/>
+							</td>
+						</tr>
+					{:else}
 						{#each books as book}
 							<tr>
 								<td>
@@ -206,12 +223,12 @@
 								/>
 							</tr>
 						{/each}
-					</tbody>
-				</table>
-			</div>
-			{#if !$getBooksInfinite.hasNextPage}
-				<ScrollToTopButton />
-			{/if}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+		{#if !$getBooksInfinite.hasNextPage}
+			<ScrollToTopButton />
 		{/if}
 	</div>
 </div>

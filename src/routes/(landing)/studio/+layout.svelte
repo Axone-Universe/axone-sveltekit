@@ -5,7 +5,7 @@
 
 <div class="flex w-full">
 	<div
-		class="h-screen sticky top-16 hidden sm:flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-2 gap-2 z-10"
+		class="min-h-screen rounded-xl m-2 sticky top-16 hidden sm:flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<a
 			class="btn {$page.url.pathname === '/studio/books'

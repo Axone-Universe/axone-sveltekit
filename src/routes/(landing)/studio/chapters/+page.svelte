@@ -135,38 +135,55 @@
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
 		<DrawerButton />
-		<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-			<ArchiveToggle bind:archiveMode />
-		</div>
-		{#if $getChaptersInfinite.isLoading}
-			<LoadingSpinner />
-		{:else if $getChaptersInfinite.isError}
-			<InfoHeader
-				emoji="🤕"
-				heading="Oops!"
-				description="Something went wrong while getting your chapters! Please try again later."
-			/>
-		{:else if chapters.length === 0}
-			<InfoHeader
-				emoji="🤲"
-				heading="We've come up empty!"
-				description="It looks like you don't have any {archiveMode
-					? 'archived'
-					: 'unarchived'} chapters."
-			/>
-		{:else}
-			<div class="table-container min-w-full">
-				<table class="table table-hover table-compact">
-					<thead>
+
+		<div class="table-container min-w-full">
+			<table class="table table-hover table-compact">
+				<thead>
+					<tr>
+						<th>Cover</th>
+						<th>Title</th>
+						<th>Storyline</th>
+						<th>Date Created</th>
+						<th />
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td colspan="5">
+							<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+								<ArchiveToggle bind:archiveMode />
+							</div>
+						</td>
+					</tr>
+					{#if $getChaptersInfinite.isLoading}
 						<tr>
-							<th>Cover</th>
-							<th>Title</th>
-							<th>Storyline</th>
-							<th>Date Created</th>
-							<th />
+							<td colspan="5">
+								<LoadingSpinner />
+							</td>
 						</tr>
-					</thead>
-					<tbody>
+					{:else if $getChaptersInfinite.isError}
+						<tr>
+							<td colspan="5">
+								<InfoHeader
+									emoji="🤕"
+									heading="Oops!"
+									description="Something went wrong while getting your chapters! Please try again later."
+								/>
+							</td>
+						</tr>
+					{:else if chapters.length === 0}
+						<tr>
+							<td colspan="5">
+								<InfoHeader
+									emoji="🤲"
+									heading="We've come up empty!"
+									description="It looks like you don't have any {archiveMode
+										? 'archived'
+										: 'unarchived'} chapters."
+								/>
+							</td>
+						</tr>
+					{:else}
 						{#each chapters as chapter}
 							<tr>
 								<td>
@@ -191,12 +208,12 @@
 								/>
 							</tr>
 						{/each}
-					</tbody>
-				</table>
-			</div>
-			{#if !$getChaptersInfinite.hasNextPage}
-				<ScrollToTopButton />
-			{/if}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+		{#if !$getChaptersInfinite.hasNextPage}
+			<ScrollToTopButton />
 		{/if}
 	</div>
 </div>
