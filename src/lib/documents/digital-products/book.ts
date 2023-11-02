@@ -129,7 +129,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
-		const book = await Book.findOneAndUpdate(
+		let book = await Book.findOneAndUpdate(
 			{ _id: this._bookProperties._id },
 			this._bookProperties,
 			{
@@ -139,7 +139,23 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		);
 
 		if (book) {
-			return book;
+			// aggregate is called again so that the db middleware runs
+			book = await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._userID.id
+				}
+			)
+				.cursor()
+				.next();
+
+			return book as HydratedDocument<BookProperties>;
 		}
 
 		throw new Error("Couldn't update book");
