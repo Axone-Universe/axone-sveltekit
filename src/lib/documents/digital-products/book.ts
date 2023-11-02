@@ -5,9 +5,10 @@ import type { BookProperties } from '$lib/properties/book';
 import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import { StorylineBuilder } from './storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -145,14 +146,46 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async setArchived(): Promise<HydratedDocument<BookProperties>> {
-		const book = await Book.findOneAndUpdate(
-			{ _id: this._bookProperties._id },
-			{ archived: this._bookProperties.archived },
-			{
-				new: true,
-				userID: this._sessionUserID
-			}
-		);
+		const session = await startSession();
+		let book: HydratedDocument<BookProperties> | null = null;
+
+		try {
+			await session.withTransaction(async () => {
+				book = await Book.findOneAndUpdate(
+					{ _id: this._bookProperties._id },
+					{ archived: this._bookProperties.archived },
+					{
+						new: true,
+						userID: this._sessionUserID,
+						session
+					}
+				);
+
+				if (book) {
+					await Storyline.updateMany(
+						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+
+					await Chapter.updateMany(
+						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
 
 		if (book) {
 			return book;

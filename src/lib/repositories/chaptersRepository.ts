@@ -49,9 +49,7 @@ export class ChaptersRepository extends Repository {
 			.cursor()
 			.next();
 
-		return new Promise<HydratedDocument<ChapterProperties>>((resolve) => {
-			resolve(chapter);
-		});
+		return chapter;
 	}
 
 	async getByChapterIDs(
@@ -81,9 +79,7 @@ export class ChaptersRepository extends Repository {
 			}
 		}
 
-		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
-			resolve(chapters);
-		});
+		return chapters;
 	}
 
 	async getByTitle(
@@ -111,24 +107,10 @@ export class ChaptersRepository extends Repository {
 			userID: session?.user.id
 		})) as HydratedDocument<ChapterProperties>[];
 
-		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
-			resolve(chapters);
-		});
+		return chapters;
 	}
-	/*async getChaptersByUserID(session: Session | null, id?: string): Promise<HydratedDocument<ChapterProperties>[]> {
-		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
-		const chapters = await Chapter.find({ user: id}, null, { userID: session?.user.id }).populate('book'); // Find books by the user's _id
-
-		return new Promise<HydratedDocument<ChapterProperties>[]>((resolve) => {
-			resolve(chapters);
-		});
-	}*/
 
 	async count(): Promise<number> {
-		const count = await Chapter.count();
-
-		return new Promise<number>((resolve) => {
-			resolve(count);
-		});
+		return await Chapter.count();
 	}
 }

@@ -36,7 +36,7 @@ export const chapters = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
-			const result = await chaptersRepo.getById(ctx.session, input.searchTerm!);
+			const result = await chaptersRepo.getById(ctx.session, input.id!);
 
 			return result;
 		}),
