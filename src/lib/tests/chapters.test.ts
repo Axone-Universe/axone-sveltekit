@@ -186,7 +186,7 @@ describe('chapters', () => {
 		);
 	});
 
-	test('toggling archived status', async () => {
+	test('updating archived status', async () => {
 		const session = createTestSession(testUserOne);
 		await createDBUser(session);
 		const book = await createBook(session);
@@ -199,14 +199,33 @@ describe('chapters', () => {
 			})
 		).result[0];
 
-		const chapter = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+		const chapterOne = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+		const chapterTwo = await createChapter(
+			session,
+			'Chapter 2',
+			'My chapter 2',
+			storyline,
+			chapterOne._id
+		);
+		const chapterThree = await createChapter(
+			session,
+			'Chapter 3',
+			'My chapter 3',
+			storyline,
+			chapterTwo._id
+		);
 
-		expect(chapter.archived).toEqual(false);
-		expect(
-			(await caller.chapters.setArchived({ id: chapter._id, archived: true })).archived
-		).toEqual(true);
-		expect(
-			(await caller.chapters.setArchived({ id: chapter._id, archived: false })).archived
-		).toEqual(false);
+		// Check archived before updating
+		expect(chapterOne.archived).toEqual(false);
+		expect(chapterTwo.archived).toEqual(false);
+		expect(chapterThree.archived).toEqual(false);
+
+		// Archive chapters one and two
+		await caller.chapters.setArchived({ ids: [chapterOne._id, chapterTwo._id], archived: true });
+
+		// Check archived changed only for chapters one and two
+		expect((await caller.chapters.getById({ id: chapterOne._id })).archived).toEqual(true);
+		expect((await caller.chapters.getById({ id: chapterTwo._id })).archived).toEqual(true);
+		expect((await caller.chapters.getById({ id: chapterThree._id })).archived).toEqual(false);
 	});
 });

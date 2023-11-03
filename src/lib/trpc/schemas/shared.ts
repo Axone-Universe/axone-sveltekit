@@ -14,6 +14,6 @@ export const search = z.object({
 });
 
 export const setArchived = z.object({
-	id: z.string(),
+	ids: z.array(z.string()),
 	archived: z.boolean()
 });

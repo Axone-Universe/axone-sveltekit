@@ -26,6 +26,7 @@
 
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
+	let selectedStorylines: HydratedDocument<StorylineProperties>[] = [];
 
 	const storylineDetailsModalComponent: ModalComponent = {
 		ref: StorylineDetails
@@ -65,30 +66,44 @@
 		  ) as HydratedDocument<HydratedStorylineProperties>[])
 		: [];
 
-	function openArchiveModal(storyline: HydratedDocument<StorylineProperties>) {
-		archiveModal.body = `Are you sure you want to archive ${storyline.title}?`;
+	function openArchiveModal(storylines: HydratedDocument<StorylineProperties>[]) {
+		if (storylines.length > 1) {
+			archiveModal.body = `Are you sure you want to archive these ${storylines.length} storylines? Doing so will archive all the chapters you've created for them too.`;
+		} else {
+			archiveModal.body = `Are you sure you want to archive ${storylines[0].title}? Doing so will archive all the chapters you've created for it too.`;
+		}
+
 		archiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(storyline._id, true);
+				await setArchive(storylines, true);
 				refetch();
 			}
 		};
 		modalStore.trigger(archiveModal);
 	}
 
-	function openUnarchiveModal(storyline: HydratedDocument<StorylineProperties>) {
-		unArchiveModal.body = `Are you sure you want to unarchive ${storyline.title}?`;
+	function openUnarchiveModal(storylines: HydratedDocument<StorylineProperties>[]) {
+		if (storylines.length > 1) {
+			unArchiveModal.body = `Are you sure you want to unarchive these ${storylines.length} storylines? Doing so will unarchive all the chapters you've created for them too.`;
+		} else {
+			unArchiveModal.body = `Are you sure you want to unarchive ${storylines[0].title}? Doing so will unarchive all the chapters you've created for it too.`;
+		}
+
 		unArchiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(storyline._id, false);
+				await setArchive(storylines, false);
 				refetch();
 			}
 		};
 		modalStore.trigger(unArchiveModal);
 	}
 
-	async function setArchive(id: string, archived: boolean) {
-		const resp = await trpc($page).storylines.setArchived.mutate({ id, archived });
+	async function setArchive(
+		storylines: HydratedDocument<StorylineProperties>[],
+		archived: boolean
+	) {
+		const ids = storylines.map((s) => s._id);
+		const resp = await trpc($page).storylines.setArchived.mutate({ ids, archived });
 	}
 
 	function openEditModal(storyline: HydratedDocument<StorylineProperties>) {
@@ -122,19 +137,36 @@
 	async function refetch() {
 		$getStorylinesInfinite.remove();
 		await $getStorylinesInfinite.refetch();
+		selectedStorylines = [];
+	}
+
+	function handleStorylineSelect(
+		e: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		},
+		storyline: HydratedDocument<StorylineProperties>
+	) {
+		if ((e.target as HTMLInputElement).checked) {
+			if (!selectedStorylines.includes(storyline)) {
+				selectedStorylines = [...selectedStorylines, storyline];
+			}
+		} else {
+			selectedStorylines = selectedStorylines.filter((s) => s !== storyline);
+		}
 	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen w-full overflow-hidden">
-	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
 			<table class="table table-hover table-compact">
 				<thead>
 					<tr>
+						<th />
 						<th>Cover</th>
 						<th>Title</th>
 						<th>Book</th>
@@ -144,21 +176,32 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan="5">
-							<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+						<td colspan="6">
+							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveToggle bind:archiveMode />
+								<span class="divider-vertical h-6 mx-0" />
+								<button
+									class="btn btn-sm variant-filled"
+									disabled={selectedStorylines.length === 0}
+									on:click={() =>
+										archiveMode
+											? openUnarchiveModal(selectedStorylines)
+											: openArchiveModal(selectedStorylines)}
+								>
+									{archiveMode ? 'Unarchive' : 'Archive'} Selected
+								</button>
 							</div>
 						</td>
 					</tr>
 					{#if $getStorylinesInfinite.isLoading}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<LoadingSpinner />
 							</td>
 						</tr>
 					{:else if $getStorylinesInfinite.isError}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤕"
 									heading="Oops!"
@@ -168,10 +211,10 @@
 						</tr>
 					{:else if storylines.length === 0}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤲"
-									heading="We've come up empty!"
+									heading="We're empty handed!"
 									description="It looks like you don't have any {archiveMode
 										? 'archived'
 										: 'unarchived'} storylines."
@@ -181,6 +224,13 @@
 					{:else}
 						{#each storylines as storyline}
 							<tr>
+								<td>
+									<input
+										class="checkbox"
+										type="checkbox"
+										on:change={(e) => handleStorylineSelect(e, storyline)}
+									/>
+								</td>
 								<td>
 									<StudioImage
 										src={storyline.imageURL ?? ''}
@@ -198,8 +248,8 @@
 								<RowActions
 									{archiveMode}
 									editCallback={() => openEditModal(storyline)}
-									archiveCallback={() => openUnarchiveModal(storyline)}
-									unarchiveCallback={() => openArchiveModal(storyline)}
+									archiveCallback={() => openUnarchiveModal([storyline])}
+									unarchiveCallback={() => openArchiveModal([storyline])}
 								/>
 							</tr>
 						{/each}

@@ -133,7 +133,7 @@ describe('storylines', () => {
 		const callerOne = router.createCaller({ session: sessionOne });
 		const callerTwo = router.createCaller({ session: sessionTwo });
 
-		const userOneStoryline = (
+		const userOneMainStoryline = (
 			await callerOne.storylines.get({
 				bookID: book._id
 			})
@@ -143,14 +143,22 @@ describe('storylines', () => {
 			sessionOne,
 			"UserOne's Chapter 1",
 			'Chapter 1',
-			userOneStoryline
+			userOneMainStoryline
 		);
+
+		const userOneSecondStoryline = await callerOne.storylines.create({
+			title: 'Storyline 2',
+			description: 'Storyline 2',
+			book: book._id,
+			parent: userOneMainStoryline._id,
+			parentChapter: userOneChapter._id
+		});
 
 		const userTwoStoryline = await callerTwo.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
 			book: book._id,
-			parent: userOneStoryline._id,
+			parent: userOneMainStoryline._id,
 			parentChapter: userOneChapter._id
 		});
 
@@ -162,15 +170,30 @@ describe('storylines', () => {
 		);
 
 		// Check archived before updating
-		expect(userOneStoryline.archived).toEqual(false);
+		expect(userOneMainStoryline.archived).toEqual(false);
+		expect(userOneSecondStoryline.archived).toEqual(false);
 		expect(userTwoStoryline.archived).toEqual(false);
 		expect(userOneChapter.archived).toEqual(false);
 		expect(userTwoChapter.archived).toEqual(false);
 
-		// Check archived changed only for user one
+		// Archive user one's storylines
+		await callerOne.storylines.setArchived({
+			ids: [userOneMainStoryline._id, userOneSecondStoryline._id],
+			archived: true
+		});
+
+		// Check archived changed only for user one's storylines
 		expect(
-			(await callerOne.storylines.setArchived({ id: userOneStoryline._id, archived: true })).archived
+			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).archived
 		).toEqual(true);
+		expect(
+			(await callerOne.storylines.getById({ storylineID: userOneSecondStoryline._id })).archived
+		).toEqual(true);
+		expect(
+			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).archived
+		).toEqual(false);
+
+		// Check archived changed only for user one's chapters
 		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
 		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).archived).toEqual(false);
 	});

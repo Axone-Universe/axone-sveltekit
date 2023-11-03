@@ -191,21 +191,18 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return chapter;
 	}
 
-	async setArchived(): Promise<HydratedDocument<ChapterProperties>> {
-		const chapter = await Chapter.findOneAndUpdate(
-			{ _id: this._chapterProperties._id },
-			{ archived: this._chapterProperties.archived },
-			{
-				new: true,
-				userID: this._sessionUserID
-			}
-		);
+	async setArchived(ids: string[]): Promise<boolean> {
+		const acknowledged = (
+			await Chapter.updateMany(
+				{ _id: { $in: ids }, user: this._chapterProperties.user },
+				{ archived: this._chapterProperties.archived },
+				{
+					userID: this._sessionUserID
+				}
+			)
+		).acknowledged;
 
-		if (chapter) {
-			return chapter;
-		}
-
-		throw new Error("Couldn't update chapter");
+		return acknowledged;
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {
