@@ -33,9 +33,11 @@ describe('notifications', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const notifications: { [key: string]: UserNotificationProperties } = {};
 		const notification = {

@@ -365,7 +365,7 @@
 			type: 'confirm',
 			// Data
 			title: selectedChapter.title,
-			body: 'Are you sure you wish to delete this chapter?',
+			body: 'Are you sure you want to delete this chapter?',
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {

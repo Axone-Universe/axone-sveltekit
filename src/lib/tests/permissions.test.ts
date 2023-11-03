@@ -17,7 +17,7 @@ beforeAll(async () => {
 	await connectTestDatabase();
 });
 
-describe('books', () => {
+describe('permissions', () => {
 	beforeEach(async () => {
 		await cleanUpDatabase();
 	});
@@ -42,7 +42,7 @@ describe('books', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		let updatedBookResponse = await caller.books.update({
 			id: createBookResponse._id,
-			permissions: permissions
+			permissions
 		});
 
 		expect(updatedBookResponse.permissions[testUserTwo.id]?.permission).toEqual('collaborate');
@@ -110,9 +110,11 @@ describe('books', () => {
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		let storylines = await caller.storylines.getAll({
-			bookID: createBookResponse._id
-		});
+		let storylines = (
+			await caller.storylines.get({
+				bookID: createBookResponse._id
+			})
+		).result;
 
 		let chapter1Response = await createChapter(
 			testUserOneSession,
@@ -134,9 +136,11 @@ describe('books', () => {
 
 		caller = router.createCaller({ session: createTestSession(testUserTwo) });
 
-		storylines = await caller.storylines.getAll({
-			bookID: createBookResponse._id
-		});
+		storylines = (
+			await caller.storylines.get({
+				bookID: createBookResponse._id
+			})
+		).result;
 
 		let storylineChapters = await caller.chapters.getByStoryline({
 			storylineID: storylines[0]._id,

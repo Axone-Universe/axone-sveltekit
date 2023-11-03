@@ -7,13 +7,14 @@
 	import type { HydratedDocument } from 'mongoose';
 	import type { UserProperties } from '$lib/properties/user';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
+	import type { Session } from '@supabase/supabase-js';
 
-	export let bookData: HydratedDocument<BookProperties>;
-
+	export let book: HydratedDocument<BookProperties>;
+	export let session: Session | null = null;
 	let customClass = '';
-	const bookUser = bookData.user as HydratedDocument<UserProperties>;
-
 	export { customClass as class };
+
+	const bookUser = book.user as HydratedDocument<UserProperties>;
 
 	let closeModal = () => {
 		modalStore.close();
@@ -29,14 +30,13 @@
 	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
-	<ImageWithFallback
-		src={bookData.imageURL}
-		alt={bookData.title}
-		additionalClasses="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden"
-	/>
+	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden">
+		<ImageWithFallback src={book.imageURL} alt={book.title} />
+	</div>
+
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
 		<header class="space-y-2">
-			<p class="text-lg font-bold line-clamp-2">{bookData.title}</p>
+			<p class="text-lg font-bold line-clamp-2">{book.title}</p>
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
 					<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />
@@ -51,16 +51,16 @@
 						{bookUser.lastName}
 					</p>
 				</div>
-				{#if bookData.rating > 0}
+				{#if book.rating > 0}
 					<div class="overflow-hidden flex items-center">
 						<Icon class="p-2" data={star} scale={2} />
-						<p class="text-sm font-bold line-clamp-1">{bookData.rating.toFixed(1)}</p>
+						<p class="text-sm font-bold line-clamp-1">{book.rating.toFixed(1)}</p>
 					</div>
 				{/if}
 			</div>
 			<div class="flex flex-wrap gap-2">
-				{#if bookData.genres}
-					{#each bookData.genres as genre}
+				{#if book.genres}
+					{#each book.genres as genre}
 						<div class="chip variant-filled py-0.5 px-1">{genre}</div>
 					{/each}
 				{/if}
@@ -69,14 +69,17 @@
 		<div class="h-full">
 			<hr class="opacity-50" />
 			<p class="font-thin overflow-y-auto my-2">
-				{bookData.description}
+				{book.description}
 			</p>
 		</div>
 		<div class="w-full flex flex-col gap-4 items-center">
 			<hr class="opacity-50 min-w-full" />
 			<footer class="btn-group variant-filled py-1 max-w-fit">
-				<a on:click={closeModal} class="button" href="book/{bookData._id}">View</a>
-				<a on:click={closeModal} class="button" href="/editor/{bookData._id}?mode=reader">Read</a>
+				<a on:click={closeModal} class="button" href="/book/{book._id}">View</a>
+				<a on:click={closeModal} class="button" href="/editor/{book._id}?mode=reader">Read</a>
+				{#if session && session.user.id === bookUser._id}
+					<a on:click={closeModal} class="button" href="/editor/{book._id}?mode=writer">Write</a>
+				{/if}
 			</footer>
 		</div>
 	</div>

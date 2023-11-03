@@ -2,9 +2,10 @@
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/properties/storyline';
-	import { beforeUpdate, onMount } from 'svelte';
+	import { beforeUpdate } from 'svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
 	import type { HydratedDocument } from 'mongoose';
+	import BookNav from '$lib/components/book/BookNav.svelte';
 
 	const storylinePropertyBuilder = new StorylinePropertyBuilder();
 	const storyline =
@@ -12,6 +13,7 @@
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
+	let leftDrawerSelectedItem: string;
 
 	beforeUpdate(() => {
 		let chapterID = $page.url.searchParams.get('chapterID')!;
@@ -24,8 +26,13 @@
 	});
 </script>
 
-<StorylineDetails
+<div
 	class="flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row lg:mx-32 xl:mx-60"
-	{storyline}
-	book={bookData}
-/>
+>
+	<BookNav
+		class="card mx-2 w-5/6 md:w-2/6 h-full p-2"
+		storylines={[storyline]}
+		bind:selectedChapter={leftDrawerSelectedItem}
+	/>
+	<StorylineDetails {storyline} book={bookData} supabase={data.supabase} />
+</div>

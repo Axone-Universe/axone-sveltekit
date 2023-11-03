@@ -12,29 +12,24 @@
 	export let book: HydratedDocument<BookProperties>;
 
 	let user = book.user as UserProperties;
-
 	let didError = false;
 
 	const modalComponent: ModalComponent = {
 		ref: BookModal,
-		props: { bookData: book }
+		props: { book }
 	};
 
 	const modal: ModalSettings = {
 		type: 'component',
 		component: modalComponent
 	};
-
-	let showModal = () => {
-		modalStore.trigger(modal);
-	};
 </script>
 
 <button
 	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
-		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
+		didError || !book.imageURL ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
 	}`}
-	on:click={showModal}
+	on:click={() => modalStore.trigger(modal)}
 >
 	<ImageWithFallback src={book.imageURL} alt={book.title} bind:didError />
 	<div

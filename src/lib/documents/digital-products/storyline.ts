@@ -1,10 +1,11 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -81,6 +82,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._storylineProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -141,36 +147,59 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	}
 
 	async update(): Promise<HydratedDocument<StorylineProperties>> {
-		const session = await mongoose.startSession();
-		await session.withTransaction(async () => {
-			await Storyline.findOneAndUpdate(
-				{ _id: this._storylineProperties._id },
-				this._storylineProperties,
-				{
-					new: true,
-					userID: this._sessionUserID,
-					session: session
-				}
-			);
-		});
-		session.endSession();
-
-		const storyline = await Storyline.aggregate(
-			[
-				{
-					$match: {
-						_id: this._storylineProperties._id
-					}
-				}
-			],
+		const storyline = await Storyline.findOneAndUpdate(
+			{ _id: this._storylineProperties._id },
+			this._storylineProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return storyline;
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
+	}
+
+	async setArchived(): Promise<HydratedDocument<StorylineProperties>> {
+		const session = await startSession();
+		let storyline: HydratedDocument<StorylineProperties> | null = null;
+
+		try {
+			await session.withTransaction(async () => {
+				storyline = await Storyline.findOneAndUpdate(
+					{ _id: this._storylineProperties._id },
+					{ archived: this._storylineProperties.archived },
+					{
+						new: true,
+						userID: this._sessionUserID,
+						session
+					}
+				);
+
+				if (storyline) {
+					await Chapter.updateMany(
+						{ storyline: this._storylineProperties._id },
+						{ archived: this._storylineProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
 	}
 
 	/**

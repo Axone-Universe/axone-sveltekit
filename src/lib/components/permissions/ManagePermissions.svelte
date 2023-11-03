@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		Avatar,
-		ListBox,
-		ListBoxItem,
-		Autocomplete,
-		popup,
-		SlideToggle
-	} from '@skeletonlabs/skeleton';
+	import { Avatar, ListBox, ListBoxItem, Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings, AutocompleteOption } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
@@ -22,7 +15,7 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import { Icon } from 'svelte-awesome';
-	import { caretDown, send, trash } from 'svelte-awesome/icons';
+	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
 	import type { StorylineProperties } from '$lib/properties/storyline';
@@ -32,11 +25,9 @@
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>
 		| HydratedDocument<StorylineProperties>;
-
 	export let notifications: { [key: string]: UserNotificationProperties } = {};
 	export let permissionedDocumentType: PermissionedDocument;
-
-	export let customClass = '';
+	let customClass = '';
 	export { customClass as class };
 
 	let permissions: Record<
@@ -238,11 +229,8 @@
 	}
 </script>
 
-<form
-	on:submit|preventDefault
-	class={`modal-example-form card p-4 w-full space-y-4 ${customClass}`}
->
-	<div class="modal-form p-4 space-y-4 rounded-container-token">
+<div class={`card w-full ${customClass}`}>
+	<div class="space-y-4 rounded-container-token p-2">
 		<label>
 			Share {permissionedDocument.title}
 
@@ -275,60 +263,57 @@
 		<div>
 			People with access
 			<div class="flex flex-col max-h-36 overflow-y-auto">
-				<div class="flex p-2 justify-start items-center space-x-2">
-					<Avatar
-						class="z-0"
-						src="https://source.unsplash.com/YOErFW8AfkI/32x32"
-						rounded="rounded-full"
-					/>
-					<div class="flex-col flex justify-between">
-						<h6 class="font-bold">{documentOwner.firstName}</h6>
-						<small>{documentOwner.email}</small>
+				<div class="flex justify-between items-center">
+					<div class="flex items-center gap-2">
+						<Avatar
+							src="https://source.unsplash.com/YOErFW8AfkI/32x32"
+							width="w-8 sm:w-10 aspect-square"
+							rounded="rounded-full"
+						/>
+						<div class="flex flex-col">
+							<h6 class="font-bold">{documentOwner.firstName}</h6>
+							<small class="text-[10px] sm:text-sm">{documentOwner.email}</small>
+						</div>
 					</div>
-
-					<div class="flex w-full justify-end">
-						<button
-							class="btn w-40 variant-filled space-x-12 line-clamp-1 justify-between bg-surface-400-500-token"
-						>
-							<span class="capitalize text-sm">Owner</span>
-						</button>
-					</div>
+					<button class="btn btn-sm variant-filled bg-surface-400-500-token">Owner</button>
 				</div>
 				{#each Object.entries(permissions) as [id, permission]}
 					{#if permission.user && typeof permission.user !== 'string'}
-						<div class="flex p-2 justify-start items-center space-x-2">
-							<Avatar src="https://source.unsplash.com/YOErFW8AfkI/32x32" rounded="rounded-full" />
-							<div class="flex-col flex justify-between">
-								<h6 class="font-bold">{permission.user.firstName}</h6>
-								<small>{permission.user.email}</small>
+						<div class="flex justify-between items-center">
+							<div class="flex items-center gap-2">
+								<Avatar
+									src="https://source.unsplash.com/YOErFW8AfkI/32x32"
+									width="w-8 sm:w-10 aspect-square"
+									rounded="rounded-full"
+								/>
+								<div class="flex flex-col">
+									<h6 class="font-bold">{permission.user.firstName}</h6>
+									<small class="text-[10px] sm:text-sm">{permission.user.email}</small>
+								</div>
+							</div>
+							<div class="flex-row btn-group variant-filled">
+								<button use:popup={permissionsPopupSettings(id)}>
+									<span class="capitalize text-xs">{permission.permission}</span>
+									<Icon class="border-none" data={caretDown} scale={1} />
+								</button>
+								<button on:click={() => removePermission(id)} class="!py-2 !px-3">
+									<Icon data={trash} scale={1} />
+								</button>
 							</div>
 
-							<div class="flex w-full justify-end">
-								<div class="flex-row btn-group variant-filled w-40">
-									<button class="w-9/12" use:popup={permissionsPopupSettings(id)}>
-										<span class="flex capitalize text-sm w-full">{permission.permission}</span>
-										<Icon class="border-none" data={caretDown} scale={1} />
-									</button>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<span on:click={() => removePermission(id)} class="p-2 cursor-pointer w-3/12"
-										><Icon data={trash} scale={1} /></span
-									>
-								</div>
-
-								<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={id}>
-									<ListBox class="p-2 w-40 ">
-										{#each PermissionsEnum as permissionType}
-											<ListBoxItem
-												bind:group={permission.permission}
-												name={id}
-												value={permissionType}
-												on:change={onPermissionChanged}
-											>
-												{permissionType}
-											</ListBoxItem>
-										{/each}
-									</ListBox>
-								</div>
+							<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={id}>
+								<ListBox class="p-2 w-40 ">
+									{#each PermissionsEnum as permissionType}
+										<ListBoxItem
+											bind:group={permission.permission}
+											name={id}
+											value={permissionType}
+											on:change={onPermissionChanged}
+										>
+											{permissionType}
+										</ListBoxItem>
+									{/each}
+								</ListBox>
 							</div>
 						</div>
 					{/if}
@@ -336,54 +321,51 @@
 			</div>
 		</div>
 		<hr class="!my-2 variant-fill-primary" />
-		<div>
-			Public access
+		<div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
+			<div class="flex-col w-full flex justify-between">
+				<h6>Public access</h6>
+				<small>Publish for public viewing or collaboration</small>
+			</div>
 
-			<div class="flex p-2 justify-start items-center space-x-2">
-				<Avatar src="https://source.unsplash.com/YOErFW8AfkI/32x32" rounded="rounded-full" />
-				<div class="flex-col w-full flex justify-between">
-					<h6 class="font-bold">Public access</h6>
-					<small>Publish for public viewing</small>
+			<div>
+				<div class="flex-row btn-group variant-filled">
+					<button
+						use:popup={permissionsPopupSettings('permissionsPopup')}
+						disabled={!('public' in permissions)}
+					>
+						<span class="capitalize text-xs">{publicPermission.permission}</span>
+						<Icon class="border-none" data={caretDown} scale={1} />
+					</button>
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<span on:click={() => onPublicAccessChange()} class="!py-1 !px-3">
+						<input
+							class="radio"
+							type="radio"
+							checked={'public' in permissions}
+							name="radio-direct"
+							value="1"
+						/>
+					</span>
 				</div>
 
-				<div class="flex w-full justify-end">
-					<div class="flex-row btn-group variant-filled w-40">
-						<button
-							class="w-9/12"
-							use:popup={permissionsPopupSettings('')}
-							disabled={!('public' in permissions)}
-						>
-							<span class="flex capitalize text-sm w-full">{publicPermission.permission}</span>
-							<Icon class="border-none" data={caretDown} scale={1} />
-						</button>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<span on:click={() => onPublicAccessChange()} class="p-2 cursor-pointer w-3/12"
-							><input
-								class="radio"
-								type="radio"
-								checked={'public' in permissions}
-								name="radio-direct"
-								value="1"
-							/>
-						</span>
-					</div>
-
-					<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={''}>
-						<ListBox class="p-2 w-40 ">
-							{#each PermissionsEnum as permissionType}
-								<ListBoxItem
-									bind:group={publicPermission.permission}
-									name={''}
-									value={permissionType}
-									on:change={onPermissionChanged}
-								>
-									{permissionType}
-								</ListBoxItem>
-							{/each}
-						</ListBox>
-					</div>
+				<div
+					class="card shadow-xl py-2 !bg-surface-100-800-token z-10"
+					data-popup={'permissionsPopup'}
+				>
+					<ListBox class="p-2 w-40 ">
+						{#each PermissionsEnum as permissionType}
+							<ListBoxItem
+								bind:group={publicPermission.permission}
+								name={'public'}
+								value={permissionType}
+								on:change={onPermissionChanged}
+							>
+								{permissionType}
+							</ListBoxItem>
+						{/each}
+					</ListBox>
 				</div>
 			</div>
 		</div>
 	</div>
-</form>
+</div>
