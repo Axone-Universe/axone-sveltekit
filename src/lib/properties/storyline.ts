@@ -24,6 +24,26 @@ export interface StorylineProperties extends ReviewableProperties {
 	genres?: Genre[];
 	parent?: string;
 	parentChapter?: string;
+	archived?: boolean;
+}
+
+export interface HydratedStorylineProperties extends StorylineProperties {
+	_id: string;
+	main: boolean;
+	book?: HydratedDocument<BookProperties>;
+	user?: HydratedDocument<UserProperties>;
+	title?: string;
+	chapters?: HydratedDocument<ChapterProperties>[];
+	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[];
+	userPermissions?: { view: boolean; collaborate: boolean };
+	description?: string;
+	imageURL?: string;
+	tags?: string[];
+	genres?: Genre[];
+	parent?: string;
+	parentChapter?: string;
+	archived?: boolean;
 }
 
 export class StorylinePropertyBuilder {
@@ -49,7 +69,8 @@ export class StorylinePropertyBuilder {
 				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
 			},
 			cumulativeRating: 0,
-			numRatings: 0
+			numRatings: 0,
+			archived: false
 		};
 	}
 

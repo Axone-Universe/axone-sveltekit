@@ -7,7 +7,8 @@ import {
 	createBook,
 	createTestSession,
 	testUserOne,
-	testUserTwo
+	testUserTwo,
+	createChapter
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
 
@@ -36,9 +37,11 @@ describe('storylines', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		caller = router.createCaller({ session: testUserOneSession });
 		const chapter1Response = await caller.chapters.create({
@@ -64,7 +67,7 @@ describe('storylines', () => {
 			prevChapterID: chapter2_1Response._id
 		});
 
-		const storyline_1Chapters = await caller.chapters.getAll({
+		const storyline_1Chapters = await caller.chapters.get({
 			storylineChapterIDs: storylines[0].chapters as string[]
 		});
 
@@ -111,12 +114,64 @@ describe('storylines', () => {
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2_1Response.title).toEqual(chapter2_1Title);
 
-		expect(storyline_1Chapters[0].title).toEqual(chapter1Title);
-		expect(storyline_1Chapters[1].title).toEqual(chapter2_1Title);
+		expect(storyline_1Chapters.result[0].title).toEqual(chapter1Title);
+		expect(storyline_1Chapters.result[1].title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
 		// bookResponses.map((a) => a._id).sort()
 		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
 		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
+	});
+
+	test('updating archived status', async () => {
+		const sessionOne = createTestSession(testUserOne);
+		const sessionTwo = createTestSession(testUserTwo);
+		await createDBUser(sessionOne);
+		await createDBUser(sessionTwo);
+		const book = await createBook(sessionOne);
+
+		const callerOne = router.createCaller({ session: sessionOne });
+		const callerTwo = router.createCaller({ session: sessionTwo });
+
+		const userOneStoryline = (
+			await callerOne.storylines.get({
+				bookID: book._id
+			})
+		).result[0];
+
+		const userOneChapter = await createChapter(
+			sessionOne,
+			"UserOne's Chapter 1",
+			'Chapter 1',
+			userOneStoryline
+		);
+
+		const userTwoStoryline = await callerTwo.storylines.create({
+			title: 'Storyline 2',
+			description: 'Storyline 2',
+			book: book._id,
+			parent: userOneStoryline._id,
+			parentChapter: userOneChapter._id
+		});
+
+		const userTwoChapter = await createChapter(
+			sessionTwo,
+			"UserTwo's Chapter 1",
+			'The Spin-off Chapter 1',
+			userTwoStoryline
+		);
+
+		// Check archived before updating
+		expect(userOneStoryline.archived).toEqual(false);
+		expect(userTwoStoryline.archived).toEqual(false);
+		expect(userOneChapter.archived).toEqual(false);
+		expect(userTwoChapter.archived).toEqual(false);
+
+		// Check archived changed only for user one
+		expect(
+			(await callerOne.storylines.setArchived({ id: userOneStoryline._id, archived: true })).archived
+		).toEqual(true);
+		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
+		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).archived).toEqual(false);
 	});
 });

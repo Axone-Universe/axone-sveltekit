@@ -5,9 +5,10 @@ import type { BookProperties } from '$lib/properties/book';
 import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import { StorylineBuilder } from './storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -60,6 +61,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._bookProperties.permissions = permissions;
+		return this;
+	}
+
+	archived(archived: boolean) {
+		this._bookProperties.archived = archived;
 		return this;
 	}
 
@@ -123,27 +129,85 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
-		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
-			new: true,
-			userID: this._sessionUserID
-		});
-
-		const newBook = await Book.aggregate(
-			[
-				{
-					$match: {
-						_id: this._bookProperties._id
-					}
-				}
-			],
+		let book = await Book.findOneAndUpdate(
+			{ _id: this._bookProperties._id },
+			this._bookProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return newBook;
+		if (book) {
+			// aggregate is called again so that the db middleware runs
+			book = await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._userID.id
+				}
+			)
+				.cursor()
+				.next();
+
+			return book as HydratedDocument<BookProperties>;
+		}
+
+		throw new Error("Couldn't update book");
+	}
+
+	async setArchived(): Promise<HydratedDocument<BookProperties>> {
+		const session = await startSession();
+		let book: HydratedDocument<BookProperties> | null = null;
+
+		try {
+			await session.withTransaction(async () => {
+				book = await Book.findOneAndUpdate(
+					{ _id: this._bookProperties._id },
+					{ archived: this._bookProperties.archived },
+					{
+						new: true,
+						userID: this._sessionUserID,
+						session
+					}
+				);
+
+				if (book) {
+					await Storyline.updateMany(
+						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+
+					await Chapter.updateMany(
+						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		if (book) {
+			return book;
+		}
+
+		throw new Error("Couldn't update book");
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
@@ -192,6 +256,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			.cursor()
 			.next();
 
-		return newBook as unknown as HydratedDocument<BookProperties>;
+		return newBook as HydratedDocument<BookProperties>;
 	}
 }

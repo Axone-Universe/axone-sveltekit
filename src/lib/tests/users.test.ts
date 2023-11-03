@@ -112,10 +112,10 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
+				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
-			)[0]
+			).result[0]
 		];
 
 		await caller.users.createReadingList({ name: 'Favourites' });
@@ -155,10 +155,10 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
+				await caller.storylines.get({
 					bookID: bookResponse._id
 				})
-			)[0]
+			).result[0]
 		];
 
 		await caller.users.updateReadingLists({

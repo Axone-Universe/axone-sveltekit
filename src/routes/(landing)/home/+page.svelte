@@ -8,15 +8,17 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
+	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { GenresBuilder, GENRES } from '$lib/properties/genre';
 	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
+	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 
 	export let data: PageData;
 
-	const LOAD_DEBOUNCE_SECONDS = 1.0;
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	// Only "recommended" is implemented for now
 	// recommended looks at the user genre preferences to select books from there
@@ -77,19 +79,7 @@
 	}
 
 	function loadMore() {
-		const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-
-		if (
-			window.scrollY >= scrollableHeight * 0.6 &&
-			(lastLoadEpoch === 0 || Date.now() - lastLoadEpoch >= LOAD_DEBOUNCE_SECONDS * 1000)
-		) {
-			lastLoadEpoch = Date.now();
-			$getBooksInfinite.fetchNextPage();
-		}
-	}
-
-	function handleScrollToTop() {
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getBooksInfinite.fetchNextPage);
 	}
 
 	function handleTryAgain() {
@@ -138,7 +128,7 @@
 <svelte:window on:scroll={loadMore} />
 
 <Container class="w-full">
-	<div class="sticky top-[4.3rem] z-[2] flex flex-col gap-1">
+	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
 			class="input text-sm h-8"
 			title="Search for books"
@@ -209,10 +199,8 @@
 	</div>
 
 	{#if $getBooksInfinite.isLoading}
-		<div class="h-screen">
-			<div class="mt-8 flex justify-center h-16">
-				<img src="/tail-spin.svg" alt="Loading spinner" />
-			</div>
+		<div class="h-screen flex justify-center items-center">
+			<LoadingSpinner />
 		</div>
 	{:else if $getBooksInfinite.isError}
 		<div class="mt-8 text-center space-y-8 h-screen">
@@ -252,11 +240,7 @@
 				{/each}
 			</div>
 			{#if !$getBooksInfinite.hasNextPage}
-				<div class="flex justify-center my-12 italic font-bold">
-					<button class="btn-icon variant-filled" on:click={handleScrollToTop}>
-						<Icon data={arrowUp} />
-					</button>
-				</div>
+				<ScrollToTopButton />
 			{/if}
 		</div>
 	{/if}

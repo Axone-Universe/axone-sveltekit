@@ -3,20 +3,19 @@ import { StorylinesRepository } from '$lib/repositories/storyLinesRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, update } from '$lib/trpc/schemas/storylines';
-import { read } from '$lib/trpc/schemas/storylines';
-import { search } from '$lib/trpc/schemas/storylines';
+import { create, read, update } from '$lib/trpc/schemas/storylines';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { setArchived } from '../schemas/shared';
 
 export const storylines = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
-		.input(read.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getAll(ctx.session, input?.limit, input?.skip);
+			const result = await storylinesRepo.get(ctx.session, input);
 
-			return result;
+			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
 	getById: t.procedure
@@ -41,7 +40,7 @@ export const storylines = t.router({
 
 	getStorylinesByUserID: t.procedure
 		.use(logger)
-		.input(search)
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
 			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);
@@ -59,12 +58,28 @@ export const storylines = t.router({
 			if (input.description) storylineBuilder.description(input.description);
 			if (input.title) storylineBuilder.title(input.title);
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
+			if (input.imageURL !== undefined) storylineBuilder.imageURL(input.imageURL);
 
 			const storyline = await storylineBuilder.update();
 
 			if (input.notifications) {
 				sendUserNotifications(input.notifications);
 			}
+
+			return storyline;
+		}),
+
+	setArchived: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(setArchived)
+		.mutation(async ({ input, ctx }) => {
+			const storylineBuilder = new StorylineBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
+				.archived(input.archived);
+
+			const storyline = await storylineBuilder.setArchived();
 
 			return storyline;
 		}),

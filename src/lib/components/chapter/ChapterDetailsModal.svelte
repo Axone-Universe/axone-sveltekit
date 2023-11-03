@@ -11,17 +11,13 @@
 	export let bookID: string;
 	export let storylineID: string;
 	export let prevChapterID: string;
+	let customClass = '';
+	export { customClass as class };
 
 	let disabled =
 		$page.data.user._id !== (typeof chapter.user === 'string' ? chapter.user : chapter.user!._id);
 
 	let notifications = {};
-	let customClass = '';
-	export { customClass as class };
-
-	let closeModal = () => {
-		modalStore.close();
-	};
 
 	async function submit() {
 		// permissions = permissions.map
@@ -41,12 +37,12 @@
 		trpc($page)
 			.chapters.create.mutate({
 				title: chapter.title!,
-				bookID: bookID,
-				storylineID: storylineID,
-				prevChapterID: prevChapterID ? prevChapterID : '',
+				bookID,
+				storylineID,
+				prevChapterID,
 				description: chapter.description!,
 				permissions: chapter.permissions,
-				notifications: notifications
+				notifications
 			})
 			.then((chapterNodeResponse) => {
 				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
@@ -72,7 +68,6 @@
 		let toastBackground = 'bg-warning-500';
 
 		console.log('** sv per,s');
-		console.log(chapter.permissions);
 
 		trpc($page)
 			.chapters.update.mutate({
@@ -103,38 +98,34 @@
 	}
 </script>
 
-<form
-	on:submit|preventDefault={submit}
-	class={`modal-example-form card p-4 w-modal h-[780px] shadow-xl space-y-4 overflow-y-auto ${customClass}`}
->
-	<fieldset {disabled}>
-		<div class="modal-form p-4 space-y-4 rounded-container-token">
-			<label>
-				* Chapter Title
-				<input
-					class="input"
-					type="text"
-					bind:value={chapter.title}
-					placeholder="Chapter Title"
-					required
-				/>
-			</label>
-			<label>
-				* Chapter Description
-				<textarea class="textarea h-44 overflow-hidden" bind:value={chapter.description} required />
-			</label>
+<div class={`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} max-w-md`}>
+	<div class="space-y-4 rounded-container-token">
+		<label>
+			* Chapter Title
+			<input
+				class="input"
+				type="text"
+				bind:value={chapter.title}
+				placeholder="Chapter Title"
+				required
+			/>
+		</label>
+		<label>
+			* Chapter Description
+			<textarea class="textarea h-44 overflow-hidden" bind:value={chapter.description} required />
+		</label>
 
-			<div>
-				Permissions
-				<ManagePermissions bind:permissionedDocument={chapter} permissionedDocumentType="Chapter" />
-			</div>
+		<div>
+			Permissions
+			<ManagePermissions bind:permissionedDocument={chapter} permissionedDocumentType="Chapter" />
 		</div>
-		{#if !disabled}
-			<footer class="modal-footer flex justify-end space-x-2">
-				<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button
-				>
-				<button class="btn variant-filled" type="submit">Save</button>
-			</footer>
-		{/if}
-	</fieldset>
-</form>
+	</div>
+	{#if !disabled}
+		<div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+			<button on:click={modalStore.close} class="btn variant-ghost-surface">Cancel</button>
+			<button class="btn variant-filled" on:click={submit}>
+				{chapter._id ? 'Update' : 'Create'}
+			</button>
+		</div>
+	{/if}
+</div>
