@@ -5,10 +5,11 @@
 	import { leanpub, lineChart, handshakeO, pencil, user, trash } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
+	import { page } from '$app/stores';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
-	let selectedTile: number;
+	let selectedTile: number = 0;
 
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
@@ -93,17 +94,34 @@
 					<ul class="list">
 						{#if data.session && data.session.user}
 							<li>
-								<a class="w-full" href={`/profile/${data.session.user.id}`}>Profile</a>
+								<a
+									class="w-full"
+									href={`/profile/${data.session.user.id}`}
+									on:click={drawerStore.close}
+								>
+									Profile
+								</a>
 							</li>
 							<li>
-								<a class="w-full" href={`/library`}>Library</a>
+								<a class="w-full" href={`/library`} on:click={drawerStore.close}> Library </a>
 							</li>
 							<li>
-								<button class="w-full" on:click={onLogoutButtonClick}>Logout</button>
+								<a class="w-full" href={`/studio`} on:click={drawerStore.close}>Studio</a>
+							</li>
+							<li>
+								<button
+									class="w-full"
+									on:click={() => {
+										onLogoutButtonClick();
+										drawerStore.close();
+									}}
+								>
+									Logout
+								</button>
 							</li>
 						{:else}
 							<li>
-								<a class="w-full" href="/login"> Login </a>
+								<a class="w-full" href="/login" on:click={drawerStore.close}>Login</a>
 							</li>
 						{/if}
 					</ul>
@@ -162,6 +180,38 @@
 			>
 				+
 			</button>
+		</div>
+	{:else if $drawerStore.id === 'studio'}
+		<div
+			class="h-screen sticky top-16 flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-2 gap-2"
+		>
+			<a
+				class="btn {$page.url.pathname === '/studio/books'
+					? 'variant-filled-primary'
+					: 'variant-filled'}"
+				href="/studio/books"
+				on:click={drawerStore.close}
+			>
+				Books
+			</a>
+			<a
+				class="btn {$page.url.pathname === '/studio/storylines'
+					? 'variant-filled-primary'
+					: 'variant-filled'}"
+				href="/studio/storylines"
+				on:click={drawerStore.close}
+			>
+				Storylines
+			</a>
+			<a
+				class="btn {$page.url.pathname === '/studio/chapters'
+					? 'variant-filled-primary'
+					: 'variant-filled'}"
+				href="/studio/chapters"
+				on:click={drawerStore.close}
+			>
+				Chapters
+			</a>
 		</div>
 	{/if}
 </Drawer>

@@ -5,7 +5,8 @@ import {
 	createDBUser,
 	createTestSession,
 	createBook,
-	generateTestUser
+	generateTestUser,
+	createChapter
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
@@ -29,7 +30,7 @@ describe('books', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		await caller.storylines.getAll({
+		await caller.storylines.get({
 			bookID: bookResponse._id
 		});
 
@@ -130,5 +131,64 @@ describe('books', () => {
 
 		expect(bookResponses.result.length).toEqual(2);
 		expect(bookResponses.result[0]?._id).toEqual(bookResponse._id);
+	});
+
+	test('updating archived status', async () => {
+		const sessionOne = createTestSession(testUserOne);
+		const sessionTwo = createTestSession(testUserTwo);
+		await createDBUser(sessionOne);
+		await createDBUser(sessionTwo);
+		const book = await createBook(sessionOne);
+
+		const callerOne = router.createCaller({ session: sessionOne });
+		const callerTwo = router.createCaller({ session: sessionTwo });
+
+		const userOneStoryline = (
+			await callerOne.storylines.get({
+				bookID: book._id
+			})
+		).result[0];
+
+		const userOneChapter = await createChapter(
+			sessionOne,
+			"UserOne's Chapter 1",
+			'Chapter 1',
+			userOneStoryline
+		);
+
+		const userTwoStoryline = await callerTwo.storylines.create({
+			title: 'Storyline 2',
+			description: 'Storyline 2',
+			book: book._id,
+			parent: userOneStoryline._id,
+			parentChapter: userOneChapter._id
+		});
+
+		const userTwoChapter = await createChapter(
+			sessionTwo,
+			"UserTwo's Chapter 1",
+			'The Spin-off Chapter 1',
+			userTwoStoryline
+		);
+
+		// Check archived before updating
+		expect(book.archived).toEqual(false);
+		expect(userOneStoryline.archived).toEqual(false);
+		expect(userTwoStoryline.archived).toEqual(false);
+		expect(userOneChapter.archived).toEqual(false);
+		expect(userTwoChapter.archived).toEqual(false);
+
+		// Check archived changed only for user one
+		expect((await callerOne.books.setArchived({ id: book._id, archived: true })).archived).toEqual(
+			true
+		);
+		expect(
+			(await callerOne.storylines.getById({ storylineID: userOneStoryline._id })).archived
+		).toEqual(true);
+		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
+		expect(
+			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).archived
+		).toEqual(false);
+		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).archived).toEqual(false);
 	});
 });

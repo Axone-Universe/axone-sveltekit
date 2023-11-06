@@ -13,13 +13,19 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		cursor?: string,
 		genres?: Genre[],
-		title?: string
+		title?: string,
+		user?: string,
+		archived?: boolean
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
 		if (title) {
 			filter.$text = { $search: title };
+		}
+
+		if (user) {
+			filter.user = user;
 		}
 
 		if (genres) {
@@ -34,6 +40,10 @@ export class BooksRepository extends Repository {
 			if (user && user.genres) {
 				filter.genres = { $in: user.genres };
 			}
+		}
+
+		if (archived !== undefined) {
+			filter.archived = archived;
 		}
 
 		if (cursor) {

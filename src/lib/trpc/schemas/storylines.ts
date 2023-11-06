@@ -19,14 +19,6 @@ export const update = z.object({
 	permissions: z.record(z.string(), permissions).optional(),
 	notifications: z.record(z.string(), userNotification).optional()
 });
-export const search = z.object({
-	bookID: z.string().optional(),
-	storylineID: z.string().optional(),
-	main: z.boolean().optional(),
-	searchTerm: z.string().optional(),
-	limit: z.number().optional(),
-	skip: z.number().optional()
-});
 
 export const create = z.object({
 	title: z.string().optional(),
@@ -46,5 +38,10 @@ export const read = z.object({
 	main: z.boolean().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
-	skip: z.number().optional()
+	skip: z.number().optional(),
+	cursor: z.string().optional(),
+	user: z.string().optional(),
+	archived: z.boolean().optional()
 });
+
+export type ReadStoryline = z.infer<typeof read>;

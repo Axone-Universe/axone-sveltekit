@@ -6,17 +6,18 @@ import { t } from '$lib/trpc/t';
 import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
-import type { UserNotificationProperties } from '$lib/properties/notification';
+import { setArchived } from '../schemas/shared';
 
 export const chapters = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
-		.input(read.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
-			const result = await chaptersRepo.get(ctx.session, input?.limit, input?.skip);
 
-			return result;
+			const result = await chaptersRepo.get(ctx.session, input);
+
+			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
 		}),
 
 	getChaptersByUserID: t.procedure
@@ -39,13 +40,14 @@ export const chapters = t.router({
 
 			return result;
 		}),
+
 	getByStoryline: t.procedure
 		.use(logger)
 		.input(readFromStoryline)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
-			const result = await chaptersRepo.getByStorylineID(
+			const result = await chaptersRepo.getByChapterIDs(
 				ctx.session,
 				input.storylineID,
 				input.storylineChapterIDs,
@@ -54,6 +56,7 @@ export const chapters = t.router({
 
 			return result;
 		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)
@@ -72,6 +75,21 @@ export const chapters = t.router({
 			}
 
 			return chapterNode;
+		}),
+
+	setArchived: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(setArchived)
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.id)
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
+				.archived(input.archived);
+
+			const chapter = await chapterBuilder.setArchived();
+
+			return chapter;
 		}),
 
 	create: t.procedure

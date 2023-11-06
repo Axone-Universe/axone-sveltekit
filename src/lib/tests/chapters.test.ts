@@ -31,9 +31,11 @@ describe('chapters', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
-		let storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		let storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const chapter1Response = await createChapter(
 			testUserOneSession,
@@ -50,9 +52,11 @@ describe('chapters', () => {
 			chapter1Response._id
 		);
 
-		storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		let storylineChapters = await caller.chapters.getByStoryline({
 			storylineID: storylines[0]._id,
@@ -98,9 +102,11 @@ describe('chapters', () => {
 
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		const chapterCreateResponse = await createChapter(
 			testUserOneSession,
@@ -128,9 +134,11 @@ describe('chapters', () => {
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
-		const storylines = await caller.storylines.getAll({
-			bookID: bookResponse._id
-		});
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse._id
+			})
+		).result;
 
 		caller = router.createCaller({ session: testUserOneSession });
 		await createChapter(testUserOneSession, 'Chapter 1', 'My chapter 1', storylines[0]);
@@ -157,9 +165,11 @@ describe('chapters', () => {
 			id: chapter2Response._id
 		});
 
-		const storylineChapters = await caller.chapters.getAll({
-			storylineChapterIDs: storylines[0].chapters as string[]
-		});
+		const storylineChapters = (
+			await caller.chapters.get({
+				storylineChapterIDs: storylines[0].chapters as string[]
+			})
+		).result;
 
 		expect(storylineChapters.length).toEqual(3);
 		expect(storylineChapters[0].children![0] === chapter3Response._id);
@@ -174,5 +184,29 @@ describe('chapters', () => {
 		await expect(deleteChapter).rejects.toThrowError(
 			'This chapter was referenced by another author, it can only be archived.'
 		);
+	});
+
+	test('toggling archived status', async () => {
+		const session = createTestSession(testUserOne);
+		await createDBUser(session);
+		const book = await createBook(session);
+
+		const caller = router.createCaller({ session });
+
+		const storyline = (
+			await caller.storylines.get({
+				bookID: book._id
+			})
+		).result[0];
+
+		const chapter = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+
+		expect(chapter.archived).toEqual(false);
+		expect(
+			(await caller.chapters.setArchived({ id: chapter._id, archived: true })).archived
+		).toEqual(true);
+		expect(
+			(await caller.chapters.setArchived({ id: chapter._id, archived: false })).archived
+		).toEqual(false);
 	});
 });

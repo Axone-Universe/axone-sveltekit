@@ -62,6 +62,11 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._chapterProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): ChapterBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -184,6 +189,23 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			.next();
 
 		return chapter;
+	}
+
+	async setArchived(): Promise<HydratedDocument<ChapterProperties>> {
+		const chapter = await Chapter.findOneAndUpdate(
+			{ _id: this._chapterProperties._id },
+			{ archived: this._chapterProperties.archived },
+			{
+				new: true,
+				userID: this._sessionUserID
+			}
+		);
+
+		if (chapter) {
+			return chapter;
+		}
+
+		throw new Error("Couldn't update chapter");
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {

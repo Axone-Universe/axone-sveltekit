@@ -21,6 +21,23 @@ export interface ChapterProperties {
 	genres?: Genre[];
 	title?: string;
 	description?: string;
+	archived?: boolean;
+}
+
+export interface HydratedChapterProperties extends ChapterProperties {
+	_id: string;
+	book?: HydratedDocument<BookProperties>;
+	storyline?: HydratedDocument<StorylineProperties>;
+	user?: HydratedDocument<UserProperties>;
+	delta?: HydratedDocument<DeltaProperties>;
+	children?: HydratedDocument<ChapterProperties>[];
+	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
+	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
+	genres?: Genre[];
+	title?: string;
+	description?: string;
+	archived?: boolean;
 }
 
 export class ChapterPropertyBuilder {
@@ -37,7 +54,8 @@ export class ChapterPropertyBuilder {
 			description: '',
 			permissions: {
 				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
-			}
+			},
+			archived: false
 		};
 	}
 

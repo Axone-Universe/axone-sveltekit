@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GENRES } from '$lib/shared/genre';
+import { GENRES } from '$lib/properties/genre';
 
 const GenreEnum = z.enum(GENRES);
 
@@ -11,4 +11,9 @@ export const search = z.object({
 	cursor: z.string().optional(),
 	genres: genreSchema.optional(),
 	title: z.string().optional()
+});
+
+export const setArchived = z.object({
+	id: z.string(),
+	archived: z.boolean()
 });

@@ -22,7 +22,8 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
-	description: String
+	description: String,
+	archived: { type: Boolean, default: false }
 });
 
 interface ChapterMethods extends ChapterProperties {

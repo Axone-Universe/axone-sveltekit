@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { HeadlessService, type IMessage } from '@novu/headless';
-	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { bell } from 'svelte-awesome/icons';
 	import { PUBLIC_NOVU_APP_ID } from '$env/static/public';
@@ -51,7 +51,7 @@
 				fetchNotifications();
 			},
 			onError: (error) => {
-				console.log('headlessSice error:', error);
+				console.log('headlessService error:', error);
 			}
 		});
 	}
@@ -105,7 +105,7 @@
 
 <div class="flex w-fit justify-end">
 	<div>
-		<button use:popup={popupSettings('notifications')} type="button" class="m-2 btn-icon relative">
+		<button use:popup={popupSettings('notifications')} type="button" class="btn-icon relative">
 			<Icon data={bell} scale={1.2} />
 			{#if unreadNotifications.length > 0}
 				<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
