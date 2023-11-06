@@ -1,5 +1,6 @@
 import { label, type DeltaProperties, type VersionProperties } from '$lib/properties/delta';
 import { label as ChapterLabel } from '$lib/properties/chapter';
+import { label as UserLabel } from '$lib/properties/user';
 import mongoose, { Schema, model } from 'mongoose';
 import {
 	addCollaborationRestrictionOnUpdate,
@@ -18,6 +19,7 @@ export const versionSchema = new Schema<VersionProperties>({
 
 export const deltaSchema = new Schema<DeltaProperties>({
 	_id: { type: String, required: true },
+	user: { type: String, ref: UserLabel, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
 	versions: [versionSchema]
