@@ -19,6 +19,7 @@
 	import { goto } from '$app/navigation';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
+	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -27,6 +28,7 @@
 
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
+	let selectedChapters: HydratedDocument<ChapterProperties>[] = [];
 
 	const chapterDetailsModalComponent: ModalComponent = {
 		ref: ChapterDetailsModal
@@ -60,30 +62,41 @@
 		  ) as HydratedDocument<HydratedChapterProperties>[])
 		: [];
 
-	function openArchiveModal(chapter: HydratedDocument<ChapterProperties>) {
-		archiveModal.body = `Are you sure you want to archive ${chapter.title}?`;
+	function openArchiveModal(chapters: HydratedDocument<ChapterProperties>[]) {
+		if (chapters.length > 1) {
+			archiveModal.body = `Are you sure you want to archive these ${chapters.length} chapters?`;
+		} else {
+			archiveModal.body = `Are you sure you want to archive ${chapters[0].title}?`;
+		}
+
 		archiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(chapter._id, true);
+				await setArchive(chapters, true);
 				refetch();
 			}
 		};
 		modalStore.trigger(archiveModal);
 	}
 
-	function openUnarchiveModal(chapter: HydratedDocument<ChapterProperties>) {
-		unArchiveModal.body = `Are you sure you want to unarchive ${chapter.title}?`;
+	function openUnarchiveModal(chapters: HydratedDocument<ChapterProperties>[]) {
+		if (chapters.length > 1) {
+			unArchiveModal.body = `Are you sure you want to unarchive these ${chapters.length} chapters?`;
+		} else {
+			unArchiveModal.body = `Are you sure you want to unarchive ${chapters[0].title}?`;
+		}
+
 		unArchiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(chapter._id, false);
+				await setArchive(chapters, false);
 				refetch();
 			}
 		};
 		modalStore.trigger(unArchiveModal);
 	}
 
-	async function setArchive(id: string, archived: boolean) {
-		const resp = await trpc($page).chapters.setArchived.mutate({ id, archived });
+	async function setArchive(chapters: HydratedDocument<ChapterProperties>[], archived: boolean) {
+		const ids = chapters.map((c) => c._id);
+		const resp = await trpc($page).chapters.setArchived.mutate({ ids, archived });
 	}
 
 	function openEditModal(chapter: HydratedDocument<ChapterProperties>) {
@@ -127,19 +140,36 @@
 	async function refetch() {
 		$getChaptersInfinite.remove();
 		await $getChaptersInfinite.refetch();
+		selectedChapters = [];
+	}
+
+	function handleChapterSelect(
+		e: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		},
+		chapter: HydratedDocument<ChapterProperties>
+	) {
+		if ((e.target as HTMLInputElement).checked) {
+			if (!selectedChapters.includes(chapter)) {
+				selectedChapters = [...selectedChapters, chapter];
+			}
+		} else {
+			selectedChapters = selectedChapters.filter((s) => s !== chapter);
+		}
 	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen w-full overflow-hidden">
-	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
 			<table class="table table-hover table-compact">
 				<thead>
 					<tr>
+						<th />
 						<th>Cover</th>
 						<th>Title</th>
 						<th>Storyline</th>
@@ -149,21 +179,28 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan="5">
-							<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
+						<td colspan="6">
+							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveToggle bind:archiveMode />
+								<span class="divider-vertical h-6 mx-0" />
+								<ArchiveSelectedButton
+									selected={selectedChapters}
+									{archiveMode}
+									{openArchiveModal}
+									{openUnarchiveModal}
+								/>
 							</div>
 						</td>
 					</tr>
 					{#if $getChaptersInfinite.isLoading}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<LoadingSpinner />
 							</td>
 						</tr>
 					{:else if $getChaptersInfinite.isError}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤕"
 									heading="Oops!"
@@ -173,10 +210,10 @@
 						</tr>
 					{:else if chapters.length === 0}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤲"
-									heading="We've come up empty!"
+									heading="We're empty handed!"
 									description="It looks like you don't have any {archiveMode
 										? 'archived'
 										: 'unarchived'} chapters."
@@ -186,6 +223,13 @@
 					{:else}
 						{#each chapters as chapter}
 							<tr>
+								<td>
+									<input
+										class="checkbox"
+										type="checkbox"
+										on:change={(e) => handleChapterSelect(e, chapter)}
+									/>
+								</td>
 								<td>
 									<StudioImage
 										src={getImageURL(chapter) ?? ''}
@@ -203,8 +247,8 @@
 								<RowActions
 									{archiveMode}
 									editCallback={() => openEditModal(chapter)}
-									archiveCallback={() => openUnarchiveModal(chapter)}
-									unarchiveCallback={() => openArchiveModal(chapter)}
+									archiveCallback={() => openUnarchiveModal([chapter])}
+									unarchiveCallback={() => openArchiveModal([chapter])}
 								/>
 							</tr>
 						{/each}

@@ -74,14 +74,14 @@ export const storylines = t.router({
 		.use(auth)
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder(input.id)
+			const storylineBuilder = new StorylineBuilder()
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
-			const storyline = await storylineBuilder.setArchived();
+			const acknowledged = await storylineBuilder.setArchived(input.ids);
 
-			return storyline;
+			return acknowledged;
 		}),
 
 	create: t.procedure

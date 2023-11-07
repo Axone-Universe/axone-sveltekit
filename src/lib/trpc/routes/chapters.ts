@@ -82,14 +82,14 @@ export const chapters = t.router({
 		.use(auth)
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
-			const chapterBuilder = new ChapterBuilder(input.id)
+			const chapterBuilder = new ChapterBuilder()
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
-			const chapter = await chapterBuilder.setArchived();
+			const acknowledged = await chapterBuilder.setArchived(input.ids);
 
-			return chapter;
+			return acknowledged;
 		}),
 
 	create: t.procedure
