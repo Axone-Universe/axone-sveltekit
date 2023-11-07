@@ -20,6 +20,7 @@
 	import BookModal from '$lib/components/book/BookModal.svelte';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
+	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -197,16 +198,12 @@
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveToggle bind:archiveMode />
 								<span class="divider-vertical h-6 mx-0" />
-								<button
-									class="btn btn-sm variant-filled"
-									disabled={selectedBooks.length === 0}
-									on:click={() =>
-										archiveMode
-											? openUnarchiveModal(selectedBooks)
-											: openArchiveModal(selectedBooks)}
-								>
-									{archiveMode ? 'Unarchive' : 'Archive'} Selected
-								</button>
+								<ArchiveSelectedButton
+									selected={selectedBooks}
+									{archiveMode}
+									{openArchiveModal}
+									{openUnarchiveModal}
+								/>
 							</div>
 						</td>
 					</tr>

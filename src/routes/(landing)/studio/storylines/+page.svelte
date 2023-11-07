@@ -18,6 +18,7 @@
 	import StorylineModal from '$lib/components/storyline/StorylineModal.svelte';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
+	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -180,16 +181,12 @@
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveToggle bind:archiveMode />
 								<span class="divider-vertical h-6 mx-0" />
-								<button
-									class="btn btn-sm variant-filled"
-									disabled={selectedStorylines.length === 0}
-									on:click={() =>
-										archiveMode
-											? openUnarchiveModal(selectedStorylines)
-											: openArchiveModal(selectedStorylines)}
-								>
-									{archiveMode ? 'Unarchive' : 'Archive'} Selected
-								</button>
+								<ArchiveSelectedButton
+									selected={selectedStorylines}
+									{archiveMode}
+									{openArchiveModal}
+									{openUnarchiveModal}
+								/>
 							</div>
 						</td>
 					</tr>
