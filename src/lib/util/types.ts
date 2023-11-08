@@ -7,23 +7,6 @@ export interface DeltaQuery {
 	ops?: string;
 }
 
-export interface CampaignProperties {
-	id?: string;
-	title: string;
-	organizer: { name: string; link: string };
-	dates: {
-		startDate: Date;
-		endDate: Date;
-		event: string;
-	}[];
-	about: string;
-	tags: string[];
-	bannerURL: string;
-	submissionCriteria: string;
-	rewards: string;
-	previewText: string;
-}
-
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
 

@@ -3,30 +3,23 @@ import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';
 import type { Session } from '@supabase/supabase-js';
+import type { ReadCampaign } from '$lib/trpc/schemas/campaigns';
 
 export class CampaignsRepository extends Repository {
-	async get(
-		title?: string,
-		limit?: number,
-		cursor?: string
-	): Promise<HydratedDocument<CampaignProperties>[]> {
+	async get(readCampaign: ReadCampaign): Promise<HydratedDocument<CampaignProperties>[]> {
 		const filter: any = {};
 
-		if (title) {
-			filter.title = title;
+		if (readCampaign.id) {
+			filter._id = readCampaign.id;
 		}
 
-		if (cursor) {
-			filter._id = { $gt: cursor };
+		if (readCampaign.cursor) {
+			filter._id = { $gt: readCampaign.cursor };
 		}
 
-		const query = Campaign.find(filter, null, { limit });
+		const query = Campaign.find(filter, null, { limit: readCampaign.limit });
 
-		const campaigns = await query;
-
-		return new Promise<HydratedDocument<CampaignProperties>[]>((resolve) => {
-			resolve(campaigns);
-		});
+		return await query;
 	}
 
 	// Might not be necessary since the number of campaigns shouldn't be excessively high.

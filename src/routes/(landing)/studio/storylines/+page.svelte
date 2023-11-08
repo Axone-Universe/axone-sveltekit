@@ -19,6 +19,7 @@
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
+	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -179,7 +180,9 @@
 					<tr>
 						<td colspan="6">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
-								<ArchiveToggle bind:archiveMode />
+								<ViewFilters>
+									<ArchiveToggle bind:archiveMode />
+								</ViewFilters>
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedStorylines}
@@ -242,12 +245,7 @@
 									{/if}
 								</td>
 								<td>{formattedDate(new Date(decodeTime(storyline._id)))}</td>
-								<RowActions
-									{archiveMode}
-									editCallback={() => openEditModal(storyline)}
-									archiveCallback={() => openUnarchiveModal([storyline])}
-									unarchiveCallback={() => openArchiveModal([storyline])}
-								/>
+								<RowActions editCallback={() => openEditModal(storyline)} />
 							</tr>
 						{/each}
 					{/if}

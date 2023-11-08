@@ -1,6 +1,7 @@
 import { label, type BookProperties } from '$lib/properties/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
+import { label as CampaignLabel } from '$lib/properties/campaign';
 import {
 	addUserPermissionPipeline,
 	addUpdateRestrictionPipeline,
@@ -23,7 +24,8 @@ export const bookSchema = new Schema<BookProperties>({
 		}
 	],
 	rating: { type: Number, default: 0 },
-	archived: { type: Boolean, default: false }
+	archived: { type: Boolean, default: false },
+	campaign: { type: String, ref: CampaignLabel, required: false }
 });
 
 bookSchema.index({ title: 'text' });
@@ -77,6 +79,21 @@ function populate(pipeline: PipelineStage[]) {
 			$unwind: {
 				path: '$user',
 				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$lookup: { from: 'campaigns', localField: 'campaign', foreignField: '_id', as: 'campaign' }
+		},
+		{
+			$unwind: {
+				path: '$campaign',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$set: {
+				'campaign.startDate': { $toDate: '$campaign.startDate' },
+				'campaign.endDate': { $toDate: '$campaign.endDate' }
 			}
 		}
 	);

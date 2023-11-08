@@ -15,7 +15,8 @@ export class BooksRepository extends Repository {
 		genres?: Genre[],
 		title?: string,
 		user?: string,
-		archived?: boolean
+		archived?: boolean,
+		campaign?: string | null
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
@@ -27,6 +28,17 @@ export class BooksRepository extends Repository {
 		if (user) {
 			filter.user = user;
 		}
+
+		if (campaign === null) {
+			// no campaigns
+			filter.campaign = null;
+		} else if (campaign === '') {
+			// only campaigns
+			filter.campaign = { $ne: null };
+		} else if (campaign !== undefined) {
+			// specific campaign
+			filter.campaign = campaign;
+		} // else both normal books and campaigns
 
 		if (genres) {
 			if (genres.length > 0) {

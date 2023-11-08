@@ -22,7 +22,7 @@
 </script>
 
 <div
-	class={`card w-full sm:w-3/4 lg:w-1/2 grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}
+	class={`card w-modal grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}
 >
 	<button
 		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled"

@@ -1,16 +1,31 @@
 export const label = 'Campaign';
 
 export interface CampaignProperties {
-	// preview + main
 	_id: string;
-	title?: string;
-	organizer?: string;
-	dates?: string[];
-	previewText?: string;
-	tags?: string[];
-	bannerURL?: string;
-	// main
+	user: string;
+	startDate?: Date;
+	endDate?: Date;
 	submissionCriteria?: string;
 	rewards?: string;
-	about?: string;
+	book?: string;
+}
+
+export class CampaignPropertyBuilder {
+	private readonly _properties: CampaignProperties;
+
+	constructor() {
+		this._properties = {
+			_id: '',
+			user: '',
+			startDate: new Date(),
+			endDate: new Date(),
+			submissionCriteria: '',
+			rewards: '',
+			book: ''
+		};
+	}
+
+	getProperties() {
+		return this._properties;
+	}
 }

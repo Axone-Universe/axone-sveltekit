@@ -84,10 +84,10 @@
 	}
 </script>
 
-<div class={customClass}>
+<div class="{customClass} w-modal">
 	<div class="card p-2 sm:p-4 space-y-4">
 		<div class="flex justify-between gap-2">
-			<div class="flex flex-col w-full">
+			<div class="flex flex-col w-full gap-2">
 				<label for="book-title"> * Book Title </label>
 				<input
 					id="book-title"

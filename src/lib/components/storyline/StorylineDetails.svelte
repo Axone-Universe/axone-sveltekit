@@ -84,7 +84,7 @@
 	}
 </script>
 
-<div class="card p-2 sm:p-4 space-y-4 min-w-[50%]">
+<div class="card p-2 sm:p-4 space-y-4 w-modal">
 	<div class="flex justify-between gap-2">
 		<div class="flex flex-col w-full">
 			<label for="storyline-title"> * Storyline Title </label>
