@@ -2,9 +2,8 @@
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
-	import { arrowUp, filter } from 'svelte-awesome/icons';
+	import { filter } from 'svelte-awesome/icons';
 
-	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
@@ -16,8 +15,7 @@
 	import { browser } from '$app/environment';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
-
-	export let data: PageData;
+	import InfoHeader from '$lib/components/InfoHeader.svelte';
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	// Only "recommended" is implemented for now
@@ -127,7 +125,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
-<Container class="w-full">
+<Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
 			class="input text-sm h-8"
@@ -199,34 +197,28 @@
 	</div>
 
 	{#if $getBooksInfinite.isLoading}
-		<div class="h-screen flex justify-center items-center">
+		<div class="h-screen flex justify-center items-center pb-32">
 			<LoadingSpinner />
 		</div>
 	{:else if $getBooksInfinite.isError}
-		<div class="mt-8 text-center space-y-8 h-screen">
-			<div>
-				<p class="text-6xl">🤕</p>
-				<h4>Something went wrong while fetching books!</h4>
-				<p>How about trying again?</p>
-			</div>
-			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Try again</button>
+		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
+			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
+				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
+			</InfoHeader>
 		</div>
 	{:else if items.length === 0}
-		<div class="mt-8 text-center space-y-8 h-screen">
-			<div>
-				<p class="text-6xl">😲</p>
-				<h4>We've come up empty!</h4>
-				{#if recommendedSelected}
-					<p>
-						We can't find any books that match your genre preferences. Try changing your filters!
-					</p>
-				{:else}
-					<p>Try changing your filters or write your own book!</p>
+		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
+			<InfoHeader
+				emoji="🤲"
+				heading="We're empty handed!"
+				description={recommendedSelected
+					? "We can't find any books that match your genre preferences. Try changing your filters!"
+					: 'Try changing your filters or write your own book!'}
+			>
+				{#if !recommendedSelected}
+					<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
 				{/if}
-			</div>
-			{#if !recommendedSelected}
-				<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
-			{/if}
+			</InfoHeader>
 		</div>
 	{:else}
 		<div class="min-h-screen">

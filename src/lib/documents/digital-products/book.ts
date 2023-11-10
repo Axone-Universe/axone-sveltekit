@@ -161,25 +161,27 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		throw new Error("Couldn't update book");
 	}
 
-	async setArchived(): Promise<HydratedDocument<BookProperties>> {
+	async setArchived(ids: string[]): Promise<boolean> {
 		const session = await startSession();
-		let book: HydratedDocument<BookProperties> | null = null;
+		let acknowledged = false;
 
 		try {
 			await session.withTransaction(async () => {
-				book = await Book.findOneAndUpdate(
-					{ _id: this._bookProperties._id },
-					{ archived: this._bookProperties.archived },
-					{
-						new: true,
-						userID: this._sessionUserID,
-						session
-					}
-				);
+				acknowledged = (
+					await Book.updateMany(
+						{ _id: { $in: ids }, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					)
+				).acknowledged;
 
-				if (book) {
+				if (acknowledged) {
 					await Storyline.updateMany(
-						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ book: { $in: ids }, user: this._bookProperties.user },
 						{ archived: this._bookProperties.archived },
 						{
 							new: true,
@@ -189,7 +191,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					);
 
 					await Chapter.updateMany(
-						{ book: this._bookProperties._id, user: this._bookProperties.user },
+						{ book: { $in: ids }, user: this._bookProperties.user },
 						{ archived: this._bookProperties.archived },
 						{
 							new: true,
@@ -203,11 +205,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			session.endSession();
 		}
 
-		if (book) {
-			return book;
-		}
-
-		throw new Error("Couldn't update book");
+		return acknowledged;
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {

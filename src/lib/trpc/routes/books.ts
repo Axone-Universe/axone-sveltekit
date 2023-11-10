@@ -66,14 +66,14 @@ export const books = t.router({
 		.use(auth)
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
-			const bookBuilder = new BookBuilder(input.id)
+			const bookBuilder = new BookBuilder()
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
-			const book = await bookBuilder.setArchived();
+			const acknowledged = await bookBuilder.setArchived(input.ids);
 
-			return book;
+			return acknowledged;
 		}),
 
 	getBooksByUserID: t.procedure

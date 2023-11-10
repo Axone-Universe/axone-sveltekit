@@ -138,14 +138,22 @@ describe('books', () => {
 		const sessionTwo = createTestSession(testUserTwo);
 		await createDBUser(sessionOne);
 		await createDBUser(sessionTwo);
-		const book = await createBook(sessionOne);
+		const userOneBook1 = await createBook(sessionOne);
+		const userOneBook2 = await createBook(sessionOne);
+		const userTwoBook1 = await createBook(sessionTwo);
 
 		const callerOne = router.createCaller({ session: sessionOne });
 		const callerTwo = router.createCaller({ session: sessionTwo });
 
-		const userOneStoryline = (
+		const userOneMainStoryline = (
 			await callerOne.storylines.get({
-				bookID: book._id
+				bookID: userOneBook1._id
+			})
+		).result[0];
+
+		const userTwoMainStoryline = (
+			await callerTwo.storylines.get({
+				bookID: userTwoBook1._id
 			})
 		).result[0];
 
@@ -153,14 +161,14 @@ describe('books', () => {
 			sessionOne,
 			"UserOne's Chapter 1",
 			'Chapter 1',
-			userOneStoryline
+			userOneMainStoryline
 		);
 
 		const userTwoStoryline = await callerTwo.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
-			book: book._id,
-			parent: userOneStoryline._id,
+			book: userOneBook1._id,
+			parent: userOneMainStoryline._id,
 			parentChapter: userOneChapter._id
 		});
 
@@ -172,23 +180,38 @@ describe('books', () => {
 		);
 
 		// Check archived before updating
-		expect(book.archived).toEqual(false);
-		expect(userOneStoryline.archived).toEqual(false);
+		expect(userOneBook1.archived).toEqual(false);
+		expect(userOneBook2.archived).toEqual(false);
+		expect(userOneMainStoryline.archived).toEqual(false);
+		expect(userTwoMainStoryline.archived).toEqual(false);
 		expect(userTwoStoryline.archived).toEqual(false);
 		expect(userOneChapter.archived).toEqual(false);
 		expect(userTwoChapter.archived).toEqual(false);
 
-		// Check archived changed only for user one
-		expect((await callerOne.books.setArchived({ id: book._id, archived: true })).archived).toEqual(
-			true
-		);
+		// Archive user one's books
+		await callerOne.books.setArchived({
+			ids: [userOneBook1._id, userOneBook2._id],
+			archived: true
+		});
+
+		// Check archived changed only for user one's books
+		expect((await callerOne.books.getById({ id: userOneBook1._id })).archived).toEqual(true);
+		expect((await callerOne.books.getById({ id: userOneBook2._id })).archived).toEqual(true);
+		expect((await callerOne.books.getById({ id: userTwoBook1._id })).archived).toEqual(false);
+
+		// Check archived changed only for user one's storylines
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneStoryline._id })).archived
+			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).archived
 		).toEqual(true);
-		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
+		expect(
+			(await callerTwo.storylines.getById({ storylineID: userTwoMainStoryline._id })).archived
+		).toEqual(false);
 		expect(
 			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).archived
 		).toEqual(false);
+
+		// Check archived changed only for user one's chapters
+		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
 		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).archived).toEqual(false);
 	});
 });

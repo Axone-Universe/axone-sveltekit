@@ -1,3 +1,4 @@
+import type { UserProperties } from '$lib/properties/user';
 import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,
@@ -5,6 +6,7 @@ import {
 	createDBUser,
 	createTestSession,
 	testUserOne,
+	testUserTwo,
 	createBook,
 	createChapter
 } from '$lib/util/testing/testing';
@@ -64,10 +66,16 @@ describe('chapters', () => {
 		const chapter1Delta = await caller.deltas.getById({ id: chapter1Response.delta as string });
 		const chapter2Delta = await caller.deltas.getById({ id: chapter2Response.delta as string });
 
+		const chapter1 = await caller.chapters.getById({ id: chapter1Response._id });
+
 		expect(chapter1Response.title).toEqual(chapter1Title);
 		expect(chapter2Response.title).toEqual(chapter2Title);
+		expect(chapter1.children!.length).toEqual(1);
+
 		expect(chapter1Delta.permissions).toEqual(chapter1Response.permissions);
 		expect(chapter2Delta.permissions).toEqual(chapter2Response.permissions);
+		expect(chapter1Delta.user).toEqual((chapter1Response.user as UserProperties)._id);
+		expect(chapter2Delta.user).toEqual((chapter1Response.user as UserProperties)._id);
 		expect(
 			typeof chapter2Response.user === 'string' ? chapter2Response.user : chapter2Response.user?._id
 		).toEqual(user._id);
@@ -119,10 +127,8 @@ describe('chapters', () => {
 
 	test('delete chapters', async () => {
 		const testBookTitle = 'My Book';
-		const chapter1Title = 'Chapter 1';
-		const chapter2Title = 'Chapter 2';
-		const chapter3Title = 'Chapter 3';
 		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -134,59 +140,53 @@ describe('chapters', () => {
 			})
 		).result;
 
-		caller = router.createCaller({ session: createTestSession(testUserOne) });
-
-		const chapter1Response = await createChapter(
-			testUserOneSession,
-			chapter1Title,
-			'My chapter 1',
-			storylines[0]
-		);
+		caller = router.createCaller({ session: testUserOneSession });
+		await createChapter(testUserOneSession, 'Chapter 1', 'My chapter 1', storylines[0]);
 
 		const chapter2Response = await createChapter(
 			testUserOneSession,
-			chapter2Title,
+			'Chapter 2',
 			'My chapter 2',
-			storylines[0],
-			chapter1Response._id
+			storylines[0]
 		);
 
 		const chapter3Response = await createChapter(
 			testUserOneSession,
-			chapter3Title,
+			'Chapter 3',
 			'My chapter 3',
-			storylines[0],
-			chapter2Response._id
+			storylines[0]
 		);
 
+		caller = router.createCaller({ session: testUserTwoSession });
+		await createChapter(testUserTwoSession, 'Chapter 4', 'My chapter 4', storylines[0]);
+
+		caller = router.createCaller({ session: testUserOneSession });
 		const chapter2DeleteResponse = await caller.chapters.delete({
 			id: chapter2Response._id
 		});
 
-		let storylineChapters = (
+		const storylineChapters = (
 			await caller.chapters.get({
 				storylineChapterIDs: storylines[0].chapters as string[]
 			})
 		).result;
 
-		expect(storylineChapters.length).toEqual(2);
+		expect(storylineChapters.length).toEqual(3);
+		expect(storylineChapters[0].children![0] === chapter3Response._id);
 		expect(chapter2DeleteResponse.deletedCount).toEqual(1);
 
-		const chapter3DeleteResponse = await caller.chapters.delete({
-			id: chapter3Response._id
-		});
+		const deleteChapter = async () => {
+			await caller.chapters.delete({
+				id: chapter3Response._id
+			});
+		};
 
-		storylineChapters = (
-			await caller.chapters.get({
-				storylineChapterIDs: storylines[0].chapters as string[]
-			})
-		).result;
-
-		expect(storylineChapters.length).toEqual(1);
-		expect(chapter3DeleteResponse.deletedCount).toEqual(1);
+		await expect(deleteChapter).rejects.toThrowError(
+			'This chapter was referenced by another author, it can only be archived.'
+		);
 	});
 
-	test('toggling archived status', async () => {
+	test('updating archived status', async () => {
 		const session = createTestSession(testUserOne);
 		await createDBUser(session);
 		const book = await createBook(session);
@@ -199,14 +199,33 @@ describe('chapters', () => {
 			})
 		).result[0];
 
-		const chapter = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+		const chapterOne = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+		const chapterTwo = await createChapter(
+			session,
+			'Chapter 2',
+			'My chapter 2',
+			storyline,
+			chapterOne._id
+		);
+		const chapterThree = await createChapter(
+			session,
+			'Chapter 3',
+			'My chapter 3',
+			storyline,
+			chapterTwo._id
+		);
 
-		expect(chapter.archived).toEqual(false);
-		expect(
-			(await caller.chapters.setArchived({ id: chapter._id, archived: true })).archived
-		).toEqual(true);
-		expect(
-			(await caller.chapters.setArchived({ id: chapter._id, archived: false })).archived
-		).toEqual(false);
+		// Check archived before updating
+		expect(chapterOne.archived).toEqual(false);
+		expect(chapterTwo.archived).toEqual(false);
+		expect(chapterThree.archived).toEqual(false);
+
+		// Archive chapters one and two
+		await caller.chapters.setArchived({ ids: [chapterOne._id, chapterTwo._id], archived: true });
+
+		// Check archived changed only for chapters one and two
+		expect((await caller.chapters.getById({ id: chapterOne._id })).archived).toEqual(true);
+		expect((await caller.chapters.getById({ id: chapterTwo._id })).archived).toEqual(true);
+		expect((await caller.chapters.getById({ id: chapterThree._id })).archived).toEqual(false);
 	});
 });

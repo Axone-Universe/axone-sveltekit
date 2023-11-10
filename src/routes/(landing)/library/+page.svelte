@@ -170,7 +170,7 @@
 
 <div class="flex min-h-screen relative w-full">
 	<div
-		class="min-h-screen rounded-xl m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
+		class="min-h-screen rounded-lg m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="flex flex-col gap-2">
 			{#each readingLists as list}
@@ -217,7 +217,7 @@
 	{:else if items.length === 0}
 		<InfoHeader
 			emoji="🤲"
-			heading="We've come up empty!"
+			heading="We're empty handed!"
 			description="This reading list is empty. Why not add some storylines to it?"
 		>
 			<a href="/home" class="btn variant-filled-primary">Browse books</a>

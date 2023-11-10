@@ -99,7 +99,8 @@ test(
 						description: `Storyline ${l} description`,
 						book: newBook._id,
 						parent: storylines[0]._id,
-						parentChapter: getRandomElement(chapters)._id
+						parentChapter: getRandomElement(chapters)._id,
+						imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 					});
 					for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 						await createChapter(

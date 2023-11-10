@@ -163,28 +163,28 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		throw new Error("Couldn't update storyline");
 	}
 
-	async setArchived(): Promise<HydratedDocument<StorylineProperties>> {
+	async setArchived(ids: string[]): Promise<boolean> {
 		const session = await startSession();
-		let storyline: HydratedDocument<StorylineProperties> | null = null;
+		let acknowledged = false;
 
 		try {
 			await session.withTransaction(async () => {
-				storyline = await Storyline.findOneAndUpdate(
-					{ _id: this._storylineProperties._id },
-					{ archived: this._storylineProperties.archived },
-					{
-						new: true,
-						userID: this._sessionUserID,
-						session
-					}
-				);
-
-				if (storyline) {
-					await Chapter.updateMany(
-						{ storyline: this._storylineProperties._id },
+				acknowledged = (
+					await Storyline.updateMany(
+						{ _id: { $in: ids }, user: this._storylineProperties.user },
 						{ archived: this._storylineProperties.archived },
 						{
-							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					)
+				).acknowledged;
+
+				if (acknowledged) {
+					await Chapter.updateMany(
+						{ storyline: { $in: ids }, user: this._storylineProperties.user },
+						{ archived: this._storylineProperties.archived },
+						{
 							userID: this._sessionUserID,
 							session
 						}
@@ -195,11 +195,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			session.endSession();
 		}
 
-		if (storyline) {
-			return storyline;
-		}
-
-		throw new Error("Couldn't update storyline");
+		return acknowledged;
 	}
 
 	/**

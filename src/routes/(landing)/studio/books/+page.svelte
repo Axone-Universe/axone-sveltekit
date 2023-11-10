@@ -20,6 +20,7 @@
 	import BookModal from '$lib/components/book/BookModal.svelte';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
+	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -28,6 +29,7 @@
 
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
+	let selectedBooks: HydratedDocument<BookProperties>[] = [];
 
 	const bookDetailsModalComponent: ModalComponent = {
 		ref: BookDetails
@@ -65,30 +67,41 @@
 		  ) as HydratedDocument<BookProperties>[])
 		: [];
 
-	function openArchiveModal(book: HydratedDocument<BookProperties>) {
-		archiveModal.body = `Are you sure you want to archive ${book.title}?`;
+	function openArchiveModal(books: HydratedDocument<BookProperties>[]) {
+		if (books.length > 1) {
+			archiveModal.body = `Are you sure you want to archive these ${books.length} books? Doing so will archive all the storylines and chapters you've created for them too.`;
+		} else {
+			archiveModal.body = `Are you sure you want to archive ${books[0].title}? Doing so will archive all the storylines and chapters you've created for it too.`;
+		}
+
 		archiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(book._id, true);
+				await setArchive(books, true);
 				refetch();
 			}
 		};
 		modalStore.trigger(archiveModal);
 	}
 
-	function openUnarchiveModal(book: HydratedDocument<BookProperties>) {
-		unArchiveModal.body = `Are you sure you want to unarchive ${book.title}?`;
+	function openUnarchiveModal(books: HydratedDocument<BookProperties>[]) {
+		if (books.length > 1) {
+			unArchiveModal.body = `Are you sure you want to unarchive these ${books.length} books? Doing so will unarchive all the storylines and chapters you've created for them too.`;
+		} else {
+			unArchiveModal.body = `Are you sure you want to unarchive ${books[0].title}? Doing so will unarchive all the storylines and chapters you've created for it too.`;
+		}
+
 		unArchiveModal.response = async (r: boolean) => {
 			if (r) {
-				await setArchive(book._id, false);
+				await setArchive(books, false);
 				refetch();
 			}
 		};
 		modalStore.trigger(unArchiveModal);
 	}
 
-	async function setArchive(id: string, archived: boolean) {
-		const resp = await trpc($page).books.setArchived.mutate({ id, archived });
+	async function setArchive(books: HydratedDocument<BookProperties>[], archived: boolean) {
+		const ids = books.map((b) => b._id);
+		const resp = await trpc($page).books.setArchived.mutate({ ids, archived });
 	}
 
 	function openCreateModal() {
@@ -134,19 +147,36 @@
 	async function refetch() {
 		$getBooksInfinite.remove();
 		await $getBooksInfinite.refetch();
+		selectedBooks = [];
+	}
+
+	function handleBookSelect(
+		e: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		},
+		book: HydratedDocument<BookProperties>
+	) {
+		if ((e.target as HTMLInputElement).checked) {
+			if (!selectedBooks.includes(book)) {
+				selectedBooks = [...selectedBooks, book];
+			}
+		} else {
+			selectedBooks = selectedBooks.filter((s) => s !== book);
+		}
 	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
 
 <div class="min-h-screen overflow-hidden w-full">
-	<div class="w-full min-h-screen flex flex-col gap-2 p-2">
+	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
-			<table class="table table-hover table-compact">
+			<table class="table table-hover table-compact relative">
 				<thead>
 					<tr>
+						<th />
 						<th>Cover</th>
 						<th>Title</th>
 						<th>Description</th>
@@ -156,10 +186,8 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan="5">
-							<div class="flex justify-end items-center p-1 gap-4 min-h-[42px]">
-								<ArchiveToggle bind:archiveMode />
-								<span class="divider-vertical h-6 mx-0" />
+						<td colspan="6">
+							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<button
 									type="button"
 									class="btn-icon btn-icon-sm variant-filled-primary"
@@ -167,18 +195,27 @@
 								>
 									<span><Icon data={plus} /></span>
 								</button>
+								<span class="divider-vertical h-6 mx-0" />
+								<ArchiveToggle bind:archiveMode />
+								<span class="divider-vertical h-6 mx-0" />
+								<ArchiveSelectedButton
+									selected={selectedBooks}
+									{archiveMode}
+									{openArchiveModal}
+									{openUnarchiveModal}
+								/>
 							</div>
 						</td>
 					</tr>
 					{#if $getBooksInfinite.isLoading}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<LoadingSpinner />
 							</td>
 						</tr>
 					{:else if $getBooksInfinite.isError}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤕"
 									heading="Oops!"
@@ -188,10 +225,10 @@
 						</tr>
 					{:else if books.length === 0}
 						<tr>
-							<td colspan="5">
+							<td colspan="6">
 								<InfoHeader
 									emoji="🤲"
-									heading="We've come up empty!"
+									heading="We're empty handed!"
 									description="It looks like you don't have any {archiveMode
 										? 'archived'
 										: 'unarchived'} books."
@@ -201,6 +238,13 @@
 					{:else}
 						{#each books as book}
 							<tr>
+								<td>
+									<input
+										class="checkbox"
+										type="checkbox"
+										on:change={(e) => handleBookSelect(e, book)}
+									/>
+								</td>
 								<td>
 									<StudioImage
 										src={book.imageURL}
@@ -218,8 +262,8 @@
 								<RowActions
 									{archiveMode}
 									editCallback={() => openEditModal(book)}
-									archiveCallback={() => openUnarchiveModal(book)}
-									unarchiveCallback={() => openArchiveModal(book)}
+									archiveCallback={() => openUnarchiveModal([book])}
+									unarchiveCallback={() => openArchiveModal([book])}
 								/>
 							</tr>
 						{/each}
