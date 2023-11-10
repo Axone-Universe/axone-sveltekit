@@ -19,7 +19,8 @@ export const read = z.object({
 	title: z.string().optional(),
 	id: z.string().optional(),
 	user: z.string().optional(),
-	archived: z.boolean().optional()
+	archived: z.boolean().optional(),
+	campaign: z.string().optional().nullable()
 });
 
 export const update = z.object({
@@ -44,3 +45,5 @@ export const search = z.object({
 	title: z.string().optional(),
 	id: z.string().optional()
 });
+
+export type CreateBook = z.infer<typeof create>;

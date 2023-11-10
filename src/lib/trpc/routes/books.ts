@@ -3,7 +3,7 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, read, update } from '$lib/trpc/schemas/books';
+import { create, read, submitToCampaign, update } from '$lib/trpc/schemas/books';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 
@@ -21,7 +21,8 @@ export const books = t.router({
 				input.genres,
 				input.title,
 				input.user,
-				input.archived
+				input.archived,
+				input.campaign
 			);
 
 			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
@@ -113,7 +114,7 @@ export const books = t.router({
 	submitToCampaign: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(update)
+		.input(submitToCampaign)
 		.mutation(async () => {
 			throw new Error('not Implemented');
 		}),

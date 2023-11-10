@@ -18,11 +18,8 @@
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
-	// Only "recommended" is implemented for now
-	// recommended looks at the user genre preferences to select books from there
-	const TAGS = ['Recommended'] as const;
+	const TAGS = ['Recommended', 'Campaigns'] as const;
 	const FILTERS_KEY = 'homepageFilters';
-	// const TAGS = ['Trending', 'Recommended', 'Reading', 'Newest'] as const;
 
 	let lastLoadEpoch = 0;
 	let genresBuilder = new GenresBuilder();
@@ -31,6 +28,7 @@
 
 	let selectedTag: (typeof TAGS)[number] | null = 'Recommended';
 	$: recommendedSelected = selectedTag === 'Recommended';
+	$: campaignSelected = selectedTag === 'Campaigns';
 
 	$: if (browser && mounted) {
 		sessionStorage.setItem(
@@ -53,12 +51,14 @@
 		{
 			limit: 20,
 			genres: recommendedSelected ? undefined : genresBuilder.build(),
-			title: debouncedSearchValue ? debouncedSearchValue : undefined
+			title: debouncedSearchValue ? debouncedSearchValue : undefined,
+			campaign: campaignSelected ? '' : null,
 		},
 		{
 			queryKey: [
 				'booksHome',
 				recommendedSelected ? undefined : genresBuilder.build(),
+				campaignSelected ? '' : null,
 				debouncedSearchValue
 			],
 			getNextPageParam: (lastPage) => lastPage.cursor,

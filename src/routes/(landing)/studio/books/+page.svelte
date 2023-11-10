@@ -21,6 +21,10 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
+	import CreateBookModal from '$lib/components/studio/CreateBookModal.svelte';
+	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
+	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
+	import { CampaignPropertyBuilder } from '$lib/properties/campaign';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -28,6 +32,7 @@
 	export let data: PageData;
 
 	let archiveMode: boolean = false;
+	let campaignMode: boolean = false;
 	let lastLoadEpoch = 0;
 	let selectedBooks: HydratedDocument<BookProperties>[] = [];
 
@@ -47,16 +52,43 @@
 		component: bookModalComponent
 	};
 
+	const createBookModalComponent: ModalComponent = {
+		ref: CreateBookModal,
+		props: {
+			bookCallback: () => {
+				modalStore.close();
+				openCreateBookModal();
+			},
+			campaignCallback: () => {
+				modalStore.close();
+				openCreateCampaignModal();
+			}
+		}
+	};
+	const createBookModal: ModalSettings = {
+		type: 'component',
+		component: createBookModalComponent
+	};
+
+	const campaignDetailsComponent: ModalComponent = {
+		ref: CampaignDetails
+	};
+	const campaignDetailsModal: ModalSettings = {
+		type: 'component',
+		component: campaignDetailsComponent
+	};
+
 	// TODO: add archiveMode to query when respective backend logic is done
 	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
 		{
 			limit: 10,
 			user: data.session?.user.id,
 			genres: [],
-			archived: archiveMode
+			archived: archiveMode,
+			campaign: campaignMode ? '' : null
 		},
 		{
-			queryKey: ['booksStudio', archiveMode],
+			queryKey: ['booksStudio', archiveMode, campaignMode ? '' : null],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -104,7 +136,7 @@
 		const resp = await trpc($page).books.setArchived.mutate({ ids, archived });
 	}
 
-	function openCreateModal() {
+	function openCreateBookModal() {
 		const bookPropertyBuilder = new BookPropertyBuilder();
 
 		bookDetailsModalComponent.props = {
@@ -117,6 +149,39 @@
 			}
 		};
 		modalStore.trigger(bookDetailsModal);
+	}
+
+	function openCreateCampaignModal() {
+		const bookPropertyBuilder = new BookPropertyBuilder();
+		const campaignPropertyBuilder = new CampaignPropertyBuilder();
+
+		campaignDetailsComponent.props = {
+			book: bookPropertyBuilder.getProperties(),
+			campaign: campaignPropertyBuilder.getProperties(),
+			supabase: data.supabase,
+			cancelCallback: modalStore.close,
+			createCallback: () => {
+				campaignMode = true;
+				refetch();
+				modalStore.close();
+			}
+		};
+		modalStore.trigger(campaignDetailsModal);
+	}
+
+	function openUpdateCampaignModal(book: HydratedDocument<BookProperties>) {
+		campaignDetailsComponent.props = {
+			book,
+			campaign: book.campaign,
+			supabase: data.supabase,
+			cancelCallback: modalStore.close,
+			createCallback: () => {
+				campaignMode = true;
+				refetch();
+				modalStore.close();
+			}
+		};
+		modalStore.trigger(campaignDetailsModal);
 	}
 
 	function openEditModal(book: HydratedDocument<BookProperties>) {
@@ -191,12 +256,20 @@
 								<button
 									type="button"
 									class="btn-icon btn-icon-sm variant-filled-primary"
-									on:click={openCreateModal}
+									on:click={() => modalStore.trigger(createBookModal)}
 								>
 									<span><Icon data={plus} /></span>
 								</button>
 								<span class="divider-vertical h-6 mx-0" />
-								<ArchiveToggle bind:archiveMode />
+								<ViewFilters>
+									<ArchiveToggle bind:archiveMode />
+									<button
+										class="chip {campaignMode ? 'variant-filled' : 'variant-soft'}"
+										on:click={() => (campaignMode = !campaignMode)}
+									>
+										<span>Campaigns</span>
+									</button>
+								</ViewFilters>
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedBooks}
@@ -260,10 +333,8 @@
 									{formattedDate(new Date(decodeTime(book._id)))}
 								</td>
 								<RowActions
-									{archiveMode}
-									editCallback={() => openEditModal(book)}
-									archiveCallback={() => openUnarchiveModal([book])}
-									unarchiveCallback={() => openArchiveModal([book])}
+									editCallback={() =>
+										campaignMode ? openUpdateCampaignModal(book) : openEditModal(book)}
 								/>
 							</tr>
 						{/each}

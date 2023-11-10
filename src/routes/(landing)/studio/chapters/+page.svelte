@@ -20,6 +20,7 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
+	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -108,8 +109,7 @@
 			createCallback: () => {
 				refetch();
 				modalStore.close();
-			},
-			class: 'flex flex-col space-y-4 items-center'
+			}
 		};
 		modalStore.trigger(chapterDetailsModal);
 	}
@@ -181,7 +181,9 @@
 					<tr>
 						<td colspan="6">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
-								<ArchiveToggle bind:archiveMode />
+								<ViewFilters>
+									<ArchiveToggle bind:archiveMode />
+								</ViewFilters>
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedChapters}
@@ -244,12 +246,7 @@
 									{/if}
 								</td>
 								<td>{formattedDate(new Date(decodeTime(chapter._id)))}</td>
-								<RowActions
-									{archiveMode}
-									editCallback={() => openEditModal(chapter)}
-									archiveCallback={() => openUnarchiveModal([chapter])}
-									unarchiveCallback={() => openArchiveModal([chapter])}
-								/>
+								<RowActions editCallback={() => openEditModal(chapter)} />
 							</tr>
 						{/each}
 					{/if}
