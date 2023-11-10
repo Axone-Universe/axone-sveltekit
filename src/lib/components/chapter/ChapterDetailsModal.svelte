@@ -98,7 +98,7 @@
 	}
 </script>
 
-<div class={`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} max-w-md`}>
+<div class={`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} w-modal`}>
 	<div class="space-y-4 rounded-container-token">
 		<label>
 			* Chapter Title

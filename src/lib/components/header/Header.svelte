@@ -94,13 +94,6 @@
 			</div>
 
 			<div>
-				<a
-					href="/campaigns"
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-				>
-					<span class="capitalize">Campaigns</span>
-				</a>
-
 				<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
 					<div class="grid grid-cols-1">
 						<nav class="list-nav">

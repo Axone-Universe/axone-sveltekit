@@ -1,15 +1,10 @@
 <script lang="ts">
-	import { SlideToggle } from '@skeletonlabs/skeleton';
-
 	export let archiveMode: boolean;
 </script>
 
-<SlideToggle
-	name="slide"
-	size="sm"
-	bind:checked={archiveMode}
-	background=" bg-surface-400-500-token"
-	active="bg-primary-500"
+<button
+	class="chip {archiveMode ? 'variant-filled' : 'variant-soft'}"
+	on:click={() => (archiveMode = !archiveMode)}
 >
-	Archived
-</SlideToggle>
+	<span>Archived</span>
+</button>

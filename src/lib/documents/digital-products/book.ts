@@ -1,6 +1,6 @@
 import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
-import type { HydratedDocument } from 'mongoose';
+import type { ClientSession, HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
@@ -218,22 +218,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		try {
 			// use a transaction to make sure everything saves
 			await session.withTransaction(async () => {
-				await book.save({ session });
-
-				const hydratedBook = book as HydratedDocument<BookProperties>;
-
-				// Also create the default/main storyline
-				const storylineBuilder = new StorylineBuilder()
-					.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
-					.bookID(hydratedBook._id)
-					.title(hydratedBook.title!)
-					.main(true)
-					.description(hydratedBook.description!)
-					.imageURL(hydratedBook.imageURL!)
-					.permissions(hydratedBook.permissions);
-
-				const storyline = new Storyline(storylineBuilder.properties());
-				await storyline.save({ session });
+				await saveBook(book, session);
 			});
 		} finally {
 			session.endSession();
@@ -256,4 +241,27 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 
 		return newBook as HydratedDocument<BookProperties>;
 	}
+
+	properties(): BookProperties {
+		return this._bookProperties;
+	}
+}
+
+export async function saveBook(book: HydratedDocument<BookProperties>, session: ClientSession) {
+	await book.save({ session });
+
+	const hydratedBook = book as HydratedDocument<BookProperties>;
+
+	// Also create the default/main storyline
+	const storylineBuilder = new StorylineBuilder()
+		.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
+		.bookID(hydratedBook._id)
+		.title(hydratedBook.title!)
+		.main(true)
+		.description(hydratedBook.description!)
+		.imageURL(hydratedBook.imageURL!)
+		.permissions(hydratedBook.permissions);
+
+	const storyline = new Storyline(storylineBuilder.properties());
+	await storyline.save({ session });
 }
