@@ -44,9 +44,9 @@
 				permissions: chapter.permissions,
 				notifications
 			})
-			.then((chapterNodeResponse) => {
-				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
-				toastMessage = 'Sunccessfully Created';
+			.then((response) => {
+				chapter = response.data as HydratedDocument<ChapterProperties>;
+				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
@@ -77,9 +77,9 @@
 				permissions: chapter.permissions,
 				notifications: notifications
 			})
-			.then((chapterNodeResponse) => {
-				chapter = chapterNodeResponse as HydratedDocument<ChapterProperties>;
-				toastMessage = 'Successfully Saved';
+			.then((response) => {
+				chapter = response.data as HydratedDocument<ChapterProperties>;
+				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {

@@ -83,9 +83,10 @@
 			console.log(supabaseResponse.data);
 			toastStore.trigger(t);
 			if (supabaseResponse.data.user) {
-				const users = (await trpc($page).users.list.query({
+				const usersResponse = await trpc($page).users.list.query({
 					id: supabaseResponse.data.user.id
-				})) as HydratedDocument<UserProperties>[];
+				});
+				const users = usersResponse.data as HydratedDocument<UserProperties>[];
 				if (users.length === 1 && users[0]._id === supabaseResponse.data.user.id) {
 					// user already created profile - go to home page (later change to app home page)
 					await goto('/');

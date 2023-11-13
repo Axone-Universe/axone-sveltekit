@@ -42,44 +42,45 @@
 	}
 
 	async function createStorylineData(imageURL?: string) {
-		try {
-			if (storyline._id) {
-				storyline = (await trpc($page).storylines.update.mutate({
-					id: storyline._id,
-					title: storyline.title,
-					description: storyline.description,
-					permissions: storyline.permissions,
-					imageURL: imageURL ?? storyline.imageURL,
-					notifications: notifications
-				})) as HydratedDocument<StorylineProperties>;
-			} else {
-				storyline = (await trpc($page).storylines.create.mutate({
-					title: storyline.title,
-					description: storyline.description,
-					book: storyline.book,
-					parent: storyline.parent,
-					parentChapter: storyline.parentChapter,
-					permissions: storyline.permissions,
-					imageURL: imageURL ?? ''
-				})) as HydratedDocument<StorylineProperties>;
+		let response;
+		let newStoryline = false;
+		if (storyline._id) {
+			response = await trpc($page).storylines.update.mutate({
+				id: storyline._id,
+				title: storyline.title,
+				description: storyline.description,
+				permissions: storyline.permissions,
+				imageURL: imageURL ?? storyline.imageURL,
+				notifications: notifications
+			});
+		} else {
+			newStoryline = true;
+			response = await trpc($page).storylines.create.mutate({
+				title: storyline.title,
+				description: storyline.description,
+				book: storyline.book,
+				parent: storyline.parent,
+				parentChapter: storyline.parentChapter,
+				permissions: storyline.permissions,
+				imageURL: imageURL ?? ''
+			});
+		}
 
-				const t: ToastSettings = {
-					message: 'Storyline created successfully',
-					background: 'variant-filled-primary'
-				};
-				toastStore.trigger(t);
-				await goto(
-					`/editor/${book._id}?storylineID=${
-						(storyline as HydratedDocument<ChapterProperties>)._id
-					}`
-				);
-			}
+		storyline = response.data as HydratedDocument<StorylineProperties>;
 
-			if (createCallback !== undefined) {
-				createCallback();
-			}
-		} catch (e) {
-			console.log(e);
+		const t: ToastSettings = {
+			message: response.message,
+			background: 'variant-filled-primary'
+		};
+		toastStore.trigger(t);
+
+		if (newStoryline)
+			await goto(
+				`/editor/${book._id}?storylineID=${(storyline as HydratedDocument<ChapterProperties>)._id}`
+			);
+
+		if (createCallback !== undefined) {
+			createCallback();
 		}
 	}
 </script>

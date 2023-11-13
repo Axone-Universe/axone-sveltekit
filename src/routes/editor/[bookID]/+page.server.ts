@@ -11,19 +11,23 @@ export const load = (async (event) => {
 	const bookID = event.params.bookID;
 	const storylineID = event.url.searchParams.get('storylineID');
 
-	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		id: bookID,
-		limit: 10
-	})) as HydratedDocument<BookProperties>;
+	const userAuthoredBookResponse = (
+		await trpc(event).books.getById.query({
+			id: bookID,
+			limit: 10
+		})
+	).data as HydratedDocument<BookProperties>;
 
 	// If there are no viewing permissions redirect
 	if (!userAuthoredBookResponse.userPermissions?.view) {
 		throw redirect(303, '/permissions/' + bookID + '/?documentType=book');
 	}
 
-	const storylineResponses = (await trpc(event).storylines.getByBookID.query({
-		bookID: bookID
-	})) as HydratedDocument<StorylineProperties>[];
+	const storylineResponses = (
+		await trpc(event).storylines.getByBookID.query({
+			bookID: bookID
+		})
+	).data as HydratedDocument<StorylineProperties>[];
 
 	const storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
 	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineResponses[0];

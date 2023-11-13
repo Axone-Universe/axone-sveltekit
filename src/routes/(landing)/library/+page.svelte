@@ -59,9 +59,11 @@
 	onMount(() => {
 		async function getUser() {
 			if (data.session) {
-				const maybeUser = await trpc($page).users.getById.query({ id: data.session.user.id });
-				if (maybeUser) {
-					user = maybeUser as HydratedDocument<UserProperties>;
+				const maybeUserResponse = await trpc($page).users.getById.query({
+					id: data.session.user.id
+				});
+				if (maybeUserResponse.data) {
+					user = maybeUserResponse.data as HydratedDocument<UserProperties>;
 				}
 			}
 		}
@@ -79,7 +81,7 @@
 	);
 
 	$: items = $getStorylines.data
-		? ($getStorylines.data as HydratedDocument<StorylineProperties>[])
+		? ($getStorylines.data.data as HydratedDocument<StorylineProperties>[])
 		: [];
 
 	function handleTryAgain() {
@@ -127,16 +129,18 @@
 	}
 
 	async function submitCreateReadingList(name: string) {
-		user = (await trpc($page).users.createReadingList.mutate({
+		const userResponse = await trpc($page).users.createReadingList.mutate({
 			name
-		})) as HydratedDocument<UserProperties>;
+		});
+		user = userResponse.data as HydratedDocument<UserProperties>;
 	}
 
 	async function submitDeleteReadingList(confirm: boolean) {
 		if (confirm) {
-			user = (await trpc($page).users.deleteReadingList.mutate({
+			let userResponse = await trpc($page).users.deleteReadingList.mutate({
 				name: readingListToDelete
-			})) as HydratedDocument<UserProperties>;
+			});
+			user = userResponse.data as HydratedDocument<UserProperties>;
 		}
 
 		if (readingListToDelete === selectedList) {
@@ -147,20 +151,22 @@
 	}
 
 	async function submitRenameReadingList(newName: string) {
-		user = (await trpc($page).users.renameReadingList.mutate({
+		let userResponse = await trpc($page).users.renameReadingList.mutate({
 			oldName: readingListToRename,
 			newName
-		})) as HydratedDocument<UserProperties>;
+		});
 
+		user = userResponse.data as HydratedDocument<UserProperties>;
 		readingListToRename = '';
 	}
 
 	async function addToReadingList(names: string[], storylineID: string) {
 		try {
-			user = (await trpc($page).users.updateReadingLists.mutate({
+			let userResponse = await trpc($page).users.updateReadingLists.mutate({
 				names,
 				storylineID: storylineID
-			})) as HydratedDocument<UserProperties>;
+			});
+			user = userResponse.data as HydratedDocument<UserProperties>;
 			$getStorylines.refetch();
 		} catch (e) {
 			console.log(e);

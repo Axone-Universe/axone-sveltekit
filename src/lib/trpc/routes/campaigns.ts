@@ -6,6 +6,9 @@ import { CampaignsRepository } from '$lib/repositories/campaignsRepository';
 import { CampaignBuilder } from '$lib/documents/campaigns/campaign';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { BookBuilder } from '$lib/documents/digital-products/book';
+import type { Response } from '$lib/util/types';
+import type { HydratedDocument } from 'mongoose';
+import type { CampaignProperties } from '$lib/properties/campaign';
 
 const campaignsRepo = new CampaignsRepository();
 
@@ -14,15 +17,34 @@ export const campaigns = t.router({
 		.use(logger)
 		.input(read)
 		.query(async ({ input }) => {
-			const result = await campaignsRepo.get(input);
+			const response: Response = {
+				success: true,
+				message: 'campaigns successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await campaignsRepo.get(input);
+				response.data = result;
+				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
+			return { ...response, ...{ data: response.data as HydratedDocument<CampaignProperties>[] } };
 		}),
 
 	total: t.procedure.use(logger).query(async () => {
-		const result = await campaignsRepo.count();
+		const response: Response = { success: true, message: 'total campaigns', data: {} };
+		try {
+			const result = await campaignsRepo.count();
+			response.data = result;
+		} catch (error) {
+			response.success = false;
+			response.message = error instanceof Object ? error.toString() : 'unkown error';
+		}
 
-		return result;
+		return { ...response, ...{ data: response.data as number } };
 	}),
 
 	create: t.procedure
@@ -40,20 +62,34 @@ export const campaigns = t.router({
 			if (input.book.permissions) bookBuilder.permissions(input.book.permissions as any);
 			if (input.book.genres) bookBuilder.genres(input.book.genres);
 
-			const campaignResponse = await new CampaignBuilder()
+			const campaignBuilder = await new CampaignBuilder()
 				.userID(ctx.session!.user.id)
 				.startDate(input.startDate)
 				.endDate(input.endDate)
 				.submissionCriteria(input.submissionCriteria)
 				.rewards(input.rewards)
-				.book(bookBuilder.properties())
-				.build();
+				.book(bookBuilder.properties());
 
-			if (input.book.notifications) {
-				sendUserNotifications(input.book.notifications);
+			const response: Response = {
+				success: true,
+				message: 'campaign successfully created',
+				data: {}
+			};
+
+			try {
+				const result = await campaignBuilder.build();
+
+				if (input.book.notifications) {
+					sendUserNotifications(input.book.notifications);
+				}
+
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return campaignResponse;
+			return { ...response, ...{ data: response.data as HydratedDocument<CampaignProperties> } };
 		}),
 
 	update: t.procedure
@@ -71,7 +107,7 @@ export const campaigns = t.router({
 			if (input.book.genres) bookBuilder.genres(input.book.genres);
 			if (input.book.permissions) bookBuilder.permissions(input.book.permissions as any);
 
-			const campaignBuilder = await new CampaignBuilder(input.id)
+			const campaignBuilder = new CampaignBuilder(input.id)
 				.userID(ctx.session!.user.id)
 				.book(bookBuilder.properties());
 
@@ -80,12 +116,23 @@ export const campaigns = t.router({
 			if (input.submissionCriteria) campaignBuilder.submissionCriteria(input.submissionCriteria);
 			if (input.rewards) campaignBuilder.rewards(input.rewards);
 
-			const campaignResponse = campaignBuilder.update();
+			const response: Response = {
+				success: true,
+				message: 'campaign successfully updated',
+				data: {}
+			};
+			try {
+				const result = await campaignBuilder.update();
 
-			if (input.book.notifications) {
-				sendUserNotifications(input.book.notifications);
+				if (input.book.notifications) {
+					sendUserNotifications(input.book.notifications);
+				}
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return campaignResponse;
+			return { ...response, ...{ data: response.data as HydratedDocument<CampaignProperties> } };
 		})
 });

@@ -98,9 +98,6 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 
 		let returnedCampaign: HydratedDocument<CampaignProperties> | null = null;
 
-		console.log(this._campaignProperties);
-		console.log(this._bookProperties);
-
 		try {
 			// use a transaction to make sure everything saves
 			await session.withTransaction(async () => {

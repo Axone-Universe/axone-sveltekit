@@ -6,6 +6,10 @@ import { t } from '$lib/trpc/t';
 import { create, read, submitToCampaign, update } from '$lib/trpc/schemas/books';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
+import type { Response } from '$lib/util/types';
+import type { HydratedDocument } from 'mongoose';
+import type { BookProperties } from '$lib/properties/book';
+import type mongoose from 'mongoose';
 
 export const books = t.router({
 	get: t.procedure
@@ -14,18 +18,25 @@ export const books = t.router({
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
 
-			const result = await booksRepo.get(
-				ctx.session,
-				input.limit,
-				input.cursor,
-				input.genres,
-				input.title,
-				input.user,
-				input.archived,
-				input.campaign
-			);
-
-			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
+			const response: Response = { success: true, message: 'books retrieved', data: {} };
+			try {
+				const result = await booksRepo.get(
+					ctx.session,
+					input.limit,
+					input.cursor,
+					input.genres,
+					input.title,
+					input.user,
+					input.archived,
+					input.campaign
+				);
+				response.data = result;
+				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties>[] } };
 		}),
 
 	getById: t.procedure
@@ -33,9 +44,17 @@ export const books = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getById(ctx.session, input.id);
 
-			return result;
+			const response: Response = { success: true, message: 'book retrieved', data: {} };
+			try {
+				const result = await booksRepo.getById(ctx.session, input.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
 
 	update: t.procedure
@@ -53,13 +72,20 @@ export const books = t.router({
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 
-			const book = await bookBuilder.update();
+			const response: Response = { success: true, message: 'book updated', data: {} };
+			try {
+				const book = await bookBuilder.update();
 
-			if (input.notifications) {
-				sendUserNotifications(input.notifications);
+				if (input.notifications) {
+					sendUserNotifications(input.notifications);
+				}
+				response.data = book;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return book;
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
 
 	setArchived: t.procedure
@@ -72,9 +98,15 @@ export const books = t.router({
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
-			const acknowledged = await bookBuilder.setArchived(input.ids);
+			const response: Response = { success: true, message: 'book archived', data: {} };
+			try {
+				await bookBuilder.setArchived(input.ids);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return acknowledged;
+			return response;
 		}),
 
 	getBooksByUserID: t.procedure
@@ -82,9 +114,17 @@ export const books = t.router({
 		.input(read.optional())
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
 
-			return result;
+			const response: Response = { success: true, message: 'book returned', data: {} };
+			try {
+				const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties>[] } };
 		}),
 
 	create: t.procedure
@@ -102,13 +142,24 @@ export const books = t.router({
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 			if (input.genres) bookBuilder.genres(input.genres);
 
-			const book = await bookBuilder.build();
+			const response: Response = {
+				success: true,
+				message: 'book successfully created',
+				data: '' as string
+			};
+			try {
+				const book = await bookBuilder.build();
 
-			if (input.notifications) {
-				sendUserNotifications(input.notifications);
+				if (input.notifications) {
+					sendUserNotifications(input.notifications);
+				}
+				response.data = book;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return book;
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
 
 	submitToCampaign: t.procedure
@@ -125,7 +176,16 @@ export const books = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
-			const response = await bookBuilder.delete();
-			return response;
+
+			const response: Response = { success: true, message: 'book successfully created', data: {} };
+			try {
+				const result = await bookBuilder.delete();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
 		})
 });

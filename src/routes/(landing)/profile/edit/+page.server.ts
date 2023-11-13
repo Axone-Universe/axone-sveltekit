@@ -10,9 +10,11 @@ export const load = (async (event) => {
 
 	if (session && session.user.id) {
 		// check if user has a profile
-		const userProperties = (await trpc(event).users.getById.query({
-			id: session.user.id
-		})) as HydratedDocument<UserProperties>;
+		const userProperties = (
+			await trpc(event).users.getById.query({
+				id: session.user.id
+			})
+		).data as HydratedDocument<UserProperties>;
 
 		return { userProperties };
 	} else {
