@@ -45,11 +45,11 @@
 				chapterID: typeof delta.chapter === 'string' ? delta.chapter : delta.chapter!._id,
 				id: delta._id
 			})
-			.then((deltaResponse) => {
+			.then((response) => {
 				toastMessage = 'Creation Successful';
 				toastBackground = 'bg-success-500';
 
-				delta = deltaResponse as HydratedDocument<DeltaProperties>;
+				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
 
 				if ($modalStore[0]) {
@@ -76,11 +76,11 @@
 				id: delta._id,
 				versionID: version._id
 			})
-			.then((deltaResponse) => {
+			.then((response) => {
 				toastMessage = 'Restoration Successful';
 				toastBackground = 'bg-success-500';
 
-				delta = deltaResponse as HydratedDocument<DeltaProperties>;
+				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
 
 				if ($modalStore[0]) {

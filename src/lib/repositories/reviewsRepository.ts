@@ -7,7 +7,7 @@ import type { CountReview, ReadReview, ReviewByItem } from '$lib/trpc/schemas/re
 import { Review } from '$lib/models/review';
 import type { ReviewProperties } from '$lib/properties/review';
 
-type CountByRating = {
+export type CountByRating = {
 	_id: number;
 	count: number;
 };
@@ -78,7 +78,9 @@ export class ReviewsRepository extends Repository {
 					average: { $avg: '$rating' }
 				}
 			}
-		]).cursor().next();
+		])
+			.cursor()
+			.next();
 
 		return review.average as number;
 	}

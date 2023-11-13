@@ -64,7 +64,7 @@
 
 	$: storylines = $getStorylinesInfinite?.data
 		? ($getStorylinesInfinite.data.pages.flatMap(
-				(page) => page.result
+				(page) => page.data
 		  ) as HydratedDocument<HydratedStorylineProperties>[])
 		: [];
 

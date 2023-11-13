@@ -156,7 +156,7 @@ export class QuillEditor extends Quill {
 				});
 				this.setChapterContents(
 					this.chapter!,
-					deltaResponse as HydratedDocument<ChapterProperties>
+					deltaResponse.data as HydratedDocument<ChapterProperties>
 				);
 			} else {
 				this.setChapterContents(this.chapter!, delta as HydratedDocument<ChapterProperties>);
@@ -169,7 +169,7 @@ export class QuillEditor extends Quill {
 				.then((deltaResponse) => {
 					this.setChapterContents(
 						this.chapter!,
-						deltaResponse as HydratedDocument<ChapterProperties>
+						deltaResponse.data as HydratedDocument<ChapterProperties>
 					);
 				});
 		}

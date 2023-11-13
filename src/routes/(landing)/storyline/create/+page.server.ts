@@ -19,20 +19,26 @@ export const load = (async (event) => {
 		});
 	}
 
-	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		id: bookID
-	})) as HydratedDocument<BookProperties>;
+	const userAuthoredBookResponse = (
+		await trpc(event).books.getById.query({
+			id: bookID
+		})
+	).data as HydratedDocument<BookProperties>;
 
-	const storylineResponse = (await trpc(event).storylines.getById.query({
-		bookID: bookID,
-		storylineID: parentStorylineID
-	})) as HydratedDocument<StorylineProperties>;
+	const storylineResponse = (
+		await trpc(event).storylines.getById.query({
+			bookID: bookID,
+			storylineID: parentStorylineID
+		})
+	).data as HydratedDocument<StorylineProperties>;
 
-	const storylineChapters = (await trpc(event).chapters.getByStoryline.query({
-		storylineID: storylineResponse._id,
-		storylineChapterIDs: storylineResponse.chapters as string[],
-		toChapterID: chapterID
-	})) as HydratedDocument<ChapterProperties>[];
+	const storylineChapters = (
+		await trpc(event).chapters.getByStoryline.query({
+			storylineID: storylineResponse._id,
+			storylineChapterIDs: storylineResponse.chapters as string[],
+			toChapterID: chapterID
+		})
+	).data as HydratedDocument<ChapterProperties>[];
 
 	const chapterResponses: { [key: string]: HydratedDocument<ChapterProperties> } = {};
 	storylineChapters.forEach((chapterResponse) => {

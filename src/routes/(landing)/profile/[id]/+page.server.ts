@@ -11,9 +11,11 @@ export const load = (async (event) => {
 
 	if (data && data.user) {
 		// check if user has a profile
-		const userResponse = (await trpc(event).users.getById.query({
-			id: event.params.id
-		})) as HydratedDocument<UserProperties>;
+		const userResponse = (
+			await trpc(event).users.getById.query({
+				id: event.params.id
+			})
+		).data as HydratedDocument<UserProperties>;
 		if (userResponse) {
 			return { userResponse };
 		}

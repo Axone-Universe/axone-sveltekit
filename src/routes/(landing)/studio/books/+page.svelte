@@ -95,7 +95,7 @@
 
 	$: books = $getBooksInfinite.data
 		? ($getBooksInfinite.data.pages.flatMap(
-				(page) => page.result
+				(page) => page.data
 		  ) as HydratedDocument<BookProperties>[])
 		: [];
 

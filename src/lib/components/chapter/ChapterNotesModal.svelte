@@ -84,9 +84,9 @@
 			.notes.getByChapterID.query({
 				chapterID: chapterNode._id
 			})
-			.then((noteResponse) => {
-				chapterNotes = noteResponse as HydratedDocument<NoteProperties>[];
-				filteredChapterNotes = noteResponse as HydratedDocument<NoteProperties>[];
+			.then((response) => {
+				chapterNotes = response.data as HydratedDocument<NoteProperties>[];
+				filteredChapterNotes = response.data as HydratedDocument<NoteProperties>[];
 			});
 	}
 
@@ -111,11 +111,11 @@
 				note: note.note!,
 				tags: note.tags
 			})
-			.then((noteResponse) => {
+			.then((response) => {
 				toastMessage = 'Creation Successful';
 				toastBackground = 'bg-success-500';
 
-				chapterNotes.push(noteResponse as HydratedDocument<NoteProperties>);
+				chapterNotes.push(response.data as HydratedDocument<NoteProperties>);
 				searchNotes();
 			})
 			.finally(() => {

@@ -30,9 +30,9 @@ describe('notes', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(
@@ -42,23 +42,25 @@ describe('notes', () => {
 			storylines[0]
 		);
 
-		expect(createChapterResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.data.description).toEqual('My chapter 1');
 
 		const noteCreateResponse = await caller.notes.create({
-			chapterID: createChapterResponse._id,
+			chapterID: createChapterResponse.data._id,
 			title: 'Peya',
 			note: 'Peya is a girl with a sweet and unassuming character',
 			tags: ['character']
 		});
 
-		expect(noteCreateResponse.note).toEqual('Peya is a girl with a sweet and unassuming character');
+		expect(noteCreateResponse.data.note).toEqual(
+			'Peya is a girl with a sweet and unassuming character'
+		);
 
 		const noteUpdateResponse = await caller.notes.update({
-			id: noteCreateResponse._id,
+			id: noteCreateResponse.data._id,
 			note: 'Peya has a strong and resilient character'
 		});
 
-		expect(noteUpdateResponse.note).toEqual('Peya has a strong and resilient character');
+		expect(noteUpdateResponse.data.note).toEqual('Peya has a strong and resilient character');
 	});
 
 	test('delete notes', async () => {
@@ -73,9 +75,9 @@ describe('notes', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(
@@ -85,25 +87,27 @@ describe('notes', () => {
 			storylines[0]
 		);
 
-		expect(createChapterResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.data.description).toEqual('My chapter 1');
 
 		const noteCreateResponse = await caller.notes.create({
-			chapterID: createChapterResponse._id,
+			chapterID: createChapterResponse.data._id,
 			title: 'Peya',
 			note: 'Peya is a girl with a sweet and unassuming character',
 			tags: ['character']
 		});
 
-		expect(noteCreateResponse.note).toEqual('Peya is a girl with a sweet and unassuming character');
+		expect(noteCreateResponse.data.note).toEqual(
+			'Peya is a girl with a sweet and unassuming character'
+		);
 
 		await caller.notes.delete({
-			id: noteCreateResponse._id
+			id: noteCreateResponse.data._id
 		});
 
 		const chapterNotes = await caller.notes.getByChapterID({
-			chapterID: createChapterResponse._id
+			chapterID: createChapterResponse.data._id
 		});
 
-		expect(chapterNotes.length).toEqual(0);
+		expect(chapterNotes.data.length).toEqual(0);
 	});
 });

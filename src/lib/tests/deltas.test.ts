@@ -29,7 +29,7 @@ describe('deltas', () => {
 		// get the default storyline from created book
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = await caller.storylines.get({
-			bookID: bookResponse._id
+			bookID: bookResponse.data._id
 		});
 
 		// create chapter on default storyline
@@ -37,22 +37,22 @@ describe('deltas', () => {
 			testUserOneSession,
 			chapter1Title,
 			'My chapter 1',
-			storylines.result[0]
+			storylines.data[0]
 		);
 
-		expect(createChapterResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.data.description).toEqual('My chapter 1');
 
 		const deltaCreateResponse = await caller.deltas.create({
-			chapterID: createChapterResponse._id
+			chapterID: createChapterResponse.data._id
 		});
 
 		const deltaUpdateResponse = await caller.deltas.update({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		const ops = JSON.stringify(deltaUpdateResponse.versions![0].ops);
+		const ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 	});
 
@@ -68,9 +68,9 @@ describe('deltas', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(
@@ -80,36 +80,36 @@ describe('deltas', () => {
 			storylines[0]
 		);
 
-		expect(createChapterResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.data.description).toEqual('My chapter 1');
 
 		const deltaCreateResponse = await caller.deltas.create({
-			chapterID: createChapterResponse._id
+			chapterID: createChapterResponse.data._id
 		});
 
 		let deltaUpdateResponse = await caller.deltas.update({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.versions![0].ops);
+		let ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			title: 'Version 1'
 		});
 
-		expect(versionCreateResponse.versions?.length).toEqual(2);
+		expect(versionCreateResponse.data.versions?.length).toEqual(2);
 
 		deltaUpdateResponse = await caller.deltas.update({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.versions![1].ops);
+		ops = JSON.stringify(deltaUpdateResponse.data.versions![1].ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
 	});
 
@@ -125,9 +125,9 @@ describe('deltas', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		// create chapter on default storyline
 		const createChapterResponse = await createChapter(
@@ -137,45 +137,45 @@ describe('deltas', () => {
 			storylines[0]
 		);
 
-		expect(createChapterResponse.description).toEqual('My chapter 1');
+		expect(createChapterResponse.data.description).toEqual('My chapter 1');
 
 		const deltaCreateResponse = await caller.deltas.create({
-			chapterID: createChapterResponse._id
+			chapterID: createChapterResponse.data._id
 		});
 
 		let deltaUpdateResponse = await caller.deltas.update({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.versions![0].ops);
+		let ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			title: 'Version 1'
 		});
 
-		expect(versionCreateResponse.versions?.length).toEqual(2);
+		expect(versionCreateResponse.data.versions?.length).toEqual(2);
 
 		deltaUpdateResponse = await caller.deltas.update({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.versions![1].ops);
+		ops = JSON.stringify(deltaUpdateResponse.data.versions![1].ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
 
 		const versionRestoreResponse = await caller.deltas.restoreVersion({
-			id: deltaCreateResponse._id,
-			chapterID: createChapterResponse._id,
-			versionID: deltaUpdateResponse.versions![0]._id
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
+			versionID: deltaUpdateResponse.data.versions![0]._id
 		});
 
-		ops = JSON.stringify(versionRestoreResponse.ops);
+		ops = JSON.stringify(versionRestoreResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 	});
 });

@@ -49,7 +49,7 @@ describe('campaigns', async () => {
 	});
 
 	test('create a campaign', async () => {
-		const campaign = await caller1.campaigns.create({
+		const campaignResponse = await caller1.campaigns.create({
 			startDate,
 			endDate,
 			submissionCriteria,
@@ -57,7 +57,9 @@ describe('campaigns', async () => {
 			book
 		});
 
-		const createdBook = await caller1.books.getById({ id: campaign.book });
+		const campaign = campaignResponse.data;
+
+		const createdBook = (await caller1.books.getById({ id: campaign.book })).data;
 
 		expect(campaign.startDate).toEqual(startDate);
 		expect(campaign.endDate).toEqual(endDate);
@@ -77,13 +79,15 @@ describe('campaigns', async () => {
 			'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.';
 		const newTitle = 'Repelling Evil';
 
-		const campaign = await caller1.campaigns.create({
-			startDate,
-			endDate,
-			submissionCriteria,
-			rewards,
-			book
-		});
+		const campaign = (
+			await caller1.campaigns.create({
+				startDate,
+				endDate,
+				submissionCriteria,
+				rewards,
+				book
+			})
+		).data;
 
 		await caller1.campaigns.update({
 			id: campaign._id,
@@ -95,7 +99,7 @@ describe('campaigns', async () => {
 			}
 		});
 
-		const returnedBook = await caller1.books.getById({ id: campaign.book });
+		const returnedBook = (await caller1.books.getById({ id: campaign.book })).data;
 		const returnedCampaign = returnedBook.campaign as HydratedDocument<CampaignProperties>;
 
 		expect(returnedCampaign.submissionCriteria).toEqual(newSubmissionCriteria);
@@ -115,26 +119,28 @@ describe('campaigns', async () => {
 			'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.';
 		const newTitle = 'Repelling Evil';
 
-		const campaign = await caller1.campaigns.create({
-			startDate,
-			endDate,
-			submissionCriteria,
-			rewards,
-			book
+		const campaign = (
+			await caller1.campaigns.create({
+				startDate,
+				endDate,
+				submissionCriteria,
+				rewards,
+				book
+			})
+		).data;
+
+		const updateResponse = await caller2.campaigns.update({
+			id: campaign._id,
+			submissionCriteria: newSubmissionCriteria,
+			book: {
+				...book,
+				id: campaign.book!,
+				title: newTitle
+			}
 		});
 
-		expect(
-			async () =>
-				await caller2.campaigns.update({
-					id: campaign._id,
-					submissionCriteria: newSubmissionCriteria,
-					book: {
-						...book,
-						id: campaign.book!,
-						title: newTitle
-					}
-				})
-		).rejects.toThrowError();
+		console.log(updateResponse.message);
+		expect(updateResponse.message.includes('INTERNAL_SERVER_ERROR')).toEqual(true);
 	});
 
 	test('get campaigns', async () => {
@@ -148,23 +154,23 @@ describe('campaigns', async () => {
 			});
 		}
 
-		const campaigns = await caller1.campaigns.get({
+		const campaignsResponse = await caller1.campaigns.get({
 			limit: 3
 		});
 
-		expect(campaigns.result.length).toEqual(3);
+		expect(campaignsResponse.data.length).toEqual(3);
 
 		const moreCampaigns = await caller1.campaigns.get({
 			limit: 3,
-			cursor: campaigns.cursor
+			cursor: campaignsResponse.cursor
 		});
 
-		expect(moreCampaigns.result.length).toEqual(2);
+		expect(moreCampaigns.data.length).toEqual(2);
 
-		expect(campaigns.result[0].startDate).toEqual(startDate);
-		expect(campaigns.result[0].endDate).toEqual(endDate);
-		expect(campaigns.result[0].submissionCriteria).toEqual(submissionCriteria);
-		expect(campaigns.result[0].rewards).toEqual(rewards);
-		expect(campaigns.result[0].book).toBeTruthy();
+		expect(campaignsResponse.data[0].startDate).toEqual(startDate);
+		expect(campaignsResponse.data[0].endDate).toEqual(endDate);
+		expect(campaignsResponse.data[0].submissionCriteria).toEqual(submissionCriteria);
+		expect(campaignsResponse.data[0].rewards).toEqual(rewards);
+		expect(campaignsResponse.data[0].book).toBeTruthy();
 	});
 });

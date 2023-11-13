@@ -44,9 +44,9 @@
 				permissions: storyline.permissions,
 				notifications: notifications
 			})
-			.then((storylineNodeResponse) => {
-				storyline = storylineNodeResponse as HydratedDocument<StorylineProperties>;
-				toastMessage = 'Sunccessfully Created';
+			.then((response) => {
+				storyline = response.data as HydratedDocument<StorylineProperties>;
+				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(storyline) : '';
@@ -75,9 +75,9 @@
 				permissions: storyline.permissions,
 				notifications: notifications
 			})
-			.then((storylineNodeResponse) => {
-				storyline = storylineNodeResponse as HydratedDocument<StorylineProperties>;
-				toastMessage = 'Successfully Saved';
+			.then((response) => {
+				storyline = response.data as HydratedDocument<StorylineProperties>;
+				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
 
 				if ($modalStore[0]) {

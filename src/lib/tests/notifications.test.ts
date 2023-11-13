@@ -35,9 +35,9 @@ describe('notifications', () => {
 		const caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		const notifications: { [key: string]: UserNotificationProperties } = {};
 		const notification = {

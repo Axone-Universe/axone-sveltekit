@@ -6,6 +6,10 @@ import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/storylines';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
+import type { Response } from '$lib/util/types';
+import type { HydratedDocument } from 'mongoose';
+import type { StorylineProperties } from '$lib/properties/storyline';
+import type mongoose from 'mongoose';
 
 export const storylines = t.router({
 	get: t.procedure
@@ -13,9 +17,22 @@ export const storylines = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.get(ctx.session, input);
 
-			return { result, cursor: result.length > 0 ? result[result.length - 1]._id : undefined };
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylinesRepo.get(ctx.session, input);
+				response.data = result;
+				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties>[] } };
 		}),
 
 	getById: t.procedure
@@ -23,9 +40,21 @@ export const storylines = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getById(ctx.session, input.storylineID!);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'storyline successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylinesRepo.getById(ctx.session, input.storylineID!);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties> } };
 		}),
 
 	getByBookID: t.procedure
@@ -33,9 +62,21 @@ export const storylines = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getByBookID(ctx.session, input.bookID!, input.main);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylinesRepo.getByBookID(ctx.session, input.bookID!, input.main);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties>[] } };
 		}),
 
 	getStorylinesByUserID: t.procedure
@@ -43,9 +84,21 @@ export const storylines = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const storylinesRepo = new StorylinesRepository();
-			const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties>[] } };
 		}),
 
 	update: t.procedure
@@ -60,13 +113,23 @@ export const storylines = t.router({
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
 			if (input.imageURL !== undefined) storylineBuilder.imageURL(input.imageURL);
 
-			const storyline = await storylineBuilder.update();
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylineBuilder.update();
 
-			if (input.notifications) {
-				sendUserNotifications(input.notifications);
+				if (input.notifications) {
+					sendUserNotifications(input.notifications);
+				}
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
-
-			return storyline;
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties> } };
 		}),
 
 	setArchived: t.procedure
@@ -79,9 +142,19 @@ export const storylines = t.router({
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
-			const acknowledged = await storylineBuilder.setArchived(input.ids);
-
-			return acknowledged;
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylineBuilder.setArchived(input.ids);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as boolean } };
 		}),
 
 	create: t.procedure
@@ -102,13 +175,24 @@ export const storylines = t.router({
 				storylineBuilder.permissions(input.permissions as any);
 			}
 
-			const storyline = await storylineBuilder.build();
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully created',
+				data: {}
+			};
+			try {
+				const result = await storylineBuilder.build();
 
-			if (input.notifications) {
-				await sendUserNotifications(input.notifications);
+				if (input.notifications) {
+					await sendUserNotifications(input.notifications);
+				}
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return storyline;
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties> } };
 		}),
 
 	delete: t.procedure
@@ -117,7 +201,19 @@ export const storylines = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
-			const response = await storylineBuilder.delete();
-			return response;
+
+			const response: Response = {
+				success: true,
+				message: 'storyline successfully deleted',
+				data: {}
+			};
+			try {
+				const result = await storylineBuilder.delete();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
 		})
 });
