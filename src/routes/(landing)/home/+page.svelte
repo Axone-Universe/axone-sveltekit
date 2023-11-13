@@ -52,7 +52,7 @@
 			limit: 20,
 			genres: recommendedSelected ? undefined : genresBuilder.build(),
 			title: debouncedSearchValue ? debouncedSearchValue : undefined,
-			campaign: campaignSelected ? '' : null,
+			campaign: campaignSelected ? '' : null
 		},
 		{
 			queryKey: [
@@ -68,7 +68,7 @@
 
 	$: items = $getBooksInfinite.data
 		? ($getBooksInfinite.data.pages.flatMap(
-				(page) => page.result
+				(page) => page.data
 		  ) as HydratedDocument<BookProperties>[])
 		: [];
 

@@ -33,8 +33,8 @@
 				reviewOf: 'Storyline',
 				rating: value.current
 			})
-			.then((storylineResponse) => {
-				storyline = storylineResponse as HydratedDocument<StorylineProperties>;
+			.then((response) => {
+				storyline = response.data as HydratedDocument<StorylineProperties>;
 				toastMessage = 'Thank you for rating!';
 				toastBackground = 'bg-success-500';
 			})

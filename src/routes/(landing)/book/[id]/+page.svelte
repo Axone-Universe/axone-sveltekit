@@ -54,8 +54,8 @@
 				storylineID: activateStoryline._id,
 				storylineChapterIDs: activateStoryline.chapters as string[]
 			})
-			.then((chaptersResponse) => {
-				activateStoryline.chapters = chaptersResponse as HydratedDocument<ChapterProperties>[];
+			.then((response) => {
+				activateStoryline.chapters = response.data as HydratedDocument<ChapterProperties>[];
 				activeStoryline = activateStoryline;
 			});
 	}

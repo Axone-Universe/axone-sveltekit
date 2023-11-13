@@ -59,7 +59,7 @@
 
 	$: chapters = $getChaptersInfinite?.data
 		? ($getChaptersInfinite.data.pages.flatMap(
-				(page) => page.result
+				(page) => page.data
 		  ) as HydratedDocument<HydratedChapterProperties>[])
 		: [];
 

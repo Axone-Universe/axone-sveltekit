@@ -33,18 +33,7 @@
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
 	onMount(() => {
-		async function getUser() {
-			if (session) {
-				const maybeUser = await trpc($page).users.getById.query({
-					id: session.user.id
-				});
-				if (maybeUser) {
-					user = maybeUser as HydratedDocument<UserProperties>;
-				}
-			}
-		}
-
-		getUser();
+		user = $page.data.user;
 	});
 
 	afterUpdate(() => {
@@ -93,10 +82,12 @@
 
 	async function addToReadingList(names: string[]) {
 		try {
-			user = (await trpc($page).users.updateReadingLists.mutate({
-				names,
-				storylineID: selectedStoryline!._id
-			})) as HydratedDocument<UserProperties>;
+			user = (
+				await trpc($page).users.updateReadingLists.mutate({
+					names,
+					storylineID: selectedStoryline!._id
+				})
+			).data as HydratedDocument<UserProperties>;
 		} catch (e) {
 			console.log(e);
 		}

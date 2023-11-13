@@ -157,18 +157,20 @@
 	/** Loads from the server what the user has filled as input */
 	async function loadUsers(query: string) {
 		emptyState = 'Loading...';
-		let usersResponse = (await trpc($page).users.getByDetails.query({
+		let usersResponse = await trpc($page).users.getByDetails.query({
 			id: query
-		})) as HydratedDocument<UserProperties>[];
+		});
 
-		if (usersResponse.length === 0) {
+		const newUsers = usersResponse.data as HydratedDocument<UserProperties>[];
+
+		if (newUsers.length === 0) {
 			emptyState = 'No Results Found.';
 			return;
 		}
 
 		autocompleteUsers = [];
 
-		for (const user of usersResponse) {
+		for (const user of newUsers) {
 			let label = `<div>
 							<p class="flex font-bold text-lg">${user.firstName}</p>
 							<p class="text-base">${user.email}</p>

@@ -46,34 +46,37 @@
 
 	async function createBookData(imageURL?: string) {
 		try {
-			let b: HydratedDocument<BookProperties> | undefined;
-
+			let newBook = false;
+			let response;
 			if (book._id) {
-				b = (await trpc($page).books.update.mutate({
+				response = await trpc($page).books.update.mutate({
 					id: book._id,
 					title: book.title,
 					description: book.description,
 					imageURL: imageURL ?? book.imageURL,
 					genres,
 					permissions: book.permissions
-				})) as HydratedDocument<BookProperties>;
+				});
 			} else {
-				b = (await trpc($page).books.create.mutate({
+				newBook = true;
+				response = await trpc($page).books.create.mutate({
 					title: book.title,
 					description: book.description,
 					imageURL: imageURL ?? '',
 					genres,
 					permissions: book.permissions
-				})) as HydratedDocument<BookProperties>;
-
-				const t: ToastSettings = {
-					message: 'Book created successfully',
-					background: 'variant-filled-primary'
-				};
-				toastStore.trigger(t);
-
-				await goto(`/editor/${b._id}?mode=writer`);
+				});
 			}
+
+			book = response.data as HydratedDocument<BookProperties>;
+
+			const t: ToastSettings = {
+				message: response.message,
+				background: 'variant-filled-primary'
+			};
+			toastStore.trigger(t);
+
+			if (newBook) await goto(`/editor/${book._id}?mode=writer`);
 
 			if (createCallback !== undefined) {
 				createCallback();

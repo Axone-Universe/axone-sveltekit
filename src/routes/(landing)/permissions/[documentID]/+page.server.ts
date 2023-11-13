@@ -19,21 +19,27 @@ export const load = (async (event) => {
 
 	switch (documentType) {
 		case 'book': {
-			document = (await trpc(event).books.getById.query({
-				id: documentID
-			})) as HydratedDocument<BookProperties>;
+			document = (
+				await trpc(event).books.getById.query({
+					id: documentID
+				})
+			).data as HydratedDocument<BookProperties>;
 			break;
 		}
 		case 'storyline': {
-			document = (await trpc(event).storylines.getById.query({
-				id: documentID
-			})) as HydratedDocument<StorylineProperties>;
+			document = (
+				await trpc(event).storylines.getById.query({
+					id: documentID
+				})
+			).data as HydratedDocument<StorylineProperties>;
 			break;
 		}
 		case 'chapter': {
-			document = (await trpc(event).chapters.getById.query({
-				id: documentID
-			})) as HydratedDocument<ChapterProperties>;
+			document = (
+				await trpc(event).chapters.getById.query({
+					id: documentID
+				})
+			).data as HydratedDocument<ChapterProperties>;
 			break;
 		}
 		default: {
