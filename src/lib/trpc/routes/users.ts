@@ -3,6 +3,8 @@ import { UsersRepository } from '$lib/repositories/usersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
+import type { Response } from '$lib/util/types';
+
 import {
 	create,
 	createDeleteReadingList,
@@ -12,6 +14,8 @@ import {
 	updateReadingLists,
 	renameReadingList
 } from '$lib/trpc/schemas/users';
+import type { HydratedDocument } from 'mongoose';
+import type { UserProperties } from '$lib/properties/user';
 
 export const users = t.router({
 	list: t.procedure
@@ -19,9 +23,21 @@ export const users = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const usersRepo = new UsersRepository();
-			const result = await usersRepo.get(ctx.session, input.id);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'users successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.get(ctx.session, input.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties>[] } };
 		}),
 
 	getById: t.procedure
@@ -29,9 +45,20 @@ export const users = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const usersRepo = new UsersRepository();
-			const result = await usersRepo.getById(ctx.session, input.id);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'user successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.getById(ctx.session, input.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
 	getByDetails: t.procedure
@@ -39,9 +66,21 @@ export const users = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const usersRepo = new UsersRepository();
-			const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'user successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties>[] } };
 		}),
 
 	update: t.procedure
@@ -63,9 +102,20 @@ export const users = t.router({
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
 
-			const user = await userBuilder.update();
+			const response: Response = {
+				success: true,
+				message: 'update successfull',
+				data: {}
+			};
+			try {
+				const result = await userBuilder.update();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return user;
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
 	create: t.procedure
@@ -86,9 +136,20 @@ export const users = t.router({
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
 
-			const user = await userBuilder.build();
+			const response: Response = {
+				success: true,
+				message: 'user successfully created',
+				data: {}
+			};
+			try {
+				const result = await userBuilder.build();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return user;
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> } };
 		}),
 
 	getReadingList: t.procedure
@@ -97,9 +158,21 @@ export const users = t.router({
 		.input(getReadingList)
 		.query(async ({ input, ctx }) => {
 			const usersRepo = new UsersRepository();
-			const result = await usersRepo.getReadingList(ctx.session!.user.id, input.name);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'reading list retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.getReadingList(ctx.session!.user.id, input.name);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as any[] } };
 		}),
 
 	createReadingList: t.procedure
@@ -107,9 +180,21 @@ export const users = t.router({
 		.use(auth)
 		.input(createDeleteReadingList)
 		.mutation(async ({ input, ctx }) => {
-			const user = new UserBuilder(ctx.session!.user.id).createReadingList(input);
+			const response: Response = {
+				success: true,
+				message: 'reading list created',
+				data: {}
+			};
 
-			return user;
+			try {
+				const result = await new UserBuilder(ctx.session!.user.id).createReadingList(input);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
 	deleteReadingList: t.procedure
@@ -117,9 +202,21 @@ export const users = t.router({
 		.use(auth)
 		.input(createDeleteReadingList)
 		.mutation(async ({ input, ctx }) => {
-			const user = new UserBuilder(ctx.session!.user.id).deleteReadingList(input);
+			const response: Response = {
+				success: true,
+				message: 'reading list deleted',
+				data: {}
+			};
 
-			return user;
+			try {
+				const result = await new UserBuilder(ctx.session!.user.id).deleteReadingList(input);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
 	renameReadingList: t.procedure
@@ -127,9 +224,22 @@ export const users = t.router({
 		.use(auth)
 		.input(renameReadingList)
 		.mutation(async ({ input, ctx }) => {
-			const user = new UserBuilder(ctx.session!.user.id).renameReadingList(input);
+			const response: Response = {
+				success: true,
+				message: 'reading list renamed',
+				data: {}
+			};
 
-			return user;
+			try {
+				const result = await new UserBuilder(ctx.session!.user.id).renameReadingList(input);
+
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
 	updateReadingLists: t.procedure
@@ -137,8 +247,21 @@ export const users = t.router({
 		.use(auth)
 		.input(updateReadingLists)
 		.mutation(async ({ input, ctx }) => {
-			const user = new UserBuilder(ctx.session!.user.id).updateReadingLists(input);
+			const response: Response = {
+				success: true,
+				message: 'reading list updated',
+				data: {}
+			};
 
-			return user;
+			try {
+				const result = await new UserBuilder(ctx.session!.user.id).updateReadingLists(input);
+
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		})
 });

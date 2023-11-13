@@ -39,32 +39,32 @@ describe('storylines', () => {
 		let caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
 			await caller.storylines.get({
-				bookID: bookResponse._id
+				bookID: bookResponse.data._id
 			})
-		).result;
+		).data;
 
 		caller = router.createCaller({ session: testUserOneSession });
 		const chapter1Response = await caller.chapters.create({
 			title: chapter1Title,
 			description: 'My chapter 1',
 			storylineID: storylines[0]._id,
-			bookID: bookResponse._id
+			bookID: bookResponse.data._id
 		});
 
 		const chapter2_1Response = await caller.chapters.create({
 			title: chapter2_1Title,
 			description: 'My chapter 2',
 			storylineID: storylines[0]._id,
-			bookID: bookResponse._id,
-			prevChapterID: chapter1Response._id
+			bookID: bookResponse.data._id,
+			prevChapterID: chapter1Response.data._id
 		});
 
 		const chapter3_1Response = await caller.chapters.create({
 			title: chapter3_1Title,
 			description: 'My chapter 3',
 			storylineID: storylines[0]._id,
-			bookID: bookResponse._id,
-			prevChapterID: chapter2_1Response._id
+			bookID: bookResponse.data._id,
+			prevChapterID: chapter2_1Response.data._id
 		});
 
 		const storyline_1Chapters = await caller.chapters.get({
@@ -80,9 +80,9 @@ describe('storylines', () => {
 		let storyline2 = await caller.storylines.create({
 			title: 'Storyline 2',
 			description: 'Storyline 2',
-			book: bookResponse._id,
+			book: bookResponse.data._id,
 			parent: storylines[0]._id,
-			parentChapter: chapter1Response._id,
+			parentChapter: chapter1Response.data._id,
 			permissions: {
 				public: publicPermission
 			}
@@ -93,9 +93,9 @@ describe('storylines', () => {
 		const chapter2_2Response = await caller.chapters.create({
 			title: chapter2_2Title,
 			description: 'My chapter 2',
-			storylineID: storyline2._id,
-			bookID: bookResponse._id,
-			prevChapterID: chapter1Response._id,
+			storylineID: storyline2.data._id,
+			bookID: bookResponse.data._id,
+			prevChapterID: chapter1Response.data._id,
 			permissions: {
 				public:
 					new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>
@@ -103,19 +103,21 @@ describe('storylines', () => {
 		});
 
 		storyline2 = await caller.storylines.getById({
-			storylineID: storyline2._id
+			storylineID: storyline2.data._id
 		});
 
-		const storyline_2Chapters = await caller.chapters.getByStoryline({
-			storylineID: storyline2._id,
-			storylineChapterIDs: storyline2.chapters as string[]
-		});
+		const storyline_2Chapters = (
+			await caller.chapters.getByStoryline({
+				storylineID: storyline2.data._id,
+				storylineChapterIDs: storyline2.data.chapters as string[]
+			})
+		).data;
 
-		expect(chapter1Response.title).toEqual(chapter1Title);
-		expect(chapter2_1Response.title).toEqual(chapter2_1Title);
+		expect(chapter1Response.data.title).toEqual(chapter1Title);
+		expect(chapter2_1Response.data.title).toEqual(chapter2_1Title);
 
-		expect(storyline_1Chapters.result[0].title).toEqual(chapter1Title);
-		expect(storyline_1Chapters.result[1].title).toEqual(chapter2_1Title);
+		expect(storyline_1Chapters.data[0].title).toEqual(chapter1Title);
+		expect(storyline_1Chapters.data[1].title).toEqual(chapter2_1Title);
 
 		// storyline 2 should have 2 chapters with the last being the branched off chapter
 		// bookResponses.map((a) => a._id).sort()
@@ -135,39 +137,42 @@ describe('storylines', () => {
 
 		const userOneMainStoryline = (
 			await callerOne.storylines.get({
-				bookID: book._id
+				bookID: book.data._id
 			})
-		).result[0];
+		).data[0];
 
-		const userOneChapter = await createChapter(
-			sessionOne,
-			"UserOne's Chapter 1",
-			'Chapter 1',
-			userOneMainStoryline
-		);
+		const userOneChapter = (
+			await createChapter(sessionOne, "UserOne's Chapter 1", 'Chapter 1', userOneMainStoryline)
+		).data;
 
-		const userOneSecondStoryline = await callerOne.storylines.create({
-			title: 'Storyline 2',
-			description: 'Storyline 2',
-			book: book._id,
-			parent: userOneMainStoryline._id,
-			parentChapter: userOneChapter._id
-		});
+		const userOneSecondStoryline = (
+			await callerOne.storylines.create({
+				title: 'Storyline 2',
+				description: 'Storyline 2',
+				book: book.data._id,
+				parent: userOneMainStoryline._id,
+				parentChapter: userOneChapter._id
+			})
+		).data;
 
-		const userTwoStoryline = await callerTwo.storylines.create({
-			title: 'Storyline 2',
-			description: 'Storyline 2',
-			book: book._id,
-			parent: userOneMainStoryline._id,
-			parentChapter: userOneChapter._id
-		});
+		const userTwoStoryline = (
+			await callerTwo.storylines.create({
+				title: 'Storyline 2',
+				description: 'Storyline 2',
+				book: book.data._id,
+				parent: userOneMainStoryline._id,
+				parentChapter: userOneChapter._id
+			})
+		).data;
 
-		const userTwoChapter = await createChapter(
-			sessionTwo,
-			"UserTwo's Chapter 1",
-			'The Spin-off Chapter 1',
-			userTwoStoryline
-		);
+		const userTwoChapter = (
+			await createChapter(
+				sessionTwo,
+				"UserTwo's Chapter 1",
+				'The Spin-off Chapter 1',
+				userTwoStoryline
+			)
+		).data;
 
 		// Check archived before updating
 		expect(userOneMainStoryline.archived).toEqual(false);
@@ -184,17 +189,22 @@ describe('storylines', () => {
 
 		// Check archived changed only for user one's storylines
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).archived
+			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).data.archived
 		).toEqual(true);
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneSecondStoryline._id })).archived
+			(await callerOne.storylines.getById({ storylineID: userOneSecondStoryline._id })).data
+				.archived
 		).toEqual(true);
 		expect(
-			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).archived
+			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).data.archived
 		).toEqual(false);
 
 		// Check archived changed only for user one's chapters
-		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).archived).toEqual(true);
-		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).archived).toEqual(false);
+		expect((await callerOne.chapters.getById({ id: userOneChapter._id })).data.archived).toEqual(
+			true
+		);
+		expect((await callerTwo.chapters.getById({ id: userTwoChapter._id })).data.archived).toEqual(
+			false
+		);
 	});
 });

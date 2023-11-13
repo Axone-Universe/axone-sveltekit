@@ -90,15 +90,6 @@ export class BooksRepository extends Repository {
 	async count(): Promise<number> {
 		return await Book.count();
 	}
-	/*async getBooksByUserID(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>[]> {
-		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
-		const books = await Book.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
-
-
-		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
-			resolve(books);
-		});
-	}*/
 
 	async getBooksByUserID(
 		session: Session | null,
