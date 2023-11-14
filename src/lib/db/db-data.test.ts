@@ -77,31 +77,37 @@ test(
 			const caller = router.createCaller({ session: sessions[i] });
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
 				const newBook = await createBook(sessions[i]);
-				const storylines = await caller.storylines.getByBookID({
-					bookID: newBook._id
-				});
+				const storylines = (
+					await caller.storylines.getByBookID({
+						bookID: newBook.data._id
+					})
+				).data;
 				const chapters: HydratedDocument<ChapterProperties>[] = [];
 
 				for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 					chapters.push(
-						await createChapter(
-							sessions[i],
-							`${faker.person.firstName()} in ${faker.location.city()}`,
-							`${faker.commerce.productDescription()} But a chapter.`,
-							storylines[0]
-						)
+						(
+							await createChapter(
+								sessions[i],
+								`${faker.person.firstName()} in ${faker.location.city()}`,
+								`${faker.commerce.productDescription()} But a chapter.`,
+								storylines[0]
+							)
+						).data
 					);
 				}
 
 				for (let l = 0; l < NUM_STORYLINES_PER_BOOK; l++) {
-					const storyline = await caller.storylines.create({
-						title: `Storyline ${l}`,
-						description: `Storyline ${l} description`,
-						book: newBook._id,
-						parent: storylines[0]._id,
-						parentChapter: getRandomElement(chapters)._id,
-						imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
-					});
+					const storyline = (
+						await caller.storylines.create({
+							title: `Storyline ${l}`,
+							description: `Storyline ${l} description`,
+							book: newBook.data._id,
+							parent: storylines[0]._id,
+							parentChapter: getRandomElement(chapters)._id,
+							imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
+						})
+					).data;
 					for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 						await createChapter(
 							sessions[i],

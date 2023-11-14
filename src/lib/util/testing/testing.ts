@@ -100,7 +100,7 @@ export async function createBook(testSession: Session, title?: string, genres: G
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
 	publicPermission.permission = 'collaborate';
 
-	const book = await caller.books.create({
+	const response = await caller.books.create({
 		title: title ? title : faker.commerce.productName() + ' But a Book',
 		description: faker.commerce.productDescription(),
 		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
@@ -110,7 +110,7 @@ export async function createBook(testSession: Session, title?: string, genres: G
 		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
 
-	return book;
+	return response;
 }
 
 export async function createChapter(
@@ -126,7 +126,7 @@ export async function createChapter(
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
 	publicPermission.permission = 'collaborate';
 
-	const chapter = await caller.chapters.create({
+	const response = await caller.chapters.create({
 		title: title,
 		description: description,
 		storylineID: storyline._id,
@@ -137,7 +137,7 @@ export async function createChapter(
 		}
 	});
 
-	return chapter;
+	return response;
 }
 
 /**
