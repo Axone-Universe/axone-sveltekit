@@ -103,8 +103,8 @@
 			return;
 		}
 
-		imageFile = input.files[0];
-
+		imageFile = input.files[0]
+		
 		console.log(imageFile);
 
 		if (imageFile) {
@@ -143,7 +143,7 @@
 		if(!adobeSDKIsInitialized){
 			ccEverywhere = await window.CCEverywhere.initialize({
 			
-				clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+				clientId: 'e',
 				appName: 'Axone',
 				appVersion: { major: 1, minor: 0 },
 				platformCategory: 'web'
@@ -174,7 +174,7 @@
 
 
 				const t: ToastSettings = {
-					message: 'Book created successfully',
+					message: 'Image Uploaded Successfuly',
 					background: 'variant-filled-primary'
 				};
 				toastStore.trigger(t);
@@ -256,7 +256,7 @@
 				image.setAttribute('src', localData.image);
 
 				const t: ToastSettings = {
-					message: 'Book created successfully',
+					message: 'Image uploaded successfully',
 					background: 'variant-filled-primary'
 				};
 				toastStore.trigger(t);
