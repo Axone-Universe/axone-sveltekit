@@ -44,14 +44,14 @@ export const userMessage = z.object({
  * @property {string} chunkBody.finishReason - The reason the model stopped generating tokens. This will be stop if the model hit a natural stop point or a provided stop sequence, length if the maximum number of tokens specified in the request was reached, content_filter if content was omitted due to a flag from our content filters, tool_calls if the model called a tool, or function_call (deprecated) if the model called a function.
  * @property {number} created - The Unix timestamp (in seconds) of when the chat completion was created. Each chunk has the same timestamp.
  */
-export const assistantMessage = z.object({
-	chunkId: z.string(),
-	chunkBody: z.object({
-		delta: z.object({
-			content: z.string().nullable(),
-			role: z.string()
-		}),
-		finishReason: z.string().nullable(),
-	}),
-	created: z.number(),
-})
+export type AssistantMessage = {
+	chunkId: string;
+	chunkBody: {
+		delta: {
+			content: string | null;
+			role: string;
+		};
+		finishReason: string;
+	};
+	created: number;
+}
