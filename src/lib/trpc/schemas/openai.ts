@@ -52,3 +52,14 @@ export type AssistantMessage = {
 	};
 	created: number;
 };
+export const assistantMessage = z.object({
+	chunkId: z.string(),
+	chunkBody: z.object({
+		delta: z.object({
+			content: z.string().nullable(),
+			role: z.string()
+		}),
+		finishReason: z.string().nullable(),
+	}),
+	created: z.number(),
+})
