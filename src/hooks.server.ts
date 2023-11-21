@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle} from '@sveltejs/kit';
 import { createTRPCHandle } from 'trpc-sveltekit';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
@@ -39,10 +39,28 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 
 	const session = await event.locals.getSession();
 
+
 	if (!session) {
+
+
 		if (event.url.pathname === '/profile/create' || event.url.pathname === '/profile/edit') {
 			throw redirect(303, '/login');
 		}
+
+		
+		//Add protected pages name in the list
+		const pages = ['home', 'studio','profile','book','library']
+
+		for(const page of pages){
+			
+
+			if (event.url.pathname.startsWith('/'+page)) {
+				console.log("Stop");
+				throw redirect(303, '/')
+
+			}
+		}
+
 	} else {
 		const user = await userRepo.getById(session, session.user.id);
 		event.locals.user = user as UserProperties;
@@ -70,6 +88,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			// user already logged in - redirect to home page
 			throw redirect(303, '/');
 		}
+
 	}
 
 	return resolve(event, {
@@ -83,6 +102,8 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
+
+
 
 // NB: this order is important - do not change!
 export const handle = sequence(supabaseHandle, createTRPCHandle({ router, createContext }));
