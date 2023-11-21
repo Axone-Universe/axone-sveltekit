@@ -55,7 +55,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			
 
 			if (event.url.pathname.startsWith('/'+page)) {
-				console.log("Stop");
+			
 				throw redirect(303, '/')
 
 			}
