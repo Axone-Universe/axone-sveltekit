@@ -31,8 +31,7 @@ export const userMessage = z.object({
 		targetAudience: z.string().optional(),
 		targetLanguageProficiency: z.string().optional(),
 		customPrompt: z.string().optional(),
-	}).optional(),
-	deltas: Deltas
+	}).optional()
 });
 export type UserMessage = z.infer<typeof userMessage>;
 
