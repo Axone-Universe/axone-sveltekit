@@ -7,6 +7,7 @@ import { storylines } from '$lib/trpc/routes/storylines';
 import { chapters } from '$lib/trpc/routes/chapters';
 import { deltas } from '$lib/trpc/routes/deltas';
 import { notes } from '$lib/trpc/routes/notes';
+import { openai } from '$lib/trpc/routes/openai';
 import { t } from '$lib/trpc/t';
 import { reviews } from './routes/reviews';
 
@@ -18,7 +19,8 @@ export const router = t.router({
 	chapters,
 	deltas,
 	notes,
-	reviews
+	reviews,
+	openai
 });
 
 export type Router = typeof router;
