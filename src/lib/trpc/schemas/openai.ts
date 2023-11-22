@@ -5,8 +5,8 @@ import { update as BookDetails } from './books';
 
 /**
  * @typedef {Object} UserMessage
- * @property {ChapterDetails} chapterDetails - The chapter details
- * @property {BookDetails} bookDetails - The book details
+ * @property {string} chapterID - The ID of the chapter
+ * @property {string} bookID - The ID of the book
  * @property {string} content - The content of the message (i.e. the highlighted text in the editor)
  * @property {Object} options - The options for the message
  * @property {string} options.style - The style of the generated text
@@ -19,9 +19,10 @@ import { update as BookDetails } from './books';
  * @property {Deltas} deltas - The deltas of the current chapter
  */
 export const userMessage = z.object({
-	chapterDetails: ChapterDetails,
-	bookDetails: BookDetails,
+	chapterID: z.string(),
+	bookID: z.string(),
 	content: z.string(),
+	requestedLength: z.enum(['short sentence', 'long sentence', 'short paragraph', 'long paragraph', 'short chapter', 'long chapter']),
 	options: z.object({
 		style: z.string().optional(),
 		keywords: z.array(z.string()).optional(),
@@ -33,6 +34,7 @@ export const userMessage = z.object({
 	}).optional(),
 	deltas: Deltas
 });
+export type UserMessage = z.infer<typeof userMessage>;
 
 /**
  * @typedef {Object} AssistantMessage
