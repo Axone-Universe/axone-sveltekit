@@ -28,7 +28,7 @@ function getKey(keys: string): string {
 }
 
 function getTextPrompt(input: UserMessage): string {
-	const prompt = `Please complete following ${input.requestedLength} (strictly not longer than one ${input.requestedLength}): ${input.content} ...`;
+	const prompt = `Please write a strictly a ***${input.requestedLength}*** following from the following excerpt: ${input.content}`;
 	return prompt;
 }
 
@@ -69,6 +69,7 @@ function trimMessageContent(completion: completion, prompt: string): string {
 }
 
 export const openai = t.router({
+	//subscribe: t.procedure.subscription(() => ({})),
 	get: t.procedure
 		.use(logger)
 		.input(userMessage)
