@@ -62,7 +62,6 @@ function getSystemTextPrompt(
 }
 
 export const openai = t.router({
-	//subscribe: t.procedure.subscription(() => ({})),
 	get: t.procedure
 		.use(logger)
 		.input(userMessage)
@@ -102,11 +101,12 @@ export const openai = t.router({
 			const completion = await openaiClient.chat.completions.create({
 				messages: messages,
 				model: model,
-				stream: true
+				stream: false
 			});
 
 			response.data = completion;
-
+			console.log(messages);
+			console.log(completion);
 			return response;
 		})
 });
