@@ -764,6 +764,22 @@
 	}
 
 	/**
+	 * Ai generate text using current selection
+	 */
+	function aiAddClick() {
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
+		quill.getModule('ai').addAi({
+			//response from backend
+		});
+		quill.oldSelectedRange == quill.selectedRange;
+
+		showAi = true;
+	}
+
+	/**
 	 * Shows the illustration modal
 	 * @param illustration
 	 */
