@@ -1,7 +1,12 @@
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { userMessage, type AssistantMessage, type UserMessage } from '$lib/trpc/schemas/openai';
+import {
+	userMessage,
+	type AssistantMessage,
+	type UserMessage,
+	generationLength
+} from '$lib/trpc/schemas/openai';
 import type { Response } from '$lib/util/types';
 import { OPENAI_API_KEY } from '$env/static/private';
 import OpenAI from 'openai';
@@ -18,7 +23,11 @@ const openaiClient = new OpenAI({
 });
 
 function getTextPrompt(input: UserMessage): string {
-	const prompt = `Please write a strictly a ***${input.requestedLength}*** following from the following excerpt: ${input.content}`;
+	const prompt = `Limit your response to ${
+		generationLength[input.requestedLength]
+	} completion_tokens. Please write a strictly a ${
+		input.requestedLength
+	} following from the following excerpt: ${input.content}`;
 	return prompt;
 }
 

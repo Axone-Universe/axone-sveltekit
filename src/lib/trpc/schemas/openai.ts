@@ -3,6 +3,19 @@ import { update as ChapterDetails } from './chapters';
 import { update as Deltas } from './deltas';
 import { update as BookDetails } from './books';
 
+type generationLengthType = {
+	[key: string]: number;
+};
+
+export const generationLength: generationLengthType = {
+	'short sentence': 5,
+	'long sentence': 10,
+	'short paragraph': 20,
+	'long paragraph': 50,
+	'short chapter': 100,
+	'long chapter': 200
+};
+
 /**
  * @typedef {Object} UserMessage
  * @property {string} chapterID - The ID of the chapter
@@ -22,16 +35,18 @@ export const userMessage = z.object({
 	chapterID: z.string(),
 	bookID: z.string(),
 	content: z.string(),
-	requestedLength: z.enum(['short sentence', 'long sentence', 'short paragraph', 'long paragraph', 'short chapter', 'long chapter']),
-	options: z.object({
-		style: z.string().optional(),
-		keywords: z.array(z.string()).optional(),
-		plotDirection: z.string().optional(),
-		tone: z.string().optional(),
-		targetAudience: z.string().optional(),
-		targetLanguageProficiency: z.string().optional(),
-		customPrompt: z.string().optional(),
-	}).optional()
+	requestedLength: z.enum(['', ...Object.keys(generationLength)]),
+	options: z
+		.object({
+			style: z.string().optional(),
+			keywords: z.array(z.string()).optional(),
+			plotDirection: z.string().optional(),
+			tone: z.string().optional(),
+			targetAudience: z.string().optional(),
+			targetLanguageProficiency: z.string().optional(),
+			customPrompt: z.string().optional()
+		})
+		.optional()
 });
 export type UserMessage = z.infer<typeof userMessage>;
 
@@ -55,4 +70,4 @@ export type AssistantMessage = {
 		finishReason: string;
 	};
 	created: number;
-}
+};
