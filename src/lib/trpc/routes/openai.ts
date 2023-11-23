@@ -69,7 +69,6 @@ function trimMessageContent(completion: completion, prompt: string): string {
 }
 
 export const openai = t.router({
-	//subscribe: t.procedure.subscription(() => ({})),
 	get: t.procedure
 		.use(logger)
 		.input(userMessage)
