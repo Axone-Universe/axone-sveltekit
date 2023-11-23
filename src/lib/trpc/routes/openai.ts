@@ -28,7 +28,11 @@ function getKey(keys: string): string {
 }
 
 function getTextPrompt(input: UserMessage): string {
-	const prompt = `Please write a strictly a ***${input.requestedLength}*** following from the following excerpt: ${input.content}`;
+	const prompt = `Limit your response to ${
+		generationLength[input.requestedLength]
+	} completion_tokens. Please write a strictly a ${
+		input.requestedLength
+	} following from the following excerpt: ${input.content}`;
 	return prompt;
 }
 

@@ -9,6 +9,19 @@ export const generationLength: generationLengthType = {
 	'Paragraph': 200,
 };
 
+type generationLengthType = {
+	[key: string]: number;
+};
+
+export const generationLength: generationLengthType = {
+	'short sentence': 5,
+	'long sentence': 10,
+	'short paragraph': 20,
+	'long paragraph': 50,
+	'short chapter': 100,
+	'long chapter': 200
+};
+
 /**
  * @typedef {Object} UserMessage
  * @property {string} chapterID - The ID of the chapter
