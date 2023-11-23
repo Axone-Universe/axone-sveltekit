@@ -9,6 +9,7 @@ import type { DeltaProperties } from '$lib/properties/delta';
 import { writable } from 'svelte/store';
 import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import { QuillIllustration } from '@axone-network/quill-illustration/quill.illustration';
+import { QuillAI } from '$lib/util/editor/QuillAI';
 import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError } from '$lib/util/types';
@@ -68,6 +69,7 @@ export class QuillEditor extends Quill {
 	) {
 		super(container, options);
 		Quill.register('modules/illustration', QuillIllustration);
+		//Quill.register('modules/ai', QuillAI);
 		this.chapter = chapter;
 		this.page = page;
 		// changeDelta.update(() => new Delta());

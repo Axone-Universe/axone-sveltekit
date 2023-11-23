@@ -19,6 +19,7 @@
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
+	import '$lib/util/editor/QuillAI';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import { setupTour, startTour } from './tutorial';
@@ -509,6 +510,7 @@
 	let quill: QuillEditor;
 	let showComments = false;
 	let showIllustrations = false;
+	let showAi = false;
 	let deltaChange;
 	let numComments = 0;
 	let numIllustrations = 0;
@@ -528,20 +530,23 @@
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
 		['blockquote', { indent: '+1' }],
-		[
-			{ align: '' },
-			{ align: 'center' },
-			{ align: 'right' },
-			{ align: 'justify' },
-			'comments-add',
-			'comments-toggle',
-			'illustrations-add'
-		]
+		[{ align: '' }, { align: 'center' }, { align: 'right' }, { align: 'justify' }],
+		['comments-add', 'comments-toggle', 'illustrations-add'],
+		['ai-add']
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
 	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
-	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
+	$: aiBgColor = showAi ? 'var(--color-tertiary-800)' : '';
+	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor}; --ai-bg-color:${aiBgColor};`;
+
+	/**
+	 * Toggles the showComments boolean and updates the quill module
+	 *
+	 */
+	function toggleShowAi() {
+		showAi = !showAi;
+	}
 
 	/**
 	 * Toggles the showComments boolean and updates the quill module
@@ -680,6 +685,22 @@
 			showComments = false;
 			showIllustrations = true;
 		}
+	}
+
+	/**
+	 * Ai generate text using current selection
+	 */
+	function aiAddClick() {
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
+		quill.getModule('ai').addAi({
+			//response from backend
+		});
+		quill.oldSelectedRange == quill.selectedRange;
+
+		showAi = true;
 	}
 
 	/**
@@ -835,16 +856,7 @@
 		reader.readAsDataURL(file);
 	}
 
-	function commentServerTimestamp() {
-		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
-		return new Promise((resolve, reject) => {
-			let currentTimestamp = Math.round(new Date().getTime() / 1000);
-
-			resolve(currentTimestamp);
-		});
-	}
-
-	function illustrationServerTimestamp() {
+	function serverTimestamp() {
 		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
 		return new Promise((resolve, reject) => {
 			let currentTimestamp = Math.round(new Date().getTime() / 1000);
@@ -861,6 +873,7 @@
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
 		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
+		icons['ai-add'] = '<img src="/ai-generate.svg"/>';
 
 		if (!selectedChapter) {
 			return;
@@ -881,7 +894,7 @@
 						commentAuthorId: session?.user.id,
 						commentAddOn: session?.user.email, // any additional info needed
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
-						commentTimestamp: commentServerTimestamp
+						commentTimestamp: serverTimestamp
 					},
 					illustration: {
 						enabled: true,
@@ -889,7 +902,14 @@
 						illustrationAuthorId: session?.user.id,
 						illustrationAddOn: session?.user.email, // any additional info needed
 						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
-						illustrationTimestamp: illustrationServerTimestamp
+						illustrationTimestamp: serverTimestamp
+					},
+					ai: {
+						enabled: true,
+						aiAuthorId: session?.user.id,
+						aiAddOn: session?.user.email, // any additional info needed
+						aiAddClick: aiAddClick, // get called when `ADD AI` btn on options bar is clicked
+						aiTimestamp: serverTimestamp
 					},
 					history: {
 						delay: 1000,
