@@ -140,59 +140,104 @@ export class QuillAI {
 		}
 	}
 
+	insertTextWordByWord(
+		text: string,
+		delay: number,
+		range: RangeStatic,
+		formatAi: (range: RangeStatic, text: string, quill: Quill, options: QuillAiOptions) => void
+	) {
+		// Split the text into words
+		const words = text.split(' ');
+
+		// Get the current selection
+		let index = 0;
+		if (range) index = range.index + range.length;
+
+		// Insert each word one by one
+		let i = 0;
+		words[0] = ' ' + words[0];
+		const insertWords = () => {
+			if (i < words.length) {
+				// Insert the word and a space after it
+				this.quill.insertText(index, words[i] + ' ', 'api');
+				// Move the index to the end of the inserted word
+				index += words[i].length + 1;
+				i++;
+			} else {
+				// All words have been inserted, clear the interval
+				clearInterval(intervalId);
+				formatAi(range, text, this.quill, this.options);
+			}
+		};
+		const intervalId = setInterval(insertWords, delay);
+	}
+
 	addAi(ai: AiResponse): void {
 		if (!range || !ai || !ai.data.choices || !ai.data.choices[0] || !ai.data.choices[0].message) {
 			return; // cannot work without selected text or ai response
 		}
 
+		const originalRange = structuredClone(range);
 		this.quill.focus();
 		const textToInsert = ai.data.choices[0].message.content;
 
-		this.quill.insertText(range.index + range.length, ' ');
-		const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
+		this.quill.setSelection(originalRange.index + originalRange.length, 0);
 
+		this.quill.insertText(originalRange.index + originalRange.length, ' ');
+		//const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
+
+		this.insertTextWordByWord(textToInsert, 300, originalRange, this.formatAi);
+	}
+
+	formatAi(
+		originalRange: RangeStatic,
+		textToInsert: string,
+		quill: Quill,
+		options: QuillAiOptions
+	) {
+		const textLength = textToInsert.length;
 		// selection could be removed when this callback gets called, so store it first
-		if (range) {
-			this.quill.formatText(
-				range.index + range.length + 1,
-				textToInsert.length,
+		if (originalRange) {
+			quill.formatText(
+				originalRange.index + originalRange.length + 1,
+				textLength,
 				'aiAuthor',
-				this.options.aiAuthorId,
+				options.aiAuthorId,
 				'user'
 			);
 		}
 
-		if (range && this.options.aiAddOn) {
-			this.quill.formatText(
-				range.index + range.length + 1,
-				textToInsert.length,
+		if (originalRange && options.aiAddOn) {
+			quill.formatText(
+				originalRange.index + originalRange.length + 1,
+				textLength,
 				'aiAddOn',
-				this.options.aiAddOn,
+				options.aiAddOn,
 				'user'
 			);
 		}
 
-		this.options.aiTimestamp().then((utcSeconds) => {
+		options.aiTimestamp().then((utcSeconds) => {
 			// UNIX epoch like 1234567890
-			if (range) {
-				this.quill.formatText(
-					range.index + range.length + 1,
-					textToInsert.length,
+			if (originalRange) {
+				quill.formatText(
+					originalRange.index + originalRange.length + 1,
+					textLength,
 					'aiTimestamp',
 					utcSeconds,
 					'user'
 				);
-				this.quill.formatText(
-					range.index + range.length + 1,
-					textToInsert.length,
+				quill.formatText(
+					originalRange.index + originalRange.length + 1,
+					textLength,
 					'aiId',
-					'ql-ai-' + this.options.aiAuthorId + '-' + utcSeconds,
+					'ql-ai-' + options.aiAuthorId + '-' + utcSeconds,
 					'user'
 				);
 
-				this.quill.formatText(
-					range.index + range.length + 1,
-					textToInsert.length,
+				quill.formatText(
+					originalRange.index + originalRange.length + 1,
+					textLength,
 					'ai',
 					textToInsert,
 					'user'
