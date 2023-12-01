@@ -42,6 +42,7 @@
 		history,
 		lock,
 		info
+		lightbulbO
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -60,6 +61,10 @@
 	import type { DeltaProperties } from '$lib/properties/delta';
 	import Delta from 'quill-delta';
 	import type Op from 'quill-delta/dist/Op';
+	import type { AiResponse } from '$lib/util/editor/QuillAI.js';
+	import { z } from 'zod';
+	import { generationLength } from '$lib/trpc/schemas/openai';
+	import type { BookProperties } from '$lib/properties/book';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -1123,6 +1128,14 @@
 										label: 'Notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
+										mode: 'writer'
+									},
+									{				
+										id: 'ai',
+										label: 'AI',
+										icon: lightbulbO,
+										callback: toggleShowAi,
+										class: 'relative',
 										mode: 'writer'
 									},
 									{
