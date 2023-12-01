@@ -713,8 +713,31 @@
 			return; // same range is selected, no range is selected, or no chapter is selected
 		}
 
+		const startingCursorPosition = structuredClone(quill.selectedRange);
+		let cursorPosition = structuredClone(quill.selectedRange);
+
+		quill.setSelection(startingCursorPosition.index + startingCursorPosition.length, 0);
+
 		//show modal
 		showPromptBuilderModal((response: UserMessage) => {
+			let countDots = 0;
+
+			const insertDot = () => {
+				if (countDots < 3) {
+					quill.insertText(cursorPosition.index + startingCursorPosition.length, '•');
+					countDots++;
+					cursorPosition.index++;
+				} else {
+					quill.deleteText(
+						cursorPosition.index + startingCursorPosition.length - countDots,
+						countDots
+					);
+					cursorPosition = structuredClone(startingCursorPosition);
+					countDots = 0;
+				}
+			};
+			const intervalId = setInterval(insertDot, 300);
+
 			trpc($page)
 				.openai.get.query({
 					chapterID: quill.chapter._id,
@@ -737,7 +760,9 @@
 					}
 				})
 				.then((response: AiResponse) => {
-					quill.getModule('ai').addAi(response, quill);
+					quill.deleteText(startingCursorPosition.index + startingCursorPosition.length, countDots);
+					clearInterval(intervalId);
+					quill.getModule('ai').addAi(response, startingCursorPosition);
 					quill.oldSelectedRange == quill.selectedRange;
 					showAi = true;
 				});
@@ -955,8 +980,7 @@
 					history: {
 						delay: 1000,
 						maxStack: 500
-					},
-					loadingAnimation: {}
+					}
 				},
 				placeholder: mode === 'writer' ? 'Let your voice be heard...' : 'Coming soon...'
 			});

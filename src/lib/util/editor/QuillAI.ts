@@ -172,12 +172,18 @@ export class QuillAI {
 		const intervalId = setInterval(insertWords, delay);
 	}
 
-	addAi(ai: AiResponse): void {
-		if (!range || !ai || !ai.data.choices || !ai.data.choices[0] || !ai.data.choices[0].message) {
+	addAi(ai: AiResponse, selectedRange: RangeStatic): void {
+		if (
+			!selectedRange ||
+			!ai ||
+			!ai.data.choices ||
+			!ai.data.choices[0] ||
+			!ai.data.choices[0].message
+		) {
 			return; // cannot work without selected text or ai response
 		}
 
-		const originalRange = structuredClone(range);
+		const originalRange = structuredClone(selectedRange);
 		this.quill.focus();
 		const textToInsert = ai.data.choices[0].message.content;
 
