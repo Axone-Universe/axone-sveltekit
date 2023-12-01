@@ -974,7 +974,8 @@
 					history: {
 						delay: 1000,
 						maxStack: 500
-					}
+					},
+					loadingAnimation: {}
 				},
 				placeholder: mode === 'writer' ? 'Let your voice be heard...' : 'Coming soon...'
 			});
