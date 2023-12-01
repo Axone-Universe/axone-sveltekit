@@ -63,8 +63,9 @@
 	import type Op from 'quill-delta/dist/Op';
 	import type { AiResponse } from '$lib/util/editor/QuillAI.js';
 	import { z } from 'zod';
-	import { generationLength } from '$lib/trpc/schemas/openai';
+	import type { UserMessage } from '$lib/trpc/schemas/openai';
 	import type { BookProperties } from '$lib/properties/book';
+	import AiPromptBuilderModal from '$lib/components/modal/AiPromptBuilderModal.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -692,6 +693,18 @@
 		}
 	}
 
+	function showPromptBuilderModal(responseHandler: (response: UserMessage) => void) {
+		const c: ModalComponent = { ref: AiPromptBuilderModal };
+		const modal: ModalSettings = {
+			type: 'component',
+			component: c,
+			title: 'Ai Prompt Builder',
+			body: 'Complete the form below and then press submit.',
+			response: (r: UserMessage) => responseHandler(r)
+		};
+		modalStore.trigger(modal);
+	}
+
 	/**
 	 * Ai generate text using current selection
 	 */
@@ -700,29 +713,35 @@
 			return; // same range is selected, no range is selected, or no chapter is selected
 		}
 
-		trpc($page)
-			.openai.get.query({
-				chapterID: quill.chapter._id,
-				bookID:
-					(quill.chapter.book as string) ||
-					((quill.chapter.book as HydratedDocument<BookProperties>).id as string),
-				content: quill.getText(quill.selectedRange.index, quill.selectedRange.length),
-				requestedLength: 'short sentence', //TODO: remove placeholder
-				options: {
-					style: 'formal', //TODO: remove placeholder
-					keywords: ['horror, latency'], //TODO: remove placeholder
-					plotDirection: undefined, //TODO: remove placeholder
-					tone: 'whimsical', //TODO: remove placeholder
-					targetAudience: undefined, //TODO: remove placeholder
-					targetLanguageProficiency: undefined, //TODO: remove placeholder
-					customPrompt: undefined //TODO: remove placeholder
-				}
-			})
-			.then((response: AiResponse) => {
-				quill.getModule('ai').addAi(response, quill);
-				quill.oldSelectedRange == quill.selectedRange;
-				showAi = true;
-			});
+		//show modal
+		showPromptBuilderModal((response: UserMessage) => {
+			trpc($page)
+				.openai.get.query({
+					chapterID: quill.chapter._id,
+					bookID:
+						(quill.chapter.book as string) ||
+						((quill.chapter.book as HydratedDocument<BookProperties>).id as string),
+					content: quill.getText(quill.selectedRange.index, quill.selectedRange.length),
+					requestedLength: response.requestedLength,
+					options: {
+						style: response.style ? response.style : undefined,
+						keywords:
+							!response.keywords || response.keywords.length <= 0 ? undefined : response.keywords,
+						plotDirection: response.plotDirection ? response.plotDirection : undefined,
+						tone: response.tone ? response.tone : undefined,
+						targetAudience: response.targetAudience ? response.targetAudience : undefined,
+						targetLanguageProficiency: response.targetLanguageProficiency
+							? response.targetLanguageProficiency
+							: undefined, //TODO: remove placeholder
+						customPrompt: response.customPrompt ? response.customPrompt : undefined
+					}
+				})
+				.then((response: AiResponse) => {
+					quill.getModule('ai').addAi(response, quill);
+					quill.oldSelectedRange == quill.selectedRange;
+					showAi = true;
+				});
+		});
 	}
 
 	/**
@@ -936,7 +955,8 @@
 					history: {
 						delay: 1000,
 						maxStack: 500
-					}
+					},
+					loadingAnimation: {}
 				},
 				placeholder: mode === 'writer' ? 'Let your voice be heard...' : 'Coming soon...'
 			});
