@@ -69,7 +69,7 @@ export class QuillEditor extends Quill {
 	) {
 		super(container, options);
 		Quill.register('modules/illustration', QuillIllustration);
-		//Quill.register('modules/ai', QuillAI);
+		Quill.register('modules/ai', QuillAI);
 		this.chapter = chapter;
 		this.page = page;
 		// changeDelta.update(() => new Delta());

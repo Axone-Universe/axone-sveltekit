@@ -48,6 +48,7 @@ export interface QuillAiOptions {
 }
 
 export interface AiResponse {
+	data: any;
 	choices: Choice[];
 	created: number;
 	id: string;
@@ -139,34 +140,63 @@ export class QuillAI {
 		}
 	}
 
-	addAi(ai: AiResponse | undefined): void {
-		if (!range) {
-			return; // cannot work without selected text
+	addAi(ai: AiResponse): void {
+		if (!range || !ai || !ai.data.choices || !ai.data.choices[0] || !ai.data.choices[0].message) {
+			return; // cannot work without selected text or ai response
 		}
 
-		console.log('Text chosen for ai prompt: ' + this.quill.getText(range.index, range.length));
+		this.quill.focus();
+		const textToInsert = ai.data.choices[0].message.content;
+
+		this.quill.insertText(range.index + range.length, ' ');
+		const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
 
 		// selection could be removed when this callback gets called, so store it first
-		if (range)
-			this.quill.formatText(range.index, range.length, 'aiAuthor', this.options.aiAuthorId, 'user');
+		if (range) {
+			this.quill.formatText(
+				range.index + range.length + 1,
+				textToInsert.length,
+				'aiAuthor',
+				this.options.aiAuthorId,
+				'user'
+			);
+		}
 
 		if (range && this.options.aiAddOn) {
-			this.quill.formatText(range.index, range.length, 'aiAddOn', this.options.aiAddOn, 'user');
+			this.quill.formatText(
+				range.index + range.length + 1,
+				textToInsert.length,
+				'aiAddOn',
+				this.options.aiAddOn,
+				'user'
+			);
 		}
 
 		this.options.aiTimestamp().then((utcSeconds) => {
 			// UNIX epoch like 1234567890
 			if (range) {
-				this.quill.formatText(range.index, range.length, 'aiTimestamp', utcSeconds, 'user');
 				this.quill.formatText(
-					range.index,
-					range.length,
+					range.index + range.length + 1,
+					textToInsert.length,
+					'aiTimestamp',
+					utcSeconds,
+					'user'
+				);
+				this.quill.formatText(
+					range.index + range.length + 1,
+					textToInsert.length,
 					'aiId',
 					'ql-ai-' + this.options.aiAuthorId + '-' + utcSeconds,
 					'user'
 				);
 
-				this.quill.formatText(range.index, range.length, 'ai', JSON.stringify(ai), 'user');
+				this.quill.formatText(
+					range.index + range.length + 1,
+					textToInsert.length,
+					'ai',
+					textToInsert,
+					'user'
+				);
 			}
 		});
 	}

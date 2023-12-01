@@ -114,8 +114,6 @@ export const openai = t.router({
 			});
 
 			response.data = completion;
-			console.log(messages);
-			console.log(completion);
 			return response;
 		})
 });

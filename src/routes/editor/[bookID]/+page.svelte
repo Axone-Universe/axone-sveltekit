@@ -691,16 +691,33 @@
 	 * Ai generate text using current selection
 	 */
 	function aiAddClick() {
-		if (quill.oldSelectedRange === quill.selectedRange) {
-			return; // same range is selected
+		if (quill.oldSelectedRange === quill.selectedRange || !quill.selectedRange || !quill.chapter) {
+			return; // same range is selected, no range is selected, or no chapter is selected
 		}
 
-		quill.getModule('ai').addAi({
-			//response from backend
-		});
-		quill.oldSelectedRange == quill.selectedRange;
-
-		showAi = true;
+		trpc($page)
+			.openai.get.query({
+				chapterID: quill.chapter._id,
+				bookID:
+					(quill.chapter.book as string) ||
+					((quill.chapter.book as HydratedDocument<BookProperties>).id as string),
+				content: quill.getText(quill.selectedRange.index, quill.selectedRange.length),
+				requestedLength: 'short sentence', //TODO: remove placeholder
+				options: {
+					style: 'formal', //TODO: remove placeholder
+					keywords: ['horror, latency'], //TODO: remove placeholder
+					plotDirection: undefined, //TODO: remove placeholder
+					tone: 'whimsical', //TODO: remove placeholder
+					targetAudience: undefined, //TODO: remove placeholder
+					targetLanguageProficiency: undefined, //TODO: remove placeholder
+					customPrompt: undefined //TODO: remove placeholder
+				}
+			})
+			.then((response: AiResponse) => {
+				quill.getModule('ai').addAi(response, quill);
+				quill.oldSelectedRange == quill.selectedRange;
+				showAi = true;
+			});
 	}
 
 	/**
