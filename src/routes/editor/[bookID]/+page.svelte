@@ -724,13 +724,16 @@
 
 			const insertDot = () => {
 				if (countDots < 3) {
-					quill.insertText(cursorPosition.index + startingCursorPosition.length, '•');
+					quill.insertText(
+						cursorPosition.index + startingCursorPosition.length,
+						countDots == 0 ? ' •' : '•'
+					);
 					countDots++;
 					cursorPosition.index++;
 				} else {
 					quill.deleteText(
 						cursorPosition.index + startingCursorPosition.length - countDots,
-						countDots
+						countDots + 1
 					);
 					cursorPosition = structuredClone(startingCursorPosition);
 					countDots = 0;
@@ -755,12 +758,15 @@
 						targetAudience: response.targetAudience ? response.targetAudience : undefined,
 						targetLanguageProficiency: response.targetLanguageProficiency
 							? response.targetLanguageProficiency
-							: undefined, //TODO: remove placeholder
+							: undefined,
 						customPrompt: response.customPrompt ? response.customPrompt : undefined
 					}
 				})
 				.then((response: AiResponse) => {
-					quill.deleteText(startingCursorPosition.index + startingCursorPosition.length, countDots);
+					quill.deleteText(
+						startingCursorPosition.index + startingCursorPosition.length + 1,
+						countDots
+					);
 					clearInterval(intervalId);
 					quill.getModule('ai').addAi(response, startingCursorPosition);
 					quill.oldSelectedRange == quill.selectedRange;

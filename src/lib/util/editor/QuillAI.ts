@@ -192,7 +192,7 @@ export class QuillAI {
 		this.quill.insertText(originalRange.index + originalRange.length, ' ');
 		//const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
 
-		this.insertTextWordByWord(textToInsert, 300, originalRange, this.formatAi);
+		this.insertTextWordByWord(textToInsert, 80, originalRange, this.formatAi);
 	}
 
 	formatAi(
