@@ -339,6 +339,9 @@
 			.then((response: StorageFileError) => {
 				if (response.data) {
 					const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+					if (filesToRemove.length === 0) {
+						return;
+					}
 					supabase.storage
 						.from('books')
 						.remove(filesToRemove)
@@ -356,6 +359,30 @@
 						});
 				}
 			});
+	}
+
+	$: isSelectedChapterOwner = setSelectedChapterOwner(selectedChapter);
+	function setSelectedChapterOwner(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		const currentUser = $page.data.user;
+		if (!selectedChapter) {
+			return false;
+		}
+
+		let userID;
+
+		if (typeof selectedChapter.user === 'string') {
+			userID = selectedChapter.user;
+		} else {
+			userID = selectedChapter.user?._id;
+		}
+
+		if (userID === currentUser._id) {
+			return true;
+		}
+
+		return false;
 	}
 
 	let deleteChapter = () => {
@@ -379,7 +406,7 @@
 							id: selectedChapter!._id
 						})
 						.then((response) => {
-							if (response.data.deletedCount !== 0) {
+							if (response.success) {
 								let deletedID = selectedChapter!._id;
 								let chapterIDs = Object.keys(selectedStorylineChapters);
 								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
@@ -402,6 +429,14 @@
 
 								// setup the editor
 								setupEditor();
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
 							}
 						})
 						.catch((error) => {
@@ -520,7 +555,7 @@
 		quill
 			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
 			.then((response: any) => {
-				if (!response.data) {
+				if (response.error) {
 					//error
 					const errorUploadToast: ToastSettings = {
 						message: 'There was an issue deleting the illustration',
@@ -1030,14 +1065,15 @@
 									label: 'Delete',
 									icon: trash,
 									callback: deleteChapter,
-									mode: 'writer'
+									mode: 'writer',
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
 									label: 'History',
 									icon: history,
 									callback: versionHistory,
 									mode: 'writer',
-									hidden: selectedChapter ? false : true
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
 									label: 'Auto Save',

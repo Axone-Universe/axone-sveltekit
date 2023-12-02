@@ -507,14 +507,15 @@ export class QuillEditor extends Quill {
 		filenames: string[] | null | undefined;
 	}) {
 		if (editor == null) {
-			return;
+			return { data: null, error: null };
 		}
 
 		const [index, length] = this.getRangeByID(id, editor);
 
 		if (index === null || length === null) {
-			return;
+			return { data: null, error: null };
 		}
+
 		this.formatText(index, length, 'illustration', false);
 		this.formatText(index, length, 'illustrationAuthor', false);
 		this.formatText(index, length, 'illustrationTimestamp', false);

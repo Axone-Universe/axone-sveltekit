@@ -106,7 +106,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				if (children && children.length !== 0) {
 					// check if children was created by the owner
 					for (const child of children) {
-						if (child.user !== this._sessionUserID) {
+						if (child.user !== chapter.user._id) {
 							throw new Error(
 								'This chapter was referenced by another author, it can only be archived.'
 							);
