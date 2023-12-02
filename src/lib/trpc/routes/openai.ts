@@ -8,7 +8,7 @@ import {
 	generationLength
 } from '$lib/trpc/schemas/openai';
 import type { Response } from '$lib/util/types';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEYS } from '$env/static/private';
 import OpenAI from 'openai';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
@@ -19,8 +19,13 @@ import type { DeltaProperties } from '$lib/properties/delta';
 import { deltas } from '$lib/trpc/routes/deltas';
 
 const openaiClient = new OpenAI({
-	apiKey: OPENAI_API_KEY
+	apiKey: getKey(OPENAI_API_KEYS)
 });
+
+function getKey(keys: string): string {
+	const keysArray: string[] = JSON.parse(keys);
+	return keysArray[Math.floor(Math.random() * keysArray.length)];
+}
 
 function getTextPrompt(input: UserMessage): string {
 	const prompt = `Limit your response to ${
