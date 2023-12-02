@@ -18,6 +18,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 import Quill, { RangeStatic } from 'quill';
 import Scope from 'parchment/src/scope';
+import { type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
 const Parchment = Quill.import('parchment');
 
 const AiAttr = new Parchment.Attributor.Attribute('ai', 'ql-ai', {
@@ -80,12 +81,13 @@ export class QuillAI {
 	quill: Quill;
 	options: QuillAiOptions;
 	isEnabled: boolean;
+	textGenerationCancelled = false;
 
 	constructor(ql: Quill, opt: QuillAiOptions) {
 		this.quill = ql;
 		this.options = opt;
-
 		this.isEnabled = false;
+		this.textGenerationCancelled = false;
 
 		if (this.options.enabled) {
 			this.enable();
@@ -144,8 +146,9 @@ export class QuillAI {
 		text: string,
 		delay: number,
 		range: RangeStatic,
-		formatAi: (range: RangeStatic, text: string, quill: Quill, options: QuillAiOptions) => void
-	) {
+		formatAi: (range: RangeStatic, text: string, quill: Quill, options: QuillAiOptions) => void,
+		stopGeneratingToast: string
+	): NodeJS.Timer {
 		// Split the text into words
 		const words = text.split(' ');
 
@@ -156,24 +159,37 @@ export class QuillAI {
 		// Insert each word one by one
 		let i = 0;
 		words[0] = ' ' + words[0];
+		let processed = '';
 		const insertWords = () => {
-			if (i < words.length) {
+			if (i < words.length && !this.textGenerationCancelled) {
 				// Insert the word and a space after it
 				this.quill.insertText(index, words[i] + ' ', 'api');
 				// Move the index to the end of the inserted word
 				index += words[i].length + 1;
+				processed += words[i] + ' ';
 				i++;
 			} else {
-				// All words have been inserted, clear the interval
+				// All words have been inserted or generation cancelled, clear the interval
 				clearInterval(intervalId);
 				this.quill.enable(true);
-				formatAi(range, text, this.quill, this.options);
+				formatAi(range, processed, this.quill, this.options);
+				this.textGenerationCancelled = false;
+				toastStore.close(stopGeneratingToast);
 			}
 		};
 		const intervalId = setInterval(insertWords, delay);
+		return intervalId;
 	}
 
-	addAi(ai: AiResponse, selectedRange: RangeStatic): void {
+	stopGenerating() {
+		this.textGenerationCancelled = true;
+	}
+
+	addAi(
+		ai: AiResponse,
+		selectedRange: RangeStatic,
+		stopGeneratingToast: string
+	): NodeJS.Timer | undefined {
 		if (
 			!selectedRange ||
 			!ai ||
@@ -193,7 +209,13 @@ export class QuillAI {
 		this.quill.insertText(originalRange.index + originalRange.length, ' ');
 		//const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
 
-		this.insertTextWordByWord(textToInsert, 80, originalRange, this.formatAi);
+		return this.insertTextWordByWord(
+			textToInsert,
+			80,
+			originalRange,
+			this.formatAi,
+			stopGeneratingToast
+		);
 	}
 
 	formatAi(

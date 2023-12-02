@@ -718,10 +718,34 @@
 
 		quill.setSelection(startingCursorPosition.index + startingCursorPosition.length, 0);
 
+		let insertWordsInterval: NodeJS.Timer | undefined = undefined;
+		let dotIntervalId: NodeJS.Timer | undefined = undefined;
+		let countDots = 0;
+
+		const stopGeneratingToast: ToastSettings = {
+			message: '',
+			background: 'bg-transparent',
+			action: {
+				label: 'Stop generating',
+				response: () => {
+					if (insertWordsInterval) quill.getModule('ai').stopGenerating();
+					else if (dotIntervalId) {
+						clearInterval(dotIntervalId);
+						quill.getModule('ai').stopGenerating();
+						quill.deleteText(
+							startingCursorPosition.index + startingCursorPosition.length + 1,
+							countDots
+						);
+					}
+					quill.enable(true);
+				}
+			},
+			autohide: false
+		};
+		const stopGeneratingToastId = toastStore.trigger(stopGeneratingToast);
+
 		//show modal
 		showPromptBuilderModal((response: UserMessage) => {
-			let countDots = 0;
-
 			quill.enable(false);
 
 			const insertDot = () => {
@@ -741,7 +765,7 @@
 					countDots = 0;
 				}
 			};
-			const intervalId = setInterval(insertDot, 300);
+			dotIntervalId = setInterval(insertDot, 300);
 
 			trpc($page)
 				.openai.get.query({
@@ -769,8 +793,10 @@
 						startingCursorPosition.index + startingCursorPosition.length + 1,
 						countDots
 					);
-					clearInterval(intervalId);
-					quill.getModule('ai').addAi(response, startingCursorPosition);
+					clearInterval(dotIntervalId);
+					insertWordsInterval = quill
+						.getModule('ai')
+						.addAi(response, startingCursorPosition, stopGeneratingToastId);
 					quill.oldSelectedRange == quill.selectedRange;
 					showAi = true;
 				});
