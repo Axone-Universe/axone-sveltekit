@@ -14,12 +14,12 @@ type generationLengthType = {
 };
 
 export const generationLength: generationLengthType = {
-	'short sentence': 5,
-	'long sentence': 10,
-	'short paragraph': 20,
-	'long paragraph': 50,
-	'short chapter': 100,
-	'long chapter': 200
+	'short sentence': 2,
+	'long sentence': 5,
+	'short paragraph': 10,
+	'long paragraph': 25,
+	'short chapter': 50,
+	'long chapter': 100
 };
 
 /**
