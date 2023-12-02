@@ -722,6 +722,8 @@
 		showPromptBuilderModal((response: UserMessage) => {
 			let countDots = 0;
 
+			quill.enable(false);
+
 			const insertDot = () => {
 				if (countDots < 3) {
 					quill.insertText(

@@ -166,6 +166,7 @@ export class QuillAI {
 			} else {
 				// All words have been inserted, clear the interval
 				clearInterval(intervalId);
+				this.quill.enable(true);
 				formatAi(range, text, this.quill, this.options);
 			}
 		};
