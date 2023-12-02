@@ -162,12 +162,19 @@ export class QuillAI {
 		let processed = '';
 		const insertWords = () => {
 			if (i < words.length && !this.textGenerationCancelled) {
-				// Insert the word and a space after it
-				this.quill.insertText(index, words[i] + ' ', 'api');
-				// Move the index to the end of the inserted word
-				index += words[i].length + 1;
-				processed += words[i] + ' ';
-				i++;
+				const randomNum = Math.floor(Math.random() * 10) + 1;
+				// Ensure not going out of bounds
+				const toInsertNum = Math.min(randomNum, words.length - i) || 1;
+
+				for (let j = 0; j < toInsertNum; ++j) {
+					// Insert the word and a space after it
+					this.quill.insertText(index, words[i] + ' ', 'api');
+					// Move the index to the end of the inserted word
+					index += words[i].length + 1;
+					// Accumulate the words
+					processed += words[i] + ' ';
+					i++;
+				}
 			} else {
 				// All words have been inserted or generation cancelled, clear the interval
 				clearInterval(intervalId);
