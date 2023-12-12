@@ -3,8 +3,9 @@ import { label as ChapterLabel } from '$lib/properties/chapter';
 import { label as UserLabel } from '$lib/properties/user';
 import mongoose, { Schema, model } from 'mongoose';
 import {
-	addCollaborationRestrictionOnUpdate,
-	addReadRestrictionPipeline,
+	addArchivedRestrictionFilter,
+	addCollaboratorUpdateRestrictionFilter,
+	addViewRestrictionPipeline,
 	permissionSchema
 } from './permission';
 import type Op from 'quill-delta/dist/Op';
@@ -22,7 +23,8 @@ export const deltaSchema = new Schema<DeltaProperties>({
 	user: { type: String, ref: UserLabel, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
-	versions: [versionSchema]
+	versions: [versionSchema],
+	archived: { type: Boolean, default: false }
 });
 
 deltaSchema.pre(['find', 'findOne'], function () {
@@ -33,7 +35,7 @@ deltaSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	addReadRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
+	addViewRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
 	next();
 });
 
@@ -58,7 +60,9 @@ deltaSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addCollaborationRestrictionOnUpdate(userID, filter);
+		let updatedFilter = addCollaboratorUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();

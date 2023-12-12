@@ -162,11 +162,11 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			);
 
-			// update delta permissions as well
+			// update delta inherited fields
 			if (chapter?.delta) {
 				await Delta.findOneAndUpdate(
 					{ _id: chapter.delta },
-					{ permissions: this._chapterProperties.permissions },
+					{ archived: chapter.archived, permissions: chapter.permissions },
 					{ session }
 				);
 			}
@@ -192,15 +192,34 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	async setArchived(ids: string[]): Promise<boolean> {
-		const acknowledged = (
-			await Chapter.updateMany(
-				{ _id: { $in: ids }, user: this._chapterProperties.user },
-				{ archived: this._chapterProperties.archived },
-				{
-					userID: this._sessionUserID
-				}
-			)
-		).acknowledged;
+		const session = await mongoose.startSession();
+		let acknowledged = false;
+		await session.withTransaction(async () => {
+			acknowledged = (
+				await Chapter.updateMany(
+					{ _id: { $in: ids }, user: this._chapterProperties.user },
+					{ archived: this._chapterProperties.archived },
+					{
+						userID: this._sessionUserID,
+						session: session
+					}
+				)
+			).acknowledged;
+
+			if (acknowledged) {
+				acknowledged = (
+					await Delta.updateMany(
+						{ chapter: { $in: ids }, user: this._chapterProperties.user },
+						{ archived: this._chapterProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session: session
+						}
+					)
+				).acknowledged;
+			}
+		});
+		session.endSession();
 
 		return acknowledged;
 	}

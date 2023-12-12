@@ -11,11 +11,10 @@
 	export let bookID: string;
 	export let storylineID: string;
 	export let prevChapterID: string;
+	export let disabled: false;
+
 	let customClass = '';
 	export { customClass as class };
-
-	let disabled =
-		$page.data.user._id !== (typeof chapter.user === 'string' ? chapter.user : chapter.user!._id);
 
 	let notifications = {};
 
@@ -99,33 +98,44 @@
 </script>
 
 <div class={`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} w-modal`}>
-	<div class="space-y-4 rounded-container-token">
-		<label>
-			* Chapter Title
-			<input
-				class="input"
-				type="text"
-				bind:value={chapter.title}
-				placeholder="Chapter Title"
-				required
-			/>
-		</label>
-		<label>
-			* Chapter Description
-			<textarea class="textarea h-44 overflow-hidden" bind:value={chapter.description} required />
-		</label>
+	<form on:submit|preventDefault={submit}>
+		<fieldset {disabled}>
+			<div class="space-y-4 rounded-container-token">
+				<label>
+					* Chapter Title
+					<input
+						class="input"
+						type="text"
+						bind:value={chapter.title}
+						placeholder="Chapter Title"
+						required
+					/>
+				</label>
+				<label>
+					* Chapter Description
+					<textarea
+						class="textarea h-44 overflow-hidden"
+						bind:value={chapter.description}
+						required
+					/>
+				</label>
 
-		<div>
-			Permissions
-			<ManagePermissions bind:permissionedDocument={chapter} permissionedDocumentType="Chapter" />
-		</div>
-	</div>
-	{#if !disabled}
-		<div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-			<button on:click={modalStore.close} class="btn variant-ghost-surface">Cancel</button>
-			<button class="btn variant-filled" on:click={submit}>
-				{chapter._id ? 'Update' : 'Create'}
-			</button>
-		</div>
-	{/if}
+				<div>
+					Permissions
+					<ManagePermissions
+						bind:permissionedDocument={chapter}
+						permissionedDocumentType="Chapter"
+					/>
+				</div>
+			</div>
+			{#if !disabled}
+				<div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+					<button on:click={modalStore.close} class="btn variant-ghost-surface">Cancel</button>
+					<button class="btn variant-filled" on:click={submit}>
+						{chapter._id ? 'Update' : 'Create'}
+					</button>
+				</div>
+			{/if}
+		</fieldset>
+	</form>
 </div>

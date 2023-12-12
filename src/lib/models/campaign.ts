@@ -1,7 +1,7 @@
 import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
 import mongoose, { Schema, model } from 'mongoose';
-import { addUpdateRestrictionPipeline } from './permission';
+import { addArchivedRestrictionFilter, addOwnerUpdateRestrictionFilter } from './permission';
 import { TRPCClientError } from '@trpc/client';
 import { TRPCError } from '@trpc/server';
 
@@ -19,7 +19,7 @@ campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functi
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -31,7 +31,9 @@ campaignSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();

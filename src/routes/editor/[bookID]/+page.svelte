@@ -39,7 +39,8 @@
 		unlock,
 		star,
 		bookmark,
-		history
+		history,
+		lock
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -263,7 +264,8 @@
 		modalComponent.props = {
 			chapter: selectedChapter,
 			bookID: bookData._id,
-			storylineID: selectedStoryline._id
+			storylineID: selectedStoryline._id,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
 		};
 
 		modalStore.trigger(modalSettings);
@@ -385,6 +387,18 @@
 		return false;
 	}
 
+	$: hasSelectedChapterPermissions = setSelectedChapterPermissions(selectedChapter);
+	$: canEditSelectedChapter = hasSelectedChapterPermissions && !selectedChapter?.archived;
+	function setSelectedChapterPermissions(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		if (!selectedChapter) {
+			return false;
+		}
+
+		return selectedChapter.userPermissions?.view && selectedChapter.userPermissions?.collaborate;
+	}
+
 	let deleteChapter = () => {
 		if (!selectedChapter) {
 			return;
@@ -450,13 +464,20 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
-		modalComponent.props = { storylineNode: selectedStoryline, chapterNode: selectedChapter };
+		modalComponent.props = {
+			storylineNode: selectedStoryline,
+			chapterNode: selectedChapter,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 		modalStore.trigger(modalSettings);
 	};
 
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
-		modalComponent.props = { delta: quill.chapter!.delta };
+		modalComponent.props = {
+			delta: quill.chapter!.delta,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 
 		modalSettings.response = createVersionCallback;
 		modalStore.trigger(modalSettings);
@@ -1046,7 +1067,13 @@
 										callback: openReadingListModal,
 										mode: 'reader'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+									{
+										label: 'Permissions',
+										icon: canEditSelectedChapter ? unlock : lock,
+										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
+										callback: showChapterPermissions,
+										mode: 'writer'
+									}
 								]}
 							/>
 						{/if}
@@ -1101,18 +1128,6 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					{#if !selectedChapter.userPermissions?.view}
-						<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
-							<span>No Viewing Permissions</span>
-						</button>
-					{/if}
-
-					{#if mode === 'writer' && !selectedChapter.userPermissions?.collaborate}
-						<button class="btn fixed variant-filled-primary font-sans top-44 w-1/6">
-							<span>No Collaboration Permissions</span>
-						</button>
-					{/if}
-
 					<textarea
 						id="message"
 						rows="4"

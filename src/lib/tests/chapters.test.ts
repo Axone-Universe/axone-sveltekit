@@ -242,5 +242,30 @@ describe('chapters', () => {
 		expect((await caller.chapters.getById({ id: chapterThree.data._id })).data.archived).toEqual(
 			false
 		);
+
+		// Check archived also archived the deltas
+		const delta1Response = await caller.deltas.getById({
+			id: chapterOne.data.delta as string
+		});
+
+		const delta2Response = await caller.deltas.getById({
+			id: chapterTwo.data.delta as string
+		});
+
+		const delta3Response = await caller.deltas.getById({
+			id: chapterThree.data.delta as string
+		});
+
+		expect(delta1Response.data.archived).toEqual(true);
+		expect(delta2Response.data.archived).toEqual(true);
+		expect(delta3Response.data.archived).toEqual(false);
+
+		// Check archived chapters cannot be edited
+		const chapterUpdateResponse = await caller.chapters.update({
+			id: chapterOne.data._id,
+			description: 'Updated chapter 1'
+		});
+
+		expect(chapterUpdateResponse.data.description).toEqual('My chapter 1');
 	});
 });

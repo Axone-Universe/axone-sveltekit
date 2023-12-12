@@ -18,6 +18,7 @@
 	} from '$lib/properties/delta';
 
 	export let delta: HydratedDocument<DeltaProperties>;
+	export let disabled: false;
 
 	let customClass = '';
 	export { customClass as class };
@@ -109,33 +110,37 @@
 
 <div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
 	<form on:submit|preventDefault={createVersion}>
-		<div class="modal-form p-4 space-y-4 rounded-container-token">
-			<label>
-				Title
+		<fieldset {disabled}>
+			<div class="modal-form p-4 space-y-4 rounded-container-token">
+				<label>
+					Title
 
-				<input
-					class="input"
-					type="text"
-					placeholder="e.g. Version 1"
-					bind:value={version.title}
-					disabled={!!selectedVersionID}
-				/>
-			</label>
-			<label>
-				Date
+					<input
+						class="input"
+						type="text"
+						placeholder="e.g. Version 1"
+						bind:value={version.title}
+						disabled={!!selectedVersionID}
+					/>
+				</label>
+				<label>
+					Date
 
-				<input class="input" type="text" bind:value={version.date} disabled />
-			</label>
-		</div>
+					<input class="input" type="text" bind:value={version.date} disabled />
+				</label>
+			</div>
 
-		<footer class="modal-footer flex justify-end space-x-2">
-			<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
-			{#if !selectedVersionID}
-				<button class="btn variant-filled" type="submit">Create</button>
-			{:else if selectedVersionID !== versions[0]._id}
-				<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button>
-			{/if}
-		</footer>
+			<footer class="modal-footer flex justify-end space-x-2">
+				<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button
+				>
+				{#if !selectedVersionID}
+					<button class="btn variant-filled" type="submit">Create</button>
+				{:else if selectedVersionID !== versions[0]._id}
+					<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button
+					>
+				{/if}
+			</footer>
+		</fieldset>
 	</form>
 
 	<hr class="opacity-100 mx-4" />
