@@ -208,7 +208,7 @@ export class QuillEditor extends Quill {
 		this.on('selection-change', this.selectionChange.bind(this));
 		this.on('text-change', this.textChange.bind(this));
 
-		if (this.chapter?.userPermissions?.collaborate) {
+		if (this.chapter?.userPermissions?.collaborate && !this.chapter?.archived) {
 			this.reader ? this.disable() : this.enable();
 		}
 	}
@@ -511,14 +511,15 @@ export class QuillEditor extends Quill {
 		filenames: string[] | null | undefined;
 	}) {
 		if (editor == null) {
-			return;
+			return { data: null, error: null };
 		}
 
 		const [index, length] = this.getRangeByID(id, editor);
 
 		if (index === null || length === null) {
-			return;
+			return { data: null, error: null };
 		}
+
 		this.formatText(index, length, 'illustration', false);
 		this.formatText(index, length, 'illustrationAuthor', false);
 		this.formatText(index, length, 'illustrationTimestamp', false);

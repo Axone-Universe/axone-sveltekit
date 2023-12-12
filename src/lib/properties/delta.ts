@@ -20,6 +20,7 @@ export interface DeltaProperties {
 	permissions?: Record<string, HydratedDocument<PermissionProperties>>;
 	versions?: VersionProperties[];
 	ops?: object;
+	archived?: boolean;
 }
 
 export class VersionPropertyBuilder {
