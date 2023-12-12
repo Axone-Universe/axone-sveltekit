@@ -18,6 +18,7 @@
 	import type { ChapterProperties } from '$lib/properties/chapter';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
+	export let disabled: false;
 
 	let customClass = '';
 	export { customClass as class };
@@ -27,10 +28,6 @@
 	let chapterNotes: HydratedDocument<NoteProperties>[] = [];
 	let filteredChapterNotes: HydratedDocument<NoteProperties>[] = [];
 	let chapterNotesList = '';
-
-	let disabled =
-		$page.data.user._id !==
-		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
 
 	onMount(() => {
 		getChapterNotes();

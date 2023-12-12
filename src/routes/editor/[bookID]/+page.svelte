@@ -39,7 +39,8 @@
 		unlock,
 		star,
 		bookmark,
-		history
+		history,
+		lock
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -263,7 +264,8 @@
 		modalComponent.props = {
 			chapter: selectedChapter,
 			bookID: bookData._id,
-			storylineID: selectedStoryline._id
+			storylineID: selectedStoryline._id,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
 		};
 
 		modalStore.trigger(modalSettings);
@@ -339,6 +341,9 @@
 			.then((response: StorageFileError) => {
 				if (response.data) {
 					const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+					if (filesToRemove.length === 0) {
+						return;
+					}
 					supabase.storage
 						.from('books')
 						.remove(filesToRemove)
@@ -356,6 +361,42 @@
 						});
 				}
 			});
+	}
+
+	$: isSelectedChapterOwner = setSelectedChapterOwner(selectedChapter);
+	function setSelectedChapterOwner(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		const currentUser = $page.data.user;
+		if (!selectedChapter) {
+			return false;
+		}
+
+		let userID;
+
+		if (typeof selectedChapter.user === 'string') {
+			userID = selectedChapter.user;
+		} else {
+			userID = selectedChapter.user?._id;
+		}
+
+		if (userID === currentUser._id) {
+			return true;
+		}
+
+		return false;
+	}
+
+	$: hasSelectedChapterPermissions = setSelectedChapterPermissions(selectedChapter);
+	$: canEditSelectedChapter = hasSelectedChapterPermissions && !selectedChapter?.archived;
+	function setSelectedChapterPermissions(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		if (!selectedChapter) {
+			return false;
+		}
+
+		return selectedChapter.userPermissions?.view && selectedChapter.userPermissions?.collaborate;
 	}
 
 	let deleteChapter = () => {
@@ -379,7 +420,7 @@
 							id: selectedChapter!._id
 						})
 						.then((response) => {
-							if (response.data.deletedCount !== 0) {
+							if (response.success) {
 								let deletedID = selectedChapter!._id;
 								let chapterIDs = Object.keys(selectedStorylineChapters);
 								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
@@ -402,6 +443,14 @@
 
 								// setup the editor
 								setupEditor();
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
 							}
 						})
 						.catch((error) => {
@@ -415,13 +464,20 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
-		modalComponent.props = { storylineNode: selectedStoryline, chapterNode: selectedChapter };
+		modalComponent.props = {
+			storylineNode: selectedStoryline,
+			chapterNode: selectedChapter,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 		modalStore.trigger(modalSettings);
 	};
 
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
-		modalComponent.props = { delta: quill.chapter!.delta };
+		modalComponent.props = {
+			delta: quill.chapter!.delta,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 
 		modalSettings.response = createVersionCallback;
 		modalStore.trigger(modalSettings);
@@ -503,6 +559,7 @@
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -520,7 +577,7 @@
 		quill
 			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
 			.then((response: any) => {
-				if (!response.data) {
+				if (response.error) {
 					//error
 					const errorUploadToast: ToastSettings = {
 						message: 'There was an issue deleting the illustration',
@@ -538,6 +595,8 @@
 					toastStore.trigger(successUploadToast);
 				}
 			});
+
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -565,8 +624,15 @@
 	}
 
 	function commentAddClick() {
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration())
+
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()){
 			quill.getModule('comment').addComment(' ');
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
+		}
 
 		if (quill.selectedContainsIllustration()) {
 			drawerStore.open(drawerSettings);
@@ -583,12 +649,18 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
+
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
 		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('illustration').addIllustration({
 				src: '',
 				alt: '',
 				caption: ''
 			});
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
 		}
 
 		if (quill.selectedContainsComment()) {
@@ -1011,7 +1083,13 @@
 										callback: openReadingListModal,
 										mode: 'reader'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+									{
+										label: 'Permissions',
+										icon: canEditSelectedChapter ? unlock : lock,
+										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
+										callback: showChapterPermissions,
+										mode: 'writer'
+									}
 								]}
 							/>
 						{/if}
@@ -1030,14 +1108,15 @@
 									label: 'Delete',
 									icon: trash,
 									callback: deleteChapter,
-									mode: 'writer'
+									mode: 'writer',
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
 									label: 'History',
 									icon: history,
 									callback: versionHistory,
 									mode: 'writer',
-									hidden: selectedChapter ? false : true
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
 									label: 'Auto Save',
@@ -1065,18 +1144,6 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					{#if !selectedChapter.userPermissions?.view}
-						<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
-							<span>No Viewing Permissions</span>
-						</button>
-					{/if}
-
-					{#if mode === 'writer' && !selectedChapter.userPermissions?.collaborate}
-						<button class="btn fixed variant-filled-primary font-sans top-44 w-1/6">
-							<span>No Collaboration Permissions</span>
-						</button>
-					{/if}
-
 					<textarea
 						id="message"
 						rows="4"

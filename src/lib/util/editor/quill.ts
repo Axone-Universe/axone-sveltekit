@@ -44,6 +44,8 @@ export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	illustrations: { [key: string]: Illustration } = {};
 	selectedDelta: Delta | undefined = undefined;
+	selectedRange: { index: number; length: number } | undefined | null = undefined;
+	oldSelectedRange: { index: number; length: number } | undefined | null = undefined;
 	ops: Op[] | undefined;
 	page: Page;
 	chapter: HydratedDocument<ChapterProperties> | undefined;
@@ -206,7 +208,7 @@ export class QuillEditor extends Quill {
 		this.on('selection-change', this.selectionChange.bind(this));
 		this.on('text-change', this.textChange.bind(this));
 
-		if (this.chapter?.userPermissions?.collaborate) {
+		if (this.chapter?.userPermissions?.collaborate && !this.chapter?.archived) {
 			this.reader ? this.disable() : this.enable();
 		}
 	}
@@ -244,6 +246,8 @@ export class QuillEditor extends Quill {
 		}
 
 		const delta = this.getContents(range.index, 1);
+		this.oldSelectedRange = oldRange;
+		this.selectedRange = range;
 		this.selectedDelta = delta;
 
 		if (!this.isComment(delta.ops[0]) && !this.isIllustration(delta.ops[0])) {
@@ -507,14 +511,15 @@ export class QuillEditor extends Quill {
 		filenames: string[] | null | undefined;
 	}) {
 		if (editor == null) {
-			return;
+			return { data: null, error: null };
 		}
 
 		const [index, length] = this.getRangeByID(id, editor);
 
 		if (index === null || length === null) {
-			return;
+			return { data: null, error: null };
 		}
+
 		this.formatText(index, length, 'illustration', false);
 		this.formatText(index, length, 'illustrationAuthor', false);
 		this.formatText(index, length, 'illustrationTimestamp', false);

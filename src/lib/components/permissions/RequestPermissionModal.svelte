@@ -36,6 +36,11 @@
 		<Icon class="border-none" data={lock} scale={5} />
 
 		{#if document.user && typeof document.user !== 'string'}
+			{#if document.archived}
+				<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
+					<span>Archived</span>
+				</button>
+			{/if}
 			<h4>Permissions</h4>
 			<div class="flex flex-row space-x-2">
 				{#each PermissionsEnum as permissionType}

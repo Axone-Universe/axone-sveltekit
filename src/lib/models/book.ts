@@ -4,8 +4,9 @@ import { label as UserLabel } from '$lib/properties/user';
 import { label as CampaignLabel } from '$lib/properties/campaign';
 import {
 	addUserPermissionPipeline,
-	addUpdateRestrictionPipeline,
-	permissionSchema
+	addOwnerUpdateRestrictionFilter,
+	permissionSchema,
+	addArchivedRestrictionFilter
 } from './permission';
 import { GENRES } from '$lib/properties/genre';
 
@@ -47,7 +48,7 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -59,7 +60,9 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();

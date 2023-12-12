@@ -5,7 +5,7 @@
 	import { Accordion, AccordionItem, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
-	import { lock, eyeSlash } from 'svelte-awesome/icons';
+	import { lock, eyeSlash, archive } from 'svelte-awesome/icons';
 
 	import { createEventDispatcher } from 'svelte';
 
@@ -48,6 +48,11 @@
 									{#if !storyline.userPermissions?.view}
 										<Icon data={eyeSlash} scale={1.2} />
 									{/if}
+									{#if storyline.archived}
+										<Icon data={archive} scale={1} />
+									{:else if !storyline.userPermissions?.collaborate}
+										<Icon data={lock} scale={1.2} />
+									{/if}
 								</div>
 							</div>
 						</ListBoxItem>
@@ -75,7 +80,9 @@
 									{#if !chapter.userPermissions?.view}
 										<Icon data={eyeSlash} scale={1.2} />
 									{/if}
-									{#if !chapter.userPermissions?.collaborate}
+									{#if chapter.archived}
+										<Icon data={archive} scale={1} />
+									{:else if !chapter.userPermissions?.collaborate}
 										<Icon data={lock} scale={1.2} />
 									{/if}
 								</div>

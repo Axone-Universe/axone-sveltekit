@@ -26,7 +26,7 @@ describe('permissions', () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
-		const testUserOneDB = await createDBUser(testUserOneSession);
+		await createDBUser(testUserOneSession);
 		const testUserTwoDB = await createDBUser(createTestSession(testUserTwo));
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -123,10 +123,28 @@ describe('permissions', () => {
 			storylines[0]
 		);
 
+		// Update chapter permissions and check delta permissions
 		let permissions = chapter1Response.data.permissions;
-		delete permissions['public'];
+		permissions['public'] = {
+			_id: 'public',
+			permission: 'view'
+		} as HydratedDocument<PermissionProperties>;
+
+		chapter1Response = await caller.chapters.update({
+			id: chapter1Response.data._id,
+			permissions: permissions
+		});
+
+		const delta1Response = await caller.deltas.getById({
+			id: chapter1Response.data.delta as string
+		});
+
+		expect(delta1Response.data.permissions?.public.permission).toEqual('view');
 
 		// update chapter to be private
+		permissions = chapter1Response.data.permissions;
+		delete permissions['public'];
+
 		chapter1Response = await caller.chapters.update({
 			id: chapter1Response.data._id,
 			permissions: permissions
