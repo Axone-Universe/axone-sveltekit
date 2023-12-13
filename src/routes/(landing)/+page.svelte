@@ -11,6 +11,11 @@
 	import Author_4 from '$lib/assets/author-4.svelte';
 
 	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
+	import { dataTableHandler } from '@skeletonlabs/skeleton';
+
+	import type { SupabaseClient, Session } from '@supabase/supabase-js';
+	import { goto } from '$app/navigation';
+	export let data: { supabase: SupabaseClient; session: Session | null };
 
 	let options: EmblaOptionsType = {
 		loop: false,
@@ -18,6 +23,10 @@
 		slidesToScroll: 1
 	};
 	let plugins: never[] = [];
+
+	if (data.session) {
+		goto('/home');
+	}
 </script>
 
 <Section class="bg-surface-100-800-token flex items-center">

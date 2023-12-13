@@ -12,11 +12,11 @@
 	import type { PopupSettings } from '../../util/popup/types';
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
-
 	import Icon from 'svelte-awesome';
 	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
+	import { goto } from '$app/navigation';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -59,6 +59,7 @@
 	 */
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
+		goto('');
 	};
 </script>
 
@@ -196,11 +197,12 @@
 								<div class="arrow bg-surface-100-800-token" />
 							</div>
 						</div>
+						<NotificationCenter />
 					{:else}
 						<a class="btn variant-filled-primary" href="/login"> Login </a>
 					{/if}
 				</div>
-				<NotificationCenter />
+
 				<LightSwitch />
 			</div>
 		</svelte:fragment>
