@@ -11,6 +11,6 @@
 <div class="flex flex-col min-h-screen">
 	<Header {data} />
 	<Drawer {data} />
-	<slot />
+	<slot {data} />
 	<Footer />
 </div>

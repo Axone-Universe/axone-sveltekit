@@ -60,7 +60,6 @@
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
 		goto('');
-		
 	};
 </script>
 
@@ -198,11 +197,12 @@
 								<div class="arrow bg-surface-100-800-token" />
 							</div>
 						</div>
+						<NotificationCenter />
 					{:else}
 						<a class="btn variant-filled-primary" href="/login"> Login </a>
 					{/if}
 				</div>
-				<NotificationCenter />
+
 				<LightSwitch />
 			</div>
 		</svelte:fragment>
