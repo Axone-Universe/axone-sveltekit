@@ -177,7 +177,7 @@ export const books = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
-			const response: Response = { success: true, message: 'book successfully created', data: {} };
+			const response: Response = { success: true, message: 'book successfully deleted', data: {} };
 			try {
 				const result = await bookBuilder.delete();
 				response.data = result;

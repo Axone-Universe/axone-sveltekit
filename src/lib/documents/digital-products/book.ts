@@ -80,40 +80,21 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const book = await Book.aggregate(
+			const storylines = await Storyline.aggregate(
 				[
 					{
 						$match: {
-							_id: this._bookProperties._id
+							book: this._bookProperties._id
 						}
 					}
 				],
 				{
 					userID: this._sessionUserID
 				}
-			)
-				.cursor()
-				.next();
+			);
 
-			const children = book.children;
-			if (children && children.length !== 0) {
-				// re-assign children to the parent
-				const parents = await Book.aggregate([
-					{
-						$match: {
-							children: this._bookProperties._id
-						}
-					}
-				]);
-
-				for (const parent of parents) {
-					parent.children = parent.children.concat(children);
-
-					await Book.findOneAndUpdate({ _id: parent._id }, parent, {
-						userID: this._sessionUserID,
-						session: session
-					});
-				}
+			if (storylines && storylines.length !== 0) {
+				throw new Error('Please delete all storylines before deleting the book');
 			}
 
 			result = await Book.deleteOne(
