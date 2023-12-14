@@ -207,4 +207,46 @@ describe('storylines', () => {
 			false
 		);
 	});
+
+	test('delete storyline', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		const testBookTitle1 = 'My Book 1';
+		const testUserOneSession = createTestSession(testUserOne);
+		const createBookResponse = await createBook(testUserOneSession, testBookTitle1);
+
+		const caller = router.createCaller({ session: testUserOneSession });
+
+		const storylines = (
+			await caller.storylines.get({
+				bookID: createBookResponse.data._id
+			})
+		).data;
+
+		const chapter1Response = await createChapter(
+			testUserOneSession,
+			'Chapter 1',
+			'My chapter 1',
+			storylines[0]
+		);
+
+		let deleteStorylineResponse = await caller.storylines.delete({ id: storylines[0]._id });
+
+		expect(deleteStorylineResponse.success).toEqual(false);
+		expect(deleteStorylineResponse.message).toContain(
+			'Please delete all chapters before deleting the storyline'
+		);
+
+		// delete the chapter
+		const deleteChapterResponse = await caller.chapters.delete({
+			id: chapter1Response.data._id
+		});
+
+		expect(deleteChapterResponse.success).toEqual(true);
+
+		// delete the storyline again
+		deleteStorylineResponse = await caller.storylines.delete({ id: storylines[0]._id });
+
+		expect(deleteStorylineResponse.success).toEqual(true);
+		expect(deleteStorylineResponse.message).toContain('storyline successfully deleted');
+	});
 });

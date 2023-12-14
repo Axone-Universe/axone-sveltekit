@@ -6,7 +6,13 @@
 	import type { HydratedStorylineProperties, StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties, HydratedChapterProperties } from '$lib/properties/chapter';
 	import { decodeTime } from 'ulid';
-	import { type ModalSettings, type ModalComponent, modalStore } from '@skeletonlabs/skeleton';
+	import {
+		type ModalSettings,
+		type ModalComponent,
+		modalStore,
+		type ToastSettings,
+		toastStore
+	} from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -21,6 +27,7 @@
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
+	import { edit, trash } from 'svelte-awesome/icons';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -157,6 +164,41 @@
 			selectedChapters = selectedChapters.filter((s) => s !== chapter);
 		}
 	}
+
+	function deleteChapter(chapterToDelete: HydratedDocument<ChapterProperties>) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: chapterToDelete.title,
+			body: 'Are you sure you want to delete this chapter?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.chapters.delete.mutate({
+							id: chapterToDelete._id
+						})
+						.then((response) => {
+							if (response.success) {
+								chapters = chapters.filter((chapter) => chapter._id !== chapterToDelete._id);
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
@@ -249,7 +291,23 @@
 									{/if}
 								</td>
 								<td>{formattedDate(new Date(decodeTime(chapter._id)))}</td>
-								<RowActions editCallback={() => openEditModal(chapter)} />
+								<td>
+									<RowActions
+										document={chapter}
+										rowActions={[
+											{
+												label: 'Edit',
+												icon: edit,
+												callback: openEditModal
+											},
+											{
+												label: 'Delete',
+												icon: trash,
+												callback: deleteChapter
+											}
+										]}
+									/>
+								</td>
 							</tr>
 						{/each}
 					{/if}

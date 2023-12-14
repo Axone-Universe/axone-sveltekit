@@ -133,6 +133,37 @@ describe('books', () => {
 		expect(bookResponses.data[0]?._id).toEqual(bookResponse.data._id);
 	});
 
+	test('delete books', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		const testBookTitle1 = 'My Book 1';
+		const createBookResponse = await createBook(createTestSession(testUserOne), testBookTitle1);
+
+		const caller = router.createCaller({ session: createTestSession(testUserOne) });
+		let deletBookResponse = await caller.books.delete({ id: createBookResponse.data._id });
+
+		expect(deletBookResponse.success).toEqual(false);
+		expect(deletBookResponse.message).toContain(
+			'Please delete all storylines before deleting the book'
+		);
+
+		// delete the storyline
+		const storylineResponse = await caller.storylines.getByBookID({
+			bookID: createBookResponse.data._id
+		});
+
+		const deletStorylineResponse = await caller.storylines.delete({
+			id: storylineResponse.data[0]._id
+		});
+
+		expect(deletStorylineResponse.success).toEqual(true);
+
+		// delete the book again
+		deletBookResponse = await caller.books.delete({ id: createBookResponse.data._id });
+
+		expect(deletBookResponse.success).toEqual(true);
+		expect(deletBookResponse.message).toContain('book successfully deleted');
+	});
+
 	test('updating archived status', async () => {
 		const sessionOne = createTestSession(testUserOne);
 		const sessionTwo = createTestSession(testUserTwo);

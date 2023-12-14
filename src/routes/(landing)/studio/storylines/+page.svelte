@@ -5,7 +5,13 @@
 	import type { PageData } from './$types';
 	import type { StorylineProperties, HydratedStorylineProperties } from '$lib/properties/storyline';
 	import { decodeTime } from 'ulid';
-	import { type ModalSettings, modalStore, type ModalComponent } from '@skeletonlabs/skeleton';
+	import {
+		type ModalSettings,
+		modalStore,
+		type ModalComponent,
+		toastStore,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -20,6 +26,7 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
+	import { edit, trash } from 'svelte-awesome/icons';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -156,6 +163,43 @@
 			selectedStorylines = selectedStorylines.filter((s) => s !== storyline);
 		}
 	}
+
+	function deleteStoryline(storylineToDelete: HydratedDocument<StorylineProperties>) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: storylineToDelete.title,
+			body: 'Are you sure you want to delete this storyline?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.storylines.delete.mutate({
+							id: storylineToDelete._id
+						})
+						.then((response) => {
+							if (response.success) {
+								storylines = storylines.filter(
+									(storyline) => storyline._id !== storylineToDelete._id
+								);
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
@@ -248,7 +292,23 @@
 									{/if}
 								</td>
 								<td>{formattedDate(new Date(decodeTime(storyline._id)))}</td>
-								<RowActions editCallback={() => openEditModal(storyline)} />
+								<td>
+									<RowActions
+										document={storyline}
+										rowActions={[
+											{
+												label: 'Edit',
+												icon: edit,
+												callback: openEditModal
+											},
+											{
+												label: 'Delete',
+												icon: trash,
+												callback: deleteStoryline
+											}
+										]}
+									/>
+								</td>
 							</tr>
 						{/each}
 					{/if}

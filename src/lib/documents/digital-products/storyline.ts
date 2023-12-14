@@ -98,40 +98,21 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const storyline = await Storyline.aggregate(
+			const chapters = await Chapter.aggregate(
 				[
 					{
 						$match: {
-							_id: this._storylineProperties._id
+							storyline: this._storylineProperties._id
 						}
 					}
 				],
 				{
 					userID: this._sessionUserID
 				}
-			)
-				.cursor()
-				.next();
+			);
 
-			const children = storyline.children;
-			if (children && children.length !== 0) {
-				// re-assign children to the parent
-				const parents = await Storyline.aggregate([
-					{
-						$match: {
-							children: this._storylineProperties._id
-						}
-					}
-				]);
-
-				for (const parent of parents) {
-					parent.children = parent.children.concat(children);
-
-					await Storyline.findOneAndUpdate({ _id: parent._id }, parent, {
-						userID: this._sessionUserID,
-						session: session
-					});
-				}
+			if (chapters && chapters.length !== 0) {
+				throw new Error('Please delete all chapters before deleting the storyline');
 			}
 
 			result = await Storyline.deleteOne(

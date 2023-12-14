@@ -5,9 +5,15 @@
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
-	import { plus } from 'svelte-awesome/icons';
+	import { edit, plus, trash } from 'svelte-awesome/icons';
 	import { Icon } from 'svelte-awesome';
-	import { type ModalSettings, modalStore, type ModalComponent } from '@skeletonlabs/skeleton';
+	import {
+		type ModalSettings,
+		modalStore,
+		type ModalComponent,
+		type ToastSettings,
+		toastStore
+	} from '@skeletonlabs/skeleton';
 	import BookDetails from '$lib/components/book/BookDetails.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -229,6 +235,41 @@
 			selectedBooks = selectedBooks.filter((s) => s !== book);
 		}
 	}
+
+	function deleteBook(bookToDelete: HydratedDocument<BookProperties>) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: bookToDelete.title,
+			body: 'Are you sure you want to delete this book?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.books.delete.mutate({
+							id: bookToDelete._id
+						})
+						.then((response) => {
+							if (response.success) {
+								books = books.filter((book) => book._id !== bookToDelete._id);
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
+							}
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	}
 </script>
 
 <svelte:window on:scroll={loadMore} />
@@ -335,10 +376,23 @@
 								<td>
 									{formattedDate(new Date(decodeTime(book._id)))}
 								</td>
-								<RowActions
-									editCallback={() =>
-										campaignMode ? openUpdateCampaignModal(book) : openEditModal(book)}
-								/>
+								<td>
+									<RowActions
+										document={book}
+										rowActions={[
+											{
+												label: 'Edit',
+												icon: edit,
+												callback: campaignMode ? openUpdateCampaignModal : openEditModal
+											},
+											{
+												label: 'Delete',
+												icon: trash,
+												callback: deleteBook
+											}
+										]}
+									/>
+								</td>
 							</tr>
 						{/each}
 					{/if}
