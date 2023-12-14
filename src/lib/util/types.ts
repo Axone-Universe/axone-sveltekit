@@ -15,6 +15,14 @@ export interface EditorMenuItem {
 	hidden?: boolean;
 }
 
+export interface RowAction {
+	label: string;
+	icon: Record<string, IconData>;
+	callback(arg: any): void;
+	class?: string;
+	notification?: string | number;
+}
+
 export type Response = {
 	message: string;
 	success: boolean;
