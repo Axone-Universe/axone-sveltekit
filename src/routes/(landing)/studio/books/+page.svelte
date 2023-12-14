@@ -251,16 +251,8 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan="6">
-							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
-								<button
-									type="button"
-									class="btn-icon btn-icon-sm variant-filled-primary"
-									on:click={() => modalStore.trigger(createBookModal)}
-								>
-									<span><Icon data={plus} /></span>
-								</button>
-								<span class="divider-vertical h-6 mx-0" />
+						<td colspan="3">
+							<div class="flex sm:justify-start">
 								<ViewFilters>
 									<ArchiveToggle bind:archiveMode />
 									<button
@@ -270,6 +262,17 @@
 										<span>Campaigns</span>
 									</button>
 								</ViewFilters>
+							</div>
+						</td>
+						<td colspan="3">
+							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
+								<button
+									type="button"
+									class="btn-icon btn-icon-sm variant-filled-primary"
+									on:click={() => modalStore.trigger(createBookModal)}
+								>
+									<span><Icon data={plus} /></span>
+								</button>
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedBooks}

@@ -179,12 +179,15 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan="6">
-							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
+						<td colspan="3">
+							<div class="flex sm:justify-start">
 								<ViewFilters>
 									<ArchiveToggle bind:archiveMode />
 								</ViewFilters>
-								<span class="divider-vertical h-6 mx-0" />
+							</div>
+						</td>
+						<td colspan="3">
+							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveSelectedButton
 									selected={selectedChapters}
 									{archiveMode}
