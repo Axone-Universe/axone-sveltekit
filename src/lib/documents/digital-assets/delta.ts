@@ -48,6 +48,11 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		return this;
 	}
 
+	creatorID(creatorID: string): DeltaBuilder {
+		this._deltaProperties.creator = creatorID;
+		return this;
+	}
+
 	properties() {
 		return this._deltaProperties;
 	}

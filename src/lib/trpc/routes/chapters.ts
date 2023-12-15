@@ -178,6 +178,7 @@ export const chapters = t.router({
 			const chapterBuilder = new ChapterBuilder()
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
+				.creatorID(ctx.session!.user.id)
 				.title(input.title)
 				.bookID(input.bookID)
 				.storylineID(input.storylineID)

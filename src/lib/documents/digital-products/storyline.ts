@@ -6,6 +6,9 @@ import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
+import { Delta } from '$lib/models/delta';
+import type { ChapterProperties } from '$lib/properties/chapter';
+import type { DeltaProperties } from '$lib/properties/delta';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -180,6 +183,102 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	}
 
 	/**
+	 * Creates a clone of the given chapter
+	 * @param chapterID
+	 * @returns
+	 */
+	async cloneChapter(chapterID: string, parentChapterID: string): Promise<string> {
+		const session = await startSession();
+
+		let parentChapter: HydratedDocument<ChapterProperties> | undefined = undefined;
+		if (parentChapterID) {
+			parentChapter = await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: parentChapterID
+						}
+					}
+				],
+				{
+					userID: this._userID
+				}
+			)
+				.cursor()
+				.next();
+		}
+
+		const chapter = (await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: chapterID
+					}
+				}
+			],
+			{
+				userID: this._userID
+			}
+		)
+			.cursor()
+			.next()) as HydratedDocument<ChapterProperties>;
+
+		let delta: HydratedDocument<DeltaProperties> | undefined = undefined;
+		if (chapter.delta) {
+			delta = (await Delta.aggregate(
+				[
+					{
+						$match: {
+							_id: chapter.delta
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			)
+				.cursor()
+				.next()) as HydratedDocument<DeltaProperties>;
+		}
+
+		try {
+			await session.withTransaction(async () => {
+				if (delta) {
+					const deltaID = delta._id;
+					delta._id = ulid();
+					delta.clonedDelta = deltaID;
+					delta.user = this._sessionUserID;
+
+					const clonedDelta = new Delta(delta);
+					await clonedDelta.save({ session });
+				}
+
+				if (chapter) {
+					chapter._id = ulid();
+					chapter.clonedChapter = chapterID;
+					chapter.children = [];
+					chapter.delta = delta?._id;
+					chapter.user = this._sessionUserID;
+
+					const clonedChapter = new Chapter(chapter);
+					await clonedChapter.save({ session });
+				}
+
+				if (parentChapter) {
+					//add new chapter to the parent
+					parentChapter?.children!.push(chapter._id as any);
+					const newParentChapter = new Chapter(parentChapter);
+					await newParentChapter.save({ session });
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		return chapter._id as string;
+	}
+
+	/**
 	 * If a parent storyline is provided, the new storyline will link to all the parent's chapters
 	 *      UP TO the branch-off chapter which should be specified as well.
 	 * @returns
@@ -216,11 +315,20 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			for (const chapter of parentStoryline.chapters) {
 				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
 
-				storyline.chapters?.push(chapterID);
 				if (chapterID === this._branchOffChapterID) {
 					break;
 				}
+
+				storyline.chapters?.push(chapterID);
 			}
+
+			// clone the branch off chapter and change the user and the
+			const clonedChapterID = await this.cloneChapter(
+				this._branchOffChapterID!,
+				storyline.chapters?.at(-1) as string
+			);
+
+			storyline.chapters?.push(clonedChapterID as any);
 		}
 
 		await storyline.save();

@@ -162,7 +162,9 @@ export const storylines = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder().userID(ctx.session!.user.id);
+			const storylineBuilder = new StorylineBuilder()
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id);
 
 			if (input?.book) storylineBuilder.bookID(input.book as string);
 			if (input?.title) storylineBuilder.title(input.title);

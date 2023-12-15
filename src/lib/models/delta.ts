@@ -20,7 +20,9 @@ export const versionSchema = new Schema<VersionProperties>({
 
 export const deltaSchema = new Schema<DeltaProperties>({
 	_id: { type: String, required: true },
+	clonedDelta: { type: String, ref: label },
 	user: { type: String, ref: UserLabel, required: true },
+	creator: { type: String, ref: UserLabel, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
 	versions: [versionSchema],

@@ -76,7 +76,9 @@
 
 		if (newStoryline)
 			await goto(
-				`/editor/${book._id}?storylineID=${(storyline as HydratedDocument<ChapterProperties>)._id}`
+				`/editor/${book._id}?storylineID=${
+					(storyline as HydratedDocument<StorylineProperties>)._id
+				}`
 			);
 
 		if (createCallback !== undefined) {

@@ -12,13 +12,14 @@ import {
 	addArchivedRestrictionFilter
 } from './permission';
 import { Storyline } from './storyline';
-import { Delta } from './delta';
 
 export const chapterSchema = new Schema<ChapterProperties>({
 	_id: { type: String, required: true },
+	clonedChapter: { type: String, ref: label },
 	book: { type: String, ref: BookLabel, required: true },
 	storyline: { type: String, ref: StorylineLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
+	creator: { type: String, ref: UserLabel, required: true },
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },

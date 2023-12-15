@@ -17,6 +17,7 @@ export const deltas = t.router({
 			const deltaBuilder = new DeltaBuilder()
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
+				.creatorID(ctx.session!.user.id)
 				.chapterID(input.chapterID);
 
 			const response: Response = { success: true, message: 'delta successfully created', data: {} };

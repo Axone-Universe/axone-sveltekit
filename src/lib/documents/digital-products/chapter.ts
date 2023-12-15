@@ -40,6 +40,11 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
+	creatorID(creatorID: string): ChapterBuilder {
+		this._chapterProperties.creator = creatorID;
+		return this;
+	}
+
 	storylineID(storylineID: string): ChapterBuilder {
 		this._storylineID = storylineID;
 		this._chapterProperties.storyline = storylineID;
@@ -239,6 +244,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 					.sessionUserID(this._sessionUserID!)
 					.chapterID(this._chapterProperties._id)
 					.userID(this._chapterProperties.user as string)
+					.creatorID(this._chapterProperties.user as string)
 					.permissions(chapter.permissions);
 
 				const delta = new Delta(deltaBuilder.properties());

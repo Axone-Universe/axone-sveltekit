@@ -15,7 +15,9 @@ export interface VersionProperties {
 
 export interface DeltaProperties {
 	_id: string;
+	clonedDelta?: string | HydratedDocument<DeltaProperties>;
 	user?: string | HydratedDocument<UserProperties>;
+	creator?: string | HydratedDocument<UserProperties>;
 	chapter?: string | HydratedDocument<ChapterProperties>;
 	permissions?: Record<string, HydratedDocument<PermissionProperties>>;
 	versions?: VersionProperties[];
