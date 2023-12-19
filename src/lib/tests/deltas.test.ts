@@ -52,7 +52,7 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		const ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
+		const ops = JSON.stringify(deltaUpdateResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 	});
 
@@ -92,7 +92,7 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
+		let ops = JSON.stringify(deltaUpdateResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
@@ -101,7 +101,7 @@ describe('deltas', () => {
 			title: 'Version 1'
 		});
 
-		expect(versionCreateResponse.data.versions?.length).toEqual(2);
+		expect(versionCreateResponse.data.title).toEqual('Version 1');
 
 		deltaUpdateResponse = await caller.deltas.update({
 			id: deltaCreateResponse.data._id,
@@ -109,8 +109,26 @@ describe('deltas', () => {
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.data.versions![1].ops);
+		ops = JSON.stringify(deltaUpdateResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
+
+		let paragraph = `The average number of letters in a paragraph of a novel can vary widely depending on factors such as the 
+			writing style, the genre of the novel, and the specific content of the paragraph. However, as a rough estimate, 
+			a paragraph in a novel might typically contain around 100 to 200 words. If we assume an average word length of 5 letters, 
+			which is a common approximation, then a paragraph might have around 500 to 1,000 letters. 
+			Keep in mind that this is a generalization, and actual values can deviate significantly based on the factors mentioned earlier. 
+			Additionally, novels can vary in style and structure, so the length of paragraphs can differ from one book to another`;
+
+		paragraph = paragraph.replace(/[^a-zA-Z ]/g, '');
+
+		// create a version when the delta is long enough
+		deltaUpdateResponse = await caller.deltas.update({
+			id: deltaCreateResponse.data._id,
+			chapterID: createChapterResponse.data._id,
+			ops: `[{"insert": "${paragraph}"}]`
+		});
+
+		expect(deltaUpdateResponse.data.ops).toEqual([]);
 	});
 
 	test('restore version', async () => {
@@ -149,7 +167,7 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.data.versions![0].ops);
+		let ops = JSON.stringify(deltaUpdateResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
@@ -158,7 +176,7 @@ describe('deltas', () => {
 			title: 'Version 1'
 		});
 
-		expect(versionCreateResponse.data.versions?.length).toEqual(2);
+		expect(versionCreateResponse.data.title).toEqual('Version 1');
 
 		deltaUpdateResponse = await caller.deltas.update({
 			id: deltaCreateResponse.data._id,
@@ -166,13 +184,16 @@ describe('deltas', () => {
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.data.versions![1].ops);
+		ops = JSON.stringify(deltaUpdateResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
+
+		// get delta
+		const deltaResponse = await caller.deltas.getById({ id: deltaCreateResponse.data._id });
 
 		const versionRestoreResponse = await caller.deltas.restoreVersion({
 			id: deltaCreateResponse.data._id,
 			chapterID: createChapterResponse.data._id,
-			versionID: deltaUpdateResponse.data.versions![0]._id
+			versionID: deltaResponse.data.versions![0]._id
 		});
 
 		ops = JSON.stringify(versionRestoreResponse.data.ops);

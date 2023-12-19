@@ -57,6 +57,8 @@
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
 	import DeltaVersionsModal from '$lib/components/chapter/DeltaVersionsModal.svelte';
 	import type { DeltaProperties } from '$lib/properties/delta';
+	import Delta from 'quill-delta';
+	import type Op from 'quill-delta/dist/Op';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -165,6 +167,8 @@
 		let itemID = event.detail;
 
 		if (itemID in selectedStorylineChapters) {
+			versionPreview = false;
+			versionID = undefined;
 			selectedChapter = selectedStorylineChapters[itemID];
 		} else {
 			quill.chapter = undefined;
@@ -472,10 +476,14 @@
 		modalStore.trigger(modalSettings);
 	};
 
+	let versionPreview = false;
+	let versionID: string | undefined = undefined;
+
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
 		modalComponent.props = {
 			delta: quill.chapter!.delta,
+			selectedVersionID: versionID,
 			disabled: !isSelectedChapterOwner || selectedChapter?.archived
 		};
 
@@ -487,6 +495,17 @@
 		if (!delta) {
 			return;
 		}
+
+		if (delta._id === '') {
+			versionPreview = true;
+			versionID = delta.versions?.at(-1)?._id;
+
+			quill.disable();
+			quill.setContents(new Delta(delta.ops as Op[]));
+			return;
+		}
+
+		versionPreview = false;
 
 		// Update the Chapter
 		selectedChapter!.delta = delta;
@@ -624,12 +643,11 @@
 	}
 
 	function commentAddClick() {
-
 		if (quill.oldSelectedRange === quill.selectedRange) {
 			return; // same range is selected
 		}
 
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()){
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('comment').addComment(' ');
 			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
 		}
@@ -649,7 +667,6 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
-
 		if (quill.oldSelectedRange === quill.selectedRange) {
 			return; // same range is selected
 		}
@@ -915,7 +932,7 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full "
+			class="md:!relative h-full"
 		>
 			<BookNav
 				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
@@ -1134,7 +1151,7 @@
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="default">
-		<div class="flex h-full w-full">
+		<div class="flex h-screen w-full overflow-y-clip">
 			{#if selectedChapter}
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
 					{#if $drawerStore.open}
@@ -1144,15 +1161,22 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					<textarea
-						id="message"
-						rows="4"
-						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
-						placeholder="Chapter Title"
-						bind:value={selectedChapter.title}
-						disabled
-					/>
-					<div class="w-full md:w-3/4" id="editor" style={cssVarStyles} />
+					{#if versionPreview}
+						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
+							<span>Version Preview</span>
+						</button>
+					{/if}
+					<div class=" h-[15%]">
+						<textarea
+							id="message"
+							rows="2"
+							class="block h-fit p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							placeholder="Chapter Title"
+							bind:value={selectedChapter.title}
+							disabled
+						/>
+					</div>
+					<div class="w-full !h-[85%]" id="editor" style={cssVarStyles} />
 				</div>
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
 					{#if $drawerStore.open}

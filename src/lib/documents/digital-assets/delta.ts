@@ -3,6 +3,8 @@ import QuillDelta from 'quill-delta';
 import type { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
+import { VERSION_OP_LENGTH } from '$env/static/private';
+
 import {
 	VersionPropertyBuilder,
 	type DeltaProperties,
@@ -93,37 +95,50 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		delta.versions.push(currentVersion);
 
+		// create new version if length of current is big enough
+		// a paragraph is between 500 and 1000 characters for a novel
+		const deltaLength = newQuillDelta.length();
+
+		if (deltaLength > parseInt(VERSION_OP_LENGTH)) {
+			this.createVersion(undefined, delta);
+		}
+
 		this._deltaProperties.versions = delta.versions;
 		return this;
 	}
 
-	async createVersion(title?: string) {
-		const delta = await Delta.aggregate(
-			[
-				{
-					$match: {
-						_id: this._deltaProperties._id
+	async createVersion(title?: string, delta?: HydratedDocument<DeltaProperties>) {
+		delta =
+			delta ??
+			(await Delta.aggregate(
+				[
+					{
+						$match: {
+							_id: this._deltaProperties._id
+						}
 					}
+				],
+				{
+					userID: this._sessionUserID
 				}
-			],
-			{
-				userID: this._sessionUserID
-			}
-		)
-			.cursor()
-			.next();
+			)
+				.cursor()
+				.next());
 
-		const currentVersion = delta.versions.at(-1);
+		const currentVersion = delta?.versions?.at(-1);
 		if (currentVersion && currentVersion.ops.length === 0) {
-			throw new Error('The current version is new');
+			throw new Error('Error: The version is empty');
 		}
 
-		const version = new VersionPropertyBuilder().getProperties();
-		version.title = title;
+		const newVersion = new VersionPropertyBuilder().getProperties();
 
-		delta.versions.push(version);
+		// creating a version means freezing the current version at that date and point and creating a new one
+		currentVersion!.title = title;
+		currentVersion!.date = newVersion.date;
 
-		this._deltaProperties.versions = delta.versions;
+		delta?.versions?.push(newVersion);
+
+		this._deltaProperties.versions = delta?.versions;
 		return this;
 	}
 
