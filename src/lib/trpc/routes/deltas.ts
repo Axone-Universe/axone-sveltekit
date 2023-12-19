@@ -5,7 +5,7 @@ import { t } from '$lib/trpc/t';
 import { update, read, create, versions } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 import type { Response } from '$lib/util/types';
-import type { DeltaProperties } from '$lib/properties/delta';
+import type { DeltaProperties, VersionProperties } from '$lib/properties/delta';
 import type { HydratedDocument } from 'mongoose';
 
 export const deltas = t.router({
@@ -73,13 +73,13 @@ export const deltas = t.router({
 			};
 			try {
 				const result = await deltaBuilder.update();
-				response.data = result;
+				response.data = result.versions?.at(-1);
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return { ...response, ...{ data: response.data as HydratedDocument<DeltaProperties> } };
+			return { ...response, ...{ data: response.data as HydratedDocument<VersionProperties> } };
 		}),
 
 	createVersion: t.procedure
@@ -100,12 +100,12 @@ export const deltas = t.router({
 			};
 			try {
 				const result = await deltaBuilder.update();
-				response.data = result;
+				response.data = result.versions?.at(-2);
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
-			return { ...response, ...{ data: response.data as HydratedDocument<DeltaProperties> } };
+			return { ...response, ...{ data: response.data as HydratedDocument<VersionProperties> } };
 		}),
 
 	restoreVersion: t.procedure
