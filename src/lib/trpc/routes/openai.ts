@@ -28,11 +28,7 @@ function getKey(keys: string): string {
 }
 
 function getTextPrompt(input: UserMessage): string {
-	const prompt = `Limit your response to ${
-		generationLength[input.requestedLength]
-	} completion_tokens. Please write a strictly a ${
-		input.requestedLength
-	} following from the following excerpt: ${input.content}`;
+	const prompt = `Please complete following ${input.requestedLength}: ${input.content}`;
 	return prompt;
 }
 
@@ -113,6 +109,7 @@ export const openai = t.router({
 				messages: messages,
 				model: model,
 				stream: false,
+				//max_tokens: generationLength[input.requestedLength]
 			});
 
 			response.data = trimMessageContent(completion, input.content);
