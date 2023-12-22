@@ -182,6 +182,7 @@ export class QuillAI {
 				formatAi(range, processed, this.quill, this.options);
 				this.textGenerationCancelled = false;
 				toastStore.close(stopGeneratingToast);
+				
 			}
 		};
 		const intervalId = setInterval(insertWords, delay);
@@ -213,7 +214,6 @@ export class QuillAI {
 
 		this.quill.setSelection(originalRange.index + originalRange.length, 0);
 
-		this.quill.insertText(originalRange.index + originalRange.length, ' ');
 		//const inserted = this.quill.insertText(range.index + range.length, ' ' + textToInsert, 'api');
 
 		return this.insertTextWordByWord(
@@ -231,12 +231,16 @@ export class QuillAI {
 		quill: Quill,
 		options: QuillAiOptions
 	) {
+
 		const textLength = textToInsert.length;
-		// selection could be removed when this callback gets called, so store it first
+
+
+		//formatText(index: Number, length: Number, format: String, value: any, source: String = 'api')
+
 		if (originalRange) {
 			quill.formatText(
 				originalRange.index + originalRange.length + 1,
-				textLength,
+				textLength - 2,
 				'aiAuthor',
 				options.aiAuthorId,
 				'user'
@@ -246,7 +250,7 @@ export class QuillAI {
 		if (originalRange && options.aiAddOn) {
 			quill.formatText(
 				originalRange.index + originalRange.length + 1,
-				textLength,
+				textLength - 2,
 				'aiAddOn',
 				options.aiAddOn,
 				'user'
@@ -258,14 +262,14 @@ export class QuillAI {
 			if (originalRange) {
 				quill.formatText(
 					originalRange.index + originalRange.length + 1,
-					textLength,
+					textLength - 2,
 					'aiTimestamp',
 					utcSeconds,
 					'user'
 				);
 				quill.formatText(
 					originalRange.index + originalRange.length + 1,
-					textLength,
+					textLength - 2,
 					'aiId',
 					'ql-ai-' + options.aiAuthorId + '-' + utcSeconds,
 					'user'
@@ -273,13 +277,14 @@ export class QuillAI {
 
 				quill.formatText(
 					originalRange.index + originalRange.length + 1,
-					textLength,
+					textLength - 2,
 					'ai',
 					textToInsert,
 					'user'
 				);
 			}
 		});
+
 	}
 
 	enable(enabled = true) {

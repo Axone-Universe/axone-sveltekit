@@ -19,6 +19,15 @@
 		store.close();
 	}
 
+	const placeholder = `Custom text to send to the AI model.
+e.g.
+The style of the chapter is ...
+The keywords to use in your response are ...
+The plot direction of the chapter is ...
+The tone of the chapter is ...
+The target audience of the chapter is ...
+The target language proficiency of the chapter is ...`
+
 	// Base Classes
 	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
 	const cHeader = 'text-2xl font-bold';
@@ -35,7 +44,6 @@
 				<span>Generation length</span>
 				<select required class="select" bind:value={formData.requestedLength}>
 					<option value="Sentence" selected>Sentence</option>
-					<option value="Long sentence">Long sentence</option>
 					<option value="Paragraph">Paragraph</option>
 				</select>
 			</label>
@@ -46,17 +54,7 @@
 					class="textarea"
 					bind:value={formData.customPrompt}
 					rows="6"
-					placeholder="
-					Custom text to send to the AI model.
-					
-					e.g.
-					The style of the chapter is ...
-					The keywords to use in your response are ...
-					The plot direction of the chapter is ...
-					The tone of the chapter is ...
-					The target audience of the chapter is ...
-					The target language proficiency of the chapter is ...
-					"
+					placeholder={placeholder}
 				/>
 			</label>
 		</form>
