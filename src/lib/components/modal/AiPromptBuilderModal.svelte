@@ -44,6 +44,7 @@ The target language proficiency of the chapter is ...`
 				<span>Generation length</span>
 				<select required class="select" bind:value={formData.requestedLength}>
 					<option value="Sentence" selected>Sentence</option>
+					<option value="Long sentence">Long sentence</option>
 					<option value="Paragraph">Paragraph</option>
 				</select>
 			</label>

@@ -54,6 +54,8 @@ function getSystemTextPrompt(
 
 	const insertDeltas = (deltaProperties.ops as any[]).map((op) => op.insert || '').join('');
 
+	if (insertDeltas) prompt += `\nHere is the current text of the chapter: "${insertDeltas}"`;
+
 	if (input?.options?.customPrompt)
 		prompt += `\n\nHere are more instructions and/or information: ${input.options.customPrompt}.`;
 

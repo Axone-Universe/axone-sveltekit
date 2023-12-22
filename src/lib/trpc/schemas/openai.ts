@@ -5,21 +5,9 @@ type generationLengthType = {
 };
 
 export const generationLength: generationLengthType = {
-	'Sentence': 30,
-	'Paragraph': 200,
-};
-
-type generationLengthType = {
-	[key: string]: number;
-};
-
-export const generationLength: generationLengthType = {
-	'short sentence': 2,
-	'long sentence': 5,
-	'short paragraph': 10,
-	'long paragraph': 25,
-	'short chapter': 50,
-	'long chapter': 100
+	'Sentence': 2,
+	'Long sentence': 5,
+	'Paragraph': 10,
 };
 
 /**
