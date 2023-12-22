@@ -28,7 +28,7 @@ function getKey(keys: string): string {
 }
 
 function getTextPrompt(input: UserMessage): string {
-	const prompt = `Please complete following ${input.requestedLength}: ${input.content}`;
+	const prompt = `Please complete following ${input.requestedLength} (strictly not longer than one ${input.requestedLength}): ${input.content} ...`;
 	return prompt;
 }
 
@@ -50,12 +50,22 @@ function getSystemTextPrompt(
 
 	const insertDeltas = (deltaProperties.ops as any[]).map((op) => op.insert || '').join('');
 
-	if (insertDeltas) prompt += `\nHere is the current text of the chapter: "${insertDeltas}"`;
-
 	if (input?.options?.customPrompt)
 		prompt += `\n\nHere are more instructions and/or information: ${input.options.customPrompt}.`;
 
 	return prompt;
+}
+
+/**
+ * Removes the prompt text from the response
+ */
+function trimMessageContent(completion: completion, prompt: string): string {
+	if (completion.choices[0].message.content.startsWith(prompt)){
+		completion.choices[0].message.content = completion.choices[0].message.content.slice(prompt.length + 1);
+		return completion
+	}else {
+		return completion
+	}
 }
 
 export const openai = t.router({
@@ -100,7 +110,10 @@ export const openai = t.router({
 				//max_tokens: generationLength[input.requestedLength]
 			});
 
-			response.data = completion;
+			response.data = trimMessageContent(completion, input.content);
+
+			console.log(completion.choices[0].message.content);
+
 			return response;
 		})
 });

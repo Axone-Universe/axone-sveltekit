@@ -746,7 +746,7 @@
 					bookID:
 						(quill.chapter!.book as string) ||
 						((quill.chapter!.book as HydratedDocument<BookProperties>).id as string),
-					content: quill.getText(quill.selectedRange!.index, quill.selectedRange!.length),
+					content: quill.getText(quill.oldSelectedRange!.index, quill.oldSelectedRange!.length),
 					requestedLength: response.requestedLength,
 					options: {
 						customPrompt: response.options && response.options.customPrompt ? response.options.customPrompt : undefined
