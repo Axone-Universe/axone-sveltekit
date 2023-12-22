@@ -107,7 +107,6 @@ export const openai = t.router({
 				messages: messages,
 				model: model,
 				stream: false,
-				//max_tokens: generationLength[input.requestedLength]
 			});
 
 			response.data = trimMessageContent(completion, input.content);
