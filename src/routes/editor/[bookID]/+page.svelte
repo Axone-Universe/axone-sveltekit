@@ -41,8 +41,9 @@
 		bookmark,
 		history,
 		lock,
-		info
-		lightbulbO
+		info,
+		lightbulbO,
+		magic
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -1170,7 +1171,7 @@
 									{				
 										id: 'ai',
 										label: 'AI',
-										icon: lightbulbO,
+										icon: magic,
 										callback: toggleShowAi,
 										class: 'relative',
 										mode: 'writer'
