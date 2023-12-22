@@ -694,11 +694,11 @@
 	}
 
 	function showPromptBuilderModal(responseHandler: (response: UserMessage) => void) {
-		const c: ModalComponent = { ref: AiPromptBuilderModal };
+		const modalComponent: ModalComponent = { ref: AiPromptBuilderModal };
 		const modal: ModalSettings = {
 			type: 'component',
-			component: c,
-			title: 'Ai Prompt Builder',
+			component: modalComponent,
+			title: 'Ai Prompter',
 			body: 'Complete the form below and then press submit.',
 			response: (r: UserMessage) => responseHandler(r)
 		};
@@ -714,13 +714,10 @@
 		}
 
 		const startingCursorPosition = structuredClone(quill.selectedRange);
-		let cursorPosition = structuredClone(quill.selectedRange);
 
 		quill.setSelection(startingCursorPosition.index + startingCursorPosition.length, 0);
 
 		let insertWordsInterval: NodeJS.Timer | undefined = undefined;
-		let dotIntervalId: NodeJS.Timer | undefined = undefined;
-		let countDots = 0;
 
 		const stopGeneratingToast: ToastSettings = {
 			message: '',
@@ -729,71 +726,33 @@
 				label: 'Stop generating',
 				response: () => {
 					if (insertWordsInterval) quill.getModule('ai').stopGenerating();
-					else if (dotIntervalId) {
-						clearInterval(dotIntervalId);
-						quill.getModule('ai').stopGenerating();
-						quill.deleteText(
-							startingCursorPosition.index + startingCursorPosition.length + 1,
-							countDots
-						);
-					}
 					quill.enable(true);
 				}
 			},
 			autohide: false
 		};
-		const stopGeneratingToastId = toastStore.trigger(stopGeneratingToast);
-
+		let stopGeneratingToastId: string;
 		//show modal
 		showPromptBuilderModal((response: UserMessage) => {
+			if (!response) return; // user clicked cancel on the modal
+
 			quill.enable(false);
 
-			const insertDot = () => {
-				if (countDots < 3) {
-					quill.insertText(
-						cursorPosition.index + startingCursorPosition.length,
-						countDots == 0 ? ' •' : '•'
-					);
-					countDots++;
-					cursorPosition.index++;
-				} else {
-					quill.deleteText(
-						cursorPosition.index + startingCursorPosition.length - countDots,
-						countDots + 1
-					);
-					cursorPosition = structuredClone(startingCursorPosition);
-					countDots = 0;
-				}
-			};
-			dotIntervalId = setInterval(insertDot, 300);
+			stopGeneratingToastId = toastStore.trigger(stopGeneratingToast);
 
 			trpc($page)
 				.openai.get.query({
-					chapterID: quill.chapter._id,
+					chapterID: quill.chapter!._id,
 					bookID:
-						(quill.chapter.book as string) ||
-						((quill.chapter.book as HydratedDocument<BookProperties>).id as string),
-					content: quill.getText(quill.selectedRange.index, quill.selectedRange.length),
+						(quill.chapter!.book as string) ||
+						((quill.chapter!.book as HydratedDocument<BookProperties>).id as string),
+					content: quill.getText(quill.selectedRange!.index, quill.selectedRange!.length),
 					requestedLength: response.requestedLength,
 					options: {
-						style: response.style ? response.style : undefined,
-						keywords:
-							!response.keywords || response.keywords.length <= 0 ? undefined : response.keywords,
-						plotDirection: response.plotDirection ? response.plotDirection : undefined,
-						tone: response.tone ? response.tone : undefined,
-						targetAudience: response.targetAudience ? response.targetAudience : undefined,
-						targetLanguageProficiency: response.targetLanguageProficiency
-							? response.targetLanguageProficiency
-							: undefined,
-						customPrompt: response.customPrompt ? response.customPrompt : undefined
+						customPrompt: response.options && response.options.customPrompt ? response.options.customPrompt : undefined
 					}
 				})
-				.then((response: AiResponse) => {
-					quill.deleteText(
-						startingCursorPosition.index + startingCursorPosition.length + 1,
-						countDots
-					);
-					clearInterval(dotIntervalId);
+				.then((response: AiResponse | any) => {
 					insertWordsInterval = quill
 						.getModule('ai')
 						.addAi(response, startingCursorPosition, stopGeneratingToastId);

@@ -52,24 +52,11 @@ function getSystemTextPrompt(
 	if (chapterProperties.description)
 		prompt += `Here is a short description of the chapter: "${chapterProperties.description}".\n\n`;
 
-	if (input.options) {
-		if (input.options.style) prompt += `The style of the chapter is ${input.options.style}.`;
-		if (input.options.keywords)
-			prompt += `The keywords to use in your response are ${input.options.keywords.join(', ')}.`;
-		if (input.options.plotDirection)
-			prompt += `The plot direction of the chapter is ${input.options.plotDirection}.`;
-		if (input.options.tone) prompt += `The tone of the chapter is ${input.options.tone}.`;
-		if (input.options.targetAudience)
-			prompt += `The target audience of the chapter is ${input.options.targetAudience}.`;
-		if (input.options.targetLanguageProficiency)
-			prompt += `The target language proficiency of the chapter is ${input.options.targetLanguageProficiency}.`;
-	}
-
 	const insertDeltas = (deltaProperties.ops as any[]).map((op) => op.insert || '').join('');
 
 	if (insertDeltas) prompt += `\nHere is the current text of the chapter: "${insertDeltas}"`;
 
-	if (input.options && input.options.customPrompt)
+	if (input?.options?.customPrompt)
 		prompt += `\n\nHere are more instructions and/or information: ${input.options.customPrompt}.`;
 
 	return prompt;
@@ -104,8 +91,6 @@ export const openai = t.router({
 				deltaProperties
 			);
 			const prompt = getTextPrompt(input);
-
-			let data: AssistantMessage;
 
 			const messages = [
 				{ role: 'system', content: systemMessage },

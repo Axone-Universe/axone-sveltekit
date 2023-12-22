@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { SvelteComponent } from 'svelte';
 	import { modalStore } from '@skeletonlabs/skeleton';
-	import { InputChip } from '@skeletonlabs/skeleton';
 	// Props
 	/** Exposes parent props to this component. */
 	export let parent: SvelteComponent;
@@ -11,12 +10,6 @@
 	// Form Data
 	const formData = {
 		requestedLength: '',
-		style: '',
-		keywords: [],
-		plotDirection: '',
-		tone: '',
-		targetAudience: '',
-		targetLanguageProficiency: '',
 		customPrompt: ''
 	};
 
@@ -41,71 +34,10 @@
 			<label class="label">
 				<span>Generation length</span>
 				<select required class="select" bind:value={formData.requestedLength}>
-					<option value="short sentence" selected>short sentence</option>
-					<option value="long sentence">long sentence</option>
-					<option value="short paragraph">short paragraph</option>
-					<option value="long paragraph">long paragraph</option>
-					<option value="short chapter">short chapter</option>
-					<option value="long chapter">long chapter</option>
+					<option value="Sentence" selected>Sentence</option>
+					<option value="Long sentence">Long sentence</option>
+					<option value="Paragraph">Paragraph</option>
 				</select>
-			</label>
-
-			<label class="label">
-				<span>Style</span>
-				<input
-					class="input"
-					type="text"
-					bind:value={formData.style}
-					placeholder="e.g. Formal or Casual"
-				/>
-			</label>
-
-			<label class="label">
-				<span>Keywords</span>
-				<InputChip
-					bind:value={formData.keywords}
-					name="keywords"
-					placeholder="Enter keywords to be included in the generation"
-				/>
-			</label>
-
-			<label class="label">
-				<span>Direction</span>
-				<textarea
-					class="textarea"
-					bind:value={formData.plotDirection}
-					placeholder="Plot direction you are seeking"
-				/>
-			</label>
-
-			<label class="label">
-				<span>Tone</span>
-				<input
-					class="input"
-					type="text"
-					bind:value={formData.tone}
-					placeholder="e.g. Whimsical or light-hearted"
-				/>
-			</label>
-
-			<label class="label">
-				<span>Target Audience</span>
-				<input
-					class="input"
-					type="text"
-					bind:value={formData.targetAudience}
-					placeholder="e.g. Young-adults"
-				/>
-			</label>
-
-			<label class="label">
-				<span>Target Language Proficiency</span>
-				<input
-					class="input"
-					type="text"
-					bind:value={formData.targetLanguageProficiency}
-					placeholder="e.g. e.g. A-level equivalent english"
-				/>
 			</label>
 
 			<label class="label">
@@ -113,7 +45,18 @@
 				<textarea
 					class="textarea"
 					bind:value={formData.customPrompt}
-					placeholder="Custom text to send to the AI model"
+					rows="6"
+					placeholder="
+					Custom text to send to the AI model.
+					
+					e.g.
+					The style of the chapter is ...
+					The keywords to use in your response are ...
+					The plot direction of the chapter is ...
+					The tone of the chapter is ...
+					The target audience of the chapter is ...
+					The target language proficiency of the chapter is ...
+					"
 				/>
 			</label>
 		</form>

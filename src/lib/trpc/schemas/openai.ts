@@ -1,19 +1,13 @@
 import { z } from 'zod';
-import { update as ChapterDetails } from './chapters';
-import { update as Deltas } from './deltas';
-import { update as BookDetails } from './books';
 
 type generationLengthType = {
 	[key: string]: number;
 };
 
 export const generationLength: generationLengthType = {
-	'short sentence': 2,
-	'long sentence': 5,
-	'short paragraph': 10,
-	'long paragraph': 25,
-	'short chapter': 50,
-	'long chapter': 100
+	'Sentence': 2,
+	'Long sentence': 5,
+	'Paragraph': 10,
 };
 
 /**
@@ -21,13 +15,7 @@ export const generationLength: generationLengthType = {
  * @property {string} chapterID - The ID of the chapter
  * @property {string} bookID - The ID of the book
  * @property {string} content - The content of the message (i.e. the highlighted text in the editor)
- * @property {Object} options - The options for the message
- * @property {string} options.style - The style of the generated text
- * @property {string[]} options.keywords - The keywords for the generated text
- * @property {string} options.plotDirection - The plot direction for the generated text
- * @property {string} options.tone - The tone for the generated text
- * @property {string} options.targetAudience - The target audience for the generated text
- * @property {string} options.targetLanguageProficiency - The target language proficiency for the generated text
+ * @property {string} requestedLength - The requested length of the generated text
  * @property {string} options.customPrompt - Any additional custom prompt for the generated text
  * @property {Deltas} deltas - The deltas of the current chapter
  */
@@ -38,12 +26,6 @@ export const userMessage = z.object({
 	requestedLength: z.enum(['', ...Object.keys(generationLength)]),
 	options: z
 		.object({
-			style: z.string().optional(),
-			keywords: z.array(z.string()).optional(),
-			plotDirection: z.string().optional(),
-			tone: z.string().optional(),
-			targetAudience: z.string().optional(),
-			targetLanguageProficiency: z.string().optional(),
 			customPrompt: z.string().optional()
 		})
 		.optional()
