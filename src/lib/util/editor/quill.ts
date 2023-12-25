@@ -91,7 +91,6 @@ export class QuillEditor extends Quill {
 
 			// take a snapshot of current delta state.
 			// that is the one sent to the server
-
 			this.changeDelta.ops.forEach((op: Op) => {
 				if (
 					op.attributes &&
@@ -112,7 +111,7 @@ export class QuillEditor extends Quill {
 					chapterID: this.chapter!._id,
 					ops: JSON.stringify(this.changeDeltaSnapshot.ops)
 				})
-				.then((chapterNodeResponse) => {
+				.then((deltaUdpateResponse) => {
 					// Update the content to be one delta
 					this.updateChapterContent();
 				})
@@ -123,7 +122,7 @@ export class QuillEditor extends Quill {
 	}
 
 	/**
-	 * Updates the chapter delta to be the same as server side after the saved changes
+	 * Updates the chapter delta ops and versions to be the same as server side after the saved changes
 	 */
 	updateChapterContent() {
 		const delta = this.chapter!.delta as HydratedDocument<DeltaProperties>;
@@ -188,6 +187,7 @@ export class QuillEditor extends Quill {
 		chapter: HydratedDocument<ChapterProperties>,
 		deltaResponse: HydratedDocument<DeltaProperties>
 	) {
+		console.log('** chp cont');
 		chapter.delta = deltaResponse;
 
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
@@ -284,6 +284,10 @@ export class QuillEditor extends Quill {
 	 */
 
 	textChange(delta: Delta) {
+		if (!this.isEnabled()) {
+			return;
+		}
+
 		changeDelta.update(() => this.changeDelta.compose(delta));
 
 		// check if new comment was added
