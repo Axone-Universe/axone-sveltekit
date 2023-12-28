@@ -1,17 +1,12 @@
 import { User } from '$lib/models/user';
 import { Repository } from '$lib/repositories/repository';
 import { label as StorylineLabel } from '$lib/properties/storyline';
-import type { UserProperties } from '$lib/properties/user';
+import type { UserLabel, UserProperties } from '$lib/properties/user';
 import type { Session } from '@supabase/supabase-js';
-import type { HydratedDocument } from 'mongoose';
+import type { HydratedDocument, PipelineStage } from 'mongoose';
+import type { Genre } from '$lib/properties/genre';
 
 export class UsersRepository extends Repository {
-	async get(session: Session | null, id?: string): Promise<HydratedDocument<UserProperties>[]> {
-		const query = User.find(id ? { _id: id } : {});
-
-		return await query;
-	}
-
 	async getById(
 		session: Session | null,
 		id?: string
@@ -87,19 +82,39 @@ export class UsersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async getByDetails(
+	async get(
 		session: Session | null,
 		searchTerm: string,
 		limit?: number,
+		cursor?: string,
+		genres?: Genre[],
+		labels?: UserLabel[],
 		skip?: number
 	): Promise<HydratedDocument<UserProperties>[]> {
-		let query = User.find({
+		const filterQueries = [];
+		filterQueries.push({
 			$or: [
 				{ email: { $regex: '^' + searchTerm, $options: 'i' } },
 				{ firstName: { $regex: '^' + searchTerm, $options: 'i' } },
 				{ lastName: { $regex: '^' + searchTerm, $options: 'i' } }
 			]
 		});
+		console.log('** user search');
+		console.log(labels);
+		if (cursor) {
+			filterQueries.push({ _id: { $gt: cursor } });
+		}
+
+		if (genres && genres.length > 0) {
+			filterQueries.push({ genres: { $all: genres } });
+		}
+
+		if (labels && labels.length > 0) {
+			filterQueries.push({ labels: { $all: labels } });
+		}
+
+		const filter = { $and: filterQueries };
+		let query = User.find(filter);
 
 		if (skip) {
 			query = query.skip(skip);

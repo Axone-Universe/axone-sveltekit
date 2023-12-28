@@ -157,7 +157,7 @@
 	/** Loads from the server what the user has filled as input */
 	async function loadUsers(query: string) {
 		emptyState = 'Loading...';
-		let usersResponse = await trpc($page).users.getByDetails.query({
+		let usersResponse = await trpc($page).users.get.query({
 			id: query
 		});
 

@@ -18,28 +18,6 @@ import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
 
 export const users = t.router({
-	list: t.procedure
-		.use(logger)
-		.input(read)
-		.query(async ({ input, ctx }) => {
-			const usersRepo = new UsersRepository();
-
-			const response: Response = {
-				success: true,
-				message: 'users successfully retrieved',
-				data: {}
-			};
-			try {
-				const result = await usersRepo.get(ctx.session, input.id);
-				response.data = result;
-			} catch (error) {
-				response.success = false;
-				response.message = error instanceof Object ? error.toString() : 'unkown error';
-			}
-
-			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties>[] } };
-		}),
-
 	getById: t.procedure
 		.use(logger)
 		.input(read)
@@ -61,7 +39,7 @@ export const users = t.router({
 			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
 
-	getByDetails: t.procedure
+	get: t.procedure
 		.use(logger)
 		.input(read)
 		.query(async ({ input, ctx }) => {
@@ -73,7 +51,14 @@ export const users = t.router({
 				data: {}
 			};
 			try {
-				const result = await usersRepo.getByDetails(ctx.session, input.detail ?? '');
+				const result = await usersRepo.get(
+					ctx.session,
+					input.detail ?? '',
+					input.limit,
+					input.cursor,
+					input.genres,
+					input.labels
+				);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -93,7 +78,7 @@ export const users = t.router({
 			if (input.firstName) userBuilder = userBuilder.firstName(input.firstName);
 			if (input.lastName) userBuilder = userBuilder.lastName(input.lastName);
 
-			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
+			if (input.imageURL) userBuilder = userBuilder.imageURL(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);
@@ -127,7 +112,7 @@ export const users = t.router({
 				.firstName(input.firstName!)
 				.lastName(input.lastName!);
 
-			if (input.imageURL) userBuilder = userBuilder.about(input.imageURL);
+			if (input.imageURL) userBuilder = userBuilder.imageURL(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.email) userBuilder = userBuilder.email(input.email);
 			if (input.facebook) userBuilder = userBuilder.facebook(input.facebook);

@@ -56,7 +56,9 @@ export const read = z.object({
 	limit: z.number().optional(),
 	cursor: z.string().optional(),
 	id: z.string().optional(),
-	detail: z.string().optional()
+	detail: z.string().optional(),
+	genres: genreSchema.optional(),
+	labels: userSchema.optional()
 });
 
 export type CreateDeleteReadingList = z.infer<typeof createDeleteReadingList>;

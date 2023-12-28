@@ -187,7 +187,6 @@ export class QuillEditor extends Quill {
 		chapter: HydratedDocument<ChapterProperties>,
 		deltaResponse: HydratedDocument<DeltaProperties>
 	) {
-		console.log('** chp cont');
 		chapter.delta = deltaResponse;
 
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
