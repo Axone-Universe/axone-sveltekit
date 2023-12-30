@@ -46,7 +46,7 @@ export class BooksRepository extends Repository {
 			}
 		}
 		// Introduces unexpected behaviour in the method. User genres should be passed through the parameter
-		else {
+		else if (!user) {
 			const userRepo = new UsersRepository();
 			const user = await userRepo.getById(session, session?.user.id);
 			if (user && user.genres) {
@@ -93,9 +93,12 @@ export class BooksRepository extends Repository {
 
 	async getBooksByUserID(
 		session: Session | null,
-		id?: string
+		id?: string,
+		limit?: number,
+		cursor?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline = [];
+		const filter: any = {};
 
 		pipeline.push(
 			{ $match: { user: id } },
@@ -117,9 +120,12 @@ export class BooksRepository extends Repository {
 				}
 			}
 		);
-		// If you want to limit or skip, you can add those stages here
-		// if (limit) pipeline.push({ $limit: limit });
-		// if (skip) pipeline.push({ $skip: skip });
+
+		if (cursor) {
+			filter._id = { $gt: cursor };
+		}
+
+		if (limit) pipeline.push({ $limit: limit });
 
 		const books = (await Book.aggregate(pipeline, {
 			userID: session?.user.id

@@ -219,6 +219,8 @@ export async function createDBUser(session: Session, genres: Genre[] = []) {
 	userProperties.firstName = supabaseUser.user_metadata.firstName;
 	userProperties.lastName = supabaseUser.user_metadata.lastName;
 	userProperties.email = session.user.email;
+	userProperties.about = faker.person.bio() + ' - ' + faker.lorem.paragraph();
+	userProperties.imageURL = `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`;
 	userProperties.genres = genres;
 
 	return await caller.users.create(userProperties);

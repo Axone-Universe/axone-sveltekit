@@ -83,7 +83,7 @@
 			console.log(supabaseResponse.data);
 			toastStore.trigger(t);
 			if (supabaseResponse.data.user) {
-				const usersResponse = await trpc($page).users.list.query({
+				const usersResponse = await trpc($page).users.get.query({
 					id: supabaseResponse.data.user.id
 				});
 				const users = usersResponse.data as HydratedDocument<UserProperties>[];

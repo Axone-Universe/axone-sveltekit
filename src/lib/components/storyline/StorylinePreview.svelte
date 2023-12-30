@@ -10,7 +10,9 @@
 	import StorylineModal from './StorylineModal.svelte';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
-	export let addToReadingList: (names: string[], storylineID: string) => Promise<void>;
+	export let addToReadingList:
+		| undefined
+		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
 	export let user: HydratedDocument<UserProperties> | undefined;
 
 	let storylineUser = storyline.user as UserProperties;
@@ -19,7 +21,7 @@
 
 	const modalComponent: ModalComponent = {
 		ref: StorylineModal,
-		props: { storylineData: storyline }
+		props: { storylineData: storyline, isStudio: addToReadingList ? false : true }
 	};
 
 	const readingListModal: ModalSettings = {
@@ -27,7 +29,7 @@
 		component: 'readingListModal',
 		title: 'Add to Reading List',
 		response: (r) => {
-			if (r) addToReadingList(r, storyline._id);
+			if (r && addToReadingList) addToReadingList(r, storyline._id);
 		}
 	};
 
