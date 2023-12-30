@@ -99,8 +99,7 @@ export class UsersRepository extends Repository {
 				{ lastName: { $regex: '^' + searchTerm, $options: 'i' } }
 			]
 		});
-		console.log('** user search');
-		console.log(labels);
+
 		if (cursor) {
 			filterQueries.push({ _id: { $gt: cursor } });
 		}

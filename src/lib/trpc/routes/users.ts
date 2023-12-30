@@ -73,7 +73,7 @@ export const users = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			let userBuilder = new UserBuilder(ctx.session!.user.id);
+			let userBuilder = new UserBuilder(ctx.session!.user.id).sessionUserID(ctx.session!.user.id);
 
 			if (input.firstName) userBuilder = userBuilder.firstName(input.firstName);
 			if (input.lastName) userBuilder = userBuilder.lastName(input.lastName);
@@ -172,7 +172,9 @@ export const users = t.router({
 			};
 
 			try {
-				const result = await new UserBuilder(ctx.session!.user.id).createReadingList(input);
+				const result = await new UserBuilder(ctx.session!.user.id)
+					.sessionUserID(ctx.session!.user.id)
+					.createReadingList(input);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -194,7 +196,9 @@ export const users = t.router({
 			};
 
 			try {
-				const result = await new UserBuilder(ctx.session!.user.id).deleteReadingList(input);
+				const result = await new UserBuilder(ctx.session!.user.id)
+					.sessionUserID(ctx.session!.user.id)
+					.deleteReadingList(input);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -216,8 +220,9 @@ export const users = t.router({
 			};
 
 			try {
-				const result = await new UserBuilder(ctx.session!.user.id).renameReadingList(input);
-
+				const result = await new UserBuilder(ctx.session!.user.id)
+					.sessionUserID(ctx.session!.user.id)
+					.renameReadingList(input);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -239,8 +244,9 @@ export const users = t.router({
 			};
 
 			try {
-				const result = await new UserBuilder(ctx.session!.user.id).updateReadingLists(input);
-
+				const result = await new UserBuilder(ctx.session!.user.id)
+					.sessionUserID(ctx.session!.user.id)
+					.updateReadingLists(input);
 				response.data = result;
 			} catch (error) {
 				response.success = false;

@@ -17,7 +17,7 @@
 	class={`card p-2 card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${customClass}`}
 >
 	<header class="h-2/6 flex flex-col items-center">
-		<a href="/profile/ee8f6cf3-9fac-4eaf-8a40-da68da8083c5">
+		<a href={'/profile/' + userData._id}>
 			{#if userData.imageURL !== undefined}
 				<Avatar src={userData.imageURL} width="w-32" rounded="rounded-full" />
 			{:else}

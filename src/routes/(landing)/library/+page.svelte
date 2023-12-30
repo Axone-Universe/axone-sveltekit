@@ -20,7 +20,7 @@
 
 	export let data: PageData;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
-	$: readingLists = user ? Object.keys(user.readingLists) : [];
+	$: readingLists = user ? Object.keys(user.readingLists!) : [];
 	let selectedList = '';
 	let readingListToDelete = '';
 	let readingListToRename = '';
