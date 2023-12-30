@@ -14,6 +14,8 @@
 	userProperties.email = session?.user.email;
 
 	async function submit(userProperties: UserProperties) {
+		delete userProperties.readingLists;
+
 		await trpc($page).users.update.mutate(userProperties);
 
 		// all good, redirect to newly-created profile

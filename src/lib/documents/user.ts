@@ -12,12 +12,13 @@ import { Storyline } from '$lib/models/storyline';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
+	private _sessionUserID?: string;
 
 	constructor(id?: string) {
 		super();
 		this._userProperties = {
 			_id: id ? id : '',
-			readingLists: new Map([[DEFAULT_READING_LIST, []]])
+			...(id ? { readingLists: new Map([[DEFAULT_READING_LIST, []]]) } : {})
 		};
 	}
 
@@ -71,11 +72,16 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	sessionUserID(sessionUserID: string): UserBuilder {
+		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
 	async update(): Promise<HydratedDocument<UserProperties> | null> {
 		const user = await User.findOneAndUpdate(
 			{ _id: this._userProperties._id },
 			this._userProperties,
-			{ new: true }
+			{ new: true, userID: this._sessionUserID }
 		);
 
 		return user;
@@ -92,15 +98,15 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 			const user = await User.findById(this._userProperties._id);
 
 			if (user) {
-				for (const listName of user.readingLists.keys()) {
+				for (const listName of user.readingLists!.keys()) {
 					if (updateReadingLists.names.includes(listName)) {
-						if (!user.readingLists.get(listName)?.includes(updateReadingLists.storylineID)) {
-							user.readingLists.get(listName)!.push(updateReadingLists.storylineID);
+						if (!user.readingLists!.get(listName)?.includes(updateReadingLists.storylineID)) {
+							user.readingLists!.get(listName)!.push(updateReadingLists.storylineID);
 						}
 					} else {
-						user.readingLists.set(
+						user.readingLists!.set(
 							listName,
-							user.readingLists.get(listName)!.filter((v) => v !== updateReadingLists.storylineID)
+							user.readingLists!.get(listName)!.filter((v) => v !== updateReadingLists.storylineID)
 						);
 					}
 				}
@@ -129,7 +135,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 						[`readingLists.${createReadingList.name}`]: []
 					}
 				},
-				{ new: true }
+				{ new: true, userID: this._sessionUserID }
 			);
 
 			return user;
@@ -148,7 +154,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 					[`readingLists.${createReadingList.name}`]: []
 				}
 			},
-			{ new: true }
+			{ new: true, userID: this._sessionUserID }
 		);
 
 		return user;
@@ -164,7 +170,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 					[`readingLists.${renameReadingList.oldName}`]: `readingLists.${renameReadingList.newName}`
 				}
 			},
-			{ new: true }
+			{ new: true, userID: this._sessionUserID }
 		);
 
 		return user!;

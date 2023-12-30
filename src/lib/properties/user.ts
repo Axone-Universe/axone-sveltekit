@@ -18,7 +18,7 @@ export interface UserProperties {
 	twitter?: string;
 	genres?: Genre[];
 	labels?: UserLabel[];
-	readingLists: Map<string, string[]>;
+	readingLists?: Map<string, string[]>;
 }
 
 export class UserPropertyBuilder {

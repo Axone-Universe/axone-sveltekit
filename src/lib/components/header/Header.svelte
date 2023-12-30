@@ -112,9 +112,12 @@
 			</div>
 
 			<div>
-				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
-					<span class="capitalize">Creators</span>
-				</button>
+				<a
+					href="/community"
+					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				>
+					<span class="capitalize">Community</span>
+				</a>
 
 				<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
 					<div class="grid grid-cols-1">

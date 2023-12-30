@@ -14,10 +14,10 @@
 </script>
 
 <div
-	class={`card p-4 shadow-xl overflow-hidden max-w-[300px] text-token flex-[0_0_100%]  sm:flex-[0_0_50%] xl:flex-[0_0_33%] ${customClass}`}
+	class={`card p-2 card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${customClass}`}
 >
-	<header class="flex flex-col items-center">
-		<a href="/profile/ee8f6cf3-9fac-4eaf-8a40-da68da8083c5">
+	<header class="h-2/6 flex flex-col items-center">
+		<a href={'/profile/' + userData._id}>
 			{#if userData.imageURL !== undefined}
 				<Avatar src={userData.imageURL} width="w-32" rounded="rounded-full" />
 			{:else}
@@ -27,16 +27,16 @@
 			{/if}
 		</a>
 	</header>
-	<div class="p-4 space-y-4 flex flex-col items-center">
-		<h3 class="">{userData.firstName} {userData.lastName}</h3>
+	<div class="h-3/6 p-4 space-y-4 flex flex-col items-center">
+		<h3 class="line-clamp-1">{userData.firstName} {userData.lastName}</h3>
 		<article>
-			<p class="opacity-75 line-clamp-3">
+			<p class="opacity-75 line-clamp-4">
 				<i>{userData.about}</i>
 			</p>
 		</article>
 	</div>
 	<hr class="opacity-50" />
-	<footer class="p-4 flex justify-center items-center space-x-4">
+	<footer class="h-1/6 p-4 flex justify-center items-center space-x-4">
 		<div class="flex justify-center space-x-2">
 			{#if userData.labels}
 				{#each userData.labels as label}
