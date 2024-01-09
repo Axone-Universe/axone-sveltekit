@@ -28,7 +28,7 @@
 	<Accordion>
 		<AccordionItem open>
 			<svelte:fragment slot="summary">
-				<p class="text-lg font-bold">Storylines</p>
+				<p id="storylines-list" class="text-lg font-bold">Storylines</p>
 			</svelte:fragment>
 			<svelte:fragment slot="content">
 				<ListBox>
@@ -62,7 +62,7 @@
 		</AccordionItem>
 		<AccordionItem open>
 			<svelte:fragment slot="summary">
-				<p class="text-lg font-bold">Chapters</p>
+				<p id="chapters-list" class="text-lg font-bold">Chapters</p>
 			</svelte:fragment>
 			<svelte:fragment slot="content">
 				<ListBox>

@@ -14,6 +14,7 @@
 		{#if !menuItem.hidden && (!menuItem.mode || menuItem.mode === mode)}
 			<button
 				on:click={menuItem.callback}
+				id={menuItem.id}
 				type="button"
 				class={`m-2 btn-icon bg-surface-200-700-token ${menuItem.class}`}
 			>

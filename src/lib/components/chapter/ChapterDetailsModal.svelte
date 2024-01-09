@@ -130,7 +130,9 @@
 			</div>
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-					<button on:click={modalStore.close} class="btn variant-ghost-surface">Cancel</button>
+					<button on:click={modalStore.close} class="btn variant-ghost-surface" type="button"
+						>Cancel</button
+					>
 					<button class="btn variant-filled" on:click={submit}>
 						{chapter._id ? 'Update' : 'Create'}
 					</button>

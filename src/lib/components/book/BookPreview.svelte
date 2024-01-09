@@ -10,7 +10,6 @@
 	import type { UserProperties } from '$lib/properties/user';
 
 	export let book: HydratedDocument<BookProperties>;
-
 	let user = book.user as UserProperties;
 	let didError = false;
 
