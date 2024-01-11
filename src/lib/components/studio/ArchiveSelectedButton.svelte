@@ -10,6 +10,7 @@
 </script>
 
 <button
+	id="archive-btn"
 	class="btn btn-sm variant-filled"
 	disabled={selected.length === 0}
 	on:click={() => (archiveMode ? openUnarchiveModal(selected) : openArchiveModal(selected))}

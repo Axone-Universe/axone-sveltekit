@@ -27,6 +27,7 @@
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 	import { edit, trash } from 'svelte-awesome/icons';
+	import Tutorial from './tutorial.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -124,9 +125,7 @@
 			createCallback: () => {
 				refetch();
 				modalStore.close();
-			},
-			class:
-				'flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row lg:mx-32 xl:mx-60'
+			}
 		};
 		modalStore.trigger(storylineDetailsModal);
 	}
@@ -204,6 +203,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
+<Tutorial />
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />

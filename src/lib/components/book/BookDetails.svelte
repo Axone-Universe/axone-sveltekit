@@ -10,6 +10,9 @@
 	import { GENRES } from '$lib/properties/genre';
 	import ImageUploader from '../util/ImageUploader.svelte';
 	import { uploadBookCover } from '$lib/util/bucket/bucket';
+	import { onMount } from 'svelte';
+	import { Icon } from 'svelte-awesome';
+	import { info } from 'svelte-awesome/icons';
 
 	let notifications = {};
 
@@ -116,7 +119,7 @@
 		</div>
 		<div>
 			Genres
-			<div class="flex flex-wrap gap-1">
+			<div id="genres-div" class="flex flex-wrap gap-1">
 				{#each GENRES as genre}
 					<button
 						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
@@ -147,7 +150,9 @@
 			/>
 		</div>
 		<div class="flex flex-col justify-end sm:flex-row gap-2">
-			<button class="btn variant-ghost-surface" on:click={cancelCallback}>Cancel</button>
+			<button id="cancel-btn" class="btn variant-ghost-surface" on:click={cancelCallback}
+				>Cancel</button
+			>
 			<button class="btn variant-filled" type="submit" on:click={createBook}>
 				{book._id ? 'Update' : 'Create'}
 			</button>

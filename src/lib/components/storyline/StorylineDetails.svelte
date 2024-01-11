@@ -17,9 +17,15 @@
 	export let supabase: SupabaseClient;
 	export let cancelCallback: () => void = () => undefined;
 	export let createCallback: (() => void) | undefined = undefined;
+	export let title: string | undefined;
+
+	let customClass = '';
+	export { customClass as class };
 
 	let imageFile: File;
 	let notifications = {};
+
+	$: title = storyline.title;
 
 	async function createStoryline() {
 		if (!imageFile) {
@@ -85,7 +91,7 @@
 	}
 </script>
 
-<div class="card p-2 sm:p-4 space-y-4 w-modal">
+<div class={`card p-2 sm:p-4 space-y-4 w-modal ${customClass}`}>
 	<div class="flex justify-between gap-2">
 		<div class="flex flex-col w-full">
 			<label for="storyline-title"> * Storyline Title </label>

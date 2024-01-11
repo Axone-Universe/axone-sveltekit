@@ -13,24 +13,33 @@
 	export function setupTour() {
 		tour.addStep(
 			getShepherdStep(
-				'search-input',
+				'archive-toggle',
 				'bottom',
-				'Search for books by title. The results will auto-load when you enter the title in the input.',
+				'Filter chapters by archived. Selecting this filter will return only archived chapters in the list.',
 				[next]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
-				'accordion-control-filter-input',
+				'archive-btn',
 				'bottom',
-				'Filter search results by suggested tags or genre.',
+				'Archive the selected chapters. This becomes active only after selecting one or more chapters.',
+				[back, next]
+			)
+		);
+
+		tour.addStep(
+			getShepherdStep(
+				'row-actions-btn',
+				'bottom',
+				'Manage the chapter details or delete the chapter.',
 				[back, complete]
 			)
 		);
 	}
 </script>
 
-<button class="fixed z-50 bottom-10 right-10 btn-icon variant-filled" on:click={() => tour.start()}>
+<button class="fixed z-50 bottom-10 left-10 btn-icon variant-filled" on:click={() => tour.start()}>
 	<Icon data={info} scale={1.5} />
 </button>

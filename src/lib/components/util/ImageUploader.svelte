@@ -34,7 +34,7 @@
 	}
 </script>
 
-<div class="{additionalClasses}">
+<div id="image-uploader-div" class={additionalClasses}>
 	<img
 		class="{!imageFile && !imageURL && 'hidden'} object-cover w-full"
 		src={currentImagePath}

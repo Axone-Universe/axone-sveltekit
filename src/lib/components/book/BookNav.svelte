@@ -13,6 +13,7 @@
 	export let chapters = storylines[0].chapters!;
 	export let selectedChapter = '';
 	export let selectedStoryline = '';
+	export let disabled = false;
 
 	let customClass = '';
 	export { customClass as class };
@@ -45,13 +46,15 @@
 									{storyline.title ? storyline.title : 'New Storyline'}
 								</p>
 								<div class="line-clamp-1 flex justify-end space-x-2 items-center">
-									{#if !storyline.userPermissions?.view}
-										<Icon data={eyeSlash} scale={1.2} />
-									{/if}
-									{#if storyline.archived}
-										<Icon data={archive} scale={1} />
-									{:else if !storyline.userPermissions?.collaborate}
-										<Icon data={lock} scale={1.2} />
+									{#if storyline._id}
+										{#if !storyline.userPermissions?.view}
+											<Icon data={eyeSlash} scale={1.2} />
+										{/if}
+										{#if storyline.archived}
+											<Icon data={archive} scale={1} />
+										{:else if !storyline.userPermissions?.collaborate}
+											<Icon data={lock} scale={1.2} />
+										{/if}
 									{/if}
 								</div>
 							</div>
@@ -72,7 +75,7 @@
 							bind:group={selectedChapter}
 							name="chapter"
 							class="soft-listbox"
-							value={chapter._id}
+							value={disabled ? '' : chapter._id}
 						>
 							<div class="line-clamp-1 flex justify-between items-center">
 								<p class="line-clamp-1">{chapter.title}</p>

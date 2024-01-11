@@ -1,4 +1,4 @@
-import { back, next, complete, tour, step } from '$lib/util/tour/tour';
+import { back, next, complete, tour, getShepherdStep } from '$lib/util/tour/tour';
 import 'shepherd.js/dist/css/shepherd.css';
 
 export function startTour() {
@@ -7,7 +7,7 @@ export function startTour() {
 
 export function setupTour() {
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'storylines-list',
 			'bottom',
 			'Select a storyline. The chapters of the storyline will be populated in the chapters list below.',
@@ -16,7 +16,7 @@ export function setupTour() {
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'chapters-list',
 			'bottom',
 			'Select a chapter. The editor will show the chapter content so that you can read and or edit it.',
@@ -25,7 +25,7 @@ export function setupTour() {
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'editor',
 			'bottom',
 			'Write your story! Highlight the text to show the text editing options.',
@@ -33,17 +33,21 @@ export function setupTour() {
 		)
 	);
 
-	tour.addStep(step('chapter-info', 'left', 'View or edit the chapter details.', [back, next]));
-
 	tour.addStep(
-		step('rate-storyline', 'left', 'Please do provide a rating after reading the story!', [
-			back,
-			next
-		])
+		getShepherdStep('chapter-info', 'left', 'View or edit the chapter details.', [back, next])
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
+			'rate-storyline',
+			'left',
+			'Please do provide a rating after reading the story!',
+			[back, next]
+		)
+	);
+
+	tour.addStep(
+		getShepherdStep(
 			'view-comments',
 			'left',
 			'View or edit inline comments for your chapter. Comments help you collaborate with editors and keep track of changes to make.',
@@ -52,14 +56,16 @@ export function setupTour() {
 	);
 
 	tour.addStep(
-		step('view-illustrations', 'left', 'View or edit inline illustrations for your chapter.', [
-			back,
-			next
-		])
+		getShepherdStep(
+			'view-illustrations',
+			'left',
+			'View or edit inline illustrations for your chapter.',
+			[back, next]
+		)
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'chapter-notes',
 			'left',
 			'View and edit your chapter notes. Notes help you keep track of your ideas about characters, places, props etc.',
@@ -68,7 +74,7 @@ export function setupTour() {
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'reading-lists',
 			'left',
 			'Manage your reading lists. Add storylines you want to read in the future to a reading list.',
@@ -77,35 +83,41 @@ export function setupTour() {
 	);
 
 	tour.addStep(
-		step('view-permissions', 'left', 'View the permissions you have for this chapter.', [
+		getShepherdStep('view-permissions', 'left', 'View the permissions you have for this chapter.', [
 			back,
 			next
 		])
 	);
 
 	tour.addStep(
-		step('create-chapter', 'left', 'Add a new chapter for this storyline and be a co-author!', [
-			back,
-			next
-		])
+		getShepherdStep(
+			'create-chapter',
+			'left',
+			'Add a new chapter for this storyline and be a co-author!',
+			[back, next]
+		)
 	);
 
 	tour.addStep(
-		step('delete-chapter', 'left', 'Delete a chapter. Be careful, this action cannot be undone!', [
-			back,
-			next
-		])
+		getShepherdStep(
+			'delete-chapter',
+			'left',
+			'Delete a chapter. Be careful, this action cannot be undone!',
+			[back, next]
+		)
 	);
 
 	tour.addStep(
-		step('manage-history', 'left', 'Preview and restore previous versions of your chapter.', [
-			back,
-			next
-		])
+		getShepherdStep(
+			'manage-history',
+			'left',
+			'Preview and restore previous versions of your chapter.',
+			[back, next]
+		)
 	);
 
 	tour.addStep(
-		step(
+		getShepherdStep(
 			'auto-save',
 			'left',
 			'Shows if all changes to the chapter are saved. When it is green all changes have been saved.',

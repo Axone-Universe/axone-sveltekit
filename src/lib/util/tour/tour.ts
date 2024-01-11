@@ -4,7 +4,7 @@ export const tour = new Shepherd.Tour({
 	useModalOverlay: true,
 	defaultStepOptions: {
 		classes: 'card shadow-md !bg-surface-300-600-token',
-		scrollTo: true
+		scrollTo: { block: 'end' }
 	}
 });
 
@@ -26,12 +26,20 @@ export const complete = {
 	classes: '!btn !variant-filled'
 };
 
-export function step(
+export const close = {
+	text: 'x',
+	action: tour.complete,
+	classes:
+		'!btn-icon !btn-icon-sm absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 variant-filled hover:!variant-filled-primary'
+};
+
+export function getShepherdStep(
 	elementID: string | undefined,
 	position: Shepherd.Step.PopperPlacement,
 	text: string,
-	buttons: ReadonlyArray<Shepherd.Step.StepOptionsButton>
+	buttons: Shepherd.Step.StepOptionsButton[]
 ): Shepherd.Step.StepOptions {
+	buttons.push(close);
 	return {
 		text: text,
 		attachTo: {

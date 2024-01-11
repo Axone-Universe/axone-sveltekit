@@ -26,7 +26,7 @@
 
 <div class="flex flex-col justify-center items-end gap-2">
 	<div class="flex-row btn-group variant-filled">
-		<button class="btn-icon" use:popup={actionsPopupSettings(document._id)}>
+		<button id="row-actions-btn" class="btn-icon" use:popup={actionsPopupSettings(document._id)}>
 			<Icon data={ellipsisV} />
 		</button>
 	</div>

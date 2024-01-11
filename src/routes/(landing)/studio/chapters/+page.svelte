@@ -28,6 +28,7 @@
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 	import { edit, trash } from 'svelte-awesome/icons';
+	import Tutorial from './tutorial.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -203,6 +204,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
+<Tutorial />
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />

@@ -162,16 +162,29 @@
 		<div class="flex flex-col sm:flex-row w-full gap-2">
 			<div class="grow flex flex-col gap-2">
 				* Start date
-				<input class="input" type="date" max={tempEndDate} bind:value={tempStartDate} />
+				<input
+					id="start-date-input"
+					class="input"
+					type="date"
+					max={tempEndDate}
+					bind:value={tempStartDate}
+				/>
 			</div>
 			<div class="grow flex flex-col gap-2">
 				* End date
-				<input class="input" type="date" min={tempStartDate} bind:value={tempEndDate} />
+				<input
+					id="end-date-input"
+					class="input"
+					type="date"
+					min={tempStartDate}
+					bind:value={tempEndDate}
+				/>
 			</div>
 		</div>
 		<div class="flex flex-col gap-2">
 			* Submission Criteria
 			<textarea
+				id="criteria-textarea"
 				class="textarea w-full h-full overflow-hidden"
 				bind:value={campaign.submissionCriteria}
 				required
@@ -180,6 +193,7 @@
 		<div class="flex flex-col gap-2">
 			* Rewards
 			<textarea
+				id="rewards-textarea"
 				class="textarea w-full h-full overflow-hidden"
 				bind:value={campaign.rewards}
 				required
