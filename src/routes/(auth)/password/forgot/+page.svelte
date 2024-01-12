@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import type { PageData } from './$types';
 	import Container from '$lib/components/Container.svelte';
@@ -10,6 +10,8 @@
 	const formData = {
 		email: ''
 	};
+
+	const toastStore = getToastStore();
 
 	const onSubmit = async () => {
 		const resp = await supabase.auth.resetPasswordForEmail(formData.email, {

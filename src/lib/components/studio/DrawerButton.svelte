@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { drawerStore, type DrawerSettings } from '@skeletonlabs/skeleton';
+	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton';
 	import { Icon } from 'svelte-awesome';
 	import { arrowRight } from 'svelte-awesome/icons';
 
 	export let showLabel = true;
+
+	const drawerStore = getDrawerStore();
 
 	$: category = $page.url.pathname.split('/');
 

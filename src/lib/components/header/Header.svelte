@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { AppBar } from '@skeletonlabs/skeleton';
+	import { AppBar, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
-
-	import { drawerStore } from '@skeletonlabs/skeleton';
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { onMount } from 'svelte';
@@ -19,6 +17,8 @@
 	import { goto } from '$app/navigation';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
+
+	const drawerStore = getDrawerStore();
 
 	/**
 	 * parameters and methods for the nav header

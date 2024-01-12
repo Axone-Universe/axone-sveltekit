@@ -1,10 +1,10 @@
 <script lang="ts">
 	import {
-		modalStore,
-		toastStore,
 		type ToastSettings,
 		ListBox,
-		ListBoxItem
+		ListBoxItem,
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
@@ -25,6 +25,9 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	let version: VersionProperties = new VersionPropertyBuilder().getProperties();
 	let versions = delta.versions ? createVersionCopy(delta.versions).reverse() : [];

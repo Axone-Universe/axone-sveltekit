@@ -128,7 +128,7 @@
 <Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
-			class="input text-sm h-8"
+			class="input text-sm h-8 p-2"
 			title="Search for books"
 			type="search"
 			placeholder="Search for a book title"

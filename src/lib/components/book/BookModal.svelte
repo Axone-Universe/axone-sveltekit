@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
-	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
+	import { getModalStore, Avatar } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
@@ -16,6 +16,7 @@
 
 	const bookUser = book.user as HydratedDocument<UserProperties>;
 
+	const modalStore = getModalStore();
 	let closeModal = () => {
 		modalStore.close();
 	};

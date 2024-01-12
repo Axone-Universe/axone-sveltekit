@@ -8,11 +8,11 @@
 	import {
 		AppShell,
 		Drawer,
-		drawerStore,
 		FileDropzone,
-		LightSwitch,
-		modalStore,
-		toastStore
+		getDrawerStore,
+		getModalStore,
+		getToastStore,
+		LightSwitch
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -68,6 +68,10 @@
 	$: navChapters = Object.values(selectedStorylineChapters);
 
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
+	const drawerStore = getDrawerStore();
 
 	onMount(() => {
 		loadChapters();
