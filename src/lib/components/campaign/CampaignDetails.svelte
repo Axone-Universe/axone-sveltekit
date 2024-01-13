@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
+	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -30,6 +30,8 @@
 
 	$: campaign.startDate = new Date(tempStartDate);
 	$: campaign.endDate = new Date(tempEndDate);
+
+	const toastStore = getToastStore();
 
 	onMount(() => {
 		// pre-fill the permissions

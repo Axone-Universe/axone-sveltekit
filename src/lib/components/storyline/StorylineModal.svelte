@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { modalStore, Avatar } from '@skeletonlabs/skeleton';
+	import { Avatar, getModalStore } from '@skeletonlabs/skeleton';
 
 	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
@@ -13,6 +13,8 @@
 	export let isStudio = false;
 	let customClass = '';
 	export { customClass as class };
+
+	const modalStore = getModalStore();
 
 	let book = storylineData.book as BookProperties;
 	const bookUser = storylineData.user as HydratedDocument<UserProperties>;

@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
+	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -23,6 +23,8 @@
 	let imageFile: File;
 	let genres = book.genres ?? [];
 	$: tags = book.tags ?? [];
+
+	const toastStore = getToastStore();
 
 	async function createBook() {
 		if (!imageFile) {

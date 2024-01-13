@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
@@ -11,6 +11,9 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	let notifications = {};
 

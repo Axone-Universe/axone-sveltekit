@@ -7,10 +7,10 @@
 	import type { HydratedDocument } from 'mongoose';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import {
-		modalStore,
 		type ModalSettings,
-		drawerStore,
-		type DrawerSettings
+		type DrawerSettings,
+		getDrawerStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import type { UserProperties } from '$lib/properties/user';
 	import { onMount } from 'svelte';
@@ -24,6 +24,9 @@
 	let selectedList = '';
 	let readingListToDelete = '';
 	let readingListToRename = '';
+
+	const drawerStore = getDrawerStore();
+	const modalStore = getModalStore();
 
 	const createReadingListModal: ModalSettings = {
 		type: 'prompt',

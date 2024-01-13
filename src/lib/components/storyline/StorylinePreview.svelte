@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
 	import { star } from 'svelte-awesome/icons';
@@ -14,6 +14,8 @@
 		| undefined
 		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
 	export let user: HydratedDocument<UserProperties> | undefined;
+
+	const modalStore = getModalStore();
 
 	let storylineUser = storyline.user as UserProperties;
 

@@ -9,10 +9,10 @@
 	import { Icon } from 'svelte-awesome';
 	import {
 		type ModalSettings,
-		modalStore,
 		type ModalComponent,
 		type ToastSettings,
-		toastStore
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import BookDetails from '$lib/components/book/BookDetails.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
@@ -41,6 +41,9 @@
 	let campaignMode: boolean = false;
 	let lastLoadEpoch = 0;
 	let selectedBooks: HydratedDocument<BookProperties>[] = [];
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	const bookDetailsModalComponent: ModalComponent = {
 		ref: BookDetails

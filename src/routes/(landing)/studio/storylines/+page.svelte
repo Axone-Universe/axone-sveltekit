@@ -7,10 +7,10 @@
 	import { decodeTime } from 'ulid';
 	import {
 		type ModalSettings,
-		modalStore,
 		type ModalComponent,
-		toastStore,
-		type ToastSettings
+		type ToastSettings,
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
@@ -36,6 +36,9 @@
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
 	let selectedStorylines: HydratedDocument<StorylineProperties>[] = [];
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	const storylineDetailsModalComponent: ModalComponent = {
 		ref: StorylineDetails
