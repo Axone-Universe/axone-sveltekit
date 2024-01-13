@@ -9,9 +9,9 @@
 	import {
 		type ModalSettings,
 		type ModalComponent,
-		modalStore,
 		type ToastSettings,
-		toastStore
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -37,6 +37,9 @@
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
 	let selectedChapters: HydratedDocument<ChapterProperties>[] = [];
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	const chapterDetailsModalComponent: ModalComponent = {
 		ref: ChapterDetailsModal

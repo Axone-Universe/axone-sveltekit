@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
@@ -16,6 +16,8 @@
 		email: '',
 		password: ''
 	};
+
+	const toastStore = getToastStore();
 
 	async function signInWithLinkedIn() {
 		const { data, error } = await supabase.auth.signInWithOAuth({

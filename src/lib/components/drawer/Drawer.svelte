@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppRail, AppRailTile, drawerStore } from '@skeletonlabs/skeleton';
+	import { AppRail, AppRailTile, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome';
 	import { leanpub, lineChart, handshakeO, pencil, user, trash } from 'svelte-awesome/icons';
@@ -11,6 +11,7 @@
 
 	let selectedTile: number = 0;
 
+	const drawerStore = getDrawerStore();
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
 	};
