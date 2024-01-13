@@ -11,7 +11,6 @@
 	import Author_4 from '$lib/assets/author-4.svelte';
 
 	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
-	import { dataTableHandler } from '@skeletonlabs/skeleton';
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { goto } from '$app/navigation';
@@ -159,8 +158,7 @@
 					lastName: 'Chirema',
 					labels: ['Writer'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
-					about: '"Axone has allowed me to publish and monetize my unfinished book"',
-					readingLists: []
+					about: '"Axone has allowed me to publish and monetize my unfinished book"'
 				}}
 			/>
 			<UserPreview
@@ -172,8 +170,7 @@
 					labels: ['Writer', 'Editor'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
-						'"I have found inspiration for continuing my stories and my creativity has been awakened!"',
-					readingLists: []
+						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
 				}}
 			/>
 			<UserPreview
@@ -185,8 +182,7 @@
 					labels: ['Illustrator'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
-						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"',
-					readingLists: []
+						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
 				}}
 			/>
 		</BookCarousel>

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { NotePropertyBuilder, type NoteProperties, TAGS, type Tag } from '$lib/properties/note';
 	import {
-		modalStore,
-		toastStore,
 		type ToastSettings,
 		ListBox,
 		ListBoxItem,
-		type ModalSettings
+		type ModalSettings,
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import TextArea from '../TextArea.svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -22,6 +22,9 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	let note: NoteProperties = new NotePropertyBuilder().getProperties();
 

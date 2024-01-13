@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
+	import { type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { HydratedDocument } from 'mongoose';
@@ -26,6 +26,7 @@
 	let notifications = {};
 
 	$: title = storyline.title;
+	const toastStore = getToastStore();
 
 	async function createStoryline() {
 		if (!imageFile) {

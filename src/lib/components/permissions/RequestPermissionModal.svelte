@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { ChapterProperties } from '$lib/properties/chapter';
-	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
-	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import { PermissionsEnum } from '$lib/properties/permission';
@@ -20,6 +19,9 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	let sessionUserID = $page.data.session!.user.id;
 

@@ -11,7 +11,7 @@
 		ListBox,
 		ListBoxItem,
 		type ModalSettings,
-		modalStore
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 
@@ -30,6 +30,8 @@
 
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
+
+	const modalStore = getModalStore();
 
 	onMount(() => {
 		user = $page.data.user;

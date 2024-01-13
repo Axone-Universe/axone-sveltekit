@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import { Icon } from 'svelte-awesome';
 	import { star } from 'svelte-awesome/icons';
@@ -10,6 +10,8 @@
 	import type { UserProperties } from '$lib/properties/user';
 
 	export let book: HydratedDocument<BookProperties>;
+
+	const modalStore = getModalStore();
 	let user = book.user as UserProperties;
 	let didError = false;
 
