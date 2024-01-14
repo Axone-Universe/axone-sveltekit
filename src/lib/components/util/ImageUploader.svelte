@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { pencil, remove } from 'svelte-awesome/icons';
 
 	export let imageURL: string | undefined;
@@ -34,7 +34,7 @@
 	}
 </script>
 
-<div class="{additionalClasses}">
+<div class={additionalClasses}>
 	<img
 		class="{!imageFile && !imageURL && 'hidden'} object-cover w-full"
 		src={currentImagePath}

@@ -8,7 +8,7 @@
 	import { page } from '$app/stores';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
-
+	const drawerStore = getDrawerStore();
 	let selectedTile: number = 0;
 
 	const drawerStore = getDrawerStore();

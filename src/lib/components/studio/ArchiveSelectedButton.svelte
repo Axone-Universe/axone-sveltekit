@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { archive, arrowLeft } from 'svelte-awesome/icons';
 
 	export let selected: HydratedDocument<any>;

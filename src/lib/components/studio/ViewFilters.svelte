@@ -1,5 +1,5 @@
 <script>
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { filter } from 'svelte-awesome/icons';
 </script>
 

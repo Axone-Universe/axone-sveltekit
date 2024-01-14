@@ -1,6 +1,8 @@
 import { join } from 'path';
 import type { Config } from 'tailwindcss';
-import forms from 'tailwindcss';
+import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+import animated from 'tailwindcss-animated';
 // 1. Import the Skeleton plugin
 import { skeleton } from '@skeletonlabs/tw-plugin';
 
@@ -16,6 +18,9 @@ const config = {
 		extend: {}
 	},
 	plugins: [
+		forms,
+		typography,
+		animated,
 		skeleton({
 			themes: {
 				// Register each theme within this array:

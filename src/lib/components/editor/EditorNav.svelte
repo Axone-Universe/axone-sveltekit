@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import type { EditorMenuItem, EditorMode } from '$lib/util/types';
 
 	export let menuItems: EditorMenuItem[] = [];
