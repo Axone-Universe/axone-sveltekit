@@ -10,7 +10,7 @@
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import QuillDelta from 'quill-delta';
 	import type Op from 'quill-delta/dist/Op';
 	import {

@@ -14,7 +14,7 @@
 	import type { HydratedDocument } from 'mongoose';
 	import { onMount } from 'svelte';
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { star } from 'svelte-awesome/icons';
 
 	import type { ChapterProperties } from '$lib/properties/chapter';
