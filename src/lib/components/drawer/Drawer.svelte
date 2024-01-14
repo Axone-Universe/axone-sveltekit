@@ -11,6 +11,7 @@
 	const drawerStore = getDrawerStore();
 	let selectedTile: number = 0;
 
+	const drawerStore = getDrawerStore();
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
 	};
