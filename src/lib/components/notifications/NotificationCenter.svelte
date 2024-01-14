@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { HeadlessService, type IMessage } from '@novu/headless';
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { bell } from 'svelte-awesome/icons';
 	import { PUBLIC_NOVU_APP_ID } from '$env/static/public';
 	import TimeAgo from 'javascript-time-ago';

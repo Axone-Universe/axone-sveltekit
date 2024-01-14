@@ -11,8 +11,7 @@
 		FileDropzone,
 		getDrawerStore,
 		getModalStore,
-		getToastStore,
-		LightSwitch
+		getToastStore
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -23,7 +22,6 @@
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import { setupTour, startTour } from './tutorial';
-
 	import Icon from 'svelte-awesome';
 	import {
 		check,

@@ -5,8 +5,8 @@
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
-	import { book, edit, pencil, plus, trash } from 'svelte-awesome/icons';
-	import { Icon } from 'svelte-awesome';
+	import { book, edit, plus, trash } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome';
 	import {
 		type ModalSettings,
 		type ModalComponent,

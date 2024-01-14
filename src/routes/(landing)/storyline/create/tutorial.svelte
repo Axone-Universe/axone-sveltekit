@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Shepherd from 'shepherd.js';
 	import 'shepherd.js/dist/css/shepherd.css';
 	import { onMount } from 'svelte';
 	import { Icon } from 'svelte-awesome';

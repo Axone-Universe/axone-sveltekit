@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
-	import { expand, filter } from 'svelte-awesome/icons';
-
+	import Icon from 'svelte-awesome';
+	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';

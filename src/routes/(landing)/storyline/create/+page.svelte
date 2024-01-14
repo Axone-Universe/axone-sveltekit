@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/properties/storyline';
-	import { beforeUpdate } from 'svelte';
+	import { beforeUpdate, tick } from 'svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import BookNav from '$lib/components/book/BookNav.svelte';
@@ -44,4 +44,5 @@
 		supabase={data.supabase}
 		class="h-full"
 	/>
+	<StorylineDetails title={storyline.title} {storyline} book={bookData} supabase={data.supabase} />
 </div>

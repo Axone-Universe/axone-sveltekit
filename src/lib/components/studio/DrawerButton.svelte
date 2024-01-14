@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { getDrawerStore, type DrawerSettings } from '@skeletonlabs/skeleton';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { arrowRight } from 'svelte-awesome/icons';
 
 	export let showLabel = true;

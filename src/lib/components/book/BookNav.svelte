@@ -4,7 +4,7 @@
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import { Accordion, AccordionItem, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { lock, eyeSlash, archive } from 'svelte-awesome/icons';
 
 	import { createEventDispatcher } from 'svelte';

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Avatar, getModalStore } from '@skeletonlabs/skeleton';
-
 	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';

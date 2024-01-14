@@ -14,7 +14,7 @@
 	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
