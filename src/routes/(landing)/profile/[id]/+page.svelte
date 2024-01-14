@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Avatar, Tab, TabGroup } from '@skeletonlabs/skeleton';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		facebook as facebookIcon,
 		instagram as instagramIcon,

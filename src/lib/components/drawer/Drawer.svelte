@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { AppRail, AppRailTile, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { leanpub, lineChart, handshakeO, pencil, user, trash } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';

@@ -10,7 +10,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { star, starHalfO, starO } from 'svelte-awesome/icons';
 
 	export let storyline: HydratedDocument<StorylineProperties>;

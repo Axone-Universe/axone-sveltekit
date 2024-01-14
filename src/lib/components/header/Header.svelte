@@ -10,7 +10,7 @@
 	import type { PopupSettings } from '../../util/popup/types';
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';

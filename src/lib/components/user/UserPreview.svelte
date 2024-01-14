@@ -2,7 +2,7 @@
 	import type { UserProperties } from '$lib/properties/user';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { user, book, edit, pencil } from 'svelte-awesome/icons';
 
 	export let userData: UserProperties;

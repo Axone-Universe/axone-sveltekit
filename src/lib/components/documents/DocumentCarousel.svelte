@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Section from '$lib/components/Section.svelte';
 
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowCircleRight, arrowCircleLeft } from 'svelte-awesome/icons';
 	import type { PermissionedDocument } from '$lib/properties/permission';
 	import type { HydratedDocument } from 'mongoose';

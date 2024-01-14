@@ -10,7 +10,7 @@
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowDown } from 'svelte-awesome/icons';
 	import type { PermissionedDocument } from '$lib/properties/permission';
 	import StorylinePreview from '../storyline/StorylinePreview.svelte';

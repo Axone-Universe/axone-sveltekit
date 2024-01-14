@@ -6,7 +6,7 @@
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
 	import { book, edit, plus, trash } from 'svelte-awesome/icons';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		type ModalSettings,
 		type ModalComponent,

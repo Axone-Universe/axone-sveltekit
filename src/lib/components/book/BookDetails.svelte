@@ -10,9 +10,6 @@
 	import { GENRES } from '$lib/properties/genre';
 	import ImageUploader from '../util/ImageUploader.svelte';
 	import { uploadBookCover } from '$lib/util/bucket/bucket';
-	import { onMount } from 'svelte';
-	import { Icon } from 'svelte-awesome';
-	import { info } from 'svelte-awesome/icons';
 
 	let notifications = {};
 
