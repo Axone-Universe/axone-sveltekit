@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+<<<<<<< HEAD
+	import Icon from 'svelte-awesome';
+=======
 	import { Icon } from 'svelte-awesome';
+>>>>>>> bbda3a495ca9c17b13685573830e18e2cd198042
 	import { questionCircle } from 'svelte-awesome/icons';
 
 	export let bookCallback: () => void;

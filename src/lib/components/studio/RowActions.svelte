@@ -6,7 +6,7 @@
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import { id } from 'date-fns/locale';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome';
 	import { ellipsisV, pencil } from 'svelte-awesome/icons';
 
 	export let rowActions: RowAction[] = [];
