@@ -147,7 +147,11 @@
 		}
 	}
 
-	$: selectedChapter = selectedChapterID ? selectedStorylineChapters[selectedChapterID] : undefined;
+	$: selectedChapter = selectedChapterID
+		? selectedStorylineChapters[selectedChapterID]
+		: Object.keys(selectedStorylineChapters).length !== 0
+		? Object.values(selectedStorylineChapters)[0]
+		: undefined;
 	let leftDrawerSelectedItem = 'copyright';
 
 	function navItemClicked(event: { detail: any }) {
