@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
 	let customClass = '';
 	export { customClass as class };
+	export let id: string = '';
 </script>
 
-<div class={`min-h-fit ${customClass}`}>
+<div {id} class={`min-h-fit ${customClass}`}>
 	<slot />
 </div>

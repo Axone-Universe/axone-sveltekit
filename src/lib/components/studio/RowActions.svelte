@@ -6,7 +6,7 @@
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import { id } from 'date-fns/locale';
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { ellipsisV, pencil } from 'svelte-awesome/icons';
 
 	export let rowActions: RowAction[] = [];
@@ -26,7 +26,7 @@
 
 <div class="flex flex-col justify-center items-end gap-2">
 	<div class="flex-row btn-group variant-filled">
-		<button class="btn-icon" use:popup={actionsPopupSettings(document._id)}>
+		<button id="row-actions-btn" class="btn-icon" use:popup={actionsPopupSettings(document._id)}>
 			<Icon data={ellipsisV} />
 		</button>
 	</div>

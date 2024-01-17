@@ -2,7 +2,7 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import { leanpub, star, infoCircle, caretDown, eyeSlash, bookmark } from 'svelte-awesome/icons';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import {
@@ -19,6 +19,7 @@
 	import type { UserProperties } from '$lib/properties/user';
 	import { trpc } from '$lib/trpc/client';
 	import type { Session } from '@supabase/supabase-js';
+	import DocumentCarousel from '../documents/DocumentCarousel.svelte';
 
 	let customClass = '';
 	export { customClass as class };
@@ -26,8 +27,6 @@
 	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
 	export let session: Session | null;
 	export let storylineData: HydratedDocument<StorylineProperties>;
-
-	let dispatch = createEventDispatcher();
 
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
@@ -68,10 +67,11 @@
 		closeQuery: '.listbox-item'
 	};
 
-	const storylineClicked = (id: string) => {
-		storylineData = storylines[id];
-		dispatch('storylineClicked', id);
-	};
+	let dispatch = createEventDispatcher();
+	function handleSelected(event: { detail: any }) {
+		storylineData = storylines[event.detail];
+		dispatch('selectedStoryline', event.detail);
+	}
 
 	function openReadingListModal() {
 		readingListModal.meta = {
@@ -98,7 +98,7 @@
 
 <div
 	class={`bg-center bg-no-repeat bg-cover ${customClass}`}
-	style="background-image: url({bookData.imageURL})"
+	style="background-image: url({storylineData.imageURL})"
 >
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
@@ -113,11 +113,13 @@
 						{bookData.title}
 					</p>
 				</div>
-				<div class="flex flex-row items-center p-2">
-					<div>
+				<div class="flex flex-col p-2 space-x-4 w-full items-center">
+					<div class="flex flex-row items-center w-fit gap-4">
 						<button use:popup={infoPopup}>
 							<Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
 						</button>
+
+						<h3 class="book-title">{storylineData.title}</h3>
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
@@ -140,46 +142,12 @@
 							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;" />
 						</div>
 					</div>
-					<div class="flex w-4/5 p-2 space-x-4">
-						<div class="flex">
-							<button class="flex space-x-12 w-full !bg-transparent" use:popup={storylinesPopup}>
-								<p class="book-title text-2xl text-center font-bold line-clamp-1">
-									{storylineData.title}
-								</p>
-								<Icon data={caretDown} scale={1.5} />
-							</button>
 
-							<div class="card w-96 shadow-xl p-2" data-popup="storylinesPopup">
-								<ListBox>
-									{#each Object.entries(storylines) as [id, storyline]}
-										<ListBoxItem
-											on:click={() => storylineClicked(id)}
-											bind:group={selectedStoryline}
-											name=""
-											class="soft-listbox"
-											value={storyline}
-										>
-											<div class="line-clamp-1 flex justify-between items-center">
-												<p class="w-5/6 line-clamp-1">
-													{storyline.title ? storyline.title : 'New Storyline'}
-												</p>
-												<div class="line-clamp-1 flex justify-end space-x-2 items-center">
-													{#if !storyline.userPermissions?.view}
-														<Icon data={eyeSlash} scale={1.2} />
-													{/if}
-												</div>
-											</div>
-										</ListBoxItem>
-									{/each}
-								</ListBox>
-								<div class="arrow bg-surface-100-800-token" />
-							</div>
-						</div>
-					</div>
-					<div class="overflow-hidden flex items-center">
-						<Icon class="p-2" data={star} scale={2} />
-						<p class="text-lg font-bold">{storylineData.numRatings}</p>
-					</div>
+					<DocumentCarousel
+						on:selectedStoryline={handleSelected}
+						documentType="Storyline"
+						documents={Object.values(storylines)}
+					/>
 				</div>
 
 				<div class="flex flex-row space-x-2">
@@ -188,9 +156,19 @@
 						Read
 					</a>
 					{#if session}
-						<button class="btn-icon variant-filled" on:click={openReadingListModal}>
+						<button
+							id="reading-list-btn"
+							class="btn-icon variant-filled"
+							on:click={openReadingListModal}
+						>
 							<Icon class="p-2" data={bookmark} scale={2.5} />
 						</button>
+					{/if}
+					{#if storylineData.numRatings > 0}
+						<div class="overflow-hidden flex items-center">
+							<Icon class="p-2" data={star} scale={2} />
+							<p class="text-lg font-bold">{storylineData.numRatings}</p>
+						</div>
 					{/if}
 				</div>
 				<div class="space-x-2 line-clamp-1">

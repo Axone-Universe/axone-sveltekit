@@ -2,7 +2,7 @@
 	import type { UserProperties } from '$lib/properties/user';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { user, book, edit, pencil } from 'svelte-awesome/icons';
 
 	export let userData: UserProperties;
@@ -21,9 +21,9 @@
 			{#if userData.imageURL !== undefined}
 				<Avatar src={userData.imageURL} width="w-32" rounded="rounded-full" />
 			{:else}
-				<div class="w-32 overflow-hidden rounded-full">
-					<Icon class="bg-primary-500 p-4 w-32 h-32" data={user} scale={8} />
-				</div>
+				<button class="btn-icon bg-surface-900 w-32">
+					<Icon data={user} scale={3} />
+				</button>
 			{/if}
 		</a>
 	</header>

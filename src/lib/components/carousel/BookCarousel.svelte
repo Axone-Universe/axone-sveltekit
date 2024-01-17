@@ -3,7 +3,7 @@
 	import type { EmblaPluginType, EmblaOptionsType, EmblaCarouselType } from 'embla-carousel-svelte';
 	import Section from '$lib/components/Section.svelte';
 
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowCircleRight, arrowCircleLeft } from 'svelte-awesome/icons';
 
 	let emblaApi: EmblaCarouselType;

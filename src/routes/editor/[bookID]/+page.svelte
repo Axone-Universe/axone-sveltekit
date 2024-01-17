@@ -11,8 +11,7 @@
 		FileDropzone,
 		getDrawerStore,
 		getModalStore,
-		getToastStore,
-		LightSwitch
+		getToastStore
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -22,8 +21,8 @@
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
-
-	import Icon from 'svelte-awesome';
+	import { setupTour, startTour } from './tutorial';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		check,
 		chevronLeft,
@@ -40,7 +39,8 @@
 		star,
 		bookmark,
 		history,
-		lock
+		lock,
+		info
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -73,7 +73,11 @@
 	const modalStore = getModalStore();
 	const drawerStore = getDrawerStore();
 
+	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
+	let selectedChapterID = $page.url.searchParams.get('chapterID');
+
 	onMount(() => {
+		setupTour();
 		loadChapters();
 		drawerStore.open(drawerSettings);
 
@@ -87,27 +91,6 @@
 		}
 
 		getUser();
-	});
-
-	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
-
-	/**
-	 * Set up selected chapter before the DOM is updated.
-	 * The DOM will use that data to render elements
-	 */
-	beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		// Set selectedChapterNode to be from the url parameter
-		if (!selectedChapter) {
-			if (!chapterID && Object.keys(selectedStorylineChapters).length !== 0) {
-				chapterID = Object.keys(selectedStorylineChapters)[0];
-			}
-
-			if (chapterID && chapterID in selectedStorylineChapters) {
-				selectedChapter = selectedStorylineChapters[chapterID];
-			}
-		}
 	});
 
 	/**
@@ -164,7 +147,7 @@
 		}
 	}
 
-	let selectedChapter: HydratedDocument<ChapterProperties> | undefined;
+	$: selectedChapter = selectedChapterID ? selectedStorylineChapters[selectedChapterID] : undefined;
 	let leftDrawerSelectedItem = 'copyright';
 
 	function navItemClicked(event: { detail: any }) {
@@ -437,7 +420,7 @@
 									nextIndex = 0;
 								}
 
-								let selectedChapterID = chapterIDs[nextIndex];
+								selectedChapterID = chapterIDs[nextIndex];
 								leftDrawerSelectedItem = selectedChapterID;
 
 								// delete the node first
@@ -927,8 +910,6 @@
 	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
 </svelte:head>
 
-<!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
-
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <AppShell class="editor-shell min-h-screen">
 	<svelte:fragment slot="sidebarLeft">
@@ -950,6 +931,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarRight">
 		<Drawer
+			id="drawer-actions"
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="max-w-[80px]"
 			position="right"
@@ -1058,23 +1040,25 @@
 
 				<div class="flex flex-col p-2 bg-surface-50-900-token">
 					<div class="h-3/4 flex flex-col items-center">
-						<LightSwitch />
 						{#if selectedChapter}
 							<EditorNav
 								{mode}
 								menuItems={[
 									{
+										id: 'chapter-info',
 										label: 'Details',
-										icon: mode === 'reader' ? infoCircle : edit,
+										icon: edit,
 										callback: showChapterDetails
 									},
 									{
+										id: 'rate-storyline',
 										label: 'Rate',
 										icon: star,
 										callback: rateStoryline,
 										mode: 'reader'
 									},
 									{
+										id: 'view-comments',
 										label: 'Comments',
 										icon: dashcube,
 										callback: toggleShowComments,
@@ -1084,6 +1068,7 @@
 										hidden: numComments === 0
 									},
 									{
+										id: 'view-illustrations',
 										label: 'Illustrations',
 										icon: image,
 										callback: toggleShowIllustrations,
@@ -1093,23 +1078,34 @@
 										hidden: numIllustrations === 0
 									},
 									{
+										id: 'chapter-notes',
 										label: 'Notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
 									{
+										id: 'reading-lists',
 										label: 'Add to Reading List',
 										icon: bookmark,
 										callback: openReadingListModal,
 										mode: 'reader'
 									},
 									{
+										id: 'view-permissions',
 										label: 'Permissions',
 										icon: canEditSelectedChapter ? unlock : lock,
 										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
 										callback: showChapterPermissions,
 										mode: 'writer'
+									},
+									{
+										id: 'page-info',
+										label: 'Information',
+										icon: infoCircle,
+										callback: () => {
+											startTour();
+										}
 									}
 								]}
 							/>
@@ -1120,12 +1116,14 @@
 							{mode}
 							menuItems={[
 								{
+									id: 'create-chapter',
 									label: 'Create',
 									icon: plus,
 									callback: createChapter,
 									mode: 'writer'
 								},
 								{
+									id: 'delete-chapter',
 									label: 'Delete',
 									icon: trash,
 									callback: deleteChapter,
@@ -1133,6 +1131,7 @@
 									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
+									id: 'manage-history',
 									label: 'History',
 									icon: history,
 									callback: versionHistory,
@@ -1140,6 +1139,7 @@
 									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
+									id: 'auto-save',
 									label: 'Auto Save',
 									icon: deltaChange.length() > 0 ? spinner : check,
 									pulse: deltaChange.length() > 0 ? true : false,

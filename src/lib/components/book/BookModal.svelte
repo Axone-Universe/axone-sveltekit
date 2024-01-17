@@ -2,12 +2,12 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import { getModalStore, Avatar } from '@skeletonlabs/skeleton';
 
-	import Icon from 'svelte-awesome';
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
 	import type { UserProperties } from '$lib/properties/user';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { Session } from '@supabase/supabase-js';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let session: Session | null = null;
