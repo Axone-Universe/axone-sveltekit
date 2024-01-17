@@ -73,6 +73,9 @@
 	const modalStore = getModalStore();
 	const drawerStore = getDrawerStore();
 
+	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
+	let selectedChapterID = $page.url.searchParams.get('chapterID');
+
 	onMount(() => {
 		setupTour();
 		loadChapters();
@@ -88,27 +91,6 @@
 		}
 
 		getUser();
-	});
-
-	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
-
-	/**
-	 * Set up selected chapter before the DOM is updated.
-	 * The DOM will use that data to render elements
-	 */
-	beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		// Set selectedChapterNode to be from the url parameter
-		if (!selectedChapter) {
-			if (!chapterID && Object.keys(selectedStorylineChapters).length !== 0) {
-				chapterID = Object.keys(selectedStorylineChapters)[0];
-			}
-
-			if (chapterID && chapterID in selectedStorylineChapters) {
-				selectedChapter = selectedStorylineChapters[chapterID];
-			}
-		}
 	});
 
 	/**
@@ -165,7 +147,7 @@
 		}
 	}
 
-	let selectedChapter: HydratedDocument<ChapterProperties> | undefined;
+	$: selectedChapter = selectedChapterID ? selectedStorylineChapters[selectedChapterID] : undefined;
 	let leftDrawerSelectedItem = 'copyright';
 
 	function navItemClicked(event: { detail: any }) {
@@ -438,7 +420,7 @@
 									nextIndex = 0;
 								}
 
-								let selectedChapterID = chapterIDs[nextIndex];
+								selectedChapterID = chapterIDs[nextIndex];
 								leftDrawerSelectedItem = selectedChapterID;
 
 								// delete the node first

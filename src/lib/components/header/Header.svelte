@@ -136,9 +136,12 @@
 			</div>
 
 			<div>
-				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
+				<a
+					href="/learn"
+					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				>
 					<span class="capitalize">Learn More</span>
-				</button>
+				</a>
 			</div>
 		</div>
 		<a
@@ -151,13 +154,13 @@
 			<div class="flex gap-2 items-center">
 				<div class="lg:flex gap-2 hidden">
 					{#if data.session && data.session.user}
-						<!-- <a
+						<a
 							href="/book/create"
 							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 						>
 							<Icon data={pencil} />
 							<span class="hidden md:inline-block">Write</span>
-						</a> -->
+						</a>
 
 						<div>
 							<button

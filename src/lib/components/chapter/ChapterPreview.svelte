@@ -7,7 +7,6 @@
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
-	import { unknown } from 'zod';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 
 	export let chapter: HydratedDocument<ChapterProperties>;

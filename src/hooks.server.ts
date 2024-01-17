@@ -49,7 +49,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 
 		for (const page of pages) {
 			if (event.url.pathname.startsWith('/' + page)) {
-				throw redirect(303, '/');
+				throw redirect(303, '/login');
 			}
 		}
 	} else {

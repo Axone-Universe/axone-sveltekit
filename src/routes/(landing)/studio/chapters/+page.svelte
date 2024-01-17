@@ -27,7 +27,7 @@
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
-	import { edit, trash } from 'svelte-awesome/icons';
+	import { edit, pencil, trash } from 'svelte-awesome/icons';
 	import Tutorial from './tutorial.svelte';
 
 	const archiveModal = getArchiveModal();
@@ -123,6 +123,15 @@
 			}
 		};
 		modalStore.trigger(chapterDetailsModal);
+	}
+
+	function write(chapter: HydratedDocument<ChapterProperties>) {
+		window.open(
+			`/editor/${chapter.book}?mode=writer&storylineID=${
+				(chapter.storyline as HydratedDocument<StorylineProperties>)._id
+			}&chapterID=${chapter._id}`,
+			'_blank'
+		);
 	}
 
 	function openEditChapterModal(chapter: HydratedDocument<ChapterProperties>) {
@@ -304,6 +313,11 @@
 												label: 'Edit',
 												icon: edit,
 												callback: openEditModal
+											},
+											{
+												label: 'Write',
+												icon: pencil,
+												callback: write
 											},
 											{
 												label: 'Delete',

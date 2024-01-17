@@ -36,6 +36,18 @@
 		let toastMessage = 'Creation Failed';
 		let toastBackground = 'bg-warning-500';
 
+		let createDetails = {
+			title: chapter.title!,
+			bookID,
+			storylineID,
+			prevChapterID,
+			description: chapter.description!,
+			permissions: chapter.permissions,
+			notifications
+		};
+		console.log('** create chapter');
+		console.log(createDetails);
+
 		trpc($page)
 			.chapters.create.mutate({
 				title: chapter.title!,
@@ -53,6 +65,8 @@
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
+
+				console.log(response.message);
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -136,7 +150,7 @@
 					<button on:click={modalStore.close} class="btn variant-ghost-surface" type="button"
 						>Cancel</button
 					>
-					<button class="btn variant-filled" on:click={submit}>
+					<button class="btn variant-filled">
 						{chapter._id ? 'Update' : 'Create'}
 					</button>
 				</div>

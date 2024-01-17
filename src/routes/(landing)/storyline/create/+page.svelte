@@ -44,5 +44,4 @@
 		supabase={data.supabase}
 		class="h-full"
 	/>
-	<StorylineDetails title={storyline.title} {storyline} book={bookData} supabase={data.supabase} />
 </div>
