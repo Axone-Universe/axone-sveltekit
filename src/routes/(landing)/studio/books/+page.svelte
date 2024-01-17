@@ -5,8 +5,8 @@
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
-	import { edit, plus, trash } from 'svelte-awesome/icons';
-	import Icon from 'svelte-awesome';
+	import { book, edit, plus, trash } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		type ModalSettings,
 		type ModalComponent,
@@ -31,6 +31,7 @@
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
 	import { CampaignPropertyBuilder } from '$lib/properties/campaign';
+	import Tutorial from './tutorial.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -277,6 +278,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
+<Tutorial />
 <div class="min-h-screen overflow-hidden w-full">
 	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />
@@ -300,6 +302,7 @@
 								<ViewFilters>
 									<ArchiveToggle bind:archiveMode />
 									<button
+										id="campaigns-toggle"
 										class="chip {campaignMode ? 'variant-filled' : 'variant-soft'}"
 										on:click={() => (campaignMode = !campaignMode)}
 									>
@@ -311,11 +314,27 @@
 						<td colspan="3">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<button
+									id="create-campaign-btn"
 									type="button"
-									class="btn-icon btn-icon-sm variant-filled-primary"
-									on:click={() => modalStore.trigger(createBookModal)}
+									class="btn btn-sm variant-filled-primary"
+									on:click={openCreateCampaignModal}
 								>
-									<span><Icon data={plus} /></span>
+									<span class="-mr-1"><Icon data={edit} /></span>
+									<span>
+										<Icon data={plus} />
+									</span>
+								</button>
+								<span class="divider-vertical h-6 mx-0" />
+								<button
+									id="create-book-btn"
+									type="button"
+									class="btn btn-sm variant-filled-primary"
+									on:click={openCreateBookModal}
+								>
+									<span class="-mr-1"><Icon data={book} /></span>
+									<span>
+										<Icon data={plus} />
+									</span>
 								</button>
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton

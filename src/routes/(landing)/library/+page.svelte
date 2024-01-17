@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowRight, pencil, trash } from 'svelte-awesome/icons';
 	import { trpc, trpcWithQuery } from '$lib/trpc/client';
 	import { page } from '$app/stores';

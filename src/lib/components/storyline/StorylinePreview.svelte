@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { star } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
+	export let dispatchEvent: boolean = false;
+
 	export let addToReadingList:
 		| undefined
 		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
@@ -49,13 +52,18 @@
 			}
 		}
 	};
+
+	const dispatch = createEventDispatcher();
+	function selected() {
+		dispatch('selectedStoryline', storyline._id);
+	}
 </script>
 
 <button
 	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
 		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
 	}`}
-	on:click={() => modalStore.trigger(modal)}
+	on:click={dispatchEvent ? selected : () => modalStore.trigger(modal)}
 >
 	<ImageWithFallback
 		src={storyline.imageURL ?? ''}

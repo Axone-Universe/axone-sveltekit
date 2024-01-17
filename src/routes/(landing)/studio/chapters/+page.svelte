@@ -27,7 +27,8 @@
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
-	import { edit, trash } from 'svelte-awesome/icons';
+	import { edit, pencil, trash } from 'svelte-awesome/icons';
+	import Tutorial from './tutorial.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -124,6 +125,15 @@
 		modalStore.trigger(chapterDetailsModal);
 	}
 
+	function write(chapter: HydratedDocument<ChapterProperties>) {
+		window.open(
+			`/editor/${chapter.book}?mode=writer&storylineID=${
+				(chapter.storyline as HydratedDocument<StorylineProperties>)._id
+			}&chapterID=${chapter._id}`,
+			'_blank'
+		);
+	}
+
 	function openEditChapterModal(chapter: HydratedDocument<ChapterProperties>) {
 		editChapterModal.body = `Would you like to edit ${chapter.title}?`;
 		editChapterModal.response = (r: boolean) => {
@@ -206,6 +216,7 @@
 
 <svelte:window on:scroll={loadMore} />
 
+<Tutorial />
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2">
 		<DrawerButton />
@@ -302,6 +313,11 @@
 												label: 'Edit',
 												icon: edit,
 												callback: openEditModal
+											},
+											{
+												label: 'Write',
+												icon: pencil,
+												callback: write
 											},
 											{
 												label: 'Delete',

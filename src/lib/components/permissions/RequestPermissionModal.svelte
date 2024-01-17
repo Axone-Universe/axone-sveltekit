@@ -7,7 +7,7 @@
 	import { PermissionsEnum } from '$lib/properties/permission';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { lock, check, close } from 'svelte-awesome/icons';
 	import type { UserProperties } from '$lib/properties/user';
 	import { onMount } from 'svelte';

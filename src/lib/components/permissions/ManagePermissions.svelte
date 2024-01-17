@@ -14,7 +14,7 @@
 	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { caretDown, trash } from 'svelte-awesome/icons';
 	import { afterUpdate, onMount } from 'svelte';
 	import { ulid } from 'ulid';
@@ -237,6 +237,7 @@
 			Share {permissionedDocument.title}
 
 			<input
+				id="permission-users-input"
 				class="input autocomplete"
 				type="search"
 				name="autocomplete-search"
@@ -332,6 +333,7 @@
 			<div>
 				<div class="flex-row btn-group variant-filled">
 					<button
+						id="public-permissions-btn"
 						use:popup={permissionsPopupSettings('permissionsPopup')}
 						disabled={!('public' in permissions)}
 					>

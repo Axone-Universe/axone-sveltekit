@@ -5,6 +5,7 @@ export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
 
 export interface EditorMenuItem {
+	id: string;
 	label: string;
 	icon: Record<string, IconData>;
 	callback(): void;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
@@ -15,6 +15,7 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
+	import Tutorial from './tutorial.svelte';
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	const TAGS = ['Recommended', 'Campaigns'] as const;
@@ -116,6 +117,8 @@
 
 		mounted = true;
 
+		// setupTour();
+
 		return () => {
 			window.removeEventListener('click', onClickListener);
 		};
@@ -124,9 +127,11 @@
 
 <svelte:window on:scroll={loadMore} />
 
+<Tutorial />
 <Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
+			id="search-input"
 			class="input text-sm h-8 p-2"
 			title="Search for books"
 			type="search"
@@ -140,7 +145,7 @@
 			padding="py-1"
 			regionControl="px-4 h-8 accordion"
 		>
-			<AccordionItem bind:open={accordionOpen}>
+			<AccordionItem id="filter-input" bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
 				<svelte:fragment slot="summary"
 					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowUp } from 'svelte-awesome/icons';
 
 	function handleScrollToTop() {

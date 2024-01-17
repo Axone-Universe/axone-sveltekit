@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { archive, arrowLeft } from 'svelte-awesome/icons';
 
 	export let selected: HydratedDocument<any>;
@@ -10,6 +10,7 @@
 </script>
 
 <button
+	id="archive-btn"
 	class="btn btn-sm variant-filled"
 	disabled={selected.length === 0}
 	on:click={() => (archiveMode ? openUnarchiveModal(selected) : openArchiveModal(selected))}
