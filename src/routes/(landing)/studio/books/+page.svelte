@@ -32,6 +32,7 @@
 	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
 	import { CampaignPropertyBuilder } from '$lib/properties/campaign';
 	import Tutorial from './tutorial.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -303,8 +304,8 @@
 									<ArchiveToggle bind:archiveMode />
 									<button
 										id="campaigns-toggle"
-										class="chip {campaignMode ? 'variant-filled' : 'variant-soft'}"
 										on:click={() => (campaignMode = !campaignMode)}
+										class="chip {campaignMode ? 'variant-filled' : 'variant-soft'}"
 									>
 										<span>Campaigns</span>
 									</button>
@@ -313,29 +314,42 @@
 						</td>
 						<td colspan="3">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
-								<button
-									id="create-campaign-btn"
-									type="button"
-									class="btn btn-sm variant-filled-primary"
+								<Tooltip
 									on:click={openCreateCampaignModal}
+									content="Create new campaign"
+									placement="top"
+									target="create-campaign-btn"
 								>
-									<span class="-mr-1"><Icon data={edit} /></span>
-									<span>
-										<Icon data={plus} />
-									</span>
-								</button>
+									<button
+										id="create-campaign-btn"
+										type="button"
+										class="btn btn-sm variant-filled-primary"
+									>
+										<span class="-mr-1"><Icon data={edit} /></span>
+										<span>
+											<Icon data={plus} />
+										</span>
+									</button>
+								</Tooltip>
 								<span class="divider-vertical h-6 mx-0" />
-								<button
-									id="create-book-btn"
-									type="button"
-									class="btn btn-sm variant-filled-primary"
+								<Tooltip
 									on:click={openCreateBookModal}
+									content="Create new book"
+									placement="top"
+									target="create-book-btn"
 								>
-									<span class="-mr-1"><Icon data={book} /></span>
-									<span>
-										<Icon data={plus} />
-									</span>
-								</button>
+									<button
+										id="create-book-btn"
+										type="button"
+										class="btn btn-sm variant-filled-primary"
+									>
+										<span class="-mr-1"><Icon data={book} /></span>
+										<span>
+											<Icon data={plus} />
+										</span>
+									</button>
+								</Tooltip>
+
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedBooks}

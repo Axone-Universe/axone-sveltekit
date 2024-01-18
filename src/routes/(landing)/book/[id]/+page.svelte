@@ -16,6 +16,7 @@
 	import { formattedDate } from '$lib/util/studio/strings';
 	import { decodeTime } from 'ulid';
 	import Tutorial from './tutorial.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);
@@ -121,13 +122,26 @@
 											</a>
 										{/if}
 										{#if bookData.userPermissions?.collaborate}
-											<a
-												id="create-storyline-btn"
-												class="btn-icon btn-icon-sm variant-filled-primary"
-												href="/storyline/create?bookID={bookData._id}&parentStorylineID={activeStoryline._id}&chapterID={chapter._id}"
+											<Tooltip
+												on:click={() => {
+													window.open(
+														`/storyline/create?bookID=${bookData._id}&parentStorylineID=${
+															activeStoryline._id
+														}&chapterID=${typeof chapter === 'string' ? chapter : chapter._id}`,
+														'_blank'
+													);
+												}}
+												content="Create new storyline"
+												placement="top"
+												target="{chapter._id}-create-storyline"
 											>
-												<span><Icon data={plus} scale={1.2} /></span>
-											</a>
+												<button
+													id="create-storyline-btn"
+													class="btn-icon btn-icon-sm variant-filled-primary"
+												>
+													<span><Icon data={plus} scale={1.2} /></span>
+												</button>
+											</Tooltip>
 										{/if}
 									</div>
 								</div>

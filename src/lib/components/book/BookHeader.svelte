@@ -14,6 +14,7 @@
 		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	import { page } from '$app/stores';
 	import type { UserProperties } from '$lib/properties/user';
@@ -156,13 +157,16 @@
 						Read
 					</a>
 					{#if session}
-						<button
-							id="reading-list-btn"
-							class="btn-icon variant-filled"
+						<Tooltip
 							on:click={openReadingListModal}
+							content="Add to reading list"
+							placement="top"
+							target="reading-list"
 						>
-							<Icon class="p-2" data={bookmark} scale={2.5} />
-						</button>
+							<button id="reading-list-btn" class="btn-icon variant-filled">
+								<Icon class="p-2" data={bookmark} scale={2.5} />
+							</button>
+						</Tooltip>
 					{/if}
 					{#if storylineData.numRatings > 0}
 						<div class="overflow-hidden flex items-center">

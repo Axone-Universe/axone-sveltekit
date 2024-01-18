@@ -1050,20 +1050,20 @@
 								menuItems={[
 									{
 										id: 'chapter-info',
-										label: 'Details',
+										label: 'Edit chapter details',
 										icon: edit,
 										callback: showChapterDetails
 									},
 									{
 										id: 'rate-storyline',
-										label: 'Rate',
+										label: 'Rate the storyline',
 										icon: star,
 										callback: rateStoryline,
 										mode: 'reader'
 									},
 									{
 										id: 'view-comments',
-										label: 'Comments',
+										label: 'View chapter comments',
 										icon: dashcube,
 										callback: toggleShowComments,
 										class: 'relative',
@@ -1073,7 +1073,7 @@
 									},
 									{
 										id: 'view-illustrations',
-										label: 'Illustrations',
+										label: 'View chapter illustrations',
 										icon: image,
 										callback: toggleShowIllustrations,
 										class: 'relative',
@@ -1083,7 +1083,7 @@
 									},
 									{
 										id: 'chapter-notes',
-										label: 'Notes',
+										label: 'Add chapter notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
 										mode: 'writer'
@@ -1097,7 +1097,7 @@
 									},
 									{
 										id: 'view-permissions',
-										label: 'Permissions',
+										label: 'View chapter permissions',
 										icon: canEditSelectedChapter ? unlock : lock,
 										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
 										callback: showChapterPermissions,
@@ -1121,14 +1121,14 @@
 							menuItems={[
 								{
 									id: 'create-chapter',
-									label: 'Create',
+									label: 'Create new chapter',
 									icon: plus,
 									callback: createChapter,
 									mode: 'writer'
 								},
 								{
 									id: 'delete-chapter',
-									label: 'Delete',
+									label: 'Delete chapter',
 									icon: trash,
 									callback: deleteChapter,
 									mode: 'writer',
@@ -1136,7 +1136,7 @@
 								},
 								{
 									id: 'manage-history',
-									label: 'History',
+									label: 'Restore chapter version',
 									icon: history,
 									callback: versionHistory,
 									mode: 'writer',
