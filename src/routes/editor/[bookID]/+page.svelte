@@ -19,6 +19,7 @@
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
+	import '$lib/util/editor/QuillAI';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import { setupTour, startTour } from './tutorial';
@@ -40,7 +41,9 @@
 		bookmark,
 		history,
 		lock,
-		info
+		info,
+		lightbulbO,
+		magic
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
@@ -59,6 +62,11 @@
 	import type { DeltaProperties } from '$lib/properties/delta';
 	import Delta from 'quill-delta';
 	import type Op from 'quill-delta/dist/Op';
+	import type { AiResponse } from '$lib/util/editor/QuillAI.js';
+	import { z } from 'zod';
+	import type { UserMessage } from '$lib/trpc/schemas/openai';
+	import type { BookProperties } from '$lib/properties/book';
+	import AiPromptBuilderModal from '$lib/components/modal/AiPromptBuilderModal.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -509,6 +517,7 @@
 	let quill: QuillEditor;
 	let showComments = false;
 	let showIllustrations = false;
+	let showAi = false;
 	let deltaChange;
 	let numComments = 0;
 	let numIllustrations = 0;
@@ -528,20 +537,23 @@
 	let toolbarOptions = [
 		['bold', 'italic', 'underline', 'strike'],
 		['blockquote', { indent: '+1' }],
-		[
-			{ align: '' },
-			{ align: 'center' },
-			{ align: 'right' },
-			{ align: 'justify' },
-			'comments-add',
-			'comments-toggle',
-			'illustrations-add'
-		]
+		[{ align: '' }, { align: 'center' }, { align: 'right' }, { align: 'justify' }],
+		['comments-add', 'comments-toggle', 'illustrations-add'],
+		['ai-add']
 	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
 	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
-	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
+	$: aiBgColor = showAi ? 'var(--color-tertiary-800)' : '';
+	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor}; --ai-bg-color:${aiBgColor};`;
+
+	/**
+	 * Toggles the showComments boolean and updates the quill module
+	 *
+	 */
+	function toggleShowAi() {
+		showAi = !showAi;
+	}
 
 	/**
 	 * Toggles the showComments boolean and updates the quill module
@@ -682,6 +694,76 @@
 		}
 	}
 
+	function showPromptBuilderModal(responseHandler: (response: UserMessage) => void) {
+		const modalComponent: ModalComponent = { ref: AiPromptBuilderModal };
+		const modal: ModalSettings = {
+			type: 'component',
+			component: modalComponent,
+			title: 'Ai Prompter',
+			body: 'Complete the form below and then press submit.',
+			response: (r: UserMessage) => responseHandler(r)
+		};
+		modalStore.trigger(modal);
+	}
+
+	/**
+	 * Ai generate text using current selection
+	 */
+	function aiAddClick() {
+		if (quill.oldSelectedRange === quill.selectedRange || !quill.selectedRange || !quill.chapter) {
+			return; // same range is selected, no range is selected, or no chapter is selected
+		}
+
+		const startingCursorPosition = structuredClone(quill.selectedRange);
+
+		quill.setSelection(startingCursorPosition.index + startingCursorPosition.length, 0);
+
+		let insertWordsInterval: NodeJS.Timer | undefined = undefined;
+
+		const stopGeneratingToast: ToastSettings = {
+			message: '',
+			background: 'bg-transparent',
+			action: {
+				label: 'Stop generating',
+				response: () => {
+					if (insertWordsInterval) quill.getModule('ai').stopGenerating();
+					quill.enable(true);
+				}
+			},
+			autohide: false
+		};
+		let stopGeneratingToastId: string;
+		//show modal
+		showPromptBuilderModal((response: UserMessage) => {
+			if (!response) return; // user clicked cancel on the modal
+
+			quill.enable(false);
+
+			stopGeneratingToastId = toastStore.trigger(stopGeneratingToast);
+
+			trpc($page)
+				.openai.get.query({
+					chapterID: quill.chapter!._id,
+					bookID:
+						(quill.chapter!.book as string) ||
+						((quill.chapter!.book as HydratedDocument<BookProperties>).id as string),
+					content: quill.getText(quill.oldSelectedRange!.index, quill.oldSelectedRange!.length),
+					requestedLength: response.requestedLength,
+					options: {
+						customPrompt: response.options && response.options.customPrompt ? response.options.customPrompt : undefined
+					}
+				})
+				.then((response: AiResponse | any) => {
+					insertWordsInterval = quill
+						.getModule('ai')
+						.addAi(response, startingCursorPosition, stopGeneratingToastId);
+					quill.oldSelectedRange == quill.selectedRange;
+					showAi = true;
+				});
+		});
+	}
+
+	
 	/**
 	 * Shows the illustration modal
 	 * @param illustration
@@ -835,16 +917,7 @@
 		reader.readAsDataURL(file);
 	}
 
-	function commentServerTimestamp() {
-		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
-		return new Promise((resolve, reject) => {
-			let currentTimestamp = Math.round(new Date().getTime() / 1000);
-
-			resolve(currentTimestamp);
-		});
-	}
-
-	function illustrationServerTimestamp() {
+	function serverTimestamp() {
 		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
 		return new Promise((resolve, reject) => {
 			let currentTimestamp = Math.round(new Date().getTime() / 1000);
@@ -861,6 +934,7 @@
 		let icons = Quill.import('ui/icons');
 		icons['comments-add'] = '<img src="/comments.svg"/>';
 		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
+		icons['ai-add'] = '<img src="/ai-generate.svg"/>';
 
 		if (!selectedChapter) {
 			return;
@@ -881,7 +955,7 @@
 						commentAuthorId: session?.user.id,
 						commentAddOn: session?.user.email, // any additional info needed
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
-						commentTimestamp: commentServerTimestamp
+						commentTimestamp: serverTimestamp
 					},
 					illustration: {
 						enabled: true,
@@ -889,7 +963,14 @@
 						illustrationAuthorId: session?.user.id,
 						illustrationAddOn: session?.user.email, // any additional info needed
 						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
-						illustrationTimestamp: illustrationServerTimestamp
+						illustrationTimestamp: serverTimestamp
+					},
+					ai: {
+						enabled: true,
+						aiAuthorId: session?.user.id,
+						aiAddOn: session?.user.email, // any additional info needed
+						aiAddClick: aiAddClick, // get called when `ADD AI` btn on options bar is clicked
+						aiTimestamp: serverTimestamp
 					},
 					history: {
 						delay: 1000,
@@ -1086,6 +1167,14 @@
 										label: 'Notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
+										mode: 'writer'
+									},
+									{				
+										id: 'ai',
+										label: 'AI',
+										icon: magic,
+										callback: toggleShowAi,
+										class: 'relative',
 										mode: 'writer'
 									},
 									{
