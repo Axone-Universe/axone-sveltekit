@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { SvelteComponent } from 'svelte';
-	import { modalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	// Props
 	/** Exposes parent props to this component. */
 	export let parent: SvelteComponent;
 
-	export let store = modalStore;
+	export let store = getModalStore();
 
 	// Form Data
 	const formData = {

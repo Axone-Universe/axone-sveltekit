@@ -18,7 +18,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 import Quill, { RangeStatic } from 'quill';
 import Scope from 'parchment/src/scope';
-import { type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
+import { type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 const Parchment = Quill.import('parchment');
 
 const AiAttr = new Parchment.Attributor.Attribute('ai', 'ql-ai', {
@@ -181,7 +181,7 @@ export class QuillAI {
 				this.quill.enable(true);
 				formatAi(range, processed, this.quill, this.options);
 				this.textGenerationCancelled = false;
-				toastStore.close(stopGeneratingToast);
+				getToastStore().close(stopGeneratingToast);
 				
 			}
 		};
