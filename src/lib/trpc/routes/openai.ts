@@ -1,14 +1,12 @@
-import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import {
-	userMessage,
-	type AssistantMessage,
-	type UserMessage,
-	generationLength
-} from '$lib/trpc/schemas/openai';
+import { userMessage, type UserMessage } from '$lib/trpc/schemas/openai';
 import type { Response } from '$lib/util/types';
-import { OPENAI_API_KEYS } from '$env/static/private';
+import {
+	OPENAI_ORGANIZATION_ID,
+	OPENAI_API_KEYS,
+	CHAT_COMPLETIONS_MODEL
+} from '$env/static/private';
 import OpenAI from 'openai';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
@@ -17,9 +15,11 @@ import { chapters } from '$lib/trpc/routes/chapters';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { DeltaProperties } from '$lib/properties/delta';
 import { deltas } from '$lib/trpc/routes/deltas';
+import type { ChatCompletionMessageParam } from 'openai/resources';
 
 const openaiClient = new OpenAI({
-	apiKey: getKey(OPENAI_API_KEYS)
+	apiKey: getKey(OPENAI_API_KEYS),
+	organization: OPENAI_ORGANIZATION_ID
 });
 
 function getKey(keys: string): string {
@@ -59,12 +59,17 @@ function getSystemTextPrompt(
 /**
  * Removes the prompt text from the response
  */
-function trimMessageContent(completion: completion, prompt: string): string {
-	if (completion.choices[0].message.content.startsWith(prompt)){
-		completion.choices[0].message.content = completion.choices[0].message.content.slice(prompt.length + 1);
-		return completion
-	}else {
-		return completion
+function trimMessageContent(
+	completion: OpenAI.Chat.Completions.ChatCompletion,
+	prompt: string
+): OpenAI.Chat.Completions.ChatCompletion {
+	if (completion.choices[0].message.content?.startsWith(prompt)) {
+		completion.choices[0].message.content = completion.choices[0].message.content.slice(
+			prompt.length + 1
+		);
+		return completion;
+	} else {
+		return completion;
 	}
 }
 
@@ -82,31 +87,27 @@ export const openai = t.router({
 			const booksCaller = books.createCaller(ctx);
 			const chaptersCaller = chapters.createCaller(ctx);
 			const deltasCaller = deltas.createCaller(ctx);
-			const bookProperties = (await booksCaller.getById({ id: input.bookID }))
-				.data as HydratedDocument<BookProperties>;
-			const chapterProperties = (await chaptersCaller.getById({ id: input.chapterID }))
-				.data as HydratedDocument<ChapterProperties>;
-			const deltaProperties = (
-				await deltasCaller.getById({ id: chapterProperties.delta as string })
-			).data as HydratedDocument<DeltaProperties>;
+			const bookProperties = await booksCaller.getById({ id: input.bookID });
+			const chapterProperties = await chaptersCaller.getById({ id: input.chapterID });
+			const deltaProperties = await deltasCaller.getById({ id: chapterProperties.delta });
 
 			const systemMessage = getSystemTextPrompt(
 				input,
-				bookProperties,
-				chapterProperties,
-				deltaProperties
+				bookProperties.data,
+				chapterProperties.data,
+				deltaProperties.data
 			);
 			const prompt = getTextPrompt(input);
 
-			const messages = [
+			const messages: ChatCompletionMessageParam[] = [
 				{ role: 'system', content: systemMessage },
 				{ role: 'user', content: prompt }
 			];
-			const model = 'gpt-3.5-turbo';
+
 			const completion = await openaiClient.chat.completions.create({
+				model: CHAT_COMPLETIONS_MODEL,
 				messages: messages,
-				model: model,
-				stream: false,
+				stream: false
 			});
 
 			response.data = trimMessageContent(completion, input.content);
