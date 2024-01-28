@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type Shepherd from 'shepherd.js';
 	import 'shepherd.js/dist/css/shepherd.css';
 	import { afterUpdate, onMount } from 'svelte';
 	import { Icon } from 'svelte-awesome';
@@ -15,30 +16,21 @@
 	});
 
 	export function setupTour() {
+		tour.addStep(getShepherdStep('book-title', 'bottom', 'Insert book title', [back, next]));
+
 		tour.addStep(
-			getShepherdStep('storylines-list', 'bottom', 'Title of your new storyline.', [next])
+			getShepherdStep('book-description', 'bottom', 'Insert book description', [back, next])
 		);
 
 		tour.addStep(
-			getShepherdStep('chapters-list', 'bottom', 'Inherited chapters from the parent storyline.', [
+			getShepherdStep('image-uploader-div', 'bottom', 'Upload the book cover', [back, next])
+		);
+
+		tour.addStep(
+			getShepherdStep('genres-div', 'bottom', 'Select book genres for readers to find your book', [
 				back,
 				next
 			])
-		);
-
-		tour.addStep(
-			getShepherdStep('storyline-title', 'bottom', 'Insert storyline title', [back, next])
-		);
-
-		tour.addStep(
-			getShepherdStep('storyline-description', 'bottom', 'Insert storyline description', [
-				back,
-				next
-			])
-		);
-
-		tour.addStep(
-			getShepherdStep('image-uploader-div', 'bottom', 'Upload the storyline cover', [back, next])
 		);
 
 		tour.addStep(
@@ -54,7 +46,7 @@
 			getShepherdStep(
 				'public-permissions-btn',
 				'bottom',
-				'Set permissions for the public. <br>&#8226; View allows public viewing for your storyline. <br>&#8226; Collaborate allows the public to create new chapters for your storyline.',
+				'Set permissions for the public. <br>&#8226; View allows public viewing for your book. <br>&#8226; Collaborate allows the public to create new storylines for your book.',
 				[back, complete]
 			)
 		);

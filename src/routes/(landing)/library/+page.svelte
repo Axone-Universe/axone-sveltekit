@@ -17,6 +17,7 @@
 	import StorylinePreview from '$lib/components/storyline/StorylinePreview.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
+	import Tutorial from './tutorial.svelte';
 
 	export let data: PageData;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
@@ -177,6 +178,7 @@
 	}
 </script>
 
+<Tutorial />
 <div class="flex min-h-screen relative w-full">
 	<div
 		class="min-h-screen rounded-lg m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
@@ -184,6 +186,7 @@
 		<div class="flex flex-col gap-2">
 			{#each readingLists as list}
 				<button
+					id="reading-list-select"
 					class="flex justify-between items-center btn btn-sm {selectedList === list
 						? 'variant-filled-primary'
 						: 'variant-filled'} py-1"
@@ -203,7 +206,13 @@
 				</button>
 			{/each}
 		</div>
-		<button class="btn variant-filled-secondary" on:click={handleCreateReadingList}> + </button>
+		<button
+			id="create-reading-list"
+			class="btn variant-filled-secondary"
+			on:click={handleCreateReadingList}
+		>
+			+
+		</button>
 	</div>
 	<div class="fixed top-20 left-4 flex sm:hidden items-center gap-2 z-[100]">
 		<button class="btn-icon btn-icon-sm variant-filled" on:click={handleDrawerButton}>
