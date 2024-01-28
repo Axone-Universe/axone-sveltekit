@@ -33,9 +33,6 @@
 		return settings;
 	};
 
-	const readPopupBox: PopupSettings = popupSettings('readPopupBox');
-	const collaboratePopupBox: PopupSettings = popupSettings('collaboratePopupBox');
-	const creatorsPopupBox: PopupSettings = popupSettings('creatorsPopupBox');
 	const profilePopupBox: PopupSettings = popupSettings('profilePopupBox');
 
 	const drawerSettings: DrawerSettings = {

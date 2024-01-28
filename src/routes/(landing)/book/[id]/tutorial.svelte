@@ -1,13 +1,18 @@
 <script lang="ts">
 	import Shepherd from 'shepherd.js';
 	import 'shepherd.js/dist/css/shepherd.css';
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount } from 'svelte';
 	import { Icon } from 'svelte-awesome';
 	import { info } from 'svelte-awesome/icons';
-	import { back, complete, next, tour, getShepherdStep } from '$lib/util/tour/tour';
+	import { page } from '$app/stores';
+	import { back, complete, next, tour, getShepherdStep, autoStartTour } from '$lib/util/tour/tour';
 
 	onMount(() => {
 		setupTour();
+	});
+
+	afterUpdate(() => {
+		autoStartTour($page.url + '-tour');
 	});
 
 	export function setupTour() {

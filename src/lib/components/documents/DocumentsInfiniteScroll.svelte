@@ -16,6 +16,7 @@
 	import StorylinePreview from '../storyline/StorylinePreview.svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	let customClass = '';
 	export { customClass as class };
@@ -97,10 +98,12 @@
 				{/each}
 			</div>
 			{#if $getDocumentsInfinite.hasNextPage}
-				<div class="flex justify-center my-12 italic font-bold">
-					<button class="btn-icon variant-filled" on:click={loadMore}>
-						<Icon data={arrowDown} />
-					</button>
+				<div class="flex justify-center my-12">
+					<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
+						<button class="btn-icon variant-filled">
+							<Icon data={arrowDown} />
+						</button>
+					</Tooltip>
 				</div>
 			{/if}
 		</div>

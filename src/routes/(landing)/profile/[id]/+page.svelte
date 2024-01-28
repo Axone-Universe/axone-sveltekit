@@ -24,13 +24,16 @@
 	const viewerIsUser = $page.params.id === data.session?.user.id;
 </script>
 
-<Container class=" mx-2 md:mx-40 xl:mx-96">
-	<div class="bg-center bg-no-repeat bg-cover" style="background-image: url({userData.imageURL})">
+<Container class="mx-2 md:mx-40 xl:mx-96 min-h-screen">
+	<div
+		class="bg-center bg-no-repeat bg-cover rounded-lg"
+		style="background-image: url({userData.imageURL})"
+	>
 		<div
-			class="backdrop-blur-sm bg-gradient-to-b from-transparent from-10%
-        [.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
-        [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
-        w-full space-x-4 h-full"
+			class="bg-gradient-to-b from-transparent from-10%
+			[.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
+			[.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
+			w-full space-x-4 h-full"
 		>
 			<div class="flex flex-col items-center w-full gap-4 px-16">
 				<div class="relative inline-block mt-10">

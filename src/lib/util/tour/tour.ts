@@ -53,3 +53,11 @@ export function getShepherdStep(
 		buttons: buttons
 	};
 }
+
+export function autoStartTour(key: string) {
+	const toured = sessionStorage.getItem(key) ?? undefined;
+	if (!toured) {
+		sessionStorage.setItem(key, 'true');
+		tour.start();
+	}
+}
