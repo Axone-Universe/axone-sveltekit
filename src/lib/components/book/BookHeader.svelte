@@ -98,7 +98,7 @@
 </script>
 
 <div
-	class={`bg-center bg-no-repeat bg-cover ${customClass}`}
+	class={`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}
 	style="background-image: url({storylineData.imageURL})"
 >
 	<div

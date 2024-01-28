@@ -59,6 +59,7 @@
 	import type { DeltaProperties } from '$lib/properties/delta';
 	import Delta from 'quill-delta';
 	import type Op from 'quill-delta/dist/Op';
+	import { autoStartTour } from '$lib/util/tour/tour';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -78,6 +79,7 @@
 
 	onMount(() => {
 		setupTour();
+
 		loadChapters();
 		drawerStore.open(drawerSettings);
 
@@ -101,6 +103,7 @@
 		if (!quill || !quill.chapter || quill.chapter._id !== selectedChapter?._id) {
 			setupEditor();
 		}
+		autoStartTour($page.url + '-tour');
 	});
 
 	/**
