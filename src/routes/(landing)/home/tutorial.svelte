@@ -32,7 +32,3 @@
 		);
 	}
 </script>
-
-<button class="fixed z-50 bottom-10 right-10 btn-icon variant-filled" on:click={() => tour.start()}>
-	<Icon data={info} scale={1.5} />
-</button>
