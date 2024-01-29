@@ -55,9 +55,9 @@ export function getShepherdStep(
 }
 
 export function autoStartTour(key: string) {
-	const toured = sessionStorage.getItem(key) ?? undefined;
+	const toured = localStorage.getItem(key) ?? undefined;
 	if (!toured) {
-		sessionStorage.setItem(key, 'true');
+		localStorage.setItem(key, 'true');
 		tour.start();
 	}
 }
