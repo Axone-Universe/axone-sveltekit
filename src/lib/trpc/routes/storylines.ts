@@ -47,7 +47,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.getById(ctx.session, input.storylineID!);
+				const result = await storylinesRepo.getById(ctx.session, input.id!);
 				response.data = result;
 			} catch (error) {
 				response.success = false;

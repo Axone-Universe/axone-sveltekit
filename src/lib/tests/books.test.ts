@@ -240,13 +240,13 @@ describe('books', () => {
 
 		// Check archived changed only for user one's storylines
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).data.archived
+			(await callerOne.storylines.getById({ id: userOneMainStoryline._id })).data.archived
 		).toEqual(true);
 		expect(
-			(await callerTwo.storylines.getById({ storylineID: userTwoMainStoryline._id })).data.archived
+			(await callerTwo.storylines.getById({ id: userTwoMainStoryline._id })).data.archived
 		).toEqual(false);
 		expect(
-			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).data.archived
+			(await callerTwo.storylines.getById({ id: userTwoStoryline._id })).data.archived
 		).toEqual(false);
 
 		// Check archived changed only for user one's chapters

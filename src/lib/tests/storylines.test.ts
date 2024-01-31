@@ -103,7 +103,7 @@ describe('storylines', () => {
 		});
 
 		storyline2 = await caller.storylines.getById({
-			storylineID: storyline2.data._id
+			id: storyline2.data._id
 		});
 
 		const storyline_2Chapters = (
@@ -189,14 +189,13 @@ describe('storylines', () => {
 
 		// Check archived changed only for user one's storylines
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneMainStoryline._id })).data.archived
+			(await callerOne.storylines.getById({ id: userOneMainStoryline._id })).data.archived
 		).toEqual(true);
 		expect(
-			(await callerOne.storylines.getById({ storylineID: userOneSecondStoryline._id })).data
-				.archived
+			(await callerOne.storylines.getById({ id: userOneSecondStoryline._id })).data.archived
 		).toEqual(true);
 		expect(
-			(await callerTwo.storylines.getById({ storylineID: userTwoStoryline._id })).data.archived
+			(await callerTwo.storylines.getById({ id: userTwoStoryline._id })).data.archived
 		).toEqual(false);
 
 		// Check archived changed only for user one's chapters
