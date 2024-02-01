@@ -46,13 +46,39 @@ textarea::placeholder {
 
 .ql-editor {
 	outline-style: none !important;
-	outline-color: rgb(var(--color-surface-100)) !important;
 	font-family: 'Crimson Text', serif;
 }
 
-.dark .ql-editor {
-	outline-color: rgb(var(--color-surface-800)) !important;
+.ql-snow {
+	border: none !important;
 }
+
+// toolbar
+
+.ql-toolbar .ql-picker {
+	color: rgb(var(--color-surface-500)) !important;
+}
+
+.dark .ql-toolbar .ql-stroke {
+	fill: none;
+	stroke: rgb(var(--color-surface-400)) !important;
+}
+
+.dark .ql-toolbar .ql-fill {
+	fill: rgb(var(--color-surface-400)) !important;
+	stroke: none;
+}
+
+.ql-toolbar .ql-fill {
+	fill: #444 !important;
+	stroke: none;
+}
+
+.dark .ql-toolbar .ql-active .ql-stroke {
+	stroke: #fff !important;
+}
+
+//\\//\\//\\//\\
 
 .ql-editor.ql-blank::before {
 	color: rgb(var(--color-surface-400)) !important;

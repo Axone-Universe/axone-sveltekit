@@ -43,6 +43,7 @@
 		info
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
+	import Toolbar from '$lib/components/editor/Toolbar.svelte';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
@@ -861,10 +862,6 @@
 	 */
 	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
 	async function setupEditor() {
-		let icons = Quill.import('ui/icons');
-		icons['comments-add'] = '<img src="/comments.svg"/>';
-		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
-
 		if (!selectedChapter) {
 			return;
 		}
@@ -874,10 +871,10 @@
 			container.innerHTML = '';
 			quill = new QuillEditor(container, selectedChapter, $page, {
 				reader: mode === 'reader' ? true : false,
-				theme: 'bubble',
+				theme: 'snow',
 				modules: {
 					toolbar: {
-						container: toolbarOptions
+						container: '#ql-toolbar'
 					},
 					comment: {
 						enabled: true,
@@ -914,7 +911,8 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" /> -->
+	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.snow.css" />
 </svelte:head>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -1187,7 +1185,8 @@
 							disabled
 						/>
 					</div>
-					<div class="w-full !h-[85%]" id="editor" style={cssVarStyles} />
+					<Toolbar />
+					<div class="w-10/12 !h-[85%]" id="editor" style={cssVarStyles} />
 				</div>
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
 					{#if $drawerStore.open}
