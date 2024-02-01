@@ -538,7 +538,7 @@ describe('reviews', async () => {
 		}
 
 		let book = await caller2.books.getById({ id: bookResponse.data._id });
-		let storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		let storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
 		expect(book.data.rating).toEqual(0);
 		expect(storyline.data.numRatings).toEqual(0);
 		expect(storyline.data.cumulativeRating).toEqual(0);
@@ -546,7 +546,7 @@ describe('reviews', async () => {
 		await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
-		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
 		expect(book.data.rating).toEqual(3);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(3);
@@ -554,7 +554,7 @@ describe('reviews', async () => {
 		await createReview(testUserTwoSession, storylineReviews[1], reviewOf, 4);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
-		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[1] });
+		storyline = await caller2.storylines.getById({ id: storylineReviews[1] });
 		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(4);
@@ -562,7 +562,7 @@ describe('reviews', async () => {
 		await createReview(testUserThreeSession, storylineReviews[0], reviewOf, 4);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
-		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
 		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(2);
 		expect(storyline.data.cumulativeRating).toEqual(7);
@@ -570,7 +570,7 @@ describe('reviews', async () => {
 		await createReview(testUserThreeSession, storylineReviews[2], reviewOf, 5);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
-		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[2] });
+		storyline = await caller2.storylines.getById({ id: storylineReviews[2] });
 		expect(book.data.rating).toEqual(5);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(5);
@@ -616,7 +616,7 @@ describe('reviews', async () => {
 		await caller2.reviews.update({ id: review1.data._id, rating: 2 });
 
 		let book = await caller2.books.getById({ id: bookResponse.data._id });
-		let storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		let storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
 		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(2);
@@ -624,7 +624,7 @@ describe('reviews', async () => {
 		await caller3.reviews.update({ id: review2.data._id, rating: 5 });
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
-		storyline = await caller2.storylines.getById({ storylineID: storylineReviews[1] });
+		storyline = await caller2.storylines.getById({ id: storylineReviews[1] });
 		expect(book.data.rating).toEqual(5);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(5);
@@ -671,7 +671,7 @@ describe('reviews', async () => {
 		await caller3.reviews.delete({ id: review3.data._id });
 
 		const book = await caller2.books.getById({ id: bookResponse.data._id });
-		const storyline = await caller2.storylines.getById({ storylineID: storylineReviews[0] });
+		const storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
 		expect(book.data.rating).toEqual(3.5);
 		expect(storyline.data.numRatings).toEqual(2);
 		expect(storyline.data.cumulativeRating).toEqual(7);

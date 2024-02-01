@@ -137,6 +137,7 @@ describe('chapters', () => {
 		const testUserTwoSession = createTestSession(testUserTwo);
 
 		await createDBUser(testUserOneSession);
+		await createDBUser(testUserTwoSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
@@ -146,7 +147,6 @@ describe('chapters', () => {
 			})
 		).data;
 
-		caller = router.createCaller({ session: testUserOneSession });
 		await createChapter(testUserOneSession, 'Chapter 1', 'My chapter 1', storylines[0]);
 
 		const chapter2Response = await createChapter(
@@ -163,21 +163,41 @@ describe('chapters', () => {
 			storylines[0]
 		);
 
-		caller = router.createCaller({ session: testUserTwoSession });
-		await createChapter(testUserTwoSession, 'Chapter 4', 'My chapter 4', storylines[0]);
+		const chapter4Response = await createChapter(
+			testUserTwoSession,
+			'Chapter 4',
+			'My chapter 4',
+			storylines[0]
+		);
+
+		const chapter5Response = await createChapter(
+			testUserOneSession,
+			'Chapter 5',
+			'My chapter 5',
+			storylines[0]
+		);
 
 		caller = router.createCaller({ session: testUserOneSession });
 		const chapter2DeleteResponse = await caller.chapters.delete({
 			id: chapter2Response.data._id
 		});
 
-		const storylineChapters = (
-			await caller.chapters.get({
-				storylineChapterIDs: storylines[0].chapters as string[]
+		const storyline = (
+			await caller.storylines.getById({
+				id: storylines[0]._id
 			})
 		).data;
 
-		expect(storylineChapters.length).toEqual(3);
+		expect(storyline.chapters!.length).toEqual(4);
+
+		const storylineChapters = (
+			await caller.chapters.getByStoryline({
+				storylineChapterIDs: storyline.chapters as string[],
+				storylineID: storyline._id
+			})
+		).data;
+
+		expect(storylineChapters.length).toEqual(4);
 		expect(storylineChapters[0].children![0] === chapter3Response.data._id);
 		expect(chapter2DeleteResponse.data.deletedCount).toEqual(1);
 
@@ -190,6 +210,18 @@ describe('chapters', () => {
 				'This chapter was referenced by another author, it can only be archived.'
 			)
 		).toEqual(true);
+
+		const chapter5DeleteResponse = await caller.chapters.delete({
+			id: chapter5Response.data._id
+		});
+		expect(chapter5DeleteResponse.data.deletedCount).toEqual(1);
+
+		caller = router.createCaller({ session: testUserTwoSession });
+		const chapter4DeleteResponse = await caller.chapters.delete({
+			id: chapter4Response.data._id
+		});
+
+		expect(chapter4DeleteResponse.data.deletedCount).toEqual(1);
 	});
 
 	test('updating archived status', async () => {
