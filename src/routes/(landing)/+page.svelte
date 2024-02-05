@@ -47,7 +47,7 @@
 				<div class="flex gap-4">
 					<a href="/login" class="btn variant-filled-primary"
 						><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
-					> <a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+					> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
@@ -89,7 +89,7 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+					<a href="learn" class="btn variant-soft-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
@@ -115,7 +115,7 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+					<a href="/learn" class="btn variant-soft-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
@@ -140,7 +140,7 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="/docs/introduction" class="btn variant-soft-primary">Learn More</a>
+					<a href="/learn" class="btn variant-soft-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
