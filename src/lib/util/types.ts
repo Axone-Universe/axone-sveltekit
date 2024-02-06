@@ -31,6 +31,9 @@ export type Response = {
 	cursor?: string | undefined;
 };
 
+export const HOME_FILTER_TAGS = ['Recommended', 'Campaigns'] as const;
+export type HomeFilterTag = (typeof HOME_FILTER_TAGS)[number];
+
 export type StorageError =
 	| { data: { path: string }; error: null }
 	| { data: null; error: { name: string; statusCode?: string } };

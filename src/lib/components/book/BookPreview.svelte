@@ -58,4 +58,15 @@
 			</p>
 		</div>
 	{/if}
+	{#if book.campaign && book.campaign._id}
+		<div
+			class="overflow-hidden flex items-center absolute bottom-1 left-1 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+		>
+			<p
+				class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+			>
+				campaign
+			</p>
+		</div>
+	{/if}
 </button>

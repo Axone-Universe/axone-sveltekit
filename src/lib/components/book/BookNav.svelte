@@ -63,38 +63,40 @@
 				</ListBox>
 			</svelte:fragment>
 		</AccordionItem>
-		<AccordionItem open>
-			<svelte:fragment slot="summary">
-				<p id="chapters-list" class="text-lg font-bold">Chapters</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<ListBox>
-					{#each Object.entries(chapters) as [id, chapter]}
-						<ListBoxItem
-							on:change={() => navItemClicked(chapter._id)}
-							bind:group={selectedChapter}
-							name="chapter"
-							class="soft-listbox"
-							value={disabled ? '' : chapter._id}
-						>
-							<div class="line-clamp-1 flex justify-between items-center">
-								<p class="line-clamp-1">{chapter.title}</p>
-								<div class="line-clamp-1 flex justify-end space-x-2 items-center">
-									{#if !chapter.userPermissions?.view}
-										<Icon data={eyeSlash} scale={1.2} />
-									{/if}
-									{#if chapter.archived}
-										<Icon data={archive} scale={1} />
-									{:else if !chapter.userPermissions?.collaborate}
-										<Icon data={lock} scale={1.2} />
-									{/if}
+		{#if chapters.length > 0}
+			<AccordionItem open>
+				<svelte:fragment slot="summary">
+					<p id="chapters-list" class="text-lg font-bold">Chapters</p>
+				</svelte:fragment>
+				<svelte:fragment slot="content">
+					<ListBox>
+						{#each Object.entries(chapters) as [id, chapter]}
+							<ListBoxItem
+								on:change={() => navItemClicked(chapter._id)}
+								bind:group={selectedChapter}
+								name="chapter"
+								class="soft-listbox"
+								value={disabled ? '' : chapter._id}
+							>
+								<div class="line-clamp-1 flex justify-between items-center">
+									<p class="line-clamp-1">{chapter.title}</p>
+									<div class="line-clamp-1 flex justify-end space-x-2 items-center">
+										{#if !chapter.userPermissions?.view}
+											<Icon data={eyeSlash} scale={1.2} />
+										{/if}
+										{#if chapter.archived}
+											<Icon data={archive} scale={1} />
+										{:else if !chapter.userPermissions?.collaborate}
+											<Icon data={lock} scale={1.2} />
+										{/if}
+									</div>
 								</div>
-							</div>
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</svelte:fragment>
-		</AccordionItem>
+							</ListBoxItem>
+						{/each}
+					</ListBox>
+				</svelte:fragment>
+			</AccordionItem>
+		{/if}
 		<!-- ... -->
 	</Accordion>
 </div>

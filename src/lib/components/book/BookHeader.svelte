@@ -1,15 +1,21 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
-	import { leanpub, star, infoCircle, caretDown, eyeSlash, bookmark } from 'svelte-awesome/icons';
+	import {
+		star,
+		infoCircle,
+		bookmark,
+		plusCircle,
+		plus,
+		pencil,
+		leanpub
+	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import {
 		type PopupSettings,
 		popup,
-		ListBox,
-		ListBoxItem,
 		type ModalSettings,
 		getModalStore
 	} from '@skeletonlabs/skeleton';
@@ -115,12 +121,30 @@
 					</p>
 				</div>
 				<div class="flex flex-col p-2 space-x-4 w-full items-center">
-					<div class="flex flex-row items-center w-fit gap-4">
-						<button use:popup={infoPopup}>
-							<Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
-						</button>
+					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
+						{#if bookData.userPermissions?.collaborate && bookData.campaign && bookData.campaign._id}
+							<Tooltip
+								on:click={() => {
+									window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+								}}
+								content="Create new storyline"
+								placement="top"
+								target="create-storyline"
+							>
+								<button class="btn-icon bg-orange-700">
+									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
+								</button>
+							</Tooltip>
+						{/if}
 
-						<h3 class="book-title">{storylineData.title}</h3>
+						<div class="relative">
+							<h3 class="book-title">{storylineData.title}</h3>
+							<button
+								use:popup={infoPopup}
+								class="badge-icon z-10 variant-filled absolute -top-3 -right-5"
+								><Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
+							</button>
+						</div>
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
@@ -144,18 +168,26 @@
 						</div>
 					</div>
 
-					<DocumentCarousel
-						on:selectedStoryline={handleSelected}
-						documentType="Storyline"
-						documents={Object.values(storylines)}
-					/>
+					{#if Object.values(storylines).length > 1}
+						<DocumentCarousel
+							on:selectedStoryline={handleSelected}
+							documentType="Storyline"
+							documents={Object.values(storylines)}
+						/>
+					{/if}
 				</div>
 
 				<div class="flex flex-row space-x-2">
-					<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
-						<Icon class="p-2" data={leanpub} scale={2.5} />
-						Read
-					</a>
+					{#if bookData.campaign && bookData.campaign._id}
+						<div class="flex items-center bg-orange-700 px-2 rounded-full">
+							<p class="text-md tracking-widest font-bold text-white">campaign</p>
+						</div>
+					{:else}
+						<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
+							<Icon class="p-2" data={leanpub} scale={2.5} />
+							Read
+						</a>
+					{/if}
 					{#if session}
 						<Tooltip
 							on:click={openReadingListModal}
@@ -167,6 +199,20 @@
 								<Icon class="p-2" data={bookmark} scale={2.5} />
 							</button>
 						</Tooltip>
+						{#if selectedStoryline.userPermissions?.collaborate}
+							<Tooltip
+								on:click={() => {
+									window.open(`/editor/${bookData._id}?mode=writer`, '_blank');
+								}}
+								content="Edit storyline"
+								placement="top"
+								target="edit-storyline"
+							>
+								<button class="btn-icon variant-filled">
+									<Icon class="p-2" data={pencil} scale={2.5} />
+								</button>
+							</Tooltip>
+						{/if}
 					{/if}
 					{#if storylineData.numRatings > 0}
 						<div class="overflow-hidden flex items-center">

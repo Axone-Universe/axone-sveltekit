@@ -6,6 +6,7 @@ import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
 import type { Genre } from '$lib/properties/genre';
 import { UsersRepository } from './usersRepository';
+import type { HomeFilterTag } from '$lib/util/types';
 
 export class BooksRepository extends Repository {
 	async get(
@@ -13,10 +14,10 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		cursor?: string,
 		genres?: Genre[],
+		tags?: HomeFilterTag[],
 		title?: string,
 		user?: string,
-		archived?: boolean,
-		campaign?: string | null
+		archived?: boolean
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
@@ -29,28 +30,23 @@ export class BooksRepository extends Repository {
 			filter.user = user;
 		}
 
-		if (campaign === null) {
-			// no campaigns
-			filter.campaign = null;
-		} else if (campaign === '') {
-			// only campaigns
-			filter.campaign = { $ne: null };
-		} else if (campaign !== undefined) {
-			// specific campaign
-			filter.campaign = campaign;
-		} // else both normal books and campaigns
-
 		if (genres) {
 			if (genres.length > 0) {
 				filter.genres = { $all: genres };
 			}
 		}
-		// Introduces unexpected behaviour in the method. User genres should be passed through the parameter
-		else if (!user) {
-			const userRepo = new UsersRepository();
-			const user = await userRepo.getById(session, session?.user.id);
-			if (user && user.genres) {
-				filter.genres = { $in: user.genres };
+
+		if (tags) {
+			if (tags.includes('Campaigns')) {
+				filter.campaign = { $ne: null };
+			}
+
+			if (tags.includes('Recommended')) {
+				const userRepo = new UsersRepository();
+				const user = await userRepo.getById(session, session?.user.id);
+				if (user && user.genres) {
+					filter.genres = { $in: user.genres };
+				}
 			}
 		}
 

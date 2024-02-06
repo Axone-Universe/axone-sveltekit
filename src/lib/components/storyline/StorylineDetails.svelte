@@ -66,8 +66,8 @@
 				title: storyline.title,
 				description: storyline.description,
 				book: storyline.book,
-				parent: storyline.parent,
-				parentChapter: storyline.parentChapter,
+				parent: storyline.parent ?? undefined,
+				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
 				imageURL: imageURL ?? ''
 			});
@@ -83,7 +83,9 @@
 
 		if (newStoryline)
 			await goto(
-				`/editor/${book._id}?storylineID=${(storyline as HydratedDocument<ChapterProperties>)._id}`
+				`/editor/${book._id}?mode=writer&storylineID=${
+					(storyline as HydratedDocument<ChapterProperties>)._id
+				}`
 			);
 
 		if (createCallback !== undefined) {

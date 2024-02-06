@@ -19,7 +19,7 @@ export interface BookProperties {
 	genres?: Genre[];
 	rating: number;
 	archived?: boolean;
-	campaign?: string | HydratedDocument<CampaignProperties>;
+	campaign?: HydratedDocument<CampaignProperties>;
 }
 
 export class BookPropertyBuilder {
