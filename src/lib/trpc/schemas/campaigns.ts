@@ -16,7 +16,7 @@ export const update = z.object({
 	endDate: z.coerce.date().optional(),
 	submissionCriteria: z.string().optional(),
 	rewards: z.string().optional(),
-	book: updateBook
+	book: updateBook.optional()
 });
 
 export const read = z.object({

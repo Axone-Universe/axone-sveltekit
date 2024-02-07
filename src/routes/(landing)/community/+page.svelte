@@ -207,12 +207,10 @@
 		</div>
 	{:else}
 		<div class="min-h-screen">
-			<div
-				class="pt-4 px-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 grid-flow-row gap-2 w-full"
-			>
+			<div class="pt-4 px-2 grid grid-cols-2 md:grid-cols-4 grid-flow-row gap-2 w-full">
 				{#each items as item (item._id)}
 					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-						<UserPreview userData={item} />
+						<UserPreview user={item} />
 					</div>
 				{/each}
 			</div>

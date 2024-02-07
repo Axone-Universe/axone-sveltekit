@@ -33,15 +33,17 @@
 	</button>
 	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden relative">
 		<ImageWithFallback src={book.imageURL} alt={book.title} />
-		<div
-			class="overflow-hidden flex items-center absolute top-2 right-2 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
-		>
-			<p
-				class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+		{#if book.campaign}
+			<div
+				class="overflow-hidden flex items-center absolute top-2 right-2 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
 			>
-				campaign
-			</p>
-		</div>
+				<p
+					class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+				>
+					campaign
+				</p>
+			</div>
+		{/if}
 	</div>
 
 	<div class="flex flex-col justify-between items-center gap-4 h-full">

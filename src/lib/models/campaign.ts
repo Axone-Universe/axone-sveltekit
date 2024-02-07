@@ -2,8 +2,6 @@ import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
 import mongoose, { Schema, model } from 'mongoose';
 import { addArchivedRestrictionFilter, addOwnerUpdateRestrictionFilter } from './permission';
-import { TRPCClientError } from '@trpc/client';
-import { TRPCError } from '@trpc/server';
 
 export const campaignSchema = new Schema<CampaignProperties>({
 	_id: { type: String, required: true },

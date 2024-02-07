@@ -1185,7 +1185,8 @@
 							disabled
 						/>
 					</div>
-					<Toolbar />
+
+					<Toolbar class="hidden" />
 					<div class="w-10/12 !h-[85%]" id="editor" style={cssVarStyles} />
 				</div>
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">

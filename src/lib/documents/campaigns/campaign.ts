@@ -55,12 +55,12 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 	book(book: BookProperties): CampaignBuilder {
 		book.campaign = this._campaignProperties._id;
 		this._bookProperties = book;
-		this._campaignProperties.user = book.user as string;
 		return this;
 	}
 
 	userID(userID: string): CampaignBuilder {
 		this._bookProperties.user = userID;
+		this._campaignProperties.user = userID;
 		return this;
 	}
 

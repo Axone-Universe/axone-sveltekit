@@ -1,27 +1,16 @@
 <script lang="ts">
-	import type { EmblaOptionsType } from 'embla-carousel-svelte';
-
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import UserPreview from '$lib/components/user/UserPreview.svelte';
 
 	import Author_1 from '$lib/assets/author-1.svelte';
 	import Author_2 from '$lib/assets/author-2.svelte';
 	import Author_3 from '$lib/assets/author-3.svelte';
 	import Author_4 from '$lib/assets/author-4.svelte';
 
-	import BookCarousel from '$lib/components/carousel/BookCarousel.svelte';
-
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { goto } from '$app/navigation';
+	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
 	export let data: { supabase: SupabaseClient; session: Session | null };
-
-	let options: EmblaOptionsType = {
-		loop: false,
-		align: 'start',
-		slidesToScroll: 1
-	};
-	let plugins: never[] = [];
 
 	if (data.session) {
 		goto('/home');
@@ -149,21 +138,20 @@
 
 <Section class="bg-surface-50-900-token">
 	<Container>
-		<BookCarousel {options} {plugins}>
-			<UserPreview
-				class="embla__slide"
-				userData={{
+		<DocumentCarousel
+			on:selectedStoryline={() => {}}
+			documentType="User"
+			viewPort="w-[90%] md:w-[25%]"
+			documents={[
+				{
 					_id: '',
 					firstName: 'Takunda',
 					lastName: 'Chirema',
 					labels: ['Writer'],
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about: '"Axone has allowed me to publish and monetize my unfinished book"'
-				}}
-			/>
-			<UserPreview
-				class="embla__slide"
-				userData={{
+				},
+				{
 					_id: '',
 					firstName: 'Lindi',
 					lastName: 'Kers',
@@ -171,11 +159,8 @@
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
 						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
-				}}
-			/>
-			<UserPreview
-				class="embla__slide"
-				userData={{
+				},
+				{
 					_id: '',
 					firstName: 'Danae',
 					lastName: 'Bouwer',
@@ -183,8 +168,8 @@
 					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
 					about:
 						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
-				}}
-			/>
-		</BookCarousel>
+				}
+			]}
+		/>
 	</Container>
 </Section>
