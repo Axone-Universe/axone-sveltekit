@@ -1,10 +1,12 @@
 <script lang="ts">
 	import QLComments from '$lib/assets/ql-comment.svelte';
 	import QLIllustrations from '$lib/assets/ql-illustrations.svelte';
-	import Tooltip from '$lib/components/Tooltip.svelte';
+
+	let customClass = '';
+	export { customClass as class };
 </script>
 
-<div id="ql-toolbar" class="flex rounded-full bg-surface-300-600-token">
+<div id="ql-toolbar" class="{customClass} flex rounded-full bg-surface-300-600-token">
 	<span class="ql-formats">
 		<button type="button" class="ql-bold"
 			><svg viewBox="0 0 18 18">

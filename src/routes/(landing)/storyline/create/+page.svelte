@@ -20,9 +20,9 @@
 		let chapterID = $page.url.searchParams.get('chapterID')!;
 
 		storyline.book = bookData._id;
-		storyline.parent = storylineResponse._id;
+		storyline.parent = storylineResponse?._id;
 		storyline.parentChapter = chapterID;
-		storyline.chapters = Object.values(chapterResponses);
+		storyline.chapters = chapterResponses ? Object.values(chapterResponses) : [];
 		storyline.genres = bookData.genres;
 	});
 </script>

@@ -79,11 +79,13 @@
 		{#if !activeStoryline.userPermissions?.view}
 			<RequestPermissionModal class="mt-4" document={activeStoryline} />
 		{:else}
-			<div class="flex w-full p-4 space-x-4">
-				<div class="flex items-center justify-start w-3/5">
-					<p class="text-l md:text-3xl font-bold">Chapters</p>
+			{#if activeStoryline.chapters && activeStoryline.chapters.length > 0}
+				<div class="flex w-full p-1 space-x-4">
+					<div class="flex items-center justify-start w-3/5">
+						<p class="text-l md:text-3xl font-bold">Chapters</p>
+					</div>
 				</div>
-			</div>
+			{/if}
 			<div class="flex flex-col w-full space-y-4">
 				{#if activeStoryline.chapters}
 					{#each activeStoryline.chapters as chapter}

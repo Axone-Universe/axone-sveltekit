@@ -2,10 +2,21 @@
 	import { AppRail, AppRailTile, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { leanpub, lineChart, handshakeO, pencil, user, trash } from 'svelte-awesome/icons';
+	import {
+		leanpub,
+		lineChart,
+		handshakeO,
+		pencil,
+		user,
+		trash,
+		users,
+		info,
+		infoCircle
+	} from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 	import { page } from '$app/stores';
+	import Tooltip from '../Tooltip.svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 	const drawerStore = getDrawerStore();
@@ -23,16 +34,40 @@
 				<div class="h-full flex flex-col justify-between">
 					<div>
 						<AppRailTile bind:group={selectedTile} name="read" title="Read" value={0}>
-							<Icon data={leanpub} scale={1.5} />
+							<Tooltip
+								on:click={() => {
+									window.open('/community', '_self');
+								}}
+								content="Community"
+								placement="right"
+								target="community"
+							>
+								<Icon data={users} scale={1.5} />
+							</Tooltip>
 						</AppRailTile>
 						<AppRailTile bind:group={selectedTile} name="trending" title="Trending" value={1}>
-							<Icon data={lineChart} scale={1.5} />
+							<Tooltip
+								on:click={() => {
+									window.open('/learn', '_self');
+								}}
+								content="Learn more"
+								placement="right"
+								target="learn"
+							>
+								<Icon data={infoCircle} scale={1.5} />
+							</Tooltip>
 						</AppRailTile>
 						<AppRailTile bind:group={selectedTile} name="collaborate" title="Collaborate" value={2}>
-							<Icon data={handshakeO} scale={1.5} />
-						</AppRailTile>
-						<AppRailTile bind:group={selectedTile} name="creators" title="Creators" value={3}>
-							<Icon data={pencil} scale={1.5} />
+							<Tooltip
+								on:click={() => {
+									window.open('/book/create', '_self');
+								}}
+								content="Start writing"
+								placement="right"
+								target="write"
+							>
+								<Icon data={pencil} scale={1.5} />
+							</Tooltip>
 						</AppRailTile>
 					</div>
 					<AppRailTile bind:group={selectedTile} name="profile" title="Profile" value={4}>
@@ -40,51 +75,6 @@
 					</AppRailTile>
 				</div>
 			</AppRail>
-			<section hidden={selectedTile != 0} class="m-4 col-span-2">
-				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
-					Read
-				</div>
-				<hr class="my-3 opacity-50" />
-				<nav class="list-nav">
-					<ul class="list">
-						{#each readMenuList as menuItem}
-							<li>
-								<a href={menuItem.url} class="w-full">{menuItem.label}</a>
-							</li>
-						{/each}
-					</ul>
-				</nav>
-			</section>
-			<section hidden={selectedTile != 2} class="m-4 col-span-2">
-				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
-					Collaborate
-				</div>
-				<hr class="my-3 opacity-50" />
-				<nav class="list-nav">
-					<ul class="list">
-						{#each collaborateMenuList as menuItem}
-							<li>
-								<a href={menuItem.url} class="w-full">{menuItem.label}</a>
-							</li>
-						{/each}
-					</ul>
-				</nav>
-			</section>
-			<section hidden={selectedTile != 3} class="m-4 col-span-2">
-				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
-					Creators
-				</div>
-				<hr class="my-3 opacity-50" />
-				<nav class="list-nav">
-					<ul class="list">
-						{#each creatorsMenuList as menuItem}
-							<li>
-								<a href={menuItem.url} class="w-full">{menuItem.label}</a>
-							</li>
-						{/each}
-					</ul>
-				</nav>
-			</section>
 			<section hidden={selectedTile != 4} class="m-4 col-span-2">
 				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
 					Profile

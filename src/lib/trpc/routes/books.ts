@@ -25,10 +25,10 @@ export const books = t.router({
 					input.limit,
 					input.cursor,
 					input.genres,
+					input.tags,
 					input.title,
 					input.user,
-					input.archived,
-					input.campaign
+					input.archived
 				);
 				response.data = result;
 				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;

@@ -3,7 +3,7 @@
 	import { CodeBlock } from '@skeletonlabs/skeleton';
 </script>
 
-<div class="m-4 flex min-h-screen relative w-full">
+<div class="flex min-h-screen relative w-full">
 	<div
 		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
@@ -23,7 +23,7 @@
 			</TableOfContents>
 		</div>
 	</div>
-	<div id="contents" class="flex flex-col pt-16 sm:pt-4 px-20 gap-5 w-full h-fit">
+	<div id="contents" class="flex flex-col pt-16 sm:pt-4 px-5 md:px-20 gap-5 w-full h-fit">
 		<h2 class="h2" id="introduction">Introduction</h2>
 		<div>
 			<p>

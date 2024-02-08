@@ -12,25 +12,28 @@
 	import ChapterPreview from '../chapter/ChapterPreview.svelte';
 	import StorylinePreview from '../storyline/StorylinePreview.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import UserPreview from '../user/UserPreview.svelte';
+	import type { UserProperties } from '$lib/properties/user';
 
-	export let documentType: PermissionedDocument;
+	export let documentType: PermissionedDocument | 'User';
 	export let documents: HydratedDocument<any>[];
 	export let selectedID: string = documents.at(0)._id;
+	export let viewPort: string = 'w-[70%] md:w-[28%]';
 
-	let elemMovies: HTMLDivElement;
+	let elemDocuments: HTMLDivElement;
 
 	function multiColumnLeft(): void {
-		let x = elemMovies.scrollWidth;
-		if (elemMovies.scrollLeft !== 0) x = elemMovies.scrollLeft - elemMovies.clientWidth;
-		elemMovies.scroll(x, 0);
+		let x = elemDocuments.scrollWidth;
+		if (elemDocuments.scrollLeft !== 0) x = elemDocuments.scrollLeft - elemDocuments.clientWidth;
+		elemDocuments.scroll(x, 0);
 	}
 
 	function multiColumnRight(): void {
 		let x = 0;
 		// -1 is used because different browsers use different methods to round scrollWidth pixels.
-		if (elemMovies.scrollLeft < elemMovies.scrollWidth - elemMovies.clientWidth - 1)
-			x = elemMovies.scrollLeft + elemMovies.clientWidth;
-		elemMovies.scroll(x, 0);
+		if (elemDocuments.scrollLeft < elemDocuments.scrollWidth - elemDocuments.clientWidth - 1)
+			x = elemDocuments.scrollLeft + elemDocuments.clientWidth;
+		elemDocuments.scroll(x, 0);
 	}
 
 	const dispatch = createEventDispatcher();
@@ -50,6 +53,10 @@
 	function chapterItem(item: HydratedDocument<unknown>) {
 		return item as unknown as HydratedDocument<ChapterProperties>;
 	}
+
+	function userItem(item: HydratedDocument<unknown>) {
+		return item as unknown as HydratedDocument<UserProperties>;
+	}
 </script>
 
 <Section id="document-carousel" class="flex items-center w-full p-4">
@@ -60,22 +67,26 @@
 		</button>
 		<!-- Carousel -->
 		<div
-			bind:this={elemMovies}
+			bind:this={elemDocuments}
 			class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto"
 		>
 			{#each documents as document}
-				{#if documentType === 'Book'}
-					<BookPreview book={bookItem(document)} />
-				{:else if documentType === 'Storyline'}
-					<StorylinePreview
-						dispatchEvent={true}
-						on:selectedStoryline={handleSelected}
-						user={undefined}
-						storyline={storylineItem(document)}
-					/>
-				{:else}
-					<ChapterPreview chapter={chapterItem(document)} />
-				{/if}
+				<div class="shrink-0 {viewPort} snap-start">
+					{#if documentType === 'Book'}
+						<BookPreview book={bookItem(document)} />
+					{:else if documentType === 'Storyline'}
+						<StorylinePreview
+							dispatchEvent={true}
+							on:selectedStoryline={handleSelected}
+							user={undefined}
+							storyline={storylineItem(document)}
+						/>
+					{:else if documentType === 'Chapter'}
+						<ChapterPreview chapter={chapterItem(document)} />
+					{:else}
+						<UserPreview user={userItem(document)} />
+					{/if}
+				</div>
 			{/each}
 		</div>
 		<!-- Button-Right -->

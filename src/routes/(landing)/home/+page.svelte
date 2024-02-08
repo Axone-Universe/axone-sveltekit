@@ -8,7 +8,8 @@
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import type { BookProperties } from '$lib/properties/book';
-	import { GenresBuilder, GENRES } from '$lib/properties/genre';
+	import { GENRES, type Genre } from '$lib/properties/genre';
+	import { HOME_FILTER_TAGS, type HomeFilterTag } from '$lib/util/types';
 	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -18,49 +19,36 @@
 	import Tutorial from './tutorial.svelte';
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
-	const TAGS = ['Recommended', 'Campaigns'] as const;
-	const FILTERS_KEY = 'homepageFilters';
+	const TAGS_FILTER_KEY = $page.url + '-tags';
+	const GENRES_FILTER_KEY = $page.url + '-genres';
+
+	let genres: Genre[] = [];
+	let tags: HomeFilterTag[] = [];
 
 	let lastLoadEpoch = 0;
-	let genresBuilder = new GenresBuilder();
 	let filterCount = -1;
 	let mounted = false;
 
-	let selectedTag: (typeof TAGS)[number] | null = 'Recommended';
-	$: recommendedSelected = selectedTag === 'Recommended';
-	$: campaignSelected = selectedTag === 'Campaigns';
-
 	$: if (browser && mounted) {
-		sessionStorage.setItem(
-			FILTERS_KEY,
-			JSON.stringify({ selectedTag, genres: genresBuilder.build() })
-		);
-		if (selectedTag) {
-			filterCount = 1;
-		} else {
-			filterCount = genresBuilder.build().length;
-		}
+		sessionStorage.setItem(TAGS_FILTER_KEY, JSON.stringify(tags));
+		sessionStorage.setItem(GENRES_FILTER_KEY, JSON.stringify(genres));
+		filterCount = genres.length + tags.length;
 	}
 
 	let accordionOpen = false;
-
 	let searchValue = '';
 	let debouncedSearchValue = '';
+	let scroll = 0;
 
 	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
 		{
 			limit: 20,
-			genres: recommendedSelected ? undefined : genresBuilder.build(),
-			title: debouncedSearchValue ? debouncedSearchValue : undefined,
-			campaign: campaignSelected ? '' : null
+			genres: genres,
+			tags: tags,
+			title: debouncedSearchValue ? debouncedSearchValue : undefined
 		},
 		{
-			queryKey: [
-				'booksHome',
-				recommendedSelected ? undefined : genresBuilder.build(),
-				campaignSelected ? '' : null,
-				debouncedSearchValue
-			],
+			queryKey: ['booksHome' + scroll++, debouncedSearchValue],
 			getNextPageParam: (lastPage) => lastPage.cursor,
 			staleTime: Infinity
 		}
@@ -73,7 +61,7 @@
 		: [];
 
 	function handleClear() {
-		genresBuilder = genresBuilder.reset();
+		genres = [];
 	}
 
 	function loadMore() {
@@ -98,11 +86,15 @@
 	const onType = debounce();
 
 	onMount(() => {
-		const filters = JSON.parse(sessionStorage.getItem(FILTERS_KEY) ?? 'null');
+		const genreFilters = sessionStorage.getItem(GENRES_FILTER_KEY) ?? undefined;
+		const tagFilters = sessionStorage.getItem(TAGS_FILTER_KEY) ?? undefined;
 
-		if (filters) {
-			selectedTag = filters.selectedTag ? filters.selectedTag : null;
-			genresBuilder.withList(filters.genres ? filters.genres : []);
+		if (genreFilters && genreFilters !== 'null') {
+			genres = JSON.parse(genreFilters!);
+		}
+
+		if (tagFilters && tagFilters !== 'null') {
+			tags = JSON.parse(tagFilters!);
 		}
 
 		function onClickListener(e: MouseEvent) {
@@ -154,16 +146,16 @@
 					<div class="card p-4 space-y-2">
 						<p class="font-bold">Tags</p>
 						<div class="flex flex-wrap gap-2">
-							{#each TAGS as tag}
+							{#each HOME_FILTER_TAGS as tag}
 								<button
-									class={`chip ${selectedTag === tag ? 'variant-filled-primary' : 'variant-soft'}`}
+									class="chip {tags.includes(tag) ? 'variant-filled-primary' : 'variant-soft'}"
 									on:click={() => {
-										if (selectedTag && selectedTag === tag) {
-											selectedTag = null;
+										const index = tags.indexOf(tag);
+										if (index > -1) {
+											tags = tags.filter((v) => v !== tag);
 										} else {
-											selectedTag = tag;
+											tags = [...tags, tag];
 										}
-										genresBuilder = genresBuilder.reset();
 									}}
 								>
 									<p>{tag}</p>
@@ -180,17 +172,17 @@
 						<div class="flex flex-wrap gap-2">
 							{#each GENRES as genre}
 								<button
-									class={`chip ${
-										genresBuilder.build().includes(genre)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
+									class="chip {genres.includes(genre) ? 'variant-filled-primary' : 'variant-soft'}"
 									on:click={() => {
-										genresBuilder = genresBuilder.toggle(genre);
-										selectedTag = null;
+										const index = genres.indexOf(genre);
+										if (index > -1) {
+											genres = genres.filter((v) => v !== genre);
+										} else {
+											genres = [...genres, genre];
+										}
 									}}
 								>
-									<p>{genre}</p>
+									<span class="capitalize">{genre}</span>
 								</button>
 							{/each}
 						</div>
@@ -215,11 +207,11 @@
 			<InfoHeader
 				emoji="🤲"
 				heading="We're empty handed!"
-				description={recommendedSelected
+				description={tags.length !== 0
 					? "We can't find any books that match your genre preferences. Try changing your filters!"
 					: 'Try changing your filters or write your own book!'}
 			>
-				{#if !recommendedSelected}
+				{#if tags.length === 0}
 					<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
 				{/if}
 			</InfoHeader>
@@ -229,7 +221,7 @@
 			<div
 				class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
 			>
-				{#each items as item (item._id)}
+				{#each items as item}
 					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
 						<BookPreview book={item} />
 					</div>
