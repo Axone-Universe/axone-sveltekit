@@ -11,7 +11,7 @@
 	import { onMount } from 'svelte';
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
-	import { format } from 'date-fns';
+	import type { Response } from '$lib/util/types';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -68,9 +68,15 @@
 
 	async function createCampaignData(imageURL?: string) {
 		try {
+			let response: Response = {
+				message: '',
+				success: false,
+				data: undefined
+			};
+
 			if (book._id) {
-				await trpc($page).campaigns.update.mutate({
-					id: campaign.id,
+				response = await trpc($page).campaigns.update.mutate({
+					id: campaign._id,
 					startDate: campaign.startDate!,
 					endDate: campaign.endDate!,
 					submissionCriteria: campaign.submissionCriteria!,
@@ -85,7 +91,7 @@
 					}
 				});
 			} else {
-				await trpc($page).campaigns.create.mutate({
+				response = await trpc($page).campaigns.create.mutate({
 					startDate: campaign.startDate!,
 					endDate: campaign.endDate!,
 					submissionCriteria: campaign.submissionCriteria!,
@@ -98,13 +104,15 @@
 						permissions: book.permissions
 					}
 				});
-
-				const t: ToastSettings = {
-					message: 'Campaign created successfully',
-					background: 'variant-filled-primary'
-				};
-				toastStore.trigger(t);
 			}
+
+			const t: ToastSettings = {
+				message: response.success
+					? 'Campaign updated successfully'
+					: 'Campaign update unsuccessful. ' + response.message,
+				background: response.success ? 'variant-filled-primary' : 'variant-filled-error'
+			};
+			toastStore.trigger(t);
 
 			if (createCallback !== undefined) {
 				createCallback();
