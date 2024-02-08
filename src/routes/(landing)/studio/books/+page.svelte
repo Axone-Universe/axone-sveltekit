@@ -197,6 +197,11 @@
 	}
 
 	function openEditModal(book: HydratedDocument<BookProperties>) {
+		if (book.campaign) {
+			openUpdateCampaignModal(book);
+			return;
+		}
+
 		bookDetailsModalComponent.props = {
 			book,
 			supabase: data.supabase,
@@ -420,7 +425,7 @@
 											{
 												label: 'Edit',
 												icon: edit,
-												callback: campaignMode ? openUpdateCampaignModal : openEditModal
+												callback: openEditModal
 											},
 											{
 												label: 'Delete',
