@@ -133,7 +133,7 @@
 		const diffInDays = Math.round(diffInTime / oneDay);
 
 		let color = 'variant-filled-success';
-		if (diffInDays > 0 && diffInDays <= 2) {
+		if (diffInDays >= 0 && diffInDays <= 2) {
 			color = 'variant-filled-warning';
 		} else if (diffInDays < 0) {
 			color = 'variant-filled-error';
