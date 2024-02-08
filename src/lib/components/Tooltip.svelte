@@ -15,11 +15,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-	on:click
-	class="cursor-pointer w-fit h-fit [&>*]:pointer-events-none"
-	use:popup={popupSettings}
->
+<div on:click class="cursor-pointer [&>*]:pointer-events-none" use:popup={popupSettings}>
 	<slot />
 	<div class="{fixed ? 'fixed' : ''} card p-2 variant-filled-primary" data-popup={target}>
 		<p class="text-secondary-900-50-token">{content}</p>

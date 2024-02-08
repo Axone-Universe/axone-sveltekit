@@ -93,6 +93,12 @@ storylineSchema.pre('save', async function (next) {
 		if (book.archived) {
 			throw new Error('This book is archived');
 		}
+
+		if (book.campaign) {
+			if (Date.now() > book.campaign.endDate) {
+				throw new Error('This campaign has ended. No more entries allowed');
+			}
+		}
 	}
 
 	next();

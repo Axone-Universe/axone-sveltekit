@@ -84,6 +84,7 @@
 	const campaignDetailsComponent: ModalComponent = {
 		ref: CampaignDetails
 	};
+
 	const campaignDetailsModal: ModalSettings = {
 		type: 'component',
 		component: campaignDetailsComponent
@@ -95,8 +96,8 @@
 			limit: 10,
 			user: data.session?.user.id,
 			genres: [],
-			archived: archiveMode,
-			campaign: campaignMode ? '' : null
+			tags: campaignMode ? ['Campaigns'] : [],
+			archived: archiveMode
 		},
 		{
 			queryKey: ['booksStudio', archiveMode, campaignMode ? '' : null],

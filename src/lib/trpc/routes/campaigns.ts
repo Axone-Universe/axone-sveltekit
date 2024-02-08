@@ -97,19 +97,21 @@ export const campaigns = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ ctx, input }) => {
-			const bookBuilder = new BookBuilder(input.book.id)
-				.sessionUserID(ctx.session!.user.id)
-				.userID(ctx.session!.user.id);
+			const campaignBuilder = new CampaignBuilder(input.id).userID(ctx.session!.user.id);
 
-			if (input.book.title) bookBuilder.title(input.book.title);
-			if (input.book.description) bookBuilder.description(input.book.description);
-			if (input.book.imageURL !== undefined) bookBuilder.imageURL(input.book.imageURL);
-			if (input.book.genres) bookBuilder.genres(input.book.genres);
-			if (input.book.permissions) bookBuilder.permissions(input.book.permissions as any);
+			if (input.book) {
+				const bookBuilder = new BookBuilder(input.book.id)
+					.sessionUserID(ctx.session!.user.id)
+					.userID(ctx.session!.user.id);
 
-			const campaignBuilder = new CampaignBuilder(input.id)
-				.userID(ctx.session!.user.id)
-				.book(bookBuilder.properties());
+				if (input.book.title) bookBuilder.title(input.book.title);
+				if (input.book.description) bookBuilder.description(input.book.description);
+				if (input.book.imageURL !== undefined) bookBuilder.imageURL(input.book.imageURL);
+				if (input.book.genres) bookBuilder.genres(input.book.genres);
+				if (input.book.permissions) bookBuilder.permissions(input.book.permissions as any);
+
+				campaignBuilder.book(bookBuilder.properties());
+			}
 
 			if (input.startDate) campaignBuilder.startDate(input.startDate);
 			if (input.endDate) campaignBuilder.endDate(input.endDate);
@@ -124,7 +126,7 @@ export const campaigns = t.router({
 			try {
 				const result = await campaignBuilder.update();
 
-				if (input.book.notifications) {
+				if (input.book?.notifications) {
 					sendUserNotifications(input.book.notifications);
 				}
 				response.data = result;

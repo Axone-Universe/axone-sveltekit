@@ -20,7 +20,6 @@ describe('campaigns', async () => {
 	const testUserThreeSession = createTestSession(generateTestUser());
 	const caller1 = router.createCaller({ session: testUserOneSession });
 	const caller2 = router.createCaller({ session: testUserTwoSession });
-	const caller3 = router.createCaller({ session: testUserThreeSession });
 
 	const startDate = new Date();
 	const endDate = new Date();
@@ -141,6 +140,51 @@ describe('campaigns', async () => {
 
 		console.log(updateResponse.message);
 		expect(updateResponse.message.includes('INTERNAL_SERVER_ERROR')).toEqual(true);
+	});
+
+	test('storylines creation', async () => {
+		startDate.setDate(startDate.getDate() - 1);
+		endDate.setDate(endDate.getDate() + 1);
+
+		const campaignResponse = await caller1.campaigns.create({
+			startDate,
+			endDate,
+			submissionCriteria,
+			rewards,
+			book
+		});
+
+		const campaign = campaignResponse.data;
+
+		const createdBook = (await caller1.books.getById({ id: campaign.book })).data;
+
+		// create a storyline for the campaign
+		let storylineCreateResponse = await caller1.storylines.create({
+			title: 'Storyline 1',
+			description: 'Storyline 1',
+			book: createdBook._id
+		});
+
+		startDate.setDate(startDate.getDate() - 4);
+		endDate.setDate(endDate.getDate() - 3);
+
+		await caller1.campaigns.update({
+			id: campaign._id,
+			startDate: startDate,
+			endDate: endDate
+		});
+
+		// create a storyline for ended campaign
+		storylineCreateResponse = await caller1.storylines.create({
+			title: 'Storyline 2',
+			description: 'Storyline 2',
+			book: createdBook._id
+		});
+
+		expect(storylineCreateResponse.success).toEqual(false);
+		expect(storylineCreateResponse.message).toContain(
+			'This campaign has ended. No more entries allowed'
+		);
 	});
 
 	test('get campaigns', async () => {

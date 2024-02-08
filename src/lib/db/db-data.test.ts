@@ -9,7 +9,8 @@ import {
 	generateTestUser,
 	createBook,
 	getRandomElement,
-	testUserOne
+	testUserOne,
+	createCampaign
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -23,6 +24,7 @@ import {
 import { RATING } from '$lib/properties/review';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
+import type { CreateBook } from '$lib/trpc/schemas/books';
 
 const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
 const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '3');
@@ -76,7 +78,15 @@ test(
 		for (let i = 0; i < sessions.length; i++) {
 			const caller = router.createCaller({ session: sessions[i] });
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
-				const newBook = await createBook(sessions[i]);
+				const campaign = Math.random() < 0.2;
+
+				let newBook: any = undefined;
+
+				if (campaign) {
+					newBook = createCampaign(sessions[i]);
+				}
+
+				newBook = await createBook(sessions[i]);
 				const storylines = (
 					await caller.storylines.getByBookID({
 						bookID: newBook.data._id

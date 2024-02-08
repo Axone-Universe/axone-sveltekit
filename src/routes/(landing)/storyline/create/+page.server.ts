@@ -13,7 +13,7 @@ export const load = (async (event) => {
 	const parentStorylineID = event.url.searchParams.get('parentStorylineID');
 	const chapterID = event.url.searchParams.get('chapterID');
 
-	if (!bookID || !parentStorylineID || !chapterID) {
+	if (!bookID) {
 		throw error(404, {
 			message: 'Not found'
 		});
@@ -24,6 +24,10 @@ export const load = (async (event) => {
 			id: bookID
 		})
 	).data as HydratedDocument<BookProperties>;
+
+	if (!parentStorylineID || !chapterID) {
+		return { userAuthoredBookResponse };
+	}
 
 	const storylineResponse = (
 		await trpc(event).storylines.getById.query({

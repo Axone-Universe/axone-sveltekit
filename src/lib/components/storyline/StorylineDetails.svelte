@@ -66,25 +66,28 @@
 				title: storyline.title,
 				description: storyline.description,
 				book: storyline.book,
-				parent: storyline.parent,
-				parentChapter: storyline.parentChapter,
+				parent: storyline.parent ?? undefined,
+				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
 				imageURL: imageURL ?? ''
 			});
 		}
 
-		storyline = response.data as HydratedDocument<StorylineProperties>;
-
 		const t: ToastSettings = {
 			message: response.message,
-			background: 'variant-filled-primary'
+			background: response.success ? 'variant-filled-primary' : 'variant-filled-error'
 		};
 		toastStore.trigger(t);
 
-		if (newStoryline)
-			await goto(
-				`/editor/${book._id}?storylineID=${(storyline as HydratedDocument<ChapterProperties>)._id}`
-			);
+		if (response.success) {
+			storyline = response.data as HydratedDocument<StorylineProperties>;
+			if (newStoryline)
+				await goto(
+					`/editor/${book._id}?mode=writer&storylineID=${
+						(storyline as HydratedDocument<ChapterProperties>)._id
+					}`
+				);
+		}
 
 		if (createCallback !== undefined) {
 			createCallback();

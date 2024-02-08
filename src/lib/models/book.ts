@@ -92,12 +92,6 @@ function populate(pipeline: PipelineStage[]) {
 				path: '$campaign',
 				preserveNullAndEmptyArrays: true
 			}
-		},
-		{
-			$set: {
-				'campaign.startDate': { $toDate: '$campaign.startDate' },
-				'campaign.endDate': { $toDate: '$campaign.endDate' }
-			}
 		}
 	);
 }

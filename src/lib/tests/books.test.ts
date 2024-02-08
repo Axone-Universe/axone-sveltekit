@@ -112,7 +112,7 @@ describe('books', () => {
 		await createBook(createTestSession(testUserTwo), '', ['Autobiographies', 'Historical']);
 
 		const caller = router.createCaller({ session });
-		const bookResponses = await caller.books.get({});
+		const bookResponses = await caller.books.get({ tags: ['Recommended'] });
 
 		expect(bookResponses.data.map((a) => a._id).sort()).toEqual(
 			[bookResponse1.data._id, bookResponse2.data._id, bookResponse3.data._id].sort()

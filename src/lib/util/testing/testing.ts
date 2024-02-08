@@ -23,6 +23,7 @@ import {
 import { UserPropertyBuilder } from '$lib/properties/user';
 import type { Rating, ReviewOf } from '$lib/properties/review';
 import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
+import type { CreateBook } from '$lib/trpc/schemas/books';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
@@ -111,6 +112,47 @@ export async function createBook(testSession: Session, title?: string, genres: G
 	});
 
 	return response;
+}
+
+/**
+ * Creates a campaign and returns the book object of the campaign
+ * @param session
+ * @returns
+ */
+export async function createCampaign(testSession: Session) {
+	const caller = router.createCaller({ session: testSession });
+
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
+
+	const genres: Genre[] = [];
+	const startDate = new Date();
+	const endDate = new Date();
+	const submissionCriteria =
+		'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.';
+	const rewards = 'Book publishing deal with Penguin!';
+
+	const book: CreateBook = {
+		title: faker.commerce.productName() + ' But a Book',
+		description: faker.commerce.productDescription(),
+		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`,
+		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
+		permissions: {
+			public: publicPermission
+		}
+	};
+
+	const campaignResponse = await caller.campaigns.create({
+		startDate,
+		endDate,
+		submissionCriteria,
+		rewards,
+		book
+	});
+
+	const createdBook = (await caller.books.getById({ id: campaignResponse.data.book })).data;
+	return createdBook;
 }
 
 export async function createChapter(
