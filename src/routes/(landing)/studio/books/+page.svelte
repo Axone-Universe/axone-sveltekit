@@ -33,11 +33,13 @@
 	import { CampaignPropertyBuilder } from '$lib/properties/campaign';
 	import Tutorial from './tutorial.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import { deleteBucket } from '$lib/util/bucket/bucket';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
 
 	export let data: PageData;
+	const { supabase } = data;
 
 	let archiveMode: boolean = false;
 	let campaignMode: boolean = false;
@@ -260,18 +262,20 @@
 						.books.delete.mutate({
 							id: bookToDelete._id
 						})
-						.then((response) => {
+						.then(async (response) => {
 							if (response.success) {
+								await deleteBucket({
+									supabase: supabase,
+									bucket: 'books',
+									path: bookToDelete._id
+								});
 								books = books.filter((book) => book._id !== bookToDelete._id);
-							} else {
-								// show toast error
-								const deleteFail: ToastSettings = {
-									message: response.message,
-									// Provide any utility or variant background style:
-									background: 'variant-filled-error'
-								};
-								toastStore.trigger(deleteFail);
 							}
+							const deleteFail: ToastSettings = {
+								message: response.message,
+								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+							};
+							toastStore.trigger(deleteFail);
 						})
 						.catch((error) => {
 							console.log(error);

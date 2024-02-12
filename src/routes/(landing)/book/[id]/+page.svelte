@@ -66,7 +66,7 @@
 </script>
 
 <Tutorial />
-<Container class="mx-2 md:mx-40 xl:mx-96">
+<Container class="mx-2 md:mx-40 xl:mx-96 min-h-screen">
 	<BookHeader
 		session={data.session}
 		{bookData}
@@ -76,7 +76,7 @@
 	/>
 
 	<div class="px-4 md:px-10 overflow-hidden space-y-4 bg-surface-50-900-token">
-		{#if !activeStoryline.userPermissions?.view}
+		{#if activeStoryline._id && !activeStoryline.userPermissions?.view}
 			<RequestPermissionModal class="mt-4" document={activeStoryline} />
 		{:else}
 			{#if activeStoryline.chapters && activeStoryline.chapters.length > 0}
