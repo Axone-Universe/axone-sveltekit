@@ -61,6 +61,7 @@
 	import Delta from 'quill-delta';
 	import type Op from 'quill-delta/dist/Op';
 	import { autoStartTour } from '$lib/util/tour/tour';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -710,70 +711,6 @@
 	}
 
 	/**
-	 * Uploads a file to a supabase storage bucket
-	 * @param file - the file to upload
-	 * @param bucket - the bucket to upload to
-	 * @param newFileName - the new file name to use
-	 * @param illustration - the illustration object
-	 */
-	let progressToastId: string | undefined = undefined;
-	function uploadFileToBucket(
-		file: File,
-		bucket: string,
-		newFileName: string | undefined,
-		illustration: Illustration
-	) {
-		if (!progressToastId) progressToastId = toastStore.trigger(progressUploadToast);
-
-		quill
-			.uploadFileToBucket({ supabase, file, bucket, newFileName } as UploadFileToBucketParams)
-			.then((response: any) => {
-				if (response.data) {
-					//success
-					//update illustration src, then submit illustration
-					illustration.illustration.src = quill.getSupabaseFileURL({
-						supabase,
-						bucket,
-						responsePath: response.data.path
-					});
-					submitIllustration(illustration.id, illustration.illustration);
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					toastStore.trigger(successUploadToast);
-				} else if (response.error.error === 'Duplicate') {
-					//file already exists, rename file and try again
-					uploadFileToBucket(file, bucket, 'copy_' + (newFileName || file.name), illustration);
-				} else if (
-					response.error.error === 'Payload too large' ||
-					response.error.statusCode === '413'
-				) {
-					//file too large
-					//show toast error
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					const errorUploadToast: ToastSettings = {
-						message: 'File is too large. Please upload a smaller file.',
-						// Provide any utility or variant background style:
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(errorUploadToast);
-				} else {
-					//error
-					//show toast error
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					toastStore.trigger(errorUploadToast);
-				}
-			});
-	}
-
-	/**
 	 * Uploads an illustration to supabase storage
 	 * @param newIllustrationFile - the file to upload or the event that contains the file
 	 * @param illustration - the illustration
@@ -794,18 +731,19 @@
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
 
-		//check if bucket exists
-		return await quill
-			.createIllustrationBucket({
-				supabase: supabase,
-				bucket: bucketName,
-				errorCallback: function () {
-					toastStore.trigger(errorUploadToast);
-				}
-			})
-			.then(() => {
-				uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration);
-			});
+		const response = await uploadImage(
+			supabase,
+			bucketName,
+			newIllustrationFile as File,
+			toastStore
+		);
+
+		if (response.url && response.url !== null) {
+			illustration.illustration.src = response.url;
+			submitIllustration(illustration.id, illustration.illustration);
+		} else {
+			toastStore.trigger(errorUploadToast);
+		}
 	}
 
 	/**

@@ -38,22 +38,14 @@
 			return;
 		}
 
-		let t: ToastSettings = {
-			message: 'Saving Image...',
-			autohide: false
-		};
-		let toastId = toastStore.trigger(t);
-
-		const response = await uploadImage(supabase, `books/${book._id}`, imageFile);
-
-		toastStore.close(toastId);
+		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
 
 		if (response.url && response.url !== null) {
 			createBookData(response.url);
 			return;
 		}
 
-		t = {
+		const t: ToastSettings = {
 			message: response.error?.message ?? 'Error uploading book cover',
 			background: 'variant-filled-error'
 		};

@@ -34,7 +34,12 @@
 			return;
 		}
 
-		const response = await uploadImage(supabase, `books/storylines/${storyline._id}`, imageFile);
+		const response = await uploadImage(
+			supabase,
+			`books/storylines/${storyline._id}`,
+			imageFile,
+			toastStore
+		);
 
 		if (response.url) {
 			createStorylineData(response.url);

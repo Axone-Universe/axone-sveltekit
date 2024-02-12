@@ -2,17 +2,30 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError } from '../types';
 import type { StorageError } from '@supabase/storage-js';
 import imageCompression from 'browser-image-compression';
+import type { ToastSettings } from '@skeletonlabs/skeleton';
 
 export async function uploadImage(
 	client: SupabaseClient,
 	bucket: string,
-	imageFile: File
+	imageFile: File,
+	toastStore: any
 ): Promise<{
 	url: string | null;
 	error: null | StorageError;
 }> {
+	const t: ToastSettings = {
+		message: 'Saving Image...',
+		autohide: false
+	};
+	const toastId = toastStore.trigger(t);
+
 	const compressedImage = await compressImage(imageFile);
 	imageFile = compressedImage ?? imageFile;
+
+	const result: {
+		url: string | null;
+		error: null | StorageError;
+	} = { url: null, error: null };
 
 	await createBucket({
 		supabase: client,
@@ -25,17 +38,16 @@ export async function uploadImage(
 
 	if (response.data) {
 		const urlData = client.storage.from(bucket).getPublicUrl(response.data.path);
-		console.log('** url data ');
-		console.log(urlData);
-		return { url: urlData.data.publicUrl, error: null };
+		result.url = urlData.data.publicUrl;
 	} else if ((response.error as any).statusCode === '409') {
 		const urlData = client.storage.from(bucket).getPublicUrl(imageFile.name);
-		console.log('** url data ');
-		console.log(urlData);
-		return { url: urlData.data.publicUrl, error: null };
+		result.url = urlData.data.publicUrl;
 	}
 
-	return { url: null, error: response.error };
+	toastStore.close(toastId);
+
+	result.error = response.error;
+	return result;
 }
 
 export async function compressImage(imageFile: File): Promise<File | undefined> {

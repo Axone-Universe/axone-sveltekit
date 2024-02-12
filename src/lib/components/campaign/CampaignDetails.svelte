@@ -52,7 +52,7 @@
 			return;
 		}
 
-		const response = await uploadImage(supabase, `books/${book._id}`, imageFile);
+		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
 
 		if (response.url) {
 			createCampaignData(response.url);

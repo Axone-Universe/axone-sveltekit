@@ -39,12 +39,7 @@
 		}
 
 		imageFile = input.files[0];
-		reader(imageFile);
-	}
-
-	function reader(imageFile: File) {
 		if (imageFile) {
-			alert('image change 3');
 			const reader = new FileReader();
 			reader.addEventListener('load', function () {
 				currentImagePath = reader.result as string;
