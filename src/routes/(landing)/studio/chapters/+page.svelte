@@ -29,11 +29,13 @@
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
 	import { edit, pencil, trash } from 'svelte-awesome/icons';
 	import Tutorial from './tutorial.svelte';
+	import { deleteBucket } from '$lib/util/bucket/bucket';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
 
 	export let data: PageData;
+	const { supabase } = data;
 
 	let archiveMode: boolean = false;
 	let lastLoadEpoch = 0;
@@ -191,18 +193,24 @@
 						.chapters.delete.mutate({
 							id: chapterToDelete._id
 						})
-						.then((response) => {
+						.then(async (response) => {
 							if (response.success) {
+								let bookID =
+									typeof chapterToDelete.book === 'string'
+										? chapterToDelete.book
+										: chapterToDelete.book?._id;
+								await deleteBucket({
+									supabase: supabase,
+									bucket: 'books',
+									path: `${bookID}/chapters/${chapterToDelete._id}`
+								});
 								chapters = chapters.filter((chapter) => chapter._id !== chapterToDelete._id);
-							} else {
-								// show toast error
-								const deleteFail: ToastSettings = {
-									message: response.message,
-									// Provide any utility or variant background style:
-									background: 'variant-filled-error'
-								};
-								toastStore.trigger(deleteFail);
 							}
+							const deleteFail: ToastSettings = {
+								message: response.message,
+								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+							};
+							toastStore.trigger(deleteFail);
 						})
 						.catch((error) => {
 							console.log(error);

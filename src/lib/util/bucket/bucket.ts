@@ -90,3 +90,23 @@ export async function createBucket({
 			throw new Error(error);
 		});
 }
+
+export async function deleteBucket({
+	supabase,
+	bucket,
+	path
+}: {
+	supabase: SupabaseClient;
+	bucket: string;
+	path: string;
+}) {
+	const { data: list } = await supabase.storage.from(bucket).list(path);
+	const filesToRemove = list?.map((x) => `${path}/${x.name}`);
+
+	console.log('** files to remove: ' + path);
+	console.log(filesToRemove);
+
+	if (filesToRemove) {
+		await supabase.storage.from(bucket).remove(filesToRemove);
+	}
+}

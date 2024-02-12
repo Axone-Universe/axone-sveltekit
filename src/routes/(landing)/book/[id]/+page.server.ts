@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
-import type { StorylineProperties } from '$lib/properties/storyline';
+import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/properties/storyline';
 import { redirect } from '@sveltejs/kit';
 
 export const load = (async (event) => {
@@ -25,7 +25,14 @@ export const load = (async (event) => {
 	).data as HydratedDocument<StorylineProperties>[];
 
 	const storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
-	let activeStoryline: HydratedDocument<StorylineProperties> = storylineResponses[0];
+
+	const storylinePropertyBuilder = new StorylinePropertyBuilder();
+	let activeStoryline =
+		storylinePropertyBuilder.getProperties() as HydratedDocument<StorylineProperties>;
+
+	if (storylineResponses.length > 0) {
+		activeStoryline = storylineResponses[0];
+	}
 
 	storylineResponses.forEach((storylineResponse) => {
 		if (storylineResponse.main) {
