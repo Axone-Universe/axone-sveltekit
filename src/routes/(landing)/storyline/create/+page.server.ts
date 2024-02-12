@@ -31,8 +31,7 @@ export const load = (async (event) => {
 
 	const storylineResponse = (
 		await trpc(event).storylines.getById.query({
-			bookID: bookID,
-			storylineID: parentStorylineID
+			id: parentStorylineID
 		})
 	).data as HydratedDocument<StorylineProperties>;
 

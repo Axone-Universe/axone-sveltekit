@@ -37,9 +37,9 @@
 				<button
 					on:click={() => rowAction.callback(document)}
 					type="button"
-					class={`btn space-x-6 hover:variant-soft-primary ${rowAction.class}`}
+					class={`flex justify-start btn space-x-6 hover:variant-soft-primary ${rowAction.class}`}
 				>
-					<Icon data={rowAction.icon} />
+					<Icon data={rowAction.icon} scale={1.5} />
 					<span>{rowAction.label}</span>
 				</button>
 				<hr class="my-1 variant-fill-primary" />

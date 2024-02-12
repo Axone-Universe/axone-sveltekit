@@ -7,7 +7,7 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { GENRES } from '$lib/properties/genre';
 	import ImageUploader from '../util/ImageUploader.svelte';
-	import { uploadBookCover } from '$lib/util/bucket/bucket';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 	import { onMount } from 'svelte';
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
@@ -52,10 +52,10 @@
 			return;
 		}
 
-		const url = await uploadBookCover(supabase, imageFile);
+		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
 
-		if (url) {
-			createCampaignData(url);
+		if (response.url) {
+			createCampaignData(response.url);
 			return;
 		}
 

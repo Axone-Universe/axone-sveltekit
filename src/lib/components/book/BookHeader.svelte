@@ -35,6 +35,7 @@
 	import type { CampaignProperties } from '$lib/properties/campaign';
 
 	let customClass = '';
+
 	export { customClass as class };
 	export let bookData: HydratedDocument<BookProperties>;
 	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
@@ -81,7 +82,7 @@
 		component: campaignDetailsComponent
 	};
 
-	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineData;
+	let selectedStoryline: HydratedDocument<StorylineProperties> | undefined = storylineData;
 	const storylinesPopup: PopupSettings = {
 		event: 'focus-click',
 		target: 'storylinesPopup',
@@ -158,7 +159,9 @@
 
 <div
 	class={`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}
-	style="background-image: url({storylineData.imageURL})"
+	style="background-image: url({storylineData.imageURL !== ''
+		? storylineData.imageURL
+		: bookData.imageURL})"
 >
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
@@ -175,7 +178,7 @@
 				</div>
 				<div class="flex flex-col p-2 space-x-4 w-full items-center">
 					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
-						{#if bookData.userPermissions?.collaborate && bookData.campaign}
+						{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 							<Tooltip
 								on:click={() => {
 									if (campaignDaysLeft()[0] >= 0)
@@ -185,7 +188,10 @@
 								placement="top"
 								target="create-storyline"
 							>
-								<button class="btn-icon bg-orange-700" disabled={campaignDaysLeft()[0] < 0}>
+								<button
+									class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
+									disabled={campaignDaysLeft()[0] < 0}
+								>
 									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
 								</button>
 							</Tooltip>
@@ -202,19 +208,14 @@
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
-									<p class="font-bold">Pick A Storyline</p>
+									<p class="font-bold">Storylines</p>
 									<p class="opacity-50">@Storyline</p>
 								</div>
 								<p>
 									Storylines are alternative trajectories of the book stemming from the main
 									storyline
 								</p>
-								<a
-									class="btn variant-soft w-full"
-									href="/storylines"
-									target="_blank"
-									rel="noreferrer"
-								>
+								<a class="btn variant-soft w-full" href="/learn" target="_blank" rel="noreferrer">
 									More
 								</a>
 							</div>
@@ -253,7 +254,7 @@
 								<Icon class="p-2" data={bookmark} scale={2.5} />
 							</button>
 						</Tooltip>
-						{#if selectedStoryline.userPermissions?.collaborate}
+						{#if selectedStoryline && selectedStoryline.userPermissions?.collaborate}
 							<Tooltip
 								on:click={() => {
 									window.open(`/editor/${bookData._id}?mode=writer`, '_blank');
