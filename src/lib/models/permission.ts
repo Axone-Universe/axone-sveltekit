@@ -77,13 +77,15 @@ export function addUserPermissionPipeline(userID: string, pipeline: PipelineStag
 
 /**
  * This method adds restrictions to the filter for a document query
- * Only users with viewing permissions will have the document returned
+ * It works by checking parent document permissions.
+ * If the parent has viewing restrictions, the child documents will not be returned
+ * The collection parameter is the parent document whose permissions will be checked
  * @param userID
  * @param pipeline
  * @param collection
  * @param path
  */
-export function addReadRestrictionPipeline(
+export function addViewRestrictionPipeline(
 	userID: string,
 	pipeline: PipelineStage[],
 	collection: string,
@@ -133,26 +135,47 @@ export function addReadRestrictionPipeline(
 /** READ, UPDATE, DELETE permission filters */
 
 /**
- * This method adds restrictions for UPDATING a document
+ * This method adds OWNER restrictions for UPDATING a document.
+ * If it's not the owner updating, the document will not update
  * @param userID
  * @param filter
  * @returns
  */
-export function addUpdateRestrictionPipeline(userID: string, filter: any) {
-	let permissionFilter = {};
-
+export function addOwnerUpdateRestrictionFilter(userID: string, filter: any) {
 	if (!userID) {
 		throw new Error('Unknown user requesting update');
 	}
 
-	permissionFilter = { user: userID };
+	const permissionFilter = { user: userID };
 
 	const updatedFilter = { $and: [filter, permissionFilter] };
 
 	return updatedFilter;
 }
 
-export function addCollaborationRestrictionOnUpdate(userID: string, filter: any) {
+/**
+ * This method restricts ARCHIVED documents from being updated
+ * @param userID
+ * @param filter
+ * @returns
+ */
+export function addArchivedRestrictionFilter(filter: any) {
+	const archiveFilter = { $or: [{ archived: false }, { archived: { $exists: false } }] };
+
+	const updatedFilter = { $and: [filter, archiveFilter] };
+
+	return updatedFilter;
+}
+
+/**
+ * This method adds COLLABORATOR restrictions for UPDATING a document.
+ * If it's not a collaborator updating, the document will not update
+ * e.g. deltas use this to check if the user has collaboration permissions
+ * @param userID
+ * @param filter
+ * @returns
+ */
+export function addCollaboratorUpdateRestrictionFilter(userID: string, filter: any) {
 	let permissionFilter = {};
 
 	const collaborate: Permissions = 'collaborate';
@@ -172,27 +195,4 @@ export function addCollaborationRestrictionOnUpdate(userID: string, filter: any)
 	const updatedFilter = { $and: [filter, permissionFilter] };
 
 	return updatedFilter;
-}
-
-/**
- * This method checks whether a user can collaborate on a document before SAVING it
- * e.g. Before saving a storyline, this check will run on the BOOK collection to check if user can collaborate on the book
- * This is the same relationship for storline & chapters, chapter & deltas
- * @param userID
- * @param collection
- * @param documentID
- */
-export function addCollaborationRestrictionOnSave(userID: string, documentID: string) {
-	const filter = [
-		{
-			$match: {
-				_id: documentID
-			}
-		}
-	];
-	const options = {
-		userID: userID
-	};
-
-	return { filter, options };
 }

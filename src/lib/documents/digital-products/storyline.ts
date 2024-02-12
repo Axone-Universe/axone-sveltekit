@@ -1,10 +1,11 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -81,6 +82,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._storylineProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -92,40 +98,21 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const storyline = await Storyline.aggregate(
+			const chapters = await Chapter.aggregate(
 				[
 					{
 						$match: {
-							_id: this._storylineProperties._id
+							storyline: this._storylineProperties._id
 						}
 					}
 				],
 				{
 					userID: this._sessionUserID
 				}
-			)
-				.cursor()
-				.next();
+			);
 
-			const children = storyline.children;
-			if (children && children.length !== 0) {
-				// re-assign children to the parent
-				const parents = await Storyline.aggregate([
-					{
-						$match: {
-							children: this._storylineProperties._id
-						}
-					}
-				]);
-
-				for (const parent of parents) {
-					parent.children = parent.children.concat(children);
-
-					await Storyline.findOneAndUpdate({ _id: parent._id }, parent, {
-						userID: this._sessionUserID,
-						session: session
-					});
-				}
+			if (chapters && chapters.length !== 0) {
+				throw new Error('Please delete all chapters before deleting the storyline');
 			}
 
 			result = await Storyline.deleteOne(
@@ -141,36 +128,55 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	}
 
 	async update(): Promise<HydratedDocument<StorylineProperties>> {
-		const session = await mongoose.startSession();
-		await session.withTransaction(async () => {
-			await Storyline.findOneAndUpdate(
-				{ _id: this._storylineProperties._id },
-				this._storylineProperties,
-				{
-					new: true,
-					userID: this._sessionUserID,
-					session: session
-				}
-			);
-		});
-		session.endSession();
-
-		const storyline = await Storyline.aggregate(
-			[
-				{
-					$match: {
-						_id: this._storylineProperties._id
-					}
-				}
-			],
+		const storyline = await Storyline.findOneAndUpdate(
+			{ _id: this._storylineProperties._id },
+			this._storylineProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return storyline;
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
+	}
+
+	async setArchived(ids: string[]): Promise<boolean> {
+		const session = await startSession();
+		let acknowledged = false;
+
+		try {
+			await session.withTransaction(async () => {
+				acknowledged = (
+					await Storyline.updateMany(
+						{ _id: { $in: ids }, user: this._storylineProperties.user },
+						{ archived: this._storylineProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session
+						}
+					)
+				).acknowledged;
+
+				if (acknowledged) {
+					await Chapter.updateMany(
+						{ storyline: { $in: ids }, user: this._storylineProperties.user },
+						{ archived: this._storylineProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		return acknowledged;
 	}
 
 	/**

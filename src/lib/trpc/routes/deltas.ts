@@ -4,6 +4,9 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { update, read, create, versions } from '$lib/trpc/schemas/deltas';
 import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
+import type { Response } from '$lib/util/types';
+import type { DeltaProperties, VersionProperties } from '$lib/properties/delta';
+import type { HydratedDocument } from 'mongoose';
 
 export const deltas = t.router({
 	create: t.procedure
@@ -13,11 +16,19 @@ export const deltas = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder()
 				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
 				.chapterID(input.chapterID);
 
-			const deltaNodeResponse = await deltaBuilder.build();
+			const response: Response = { success: true, message: 'delta successfully created', data: {} };
+			try {
+				const result = await deltaBuilder.build();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return deltaNodeResponse;
+			return { ...response, ...{ data: response.data as HydratedDocument<DeltaProperties> } };
 		}),
 
 	getById: t.procedure
@@ -25,9 +36,21 @@ export const deltas = t.router({
 		.input(read)
 		.query(async ({ input, ctx }) => {
 			const deltasRepo = new DeltasRepository();
-			const result = await deltasRepo.getById(ctx.session, input.id);
 
-			return result;
+			const response: Response = {
+				success: true,
+				message: 'delta successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await deltasRepo.getById(ctx.session, input.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<DeltaProperties> } };
 		}),
 
 	update: t.procedure
@@ -43,9 +66,20 @@ export const deltas = t.router({
 				await deltaBuilder.delta(input.ops);
 			}
 
-			const deltaResponse = await deltaBuilder.update();
+			const response: Response = {
+				success: true,
+				message: 'delta successfully updated',
+				data: {}
+			};
+			try {
+				const result = await deltaBuilder.update();
+				response.data = result.versions?.at(-1);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-			return deltaResponse;
+			return { ...response, ...{ data: response.data as HydratedDocument<VersionProperties> } };
 		}),
 
 	createVersion: t.procedure
@@ -58,9 +92,20 @@ export const deltas = t.router({
 				.chapterID(input.chapterID);
 
 			await deltaBuilder.createVersion(input.title);
-			const deltaResponse = await deltaBuilder.update();
 
-			return deltaResponse;
+			const response: Response = {
+				success: true,
+				message: 'version successfully created',
+				data: {}
+			};
+			try {
+				const result = await deltaBuilder.update();
+				response.data = result.versions?.at(-2);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<VersionProperties> } };
 		}),
 
 	restoreVersion: t.procedure
@@ -73,8 +118,19 @@ export const deltas = t.router({
 				.chapterID(input.chapterID);
 
 			await deltaBuilder.restoreVersion(input.versionID!);
-			const deltaResponse = await deltaBuilder.update();
 
-			return deltaResponse;
+			const response: Response = {
+				success: true,
+				message: 'version successfully restored',
+				data: {}
+			};
+			try {
+				const result = await deltaBuilder.update();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<DeltaProperties> } };
 		})
 });

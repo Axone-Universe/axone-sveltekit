@@ -2,6 +2,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { ChapterProperties } from './chapter';
 import type { PermissionProperties } from './permission';
 import { ulid } from 'ulid';
+import type { UserProperties } from './user';
 
 export const label = 'Delta';
 
@@ -14,10 +15,12 @@ export interface VersionProperties {
 
 export interface DeltaProperties {
 	_id: string;
+	user?: string | HydratedDocument<UserProperties>;
 	chapter?: string | HydratedDocument<ChapterProperties>;
 	permissions?: Record<string, HydratedDocument<PermissionProperties>>;
 	versions?: VersionProperties[];
 	ops?: object;
+	archived?: boolean;
 }
 
 export class VersionPropertyBuilder {

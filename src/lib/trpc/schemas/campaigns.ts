@@ -1,24 +1,29 @@
 import { z } from 'zod';
 
-import type { CampaignProperties } from '$lib/util/types';
+import { create as createBook, update as updateBook } from '$lib/trpc/schemas/books';
 
 export const create = z.object({
-	title: z.string(),
-	organizer: z.object({ name: z.string(), link: z.string() }),
-	dates: z.array(
-		z.object({ startDate: z.coerce.date(), endDate: z.coerce.date(), event: z.string() })
-	),
-	about: z.string(),
-	tags: z.array(z.string()),
-	bannerURL: z.string(),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
 	submissionCriteria: z.string(),
 	rewards: z.string(),
-	previewText: z.string()
-}) satisfies z.ZodType<CampaignProperties>;
+	book: createBook
+});
 
+export const update = z.object({
+	id: z.string(),
+	startDate: z.coerce.date().optional(),
+	endDate: z.coerce.date().optional(),
+	submissionCriteria: z.string().optional(),
+	rewards: z.string().optional(),
+	book: updateBook.optional()
+});
 
 export const read = z.object({
-	title: z.string().optional(),
+	id: z.string().optional(),
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	cursor: z.string().optional()
 });
+
+export type CreateCampaign = z.infer<typeof create>;
+export type ReadCampaign = z.infer<typeof read>;

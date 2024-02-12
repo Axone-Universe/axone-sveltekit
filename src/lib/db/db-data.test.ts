@@ -9,7 +9,8 @@ import {
 	generateTestUser,
 	createBook,
 	getRandomElement,
-	testUserOne
+	testUserOne,
+	createCampaign
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -23,6 +24,7 @@ import {
 import { RATING } from '$lib/properties/review';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
+import type { CreateBook } from '$lib/trpc/schemas/books';
 
 const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
 const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '3');
@@ -76,31 +78,46 @@ test(
 		for (let i = 0; i < sessions.length; i++) {
 			const caller = router.createCaller({ session: sessions[i] });
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
-				const newBook = await createBook(sessions[i]);
-				const storylines = await caller.storylines.getByBookID({
-					bookID: newBook._id
-				});
+				const campaign = Math.random() < 0.2;
+
+				let newBook: any = undefined;
+
+				if (campaign) {
+					newBook = createCampaign(sessions[i]);
+				}
+
+				newBook = await createBook(sessions[i]);
+				const storylines = (
+					await caller.storylines.getByBookID({
+						bookID: newBook.data._id
+					})
+				).data;
 				const chapters: HydratedDocument<ChapterProperties>[] = [];
 
 				for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 					chapters.push(
-						await createChapter(
-							sessions[i],
-							`${faker.person.firstName()} in ${faker.location.city()}`,
-							`${faker.commerce.productDescription()} But a chapter.`,
-							storylines[0]
-						)
+						(
+							await createChapter(
+								sessions[i],
+								`${faker.person.firstName()} in ${faker.location.city()}`,
+								`${faker.commerce.productDescription()} But a chapter.`,
+								storylines[0]
+							)
+						).data
 					);
 				}
 
 				for (let l = 0; l < NUM_STORYLINES_PER_BOOK; l++) {
-					const storyline = await caller.storylines.create({
-						title: `Storyline ${l}`,
-						description: `Storyline ${l} description`,
-						book: newBook._id,
-						parent: storylines[0]._id,
-						parentChapter: getRandomElement(chapters)._id
-					});
+					const storyline = (
+						await caller.storylines.create({
+							title: `Storyline ${l}`,
+							description: `Storyline ${l} description`,
+							book: newBook.data._id,
+							parent: storylines[0]._id,
+							parentChapter: getRandomElement(chapters)._id,
+							imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
+						})
+					).data;
 					for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 						await createChapter(
 							sessions[i],

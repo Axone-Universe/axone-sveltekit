@@ -2,6 +2,7 @@ import type { HydratedDocument } from 'mongoose';
 import type { Genre } from './genre';
 import type { UserProperties } from './user';
 import type { PermissionProperties } from './permission';
+import type { CampaignProperties } from './campaign';
 
 export const label = 'Book';
 
@@ -17,6 +18,8 @@ export interface BookProperties {
 	userPermissions?: { view: boolean; collaborate: boolean };
 	genres?: Genre[];
 	rating: number;
+	archived?: boolean;
+	campaign?: string | HydratedDocument<CampaignProperties>;
 }
 
 export class BookPropertyBuilder {
@@ -34,7 +37,8 @@ export class BookPropertyBuilder {
 			permissions: {
 				public: { _id: 'public', permission: 'view' } as HydratedDocument<PermissionProperties>
 			},
-			rating: 0
+			rating: 0,
+			archived: false
 		};
 	}
 

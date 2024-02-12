@@ -5,10 +5,10 @@ import { label as UserLabel } from '$lib/properties/user';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import {
 	addUserPermissionPipeline,
-	addReadRestrictionPipeline,
-	addUpdateRestrictionPipeline,
+	addViewRestrictionPipeline,
+	addOwnerUpdateRestrictionFilter,
 	permissionSchema,
-	addCollaborationRestrictionOnSave
+	addArchivedRestrictionFilter
 } from './permission';
 import { Book } from './book';
 
@@ -23,7 +23,8 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	description: String,
 	imageURL: String,
 	cumulativeRating: { type: Number, default: 0 },
-	numRatings: { type: Number, default: 0 }
+	numRatings: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false }
 });
 
 interface StorylineMethods extends StorylineProperties {
@@ -36,7 +37,7 @@ storylineSchema.pre('aggregate', function (next) {
 
 	populate(pipeline);
 	addUserPermissionPipeline(userID, pipeline);
-	addReadRestrictionPipeline(userID, pipeline, 'books', 'book');
+	addViewRestrictionPipeline(userID, pipeline, 'books', 'book');
 	next();
 });
 
@@ -44,7 +45,7 @@ storylineSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], funct
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -56,7 +57,9 @@ storylineSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
@@ -67,11 +70,35 @@ storylineSchema.pre('save', async function (next) {
 	const userID = this.user as string;
 	const bookID = this.book as string;
 
-	const { filter, options } = addCollaborationRestrictionOnSave(userID, bookID);
-	const book = await Book.aggregate(filter, options).cursor().next();
+	const book = await Book.aggregate(
+		[
+			{
+				$match: {
+					_id: bookID
+				}
+			}
+		],
+		{
+			userID: userID
+		}
+	)
+		.cursor()
+		.next();
 
-	if (book && !book.userPermissions?.collaborate) {
-		throw new Error('You have no permission to collaborate on the book');
+	if (book) {
+		if (!book.userPermissions?.collaborate) {
+			throw new Error('You have no permission to collaborate on the book');
+		}
+
+		if (book.archived) {
+			throw new Error('This book is archived');
+		}
+
+		if (book.campaign) {
+			if (Date.now() > book.campaign.endDate) {
+				throw new Error('This campaign has ended. No more entries allowed');
+			}
+		}
 	}
 
 	next();

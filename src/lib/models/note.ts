@@ -1,11 +1,7 @@
 import { label, TAGS, type NoteProperties } from '$lib/properties/note';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import mongoose, { Schema, model } from 'mongoose';
-import {
-	addReadRestrictionPipeline,
-	addUpdateRestrictionPipeline,
-	permissionSchema
-} from './permission';
+import { addViewRestrictionPipeline, permissionSchema } from './permission';
 
 export const noteSchema = new Schema<NoteProperties>({
 	_id: { type: String, required: true },
@@ -29,7 +25,7 @@ noteSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 
-	addReadRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
+	addViewRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
 	next();
 });
 

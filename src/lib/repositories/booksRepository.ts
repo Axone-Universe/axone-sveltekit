@@ -6,6 +6,7 @@ import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
 import type { Genre } from '$lib/properties/genre';
 import { UsersRepository } from './usersRepository';
+import type { HomeFilterTag } from '$lib/util/types';
 
 export class BooksRepository extends Repository {
 	async get(
@@ -13,7 +14,10 @@ export class BooksRepository extends Repository {
 		limit?: number,
 		cursor?: string,
 		genres?: Genre[],
-		title?: string
+		tags?: HomeFilterTag[],
+		title?: string,
+		user?: string,
+		archived?: boolean
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
@@ -22,18 +26,32 @@ export class BooksRepository extends Repository {
 			filter.$text = { $search: title };
 		}
 
+		if (user) {
+			filter.user = user;
+		}
+
 		if (genres) {
 			if (genres.length > 0) {
 				filter.genres = { $all: genres };
 			}
 		}
-		// Introduces unexpected behaviour in the method. User genres should be passed through the parameter
-		else {
-			const userRepo = new UsersRepository();
-			const user = await userRepo.getById(session, session?.user.id);
-			if (user && user.genres) {
-				filter.genres = { $in: user.genres };
+
+		if (tags) {
+			if (tags.includes('Campaigns')) {
+				filter.campaign = { $ne: null };
 			}
+
+			if (tags.includes('Recommended')) {
+				const userRepo = new UsersRepository();
+				const user = await userRepo.getById(session, session?.user.id);
+				if (user && user.genres) {
+					filter.genres = { $in: user.genres };
+				}
+			}
+		}
+
+		if (archived !== undefined) {
+			filter.archived = archived;
 		}
 
 		if (cursor) {
@@ -68,21 +86,15 @@ export class BooksRepository extends Repository {
 	async count(): Promise<number> {
 		return await Book.count();
 	}
-	/*async getBooksByUserID(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>[]> {
-		//const user = await User.findOne({ userID: session?.user.id }); // Find the user by userID
-		const books = await Book.find({ user: id}, null, { userID: session?.user.id }); // Find books by the user's _id
-
-
-		return new Promise<HydratedDocument<BookProperties>[]>((resolve) => {
-			resolve(books);
-		});
-	}*/
 
 	async getBooksByUserID(
 		session: Session | null,
-		id?: string
+		id?: string,
+		limit?: number,
+		cursor?: string
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline = [];
+		const filter: any = {};
 
 		pipeline.push(
 			{ $match: { user: id } },
@@ -104,9 +116,12 @@ export class BooksRepository extends Repository {
 				}
 			}
 		);
-		// If you want to limit or skip, you can add those stages here
-		// if (limit) pipeline.push({ $limit: limit });
-		// if (skip) pipeline.push({ $skip: skip });
+
+		if (cursor) {
+			filter._id = { $gt: cursor };
+		}
+
+		if (limit) pipeline.push({ $limit: limit });
 
 		const books = (await Book.aggregate(pipeline, {
 			userID: session?.user.id

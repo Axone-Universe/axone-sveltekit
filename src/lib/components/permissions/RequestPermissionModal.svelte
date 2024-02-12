@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { ChapterProperties } from '$lib/properties/chapter';
-	import { modalStore, toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
-	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import { PermissionsEnum } from '$lib/properties/permission';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { lock, check, close } from 'svelte-awesome/icons';
 	import type { UserProperties } from '$lib/properties/user';
 	import { onMount } from 'svelte';
@@ -20,6 +19,9 @@
 
 	let customClass = '';
 	export { customClass as class };
+
+	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	let sessionUserID = $page.data.session!.user.id;
 
@@ -36,10 +38,20 @@
 		<Icon class="border-none" data={lock} scale={5} />
 
 		{#if document.user && typeof document.user !== 'string'}
+			{#if document.archived}
+				<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
+					<span>Archived</span>
+				</button>
+			{/if}
 			<h4>Permissions</h4>
 			<div class="flex flex-row space-x-2">
 				{#each PermissionsEnum as permissionType}
 					{#if document.permissions['public'] && permissionType === 'view'}
+						<span class="chip variant-filled">
+							<span><Icon data={check} /></span>
+							<span class="capitalize">{permissionType}</span>
+						</span>
+					{:else if document.permissions['public'] && document.permissions['public'].permission === 'collaborate' && permissionType === 'collaborate'}
 						<span class="chip variant-filled">
 							<span><Icon data={check} /></span>
 							<span class="capitalize">{permissionType}</span>

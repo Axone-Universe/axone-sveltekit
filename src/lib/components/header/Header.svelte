@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { AppBar } from '@skeletonlabs/skeleton';
+	import { AppBar, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
-
-	import { drawerStore } from '@skeletonlabs/skeleton';
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { onMount } from 'svelte';
@@ -12,12 +10,15 @@
 	import type { PopupSettings } from '../../util/popup/types';
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
-
-	import Icon from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
+	import NotificationCenter from '../notifications/NotificationCenter.svelte';
+	import { goto } from '$app/navigation';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
+
+	const drawerStore = getDrawerStore();
 
 	/**
 	 * parameters and methods for the nav header
@@ -32,9 +33,6 @@
 		return settings;
 	};
 
-	const readPopupBox: PopupSettings = popupSettings('readPopupBox');
-	const collaboratePopupBox: PopupSettings = popupSettings('collaboratePopupBox');
-	const creatorsPopupBox: PopupSettings = popupSettings('creatorsPopupBox');
 	const profilePopupBox: PopupSettings = popupSettings('profilePopupBox');
 
 	const drawerSettings: DrawerSettings = {
@@ -58,6 +56,7 @@
 	 */
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
+		goto('');
 	};
 </script>
 
@@ -72,12 +71,8 @@
 			<button class="lg:hidden" on:click={openDrawer}>
 				<Icon data={navicon} scale={1.5} />
 			</button>
-			<a
-				class="hidden lg:flex items-center text-l"
-				href={data.session && data.session.user.id ? '/home' : '/'}
-			>
-				<Logo />
-				<span class="logo-name">AXONE</span>
+			<a class="hidden lg:flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
+				<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
 			</a>
 		</svelte:fragment>
 		<div class="hidden lg:flex">
@@ -97,13 +92,6 @@
 			</div>
 
 			<div>
-				<a
-					href="/campaigns"
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
-				>
-					<span class="capitalize">Campaigns</span>
-				</a>
-
 				<div id="card" class="card p-4 w-fit shadow-xl" data-popup="collaboratePopupBox">
 					<div class="grid grid-cols-1">
 						<nav class="list-nav">
@@ -121,9 +109,12 @@
 			</div>
 
 			<div>
-				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
-					<span class="capitalize">Creators</span>
-				</button>
+				<a
+					href="/community"
+					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				>
+					<span class="capitalize">Community</span>
+				</a>
 
 				<div class="card p-4 w-fit shadow-xl" data-popup="creatorsPopupBox">
 					<div class="grid grid-cols-1">
@@ -142,17 +133,19 @@
 			</div>
 
 			<div>
-				<button class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none">
+				<a
+					href="/learn"
+					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+				>
 					<span class="capitalize">Learn More</span>
-				</button>
+				</a>
 			</div>
 		</div>
 		<a
 			class="lg:hidden flex items-center text-l"
 			href={data.session && data.session.user.id ? '/home' : '/'}
 		>
-			<Logo />
-			<span class="logo-name">AXONE</span>
+			<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
 		</a>
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
@@ -192,10 +185,7 @@
 										<Icon data={listUl} /><span>Library</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<a
-										class="btn space-x-6 hover:variant-soft-primary"
-										href={`/user/studio/${data.session.user.id}/books`}
-									>
+									<a class="btn space-x-6 hover:variant-soft-primary" href={`/studio`}>
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>
@@ -210,10 +200,12 @@
 								<div class="arrow bg-surface-100-800-token" />
 							</div>
 						</div>
+						<NotificationCenter />
 					{:else}
 						<a class="btn variant-filled-primary" href="/login"> Login </a>
 					{/if}
 				</div>
+
 				<LightSwitch />
 			</div>
 		</svelte:fragment>

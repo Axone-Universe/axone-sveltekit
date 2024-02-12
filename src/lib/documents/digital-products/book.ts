@@ -1,13 +1,14 @@
 import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
-import type { HydratedDocument } from 'mongoose';
+import type { ClientSession, HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import { StorylineBuilder } from './storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -63,6 +64,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
+	archived(archived: boolean) {
+		this._bookProperties.archived = archived;
+		return this;
+	}
+
 	sessionUserID(sessionUserID: string): BookBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
@@ -74,40 +80,21 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		let result = {};
 
 		await session.withTransaction(async () => {
-			const book = await Book.aggregate(
+			const storylines = await Storyline.aggregate(
 				[
 					{
 						$match: {
-							_id: this._bookProperties._id
+							book: this._bookProperties._id
 						}
 					}
 				],
 				{
 					userID: this._sessionUserID
 				}
-			)
-				.cursor()
-				.next();
+			);
 
-			const children = book.children;
-			if (children && children.length !== 0) {
-				// re-assign children to the parent
-				const parents = await Book.aggregate([
-					{
-						$match: {
-							children: this._bookProperties._id
-						}
-					}
-				]);
-
-				for (const parent of parents) {
-					parent.children = parent.children.concat(children);
-
-					await Book.findOneAndUpdate({ _id: parent._id }, parent, {
-						userID: this._sessionUserID,
-						session: session
-					});
-				}
+			if (storylines && storylines.length !== 0) {
+				throw new Error('Please delete all storylines before deleting the book');
 			}
 
 			result = await Book.deleteOne(
@@ -123,27 +110,83 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
-		await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
-			new: true,
-			userID: this._sessionUserID
-		});
-
-		const newBook = await Book.aggregate(
-			[
-				{
-					$match: {
-						_id: this._bookProperties._id
-					}
-				}
-			],
+		let book = await Book.findOneAndUpdate(
+			{ _id: this._bookProperties._id },
+			this._bookProperties,
 			{
+				new: true,
 				userID: this._sessionUserID
 			}
-		)
-			.cursor()
-			.next();
+		);
 
-		return newBook;
+		if (book) {
+			// aggregate is called again so that the db middleware runs
+			book = await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._userID.id
+				}
+			)
+				.cursor()
+				.next();
+
+			return book as HydratedDocument<BookProperties>;
+		}
+
+		throw new Error("Couldn't update book");
+	}
+
+	async setArchived(ids: string[]): Promise<boolean> {
+		const session = await startSession();
+		let acknowledged = false;
+
+		try {
+			await session.withTransaction(async () => {
+				acknowledged = (
+					await Book.updateMany(
+						{ _id: { $in: ids }, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					)
+				).acknowledged;
+
+				if (acknowledged) {
+					await Storyline.updateMany(
+						{ book: { $in: ids }, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+
+					await Chapter.updateMany(
+						{ book: { $in: ids }, user: this._bookProperties.user },
+						{ archived: this._bookProperties.archived },
+						{
+							new: true,
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		return acknowledged;
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
@@ -156,22 +199,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		try {
 			// use a transaction to make sure everything saves
 			await session.withTransaction(async () => {
-				await book.save({ session });
-
-				const hydratedBook = book as HydratedDocument<BookProperties>;
-
-				// Also create the default/main storyline
-				const storylineBuilder = new StorylineBuilder()
-					.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
-					.bookID(hydratedBook._id)
-					.title(hydratedBook.title!)
-					.main(true)
-					.description(hydratedBook.description!)
-					.imageURL(hydratedBook.imageURL!)
-					.permissions(hydratedBook.permissions);
-
-				const storyline = new Storyline(storylineBuilder.properties());
-				await storyline.save({ session });
+				await saveBook(book, session);
 			});
 		} finally {
 			session.endSession();
@@ -192,6 +220,29 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			.cursor()
 			.next();
 
-		return newBook as unknown as HydratedDocument<BookProperties>;
+		return newBook as HydratedDocument<BookProperties>;
 	}
+
+	properties(): BookProperties {
+		return this._bookProperties;
+	}
+}
+
+export async function saveBook(book: HydratedDocument<BookProperties>, session: ClientSession) {
+	await book.save({ session });
+
+	const hydratedBook = book as HydratedDocument<BookProperties>;
+
+	// Also create the default/main storyline
+	const storylineBuilder = new StorylineBuilder()
+		.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
+		.bookID(hydratedBook._id)
+		.title(hydratedBook.title!)
+		.main(true)
+		.description(hydratedBook.description!)
+		.imageURL(hydratedBook.imageURL!)
+		.permissions(hydratedBook.permissions);
+
+	const storyline = new Storyline(storylineBuilder.properties());
+	await storyline.save({ session });
 }

@@ -1,21 +1,24 @@
 <script lang="ts">
-	import {Avatar, Step, Stepper, FileButton, toastStore} from '@skeletonlabs/skeleton';
+	import { Avatar, Step, Stepper, FileButton, getToastStore } from '@skeletonlabs/skeleton';
 	import type { ToastSettings } from '@skeletonlabs/skeleton';
 	import defaultUserImage from '$lib/assets/default-user.png';
 	import { USER_LABELS, type UserProperties } from '$lib/properties/user';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import { GENRES } from '$lib/properties/genre';
-	import {pencil as pencilIcon} from "svelte-awesome/icons";
-	import Icon from "svelte-awesome";
-	import type {SupabaseClient} from "@supabase/supabase-js";
-	import type {StorageBucketError, UploadFileToBucketParams} from "$lib/util/types";
+	import { pencil as pencilIcon } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome';
+	import type { SupabaseClient } from '@supabase/supabase-js';
+	import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
-	export let supabase:  SupabaseClient;
+	export let supabase: SupabaseClient;
 
 	let genres = userProperties.genres ?? [];
 	let labels = userProperties.labels ?? [];
+
+	const toastStore = getToastStore();
 
 	const aboutMaxLength = 500;
 	/**
@@ -38,9 +41,7 @@
 		background: 'variant-filled-error'
 	};
 
-
 	let profileImage = defaultUserImage;
-	updateProfilePhoto();
 
 	async function submit() {
 		userProperties.genres = genres;
@@ -54,79 +55,31 @@
 	 * and then triggers a success or error toast message based on the response. Finally, it updates the profile photo.
 	 * @param event The event object that contains information about the file selection.
 	 */
-	async function avatarFileSelected(event: Event){
-		const newAvatarImage = (event.target as HTMLInputElement)?.files?.[0] as File;
+	async function avatarFileSelected(event: Event) {
+		let newAvatarImage = (event.target as HTMLInputElement)?.files?.[0] as File;
+		newAvatarImage = renameFile(newAvatarImage, 'profile');
 
 		const bucketName = `profiles/${userProperties._id}`;
 
-		toastStore.trigger(progressUploadToast)
+		const response = await uploadImage(supabase, bucketName, newAvatarImage, toastStore);
 
-		//upload the file
-		const response = await uploadFileToBucket({ supabase: supabase, file: newAvatarImage, bucket: bucketName, newFileName: `profile` })
-
-		toastStore.clear();
-		if (response.error){
-			errorUploadToast.message = errorUploadToast.message + ". Reason: " + response.error.message;
-			toastStore.trigger(errorUploadToast)
-		}else{
-			toastStore.trigger(successUploadToast)
-			await updateProfilePhoto()
-		}
-
-	}
-
-	/**
-	 * This function updates the profile photo by retrieving the public URL of the image from a specific bucket in Supabase storage.
-	 */
-	async function updateProfilePhoto(){
-		const bucketName = `profiles/${userProperties._id}`;
-		const imageName = 'profile'
-		const { data } = await supabase
-				.storage
-				.from(bucketName)
-				.getPublicUrl(imageName)
-
-		if (data){
-			profileImage = data.publicUrl;
+		if (response.error) {
+			errorUploadToast.message = errorUploadToast.message + '. Reason: ' + response.error.message;
+			toastStore.trigger(errorUploadToast);
+		} else {
+			userProperties.imageURL = response.url!;
+			toastStore.trigger(successUploadToast);
 		}
 	}
 
-	/**
-	 * Attempts to upload a file to the specified bucket
-	 * @param supabase Supabase client
-	 * @param file File to upload
-	 * @param bucket Bucket to upload to
-	 * @param newFileName Optional new file name
-	 */
-	async function uploadFileToBucket({ supabase, file, bucket, newFileName }: UploadFileToBucketParams) {
+	function renameFile(originalFile: File, newName: string) {
+		const originalName = originalFile.name;
+		newName = newName + '.' + originalName.split('.').pop();
 
-		// Check if the file already exists
-		const bucketName = bucket.substring(0, bucket.indexOf('/'))
-		const folder = bucket.substring(bucket.indexOf('/') + 1)
-
-		const { data } = await supabase
-				.storage
-				.from(bucketName)
-				.list(folder, {
-					limit: 100,
-					offset: 0,
-					sortBy: { column: 'name', order: 'asc' },
-				})
-
-		const existingFile = data.find((file: any) => file.name === newFileName);
-
-		if (existingFile) {
-			// If the file exists, delete it before overwriting
-			return supabase
-					.storage
-					.from(bucketName)
-					.upload(folder + "/" + newFileName, file, {
-						cacheControl: "0",
-						upsert: true
-					})
-		}else{
-			return supabase.storage.from(bucket).upload(newFileName || file.name, file);
-		}
+		return new File([originalFile], newName, {
+			type: originalFile.type,
+			lastModified: originalFile.lastModified
+		});
 	}
 </script>
 
@@ -134,11 +87,18 @@
 	<Step>
 		<svelte:fragment slot="header">Basic Information</svelte:fragment>
 		<div class="min-h-[calc(60vh)] space-y-4">
-			<div class="relative inline-block w-24 h-24">
-				<FileButton on:change={avatarFileSelected} name="avatarFileButton" button="" class="badge-icon variant-filled-primary w-6 h-6 absolute -bottom-0 -right-0 z-10">
-					<Icon data={pencilIcon} />
-				</FileButton>
-				<Avatar src={profileImage} width="w-24" rounded="rounded-full"/>
+			<div class="flex flex-col items-center w-full">
+				<div class="relative inline-block w-24 h-24">
+					<FileButton
+						on:change={avatarFileSelected}
+						name="avatarFileButton"
+						button=""
+						class="badge-icon variant-filled-primary w-6 h-6 absolute -bottom-0 -right-0 z-10"
+					>
+						<Icon data={pencilIcon} />
+					</FileButton>
+					<Avatar src={userProperties.imageURL} width="w-24" rounded="rounded-full" />
+				</div>
 			</div>
 			<label>
 				*First name

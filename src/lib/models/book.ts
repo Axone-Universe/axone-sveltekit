@@ -1,10 +1,12 @@
 import { label, type BookProperties } from '$lib/properties/book';
 import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
+import { label as CampaignLabel } from '$lib/properties/campaign';
 import {
 	addUserPermissionPipeline,
-	addUpdateRestrictionPipeline,
-	permissionSchema
+	addOwnerUpdateRestrictionFilter,
+	permissionSchema,
+	addArchivedRestrictionFilter
 } from './permission';
 import { GENRES } from '$lib/properties/genre';
 
@@ -22,7 +24,9 @@ export const bookSchema = new Schema<BookProperties>({
 			enum: GENRES
 		}
 	],
-	rating: { type: Number, default: 0 }
+	rating: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false },
+	campaign: { type: String, ref: CampaignLabel, required: false }
 });
 
 bookSchema.index({ title: 'text' });
@@ -44,7 +48,7 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -56,7 +60,9 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
@@ -75,6 +81,15 @@ function populate(pipeline: PipelineStage[]) {
 		{
 			$unwind: {
 				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$lookup: { from: 'campaigns', localField: 'campaign', foreignField: '_id', as: 'campaign' }
+		},
+		{
+			$unwind: {
+				path: '$campaign',
 				preserveNullAndEmptyArrays: true
 			}
 		}

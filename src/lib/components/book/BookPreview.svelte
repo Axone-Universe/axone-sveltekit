@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { modalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { star } from 'svelte-awesome/icons';
 
 	import BookModal from './BookModal.svelte';
@@ -11,30 +11,26 @@
 
 	export let book: HydratedDocument<BookProperties>;
 
+	const modalStore = getModalStore();
 	let user = book.user as UserProperties;
-
 	let didError = false;
 
 	const modalComponent: ModalComponent = {
 		ref: BookModal,
-		props: { bookData: book }
+		props: { book }
 	};
 
 	const modal: ModalSettings = {
 		type: 'component',
 		component: modalComponent
 	};
-
-	let showModal = () => {
-		modalStore.trigger(modal);
-	};
 </script>
 
 <button
 	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
-		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
+		didError || !book.imageURL ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
 	}`}
-	on:click={showModal}
+	on:click={() => modalStore.trigger(modal)}
 >
 	<ImageWithFallback src={book.imageURL} alt={book.title} bind:didError />
 	<div
@@ -59,6 +55,17 @@
 				class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300"
 			>
 				{book.rating.toFixed(1)}
+			</p>
+		</div>
+	{/if}
+	{#if book.campaign}
+		<div
+			class="overflow-hidden flex items-center absolute bottom-1 left-1 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+		>
+			<p
+				class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+			>
+				campaign
 			</p>
 		</div>
 	{/if}

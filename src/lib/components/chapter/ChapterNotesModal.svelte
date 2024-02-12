@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { NotePropertyBuilder, type NoteProperties, TAGS, type Tag } from '$lib/properties/note';
 	import {
-		modalStore,
-		toastStore,
 		type ToastSettings,
 		ListBox,
 		ListBoxItem,
-		type ModalSettings
+		type ModalSettings,
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import TextArea from '../TextArea.svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -14,23 +14,23 @@
 	import type { HydratedDocument } from 'mongoose';
 	import { onMount } from 'svelte';
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 
 	export let chapterNode: HydratedDocument<ChapterProperties>;
+	export let disabled: false;
 
 	let customClass = '';
 	export { customClass as class };
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	let note: NoteProperties = new NotePropertyBuilder().getProperties();
 
 	let chapterNotes: HydratedDocument<NoteProperties>[] = [];
 	let filteredChapterNotes: HydratedDocument<NoteProperties>[] = [];
 	let chapterNotesList = '';
-
-	let disabled =
-		$page.data.user._id !==
-		(typeof chapterNode.user === 'string' ? chapterNode.user : chapterNode.user!._id);
 
 	onMount(() => {
 		getChapterNotes();
@@ -84,9 +84,9 @@
 			.notes.getByChapterID.query({
 				chapterID: chapterNode._id
 			})
-			.then((noteResponse) => {
-				chapterNotes = noteResponse as HydratedDocument<NoteProperties>[];
-				filteredChapterNotes = noteResponse as HydratedDocument<NoteProperties>[];
+			.then((response) => {
+				chapterNotes = response.data as HydratedDocument<NoteProperties>[];
+				filteredChapterNotes = response.data as HydratedDocument<NoteProperties>[];
 			});
 	}
 
@@ -111,11 +111,11 @@
 				note: note.note!,
 				tags: note.tags
 			})
-			.then((noteResponse) => {
+			.then((response) => {
 				toastMessage = 'Creation Successful';
 				toastBackground = 'bg-success-500';
 
-				chapterNotes.push(noteResponse as HydratedDocument<NoteProperties>);
+				chapterNotes.push(response.data as HydratedDocument<NoteProperties>);
 				searchNotes();
 			})
 			.finally(() => {

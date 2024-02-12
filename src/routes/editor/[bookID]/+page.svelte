@@ -8,11 +8,10 @@
 	import {
 		AppShell,
 		Drawer,
-		drawerStore,
 		FileDropzone,
-		LightSwitch,
-		modalStore,
-		toastStore
+		getDrawerStore,
+		getModalStore,
+		getToastStore
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -22,8 +21,8 @@
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
-
-	import Icon from 'svelte-awesome';
+	import { setupTour, startTour } from './tutorial';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		check,
 		chevronLeft,
@@ -39,9 +38,12 @@
 		unlock,
 		star,
 		bookmark,
-		history
+		history,
+		lock,
+		info
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
+	import Toolbar from '$lib/components/editor/Toolbar.svelte';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
@@ -56,6 +58,10 @@
 	import StorylineReviewModal from '$lib/components/storyline/StorylineReviewModal.svelte';
 	import DeltaVersionsModal from '$lib/components/chapter/DeltaVersionsModal.svelte';
 	import type { DeltaProperties } from '$lib/properties/delta';
+	import Delta from 'quill-delta';
+	import type Op from 'quill-delta/dist/Op';
+	import { autoStartTour } from '$lib/util/tour/tour';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -66,41 +72,29 @@
 
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
+	const drawerStore = getDrawerStore();
+
+	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
+	let selectedChapterID = $page.url.searchParams.get('chapterID');
+
 	onMount(() => {
+		setupTour();
+
 		loadChapters();
 		drawerStore.open(drawerSettings);
 
 		async function getUser() {
 			if (session) {
-				const maybeUser = await trpc($page).users.getById.query({ id: session?.user.id });
-				if (maybeUser) {
-					user = maybeUser as HydratedDocument<UserProperties>;
+				const maybeUserResponse = await trpc($page).users.getById.query({ id: session?.user.id });
+				if (maybeUserResponse.data) {
+					user = maybeUserResponse.data as HydratedDocument<UserProperties>;
 				}
 			}
 		}
 
 		getUser();
-	});
-
-	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
-
-	/**
-	 * Set up selected chapter before the DOM is updated.
-	 * The DOM will use that data to render elements
-	 */
-	beforeUpdate(() => {
-		let chapterID = $page.url.searchParams.get('chapterID');
-
-		// Set selectedChapterNode to be from the url parameter
-		if (!selectedChapter) {
-			if (!chapterID && Object.keys(selectedStorylineChapters).length !== 0) {
-				chapterID = Object.keys(selectedStorylineChapters)[0];
-			}
-
-			if (chapterID && chapterID in selectedStorylineChapters) {
-				selectedChapter = selectedStorylineChapters[chapterID];
-			}
-		}
 	});
 
 	/**
@@ -111,6 +105,7 @@
 		if (!quill || !quill.chapter || quill.chapter._id !== selectedChapter?._id) {
 			setupEditor();
 		}
+		autoStartTour($page.url + '-tour');
 	});
 
 	/**
@@ -157,13 +152,19 @@
 		}
 	}
 
-	let selectedChapter: HydratedDocument<ChapterProperties> | undefined;
+	$: selectedChapter = selectedChapterID
+		? selectedStorylineChapters[selectedChapterID]
+		: Object.keys(selectedStorylineChapters).length !== 0
+		? Object.values(selectedStorylineChapters)[0]
+		: undefined;
 	let leftDrawerSelectedItem = 'copyright';
 
 	function navItemClicked(event: { detail: any }) {
 		let itemID = event.detail;
 
 		if (itemID in selectedStorylineChapters) {
+			versionPreview = false;
+			versionID = undefined;
 			selectedChapter = selectedStorylineChapters[itemID];
 		} else {
 			quill.chapter = undefined;
@@ -203,10 +204,12 @@
 
 	async function addToReadingList(names: string[]) {
 		try {
-			user = (await trpc($page).users.updateReadingLists.mutate({
-				names,
-				storylineID: selectedStoryline._id
-			})) as HydratedDocument<UserProperties>;
+			user = (
+				await trpc($page).users.updateReadingLists.mutate({
+					names,
+					storylineID: selectedStoryline._id
+				})
+			).data as HydratedDocument<UserProperties>;
 		} catch (e) {
 			console.log(e);
 		}
@@ -247,8 +250,8 @@
 				storylineID: selectedStoryline._id,
 				storylineChapterIDs: selectedStoryline.chapters as string[]
 			})
-			.then((chaptersResponse) => {
-				selectedStoryline.chapters = chaptersResponse as HydratedDocument<ChapterProperties>[];
+			.then((response) => {
+				selectedStoryline.chapters = response.data as HydratedDocument<ChapterProperties>[];
 				selectedStoryline.chapters.forEach((chapter) => {
 					if (typeof chapter !== 'string') selectedStorylineChapters[chapter._id] = chapter;
 				});
@@ -259,9 +262,10 @@
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
-			chapterNode: selectedChapter,
+			chapter: selectedChapter,
 			bookID: bookData._id,
-			storylineID: selectedStoryline._id
+			storylineID: selectedStoryline._id,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
 		};
 
 		modalStore.trigger(modalSettings);
@@ -290,7 +294,7 @@
 
 		modalComponent.ref = ChapterDetailsModal;
 		modalComponent.props = {
-			chapterNode: newChapterNode,
+			chapter: newChapterNode,
 			bookID: bookData._id,
 			storylineID: selectedStoryline._id,
 			prevChapterID: prevChapterID
@@ -337,6 +341,9 @@
 			.then((response: StorageFileError) => {
 				if (response.data) {
 					const filesToRemove = response.data.map((x) => `${folder}/${x.name}`);
+					if (filesToRemove.length === 0) {
+						return;
+					}
 					supabase.storage
 						.from('books')
 						.remove(filesToRemove)
@@ -356,6 +363,42 @@
 			});
 	}
 
+	$: isSelectedChapterOwner = setSelectedChapterOwner(selectedChapter);
+	function setSelectedChapterOwner(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		const currentUser = $page.data.user;
+		if (!selectedChapter) {
+			return false;
+		}
+
+		let userID;
+
+		if (typeof selectedChapter.user === 'string') {
+			userID = selectedChapter.user;
+		} else {
+			userID = selectedChapter.user?._id;
+		}
+
+		if (userID === currentUser._id) {
+			return true;
+		}
+
+		return false;
+	}
+
+	$: hasSelectedChapterPermissions = setSelectedChapterPermissions(selectedChapter);
+	$: canEditSelectedChapter = hasSelectedChapterPermissions && !selectedChapter?.archived;
+	function setSelectedChapterPermissions(
+		selectedChapter: HydratedDocument<ChapterProperties> | undefined
+	) {
+		if (!selectedChapter) {
+			return false;
+		}
+
+		return selectedChapter.userPermissions?.view && selectedChapter.userPermissions?.collaborate;
+	}
+
 	let deleteChapter = () => {
 		if (!selectedChapter) {
 			return;
@@ -365,7 +408,7 @@
 			type: 'confirm',
 			// Data
 			title: selectedChapter.title,
-			body: 'Are you sure you wish to delete this chapter?',
+			body: 'Are you sure you want to delete this chapter?',
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
@@ -377,7 +420,7 @@
 							id: selectedChapter!._id
 						})
 						.then((response) => {
-							if (response.deletedCount !== 0) {
+							if (response.success) {
 								let deletedID = selectedChapter!._id;
 								let chapterIDs = Object.keys(selectedStorylineChapters);
 								let nextIndex = chapterIDs.indexOf(deletedID) + 1;
@@ -386,7 +429,7 @@
 									nextIndex = 0;
 								}
 
-								let selectedChapterID = chapterIDs[nextIndex];
+								selectedChapterID = chapterIDs[nextIndex];
 								leftDrawerSelectedItem = selectedChapterID;
 
 								// delete the node first
@@ -400,6 +443,14 @@
 
 								// setup the editor
 								setupEditor();
+							} else {
+								// show toast error
+								const deleteFail: ToastSettings = {
+									message: response.message,
+									// Provide any utility or variant background style:
+									background: 'variant-filled-error'
+								};
+								toastStore.trigger(deleteFail);
 							}
 						})
 						.catch((error) => {
@@ -413,13 +464,24 @@
 
 	let showChapterNotes = () => {
 		modalComponent.ref = ChapterNotesModal;
-		modalComponent.props = { storylineNode: selectedStoryline, chapterNode: selectedChapter };
+		modalComponent.props = {
+			storylineNode: selectedStoryline,
+			chapterNode: selectedChapter,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 		modalStore.trigger(modalSettings);
 	};
 
+	let versionPreview = false;
+	let versionID: string | undefined = undefined;
+
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
-		modalComponent.props = { delta: quill.chapter!.delta };
+		modalComponent.props = {
+			delta: quill.chapter!.delta,
+			selectedVersionID: versionID,
+			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
 
 		modalSettings.response = createVersionCallback;
 		modalStore.trigger(modalSettings);
@@ -429,6 +491,17 @@
 		if (!delta) {
 			return;
 		}
+
+		if (delta._id === '') {
+			versionPreview = true;
+			versionID = delta.versions?.at(-1)?._id;
+
+			quill.disable();
+			quill.setContents(new Delta(delta.ops as Op[]));
+			return;
+		}
+
+		versionPreview = false;
 
 		// Update the Chapter
 		selectedChapter!.delta = delta;
@@ -501,6 +574,7 @@
 	function removeComment(id: string) {
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -518,7 +592,7 @@
 		quill
 			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
 			.then((response: any) => {
-				if (!response.data) {
+				if (response.error) {
 					//error
 					const errorUploadToast: ToastSettings = {
 						message: 'There was an issue deleting the illustration',
@@ -536,6 +610,8 @@
 					toastStore.trigger(successUploadToast);
 				}
 			});
+
+		quill.oldSelectedRange = null; // reset the old range
 	}
 
 	/**
@@ -563,8 +639,14 @@
 	}
 
 	function commentAddClick() {
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration())
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
+		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('comment').addComment(' ');
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
+		}
 
 		if (quill.selectedContainsIllustration()) {
 			drawerStore.open(drawerSettings);
@@ -581,12 +663,17 @@
 	 * Adds an illustration to the quill
 	 */
 	function illustrationAddClick() {
+		if (quill.oldSelectedRange === quill.selectedRange) {
+			return; // same range is selected
+		}
+
 		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
 			quill.getModule('illustration').addIllustration({
 				src: '',
 				alt: '',
 				caption: ''
 			});
+			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
 		}
 
 		if (quill.selectedContainsComment()) {
@@ -624,70 +711,6 @@
 	}
 
 	/**
-	 * Uploads a file to a supabase storage bucket
-	 * @param file - the file to upload
-	 * @param bucket - the bucket to upload to
-	 * @param newFileName - the new file name to use
-	 * @param illustration - the illustration object
-	 */
-	let progressToastId: string | undefined = undefined;
-	function uploadFileToBucket(
-		file: File,
-		bucket: string,
-		newFileName: string | undefined,
-		illustration: Illustration
-	) {
-		if (!progressToastId) progressToastId = toastStore.trigger(progressUploadToast);
-
-		quill
-			.uploadFileToBucket({ supabase, file, bucket, newFileName } as UploadFileToBucketParams)
-			.then((response: any) => {
-				if (response.data) {
-					//success
-					//update illustration src, then submit illustration
-					illustration.illustration.src = quill.getSupabaseFileURL({
-						supabase,
-						bucket,
-						responsePath: response.data.path
-					});
-					submitIllustration(illustration.id, illustration.illustration);
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					toastStore.trigger(successUploadToast);
-				} else if (response.error.error === 'Duplicate') {
-					//file already exists, rename file and try again
-					uploadFileToBucket(file, bucket, 'copy_' + (newFileName || file.name), illustration);
-				} else if (
-					response.error.error === 'Payload too large' ||
-					response.error.statusCode === '413'
-				) {
-					//file too large
-					//show toast error
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					const errorUploadToast: ToastSettings = {
-						message: 'File is too large. Please upload a smaller file.',
-						// Provide any utility or variant background style:
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(errorUploadToast);
-				} else {
-					//error
-					//show toast error
-					if (progressToastId) {
-						toastStore.close(progressToastId);
-						progressToastId = undefined;
-					}
-					toastStore.trigger(errorUploadToast);
-				}
-			});
-	}
-
-	/**
 	 * Uploads an illustration to supabase storage
 	 * @param newIllustrationFile - the file to upload or the event that contains the file
 	 * @param illustration - the illustration
@@ -708,18 +731,19 @@
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
 
-		//check if bucket exists
-		return await quill
-			.createIllustrationBucket({
-				supabase: supabase,
-				bucket: bucketName,
-				errorCallback: function () {
-					toastStore.trigger(errorUploadToast);
-				}
-			})
-			.then(() => {
-				uploadFileToBucket(newIllustrationFile as File, bucketName, undefined, illustration);
-			});
+		const response = await uploadImage(
+			supabase,
+			bucketName,
+			newIllustrationFile as File,
+			toastStore
+		);
+
+		if (response.url && response.url !== null) {
+			illustration.illustration.src = response.url;
+			submitIllustration(illustration.id, illustration.illustration);
+		} else {
+			toastStore.trigger(errorUploadToast);
+		}
 	}
 
 	/**
@@ -776,10 +800,6 @@
 	 */
 	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
 	async function setupEditor() {
-		let icons = Quill.import('ui/icons');
-		icons['comments-add'] = '<img src="/comments.svg"/>';
-		icons['illustrations-add'] = '<img src="/illustrations.svg"/>';
-
 		if (!selectedChapter) {
 			return;
 		}
@@ -789,10 +809,10 @@
 			container.innerHTML = '';
 			quill = new QuillEditor(container, selectedChapter, $page, {
 				reader: mode === 'reader' ? true : false,
-				theme: 'bubble',
+				theme: 'snow',
 				modules: {
 					toolbar: {
-						container: toolbarOptions
+						container: '#ql-toolbar'
 					},
 					comment: {
 						enabled: true,
@@ -829,10 +849,9 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" /> -->
+	<link rel="stylesheet" type="text/css" href="//cdn.quilljs.com/1.3.6/quill.snow.css" />
 </svelte:head>
-
-<!-- <Modal chapterNode={chapters[selectedChapterID]} /> -->
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <AppShell class="editor-shell min-h-screen">
@@ -841,7 +860,7 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full "
+			class="md:!relative h-full"
 		>
 			<BookNav
 				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
@@ -855,6 +874,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarRight">
 		<Drawer
+			id="drawer-actions"
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="max-w-[80px]"
 			position="right"
@@ -963,24 +983,26 @@
 
 				<div class="flex flex-col p-2 bg-surface-50-900-token">
 					<div class="h-3/4 flex flex-col items-center">
-						<LightSwitch />
 						{#if selectedChapter}
 							<EditorNav
 								{mode}
 								menuItems={[
 									{
-										label: 'Details',
-										icon: mode === 'reader' ? infoCircle : edit,
+										id: 'chapter-info',
+										label: 'Edit chapter details',
+										icon: edit,
 										callback: showChapterDetails
 									},
 									{
-										label: 'Rate',
+										id: 'rate-storyline',
+										label: 'Rate the storyline',
 										icon: star,
 										callback: rateStoryline,
 										mode: 'reader'
 									},
 									{
-										label: 'Comments',
+										id: 'view-comments',
+										label: 'View chapter comments',
 										icon: dashcube,
 										callback: toggleShowComments,
 										class: 'relative',
@@ -989,7 +1011,8 @@
 										hidden: numComments === 0
 									},
 									{
-										label: 'Illustrations',
+										id: 'view-illustrations',
+										label: 'View chapter illustrations',
 										icon: image,
 										callback: toggleShowIllustrations,
 										class: 'relative',
@@ -998,18 +1021,35 @@
 										hidden: numIllustrations === 0
 									},
 									{
-										label: 'Notes',
+										id: 'chapter-notes',
+										label: 'Add chapter notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
 										mode: 'writer'
 									},
 									{
+										id: 'reading-lists',
 										label: 'Add to Reading List',
 										icon: bookmark,
 										callback: openReadingListModal,
 										mode: 'reader'
 									},
-									{ label: 'Permissions', icon: unlock, callback: showChapterPermissions }
+									{
+										id: 'view-permissions',
+										label: 'View chapter permissions',
+										icon: canEditSelectedChapter ? unlock : lock,
+										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
+										callback: showChapterPermissions,
+										mode: 'writer'
+									},
+									{
+										id: 'page-info',
+										label: 'Information',
+										icon: infoCircle,
+										callback: () => {
+											startTour();
+										}
+									}
 								]}
 							/>
 						{/if}
@@ -1019,25 +1059,30 @@
 							{mode}
 							menuItems={[
 								{
-									label: 'Create',
+									id: 'create-chapter',
+									label: 'Create new chapter',
 									icon: plus,
 									callback: createChapter,
 									mode: 'writer'
 								},
 								{
-									label: 'Delete',
+									id: 'delete-chapter',
+									label: 'Delete chapter',
 									icon: trash,
 									callback: deleteChapter,
-									mode: 'writer'
+									mode: 'writer',
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
-									label: 'History',
+									id: 'manage-history',
+									label: 'Restore chapter version',
 									icon: history,
 									callback: versionHistory,
 									mode: 'writer',
-									hidden: selectedChapter ? false : true
+									hidden: isSelectedChapterOwner ? false : true
 								},
 								{
+									id: 'auto-save',
 									label: 'Auto Save',
 									icon: deltaChange.length() > 0 ? spinner : check,
 									pulse: deltaChange.length() > 0 ? true : false,
@@ -1053,7 +1098,7 @@
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="default">
-		<div class="flex h-full w-full">
+		<div class="flex h-screen w-full overflow-y-clip">
 			{#if selectedChapter}
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
 					{#if $drawerStore.open}
@@ -1063,27 +1108,24 @@
 					{/if}
 				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
-					{#if !selectedChapter.userPermissions?.view}
-						<button class="btn fixed variant-filled-warning font-sans top-32 w-1/6">
-							<span>No Viewing Permissions</span>
+					{#if versionPreview}
+						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
+							<span>Version Preview</span>
 						</button>
 					{/if}
+					<div class=" h-[15%]">
+						<textarea
+							id="message"
+							rows="2"
+							class="block h-fit p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							placeholder="Chapter Title"
+							bind:value={selectedChapter.title}
+							disabled
+						/>
+					</div>
 
-					{#if mode === 'writer' && !selectedChapter.userPermissions?.collaborate}
-						<button class="btn fixed variant-filled-primary font-sans top-44 w-1/6">
-							<span>No Collaboration Permissions</span>
-						</button>
-					{/if}
-
-					<textarea
-						id="message"
-						rows="4"
-						class="block p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
-						placeholder="Chapter Title"
-						bind:value={selectedChapter.title}
-						disabled
-					/>
-					<div class="w-full md:w-3/4" id="editor" style={cssVarStyles} />
+					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
+					<div class="w-10/12 !h-[85%]" id="editor" style={cssVarStyles} />
 				</div>
 				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
 					{#if $drawerStore.open}

@@ -2,33 +2,11 @@ import type { Bucket, FileObject, StorageError as SupabasStorageError } from '@s
 import type { IconData } from 'svelte-awesome/components/Icon.svelte';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export interface DeltaQuery {
-	id?: string;
-	chapterID: string;
-	ops?: string;
-}
-
-export interface CampaignProperties {
-	id?: string;
-	title: string;
-	organizer: { name: string; link: string };
-	dates: {
-		startDate: Date;
-		endDate: Date;
-		event: string;
-	}[];
-	about: string;
-	tags: string[];
-	bannerURL: string;
-	submissionCriteria: string;
-	rewards: string;
-	previewText: string;
-}
-
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
 
 export interface EditorMenuItem {
+	id: string;
 	label: string;
 	icon: Record<string, IconData>;
 	callback(): void;
@@ -39,10 +17,24 @@ export interface EditorMenuItem {
 	hidden?: boolean;
 }
 
-export interface NodeRelationship {
-	name: string;
+export interface RowAction {
 	label: string;
+	icon: Record<string, IconData>;
+	callback(arg: any): void;
+	class?: string;
+	notification?: string | number;
+	scale?: number;
 }
+
+export type Response = {
+	message: string;
+	success: boolean;
+	data: unknown;
+	cursor?: string | undefined;
+};
+
+export const HOME_FILTER_TAGS = ['Recommended', 'Campaigns'] as const;
+export type HomeFilterTag = (typeof HOME_FILTER_TAGS)[number];
 
 export type StorageError =
 	| { data: { path: string }; error: null }

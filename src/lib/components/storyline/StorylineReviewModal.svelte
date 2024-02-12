@@ -1,17 +1,25 @@
 <script lang="ts">
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { modalStore, toastStore, type ToastSettings, Ratings } from '@skeletonlabs/skeleton';
+	import {
+		type ToastSettings,
+		Ratings,
+		getToastStore,
+		getModalStore
+	} from '@skeletonlabs/skeleton';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { star, starHalfO, starO } from 'svelte-awesome/icons';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 
 	let customClass = '';
 	export { customClass as class };
+
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	let closeModal = () => {
 		modalStore.close();
@@ -33,8 +41,8 @@
 				reviewOf: 'Storyline',
 				rating: value.current
 			})
-			.then((storylineResponse) => {
-				storyline = storylineResponse as HydratedDocument<StorylineProperties>;
+			.then((response) => {
+				storyline = response.data as HydratedDocument<StorylineProperties>;
 				toastMessage = 'Thank you for rating!';
 				toastBackground = 'bg-success-500';
 			})

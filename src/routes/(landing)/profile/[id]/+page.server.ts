@@ -7,16 +7,15 @@ import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
 
 export const load = (async (event) => {
-	const { data } = await supabaseAdmin.auth.admin.getUserById(event.params.id);
+	// check if user has a profile
+	const userResponse = await trpc(event).users.getById.query({
+		id: event.params.id
+	});
 
-	if (data && data.user) {
-		// check if user has a profile
-		const userResponse = (await trpc(event).users.getById.query({
-			id: event.params.id
-		})) as HydratedDocument<UserProperties>;
-		if (userResponse) {
-			return { userResponse };
-		}
+	const userData = userResponse.data as HydratedDocument<UserProperties>;
+
+	if (userData) {
+		return { userData };
 	}
 
 	throw error(404, 'The requested user profile does not exist');

@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { modalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+
+	const modalStore = getModalStore();
 
 	let user = $modalStore[0].meta.user;
 	let readingLists = Object.keys(user.readingLists);

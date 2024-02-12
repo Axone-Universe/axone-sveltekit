@@ -26,9 +26,9 @@ describe('users', () => {
 	test('create user', async () => {
 		const userResponse = await createDBUser(testSessionOne);
 
-		expect(userResponse._id).toEqual(testSessionOne.user.id);
-		expect(userResponse.firstName).toEqual(userOne.user_metadata.firstName);
-		expect(userResponse.lastName).toEqual(userOne.user_metadata.lastName);
+		expect(userResponse.data._id).toEqual(testSessionOne.user.id);
+		expect(userResponse.data.firstName).toEqual(userOne.user_metadata.firstName);
+		expect(userResponse.data.lastName).toEqual(userOne.user_metadata.lastName);
 	});
 
 	test('get all users', async () => {
@@ -36,11 +36,11 @@ describe('users', () => {
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list({});
+		const userResponses = await caller.users.get({});
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a._id).sort()).toEqual(
-			[userResponse1._id, userResponse2._id].sort()
+		expect(userResponses.data.map((a) => a._id).sort()).toEqual(
+			[userResponse1.data._id, userResponse2.data._id].sort()
 		);
 	});
 
@@ -49,10 +49,10 @@ describe('users', () => {
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.getByDetails({ detail: userTwo.email });
+		const userResponses = await caller.users.get({ detail: userTwo.email });
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a._id).sort()).toEqual([userResponse2._id].sort());
+		expect(userResponses.data.map((a) => a._id).sort()).toEqual([userResponse2.data._id].sort());
 	});
 
 	test('update user details', async () => {
@@ -63,7 +63,7 @@ describe('users', () => {
 			facebook: 'www.facebook.com/user1'
 		});
 
-		expect(updateUserResponse?.facebook).toEqual('www.facebook.com/user1');
+		expect(updateUserResponse.data?.facebook).toEqual('www.facebook.com/user1');
 	});
 
 	test('get single user', async () => {
@@ -71,9 +71,9 @@ describe('users', () => {
 		await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponse = await caller.users.getById({ id: createUserResponse._id });
+		const userResponse = await caller.users.getById({ id: createUserResponse.data._id });
 
-		expect(userResponse!._id).toEqual(createUserResponse._id);
+		expect(userResponse.data!._id).toEqual(createUserResponse.data._id);
 	});
 
 	test('create reading list', async () => {
@@ -82,18 +82,19 @@ describe('users', () => {
 		const caller = router.createCaller({ session: testSessionOne });
 		await createDBUser(testSessionOne);
 
-		const res = await caller.users.createReadingList({ name: favourites });
-
-		expect(Object.fromEntries(res!.readingLists.entries())).toEqual({ All: [], Favourites: [] });
+		const response = await caller.users.createReadingList({ name: favourites });
+		expect(Object.fromEntries(response.data!.readingLists.entries())).toEqual({
+			All: [],
+			Favourites: []
+		});
 	});
 
 	test('throws on creating a reading list with same name', async () => {
 		const caller = router.createCaller({ session: testSessionOne });
 		await createDBUser(testSessionOne);
 
-		expect(
-			async () => await caller.users.createReadingList({ name: DEFAULT_READING_LIST })
-		).rejects.toThrowError('duplicate key error');
+		const createResponse = await caller.users.createReadingList({ name: DEFAULT_READING_LIST });
+		expect(createResponse.message.includes('duplicate key error')).toEqual(true);
 	});
 
 	test('delete reading list', async () => {
@@ -102,7 +103,7 @@ describe('users', () => {
 
 		const res = await caller.users.deleteReadingList({ name: DEFAULT_READING_LIST });
 
-		expect(Object.fromEntries(res!.readingLists.entries())).toEqual({});
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({});
 	});
 
 	test('update reading lists', async () => {
@@ -112,10 +113,10 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
-					bookID: bookResponse._id
+				await caller.storylines.get({
+					bookID: bookResponse.data._id
 				})
-			)[0]
+			).data[0]
 		];
 
 		await caller.users.createReadingList({ name: 'Favourites' });
@@ -126,7 +127,7 @@ describe('users', () => {
 			storylineID: storylines[0]._id
 		});
 
-		expect(Object.fromEntries(res!.readingLists.entries())).toEqual({
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
 			All: [storylines[0]._id],
 			Favourites: [storylines[0]._id],
 			'Read Later': []
@@ -137,7 +138,7 @@ describe('users', () => {
 			storylineID: storylines[0]._id
 		});
 
-		expect(Object.fromEntries(res!.readingLists.entries())).toEqual({
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
 			All: [],
 			Favourites: [storylines[0]._id],
 			'Read Later': [storylines[0]._id]
@@ -155,10 +156,10 @@ describe('users', () => {
 		const bookResponse = await createBook(testSessionOne, 'My Book');
 		const storylines = [
 			(
-				await caller.storylines.getAll({
-					bookID: bookResponse._id
+				await caller.storylines.get({
+					bookID: bookResponse.data._id
 				})
-			)[0]
+			).data[0]
 		];
 
 		await caller.users.updateReadingLists({
@@ -168,8 +169,8 @@ describe('users', () => {
 
 		const res = await caller.users.getReadingList({ name: DEFAULT_READING_LIST });
 
-		expect(res.length).toEqual(1);
-		expect(res[0]._id).toEqual(storylines[0]._id);
+		expect(res.data.length).toEqual(1);
+		expect(res.data[0]._id).toEqual(storylines[0]._id);
 	});
 
 	test('rename reading list', async () => {
@@ -183,7 +184,7 @@ describe('users', () => {
 			newName: favourites
 		});
 
-		expect(Object.fromEntries(user!.readingLists.entries())).toEqual({ Favourites: [] });
+		expect(Object.fromEntries(user.data!.readingLists.entries())).toEqual({ Favourites: [] });
 	});
 
 	// TODO: test cascading deletes of storylines

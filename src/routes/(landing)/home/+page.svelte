@@ -1,66 +1,54 @@
 <script lang="ts">
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import { Icon } from 'svelte-awesome';
-	import { arrowUp, filter } from 'svelte-awesome/icons';
-
-	import type { PageData } from './$types';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import BookPreview from '$lib/components/book/BookPreview.svelte';
+	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import type { BookProperties } from '$lib/properties/book';
-	import { GenresBuilder, GENRES } from '$lib/properties/genre';
+	import { GENRES, type Genre } from '$lib/properties/genre';
+	import { HOME_FILTER_TAGS, type HomeFilterTag } from '$lib/util/types';
 	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
+	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
+	import InfoHeader from '$lib/components/InfoHeader.svelte';
+	import Tutorial from './tutorial.svelte';
 
-	export let data: PageData;
-
-	const LOAD_DEBOUNCE_SECONDS = 1.0;
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
-	// Only "recommended" is implemented for now
-	// recommended looks at the user genre preferences to select books from there
-	const TAGS = ['Recommended'] as const;
-	const FILTERS_KEY = 'homepageFilters';
-	// const TAGS = ['Trending', 'Recommended', 'Reading', 'Newest'] as const;
+	const TAGS_FILTER_KEY = $page.url + '-tags';
+	const GENRES_FILTER_KEY = $page.url + '-genres';
+
+	let genres: Genre[] = [];
+	let tags: HomeFilterTag[] = [];
 
 	let lastLoadEpoch = 0;
-	let genresBuilder = new GenresBuilder();
 	let filterCount = -1;
 	let mounted = false;
 
-	let selectedTag: (typeof TAGS)[number] | null = 'Recommended';
-	$: recommendedSelected = selectedTag === 'Recommended';
-
 	$: if (browser && mounted) {
-		sessionStorage.setItem(
-			FILTERS_KEY,
-			JSON.stringify({ selectedTag, genres: genresBuilder.build() })
-		);
-		if (selectedTag) {
-			filterCount = 1;
-		} else {
-			filterCount = genresBuilder.build().length;
-		}
+		sessionStorage.setItem(TAGS_FILTER_KEY, JSON.stringify(tags));
+		sessionStorage.setItem(GENRES_FILTER_KEY, JSON.stringify(genres));
+		filterCount = genres.length + tags.length;
 	}
 
 	let accordionOpen = false;
-
 	let searchValue = '';
 	let debouncedSearchValue = '';
+	let scroll = 0;
 
 	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
 		{
 			limit: 20,
-			genres: recommendedSelected ? undefined : genresBuilder.build(),
+			genres: genres,
+			tags: tags,
 			title: debouncedSearchValue ? debouncedSearchValue : undefined
 		},
 		{
-			queryKey: [
-				'booksHome',
-				recommendedSelected ? undefined : genresBuilder.build(),
-				debouncedSearchValue
-			],
+			queryKey: ['booksHome' + scroll++, debouncedSearchValue],
 			getNextPageParam: (lastPage) => lastPage.cursor,
 			staleTime: Infinity
 		}
@@ -68,28 +56,16 @@
 
 	$: items = $getBooksInfinite.data
 		? ($getBooksInfinite.data.pages.flatMap(
-				(page) => page.result
+				(page) => page.data
 		  ) as HydratedDocument<BookProperties>[])
 		: [];
 
 	function handleClear() {
-		genresBuilder = genresBuilder.reset();
+		genres = [];
 	}
 
 	function loadMore() {
-		const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-
-		if (
-			window.scrollY >= scrollableHeight * 0.6 &&
-			(lastLoadEpoch === 0 || Date.now() - lastLoadEpoch >= LOAD_DEBOUNCE_SECONDS * 1000)
-		) {
-			lastLoadEpoch = Date.now();
-			$getBooksInfinite.fetchNextPage();
-		}
-	}
-
-	function handleScrollToTop() {
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getBooksInfinite.fetchNextPage);
 	}
 
 	function handleTryAgain() {
@@ -110,11 +86,15 @@
 	const onType = debounce();
 
 	onMount(() => {
-		const filters = JSON.parse(sessionStorage.getItem(FILTERS_KEY) ?? 'null');
+		const genreFilters = sessionStorage.getItem(GENRES_FILTER_KEY) ?? undefined;
+		const tagFilters = sessionStorage.getItem(TAGS_FILTER_KEY) ?? undefined;
 
-		if (filters) {
-			selectedTag = filters.selectedTag ? filters.selectedTag : null;
-			genresBuilder.withList(filters.genres ? filters.genres : []);
+		if (genreFilters && genreFilters !== 'null') {
+			genres = JSON.parse(genreFilters!);
+		}
+
+		if (tagFilters && tagFilters !== 'null') {
+			tags = JSON.parse(tagFilters!);
 		}
 
 		function onClickListener(e: MouseEvent) {
@@ -129,6 +109,8 @@
 
 		mounted = true;
 
+		// setupTour();
+
 		return () => {
 			window.removeEventListener('click', onClickListener);
 		};
@@ -137,10 +119,12 @@
 
 <svelte:window on:scroll={loadMore} />
 
-<Container class="w-full">
-	<div class="sticky top-[4.3rem] z-[2] flex flex-col gap-1">
+<Tutorial />
+<Container class="w-full min-h-screen">
+	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
-			class="input text-sm h-8"
+			id="search-input"
+			class="input text-sm h-8 p-2"
 			title="Search for books"
 			type="search"
 			placeholder="Search for a book title"
@@ -153,7 +137,7 @@
 			padding="py-1"
 			regionControl="px-4 h-8 accordion"
 		>
-			<AccordionItem bind:open={accordionOpen}>
+			<AccordionItem id="filter-input" bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
 				<svelte:fragment slot="summary"
 					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment
@@ -162,16 +146,16 @@
 					<div class="card p-4 space-y-2">
 						<p class="font-bold">Tags</p>
 						<div class="flex flex-wrap gap-2">
-							{#each TAGS as tag}
+							{#each HOME_FILTER_TAGS as tag}
 								<button
-									class={`chip ${selectedTag === tag ? 'variant-filled-primary' : 'variant-soft'}`}
+									class="chip {tags.includes(tag) ? 'variant-filled-primary' : 'variant-soft'}"
 									on:click={() => {
-										if (selectedTag && selectedTag === tag) {
-											selectedTag = null;
+										const index = tags.indexOf(tag);
+										if (index > -1) {
+											tags = tags.filter((v) => v !== tag);
 										} else {
-											selectedTag = tag;
+											tags = [...tags, tag];
 										}
-										genresBuilder = genresBuilder.reset();
 									}}
 								>
 									<p>{tag}</p>
@@ -188,17 +172,17 @@
 						<div class="flex flex-wrap gap-2">
 							{#each GENRES as genre}
 								<button
-									class={`chip ${
-										genresBuilder.build().includes(genre)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
+									class="chip {genres.includes(genre) ? 'variant-filled-primary' : 'variant-soft'}"
 									on:click={() => {
-										genresBuilder = genresBuilder.toggle(genre);
-										selectedTag = null;
+										const index = genres.indexOf(genre);
+										if (index > -1) {
+											genres = genres.filter((v) => v !== genre);
+										} else {
+											genres = [...genres, genre];
+										}
 									}}
 								>
-									<p>{genre}</p>
+									<span class="capitalize">{genre}</span>
 								</button>
 							{/each}
 						</div>
@@ -209,54 +193,42 @@
 	</div>
 
 	{#if $getBooksInfinite.isLoading}
-		<div class="h-screen">
-			<div class="mt-8 flex justify-center h-16">
-				<img src="/tail-spin.svg" alt="Loading spinner" />
-			</div>
+		<div class="h-screen flex justify-center items-center pb-32">
+			<LoadingSpinner />
 		</div>
 	{:else if $getBooksInfinite.isError}
-		<div class="mt-8 text-center space-y-8 h-screen">
-			<div>
-				<p class="text-6xl">🤕</p>
-				<h4>Something went wrong while fetching books!</h4>
-				<p>How about trying again?</p>
-			</div>
-			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Try again</button>
+		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
+			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
+				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
+			</InfoHeader>
 		</div>
 	{:else if items.length === 0}
-		<div class="mt-8 text-center space-y-8 h-screen">
-			<div>
-				<p class="text-6xl">😲</p>
-				<h4>We've come up empty!</h4>
-				{#if recommendedSelected}
-					<p>
-						We can't find any books that match your genre preferences. Try changing your filters!
-					</p>
-				{:else}
-					<p>Try changing your filters or write your own book!</p>
+		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
+			<InfoHeader
+				emoji="🤲"
+				heading="We're empty handed!"
+				description={tags.length !== 0
+					? "We can't find any books that match your genre preferences. Try changing your filters!"
+					: 'Try changing your filters or write your own book!'}
+			>
+				{#if tags.length === 0}
+					<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
 				{/if}
-			</div>
-			{#if !recommendedSelected}
-				<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
-			{/if}
+			</InfoHeader>
 		</div>
 	{:else}
 		<div class="min-h-screen">
 			<div
 				class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
 			>
-				{#each items as item (item._id)}
+				{#each items as item}
 					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
 						<BookPreview book={item} />
 					</div>
 				{/each}
 			</div>
 			{#if !$getBooksInfinite.hasNextPage}
-				<div class="flex justify-center my-12 italic font-bold">
-					<button class="btn-icon variant-filled" on:click={handleScrollToTop}>
-						<Icon data={arrowUp} />
-					</button>
-				</div>
+				<ScrollToTopButton />
 			{/if}
 		</div>
 	{/if}

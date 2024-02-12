@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
-	import Icon from 'svelte-awesome';
+	import { Avatar, Tab, TabGroup } from '@skeletonlabs/skeleton';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		facebook as facebookIcon,
 		instagram as instagramIcon,
@@ -8,139 +8,143 @@
 		twitter as twitterIcon
 	} from 'svelte-awesome/icons';
 
-	import defaultUserImage from '$lib/assets/default-user.png';
 	import Container from '$lib/components/Container.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+	import DocumentsInfiniteScroll from '$lib/components/documents/DocumentsInfiniteScroll.svelte';
 
 	export let data: PageData;
-	export let { userResponse, supabase } = data;
+	export let { userData } = data;
 
-	const userGenres = userResponse.genres;
-	const userLabels = userResponse.labels;
-	const styles = {
-		sectionCard: "w-full card variant-ghost-surface p-8 flex flex-col gap-8 mb-4",
-	}
+	let tabSet: number = 0;
+
+	const userGenres = userData.genres;
+	const userLabels = userData.labels;
 
 	const viewerIsUser = $page.params.id === data.session?.user.id;
-
-	let profileImage = defaultUserImage;
-	updateProfilePhoto();
-
-	/**
-	 * This function updates the profile photo by retrieving the public URL of the image from a specific bucket in Supabase storage.
-	 */
-	async function updateProfilePhoto(){
-		const bucketName = `profiles/${userResponse._id}`;
-		const imageName = 'profile'
-		const { data } = await supabase
-				.storage
-				.from(bucketName)
-				.getPublicUrl(imageName)
-
-		if (data){
-			profileImage = data.publicUrl;
-		}
-	}
 </script>
 
-<Container class="w-screen lg:my-8 lg:w-full md:flex md:justify-center lg:pt-16">
-	<Container class="ml-0 mr-0 md:w-3/4 lg:basis-3/5 p-0">
-		<section id="DetailsSection" class="${styles.sectionCard}">
-			<div class="flex w-full justify-center">
-				<Avatar src={profileImage} width="w-24 sm:w-32" rounded="rounded-full" />
-			</div>
-			<div class="flex w-full justify-center">
-				<div>
-					<h3 class="h3 flex items-center gap-2 mb-2">
-						{userResponse.firstName}
-						{userResponse.lastName}
-						{#if viewerIsUser}
+<Container class="mx-2 md:mx-40 xl:mx-96 min-h-screen">
+	<div
+		class="bg-center bg-no-repeat bg-cover rounded-lg"
+		style="background-image: url({userData.imageURL})"
+	>
+		<div
+			class="bg-gradient-to-b from-transparent from-10%
+			[.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
+			[.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
+			w-full space-x-4 h-full"
+		>
+			<div class="flex flex-col items-center w-full gap-4 px-16">
+				<div class="relative inline-block mt-10">
+					<Avatar src={userData.imageURL} rounded="rounded-full" class="w-24 sm:w-32" />
+					{#if viewerIsUser}
+						<span class="p-4 badge-icon z-10 bg-surface-100-800-token absolute -bottom-1 right-4">
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
-						{/if}
-					</h3>
-					<!-- user type labels -->
-					<div class="flex gap-2 flex-wrap justify-center">
-						{#if userResponse.labels}
-							{#each userLabels ?? [] as label}
-								<div class="chip variant-filled">{label}</div>
+						</span>
+					{/if}
+				</div>
+
+				<h3 class="flex items-center gap-2">
+					{userData.firstName}
+					{userData.lastName}
+				</h3>
+
+				<div class="flex gap-2">
+					<a
+						href={userData.facebook}
+						target="_blank"
+						class="btn-icon variant-filled {userData.facebook
+							? 'bg-surface-800-100-token'
+							: 'bg-surface-300-600-token'}"
+					>
+						<Icon data={facebookIcon} scale={1} />
+					</a>
+					<a
+						href={userData.instagram}
+						target="_blank"
+						class="btn-icon variant-filled {userData.instagram
+							? 'bg-surface-800-100-token'
+							: 'bg-surface-300-600-token'}"
+					>
+						<Icon data={instagramIcon} scale={1} />
+					</a>
+					<a
+						href={userData.twitter}
+						target="_blank"
+						class="btn-icon variant-filled {userData.twitter
+							? 'bg-surface-800-100-token'
+							: 'bg-surface-300-600-token'}"
+					>
+						<Icon data={twitterIcon} scale={1} />
+					</a>
+				</div>
+
+				<div>
+					<p>
+						{userData.about
+							? userData.about
+							: 'Apparently, this user is really boring and did not say anything for their About section.'}
+					</p>
+				</div>
+				<div class="flex gap-2 flex-wrap">
+					{#if userData.labels}
+						{#each userLabels ?? [] as label}
+							<div class="chip variant-filled">{label}</div>
+						{/each}
+					{/if}
+				</div>
+
+				<hr class="w-full m-2" />
+			</div>
+
+			{#if userGenres && userGenres.length > 0}
+				<div class="flex flex-col w-full gap-4 px-20">
+					<h4>Genres Interests</h4>
+					<div class=" w-full">
+						<div class="flex gap-2 flex-wrap">
+							{#each userGenres as genre}
+								<div class="chip variant-filled">{genre}</div>
 							{/each}
-						{/if}
+						</div>
 					</div>
 				</div>
-			</div>
-		</section>
-		<section id="AboutMeSection" class="${styles.sectionCard}">
-			<h3 class="h3">About Me</h3>
-			<p>
-				{userResponse.about
-						? userResponse.about
-						: 'Apparently, this user is really boring and did not say anything for their About section.'}
-			</p>
-		</section>
-	</Container>
-	<Container class="ml-0 mr-0">
-		<section id="StatsSection" class="${styles.sectionCard} flex-col justify-start">
-			<h3 class="h3">Stats</h3>
-			<p class="m-0 p-0">Books read: 1
-				<br/>
-				Books authored: 2
-				<br/>
-				Books illustrated: 0
-			</p>
-		</section>
-		<section id="GenrePreferencesSection" class="${styles.sectionCard}">
-			<h3 class="h3">Genre Preferences</h3>
-			{#if userGenres}
-				<div class="flex gap-2 flex-wrap">
-					{#each userGenres as genre}
-						<div class="chip variant-filled">{genre}</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="chip variant-soft">None</div>
 			{/if}
-		</section>
-		<section id="SocialMediaSection" class="${styles.sectionCard}">
-			<h3 class="h3">Connect</h3>
-			<ul>
-				{#if userResponse.facebook}
-					<li>
-						<span class="mr-2">
-							<Icon data={facebookIcon} scale={2} />
-						</span>
-						<span class="flex-auto">
-							<a class="anchor" href="https://www.facebook.com/{userResponse.facebook}" target="_blank">
-								{userResponse.facebook}
-							</a>
-						</span>
-					</li>
-				{/if}
-				{#if userResponse.instagram}
-					<li>
-						<span class="mr-2">
-							<Icon data={instagramIcon} scale={2} />
-						</span>
-						<span class="flex-auto">
-							<a class="anchor" href="https://www.instagram.com/{userResponse.instagram}" target="_blank">
-								{userResponse.instagram}
-							</a>
-						</span>
-					</li>
-				{/if}
-				{#if userResponse.twitter}
-					<li>
-						<span class="mr-2">
-							<Icon data={twitterIcon} scale={2} />
-						</span>
-						<span class="flex-auto">
-							<a class="anchor" href="https://www.twitter.com/{userResponse.twitter}" target="_blank">
-								{userResponse.twitter}
-							</a>
-						</span>
-					</li>
-				{/if}
-			</ul>
-		</section>
-	</Container>
+		</div>
+	</div>
+
+	<div class="h-1/4 px-4 md:px-16 overflow-auto space-y-4 bg-surface-50-900-token">
+		<div class="flex flex-col w-full gap-4 mt-5">
+			<TabGroup>
+				<Tab bind:group={tabSet} name="bookTab" value={0}>Books</Tab>
+				<Tab bind:group={tabSet} name="storylinesTab" value={1}>Storylines</Tab>
+				<Tab bind:group={tabSet} name="chaptersTab" value={2}>Chapters</Tab>
+				<!-- Tab Panels --->
+				<svelte:fragment slot="panel">
+					{#if tabSet === 0}
+						<DocumentsInfiniteScroll
+							documentType="Book"
+							userID={userData._id}
+							gridStyle={'grid-cols-2 md:grid-cols-4'}
+							limit={8}
+						/>
+					{:else if tabSet === 1}
+						<DocumentsInfiniteScroll
+							documentType="Storyline"
+							userID={userData._id}
+							gridStyle={'grid-cols-2 md:grid-cols-4'}
+							limit={8}
+						/>
+					{:else if tabSet === 2}
+						<DocumentsInfiniteScroll
+							documentType="Chapter"
+							userID={userData._id}
+							gridStyle={'grid-cols-2 md:grid-cols-4'}
+							limit={8}
+						/>
+					{/if}
+				</svelte:fragment>
+			</TabGroup>
+		</div>
+	</div>
 </Container>

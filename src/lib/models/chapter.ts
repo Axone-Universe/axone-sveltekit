@@ -1,17 +1,18 @@
 import { label, type ChapterProperties } from '$lib/properties/chapter';
-import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as DeltaLabel } from '$lib/properties/delta';
 import {
 	addUserPermissionPipeline,
-	addReadRestrictionPipeline,
-	addUpdateRestrictionPipeline,
+	addViewRestrictionPipeline,
+	addOwnerUpdateRestrictionFilter,
 	permissionSchema,
-	addCollaborationRestrictionOnSave
+	addArchivedRestrictionFilter
 } from './permission';
 import { Storyline } from './storyline';
+import { Delta } from './delta';
 
 export const chapterSchema = new Schema<ChapterProperties>({
 	_id: { type: String, required: true },
@@ -22,8 +23,13 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
-	description: String
+	description: String,
+	archived: { type: Boolean, default: false }
 });
+
+interface ChapterMethods extends ChapterProperties {
+	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
+}
 
 chapterSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
@@ -36,7 +42,7 @@ chapterSchema.pre('aggregate', function (next) {
 
 	populate(pipeline);
 	addUserPermissionPipeline(userID, pipeline);
-	addReadRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
+	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
 	next();
 });
 
@@ -44,7 +50,7 @@ chapterSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functio
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -56,7 +62,9 @@ chapterSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdateRestrictionPipeline(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
@@ -67,15 +75,44 @@ chapterSchema.pre('save', async function (next) {
 	const userID = this.user as string;
 	const storylineID = this.storyline as string;
 
-	const { filter, options } = addCollaborationRestrictionOnSave(userID, storylineID);
-	const storyline = await Storyline.aggregate(filter, options).cursor().next();
+	const storyline = await Storyline.aggregate(
+		[
+			{
+				$match: {
+					_id: storylineID
+				}
+			}
+		],
+		{
+			userID: userID
+		}
+	)
+		.cursor()
+		.next();
 
-	if (storyline && !storyline.userPermissions?.collaborate) {
-		throw new Error('You have no permission to collaborate on this storyline');
+	if (storyline) {
+		if (!storyline.userPermissions?.collaborate) {
+			throw new Error('You have no permission to collaborate on this storyline');
+		}
+
+		if (storyline.archived) {
+			throw new Error('This storyline is archived');
+		}
 	}
 
 	next();
 });
+
+/**
+ * Adding a child to chapter.children array cannot use findOneAndUpdate because of permission restrictions
+ * Use this method instead, by calling addChild on the model instance
+ * @param chapterID
+ * @returns
+ */
+chapterSchema.methods.addChild = async function (chapterID: string, session: ClientSession) {
+	this.children.push(chapterID);
+	await this.save({ session });
+};
 
 function populate(pipeline: PipelineStage[]) {
 	pipeline.push(
@@ -111,5 +148,5 @@ function populate(pipeline: PipelineStage[]) {
 }
 
 export const Chapter = mongoose.models[label]
-	? model<ChapterProperties>(label)
-	: model<ChapterProperties>(label, chapterSchema);
+	? model<ChapterMethods>(label)
+	: model<ChapterMethods>(label, chapterSchema);

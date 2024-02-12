@@ -1,52 +1,44 @@
 import { ulid } from 'ulid';
 
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
-import type { HydratedDocument } from 'mongoose';
+import { startSession, type HydratedDocument } from 'mongoose';
 import type { CampaignProperties } from '$lib/properties/campaign';
 import { Campaign } from '$lib/models/campaign';
+import type { BookProperties } from '$lib/properties/book';
+import { Book } from '$lib/models/book';
+import { saveBook } from '../digital-products/book';
+import { TRPCError } from '@trpc/server';
 
 export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignProperties>> {
 	private readonly _campaignProperties: CampaignProperties;
+	private _bookProperties: BookProperties;
+	private _sessionUserID?: string;
 
-	constructor() {
+	constructor(id?: string) {
 		super();
 		this._campaignProperties = {
-			_id: ulid()
+			_id: id ? id : ulid(),
+			user: ''
+		};
+		this._bookProperties = {
+			_id: ulid(),
+			user: '',
+			title: '',
+			imageURL: '',
+			description: '',
+			permissions: {},
+			genres: [],
+			rating: 0
 		};
 	}
 
-	title(title: string): CampaignBuilder {
-		this._campaignProperties.title = title;
+	startDate(date: Date): CampaignBuilder {
+		this._campaignProperties.startDate = date;
 		return this;
 	}
 
-	organizer(organizer: string): CampaignBuilder {
-		this._campaignProperties.organizer = organizer;
-		return this;
-	}
-
-	dates(dates: string[]): CampaignBuilder {
-		this._campaignProperties.dates = dates;
-		return this;
-	}
-
-	about(about: string): CampaignBuilder {
-		this._campaignProperties.about = about;
-		return this;
-	}
-
-	tags(tags: string[]): CampaignBuilder {
-		this._campaignProperties.tags = tags;
-		return this;
-	}
-
-	bannerURL(bannerURL: string): CampaignBuilder {
-		this._campaignProperties.bannerURL = bannerURL;
-		return this;
-	}
-
-	previewText(previewText: string): CampaignBuilder {
-		this._campaignProperties.previewText = previewText;
+	endDate(date: Date): CampaignBuilder {
+		this._campaignProperties.endDate = date;
 		return this;
 	}
 
@@ -60,10 +52,79 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 		return this;
 	}
 
-	async build(): Promise<HydratedDocument<CampaignProperties>> {
-		const campaign = new Campaign(this._campaignProperties);
-		await campaign.save();
+	book(book: BookProperties): CampaignBuilder {
+		book.campaign = this._campaignProperties._id;
+		this._bookProperties = book;
+		return this;
+	}
 
-		return campaign;
+	userID(userID: string): CampaignBuilder {
+		this._bookProperties.user = userID;
+		this._campaignProperties.user = userID;
+		return this;
+	}
+
+	async build(): Promise<HydratedDocument<CampaignProperties>> {
+		if (!this._campaignProperties.user)
+			throw new Error('Must provide userID to create a campaign.');
+
+		const book = new Book(this._bookProperties);
+		const campaign = new Campaign(this._campaignProperties);
+		campaign.book = book._id;
+
+		const session = await startSession();
+
+		let returnedCampaign: HydratedDocument<CampaignProperties> | undefined;
+
+		try {
+			await session.withTransaction(async () => {
+				await saveBook(book, session);
+
+				returnedCampaign = await campaign.save({ session });
+			});
+		} finally {
+			session.endSession();
+		}
+
+		if (returnedCampaign) {
+			return returnedCampaign;
+		}
+
+		throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+	}
+
+	async update(): Promise<HydratedDocument<CampaignProperties>> {
+		const session = await startSession();
+
+		let returnedCampaign: HydratedDocument<CampaignProperties> | null = null;
+
+		try {
+			// use a transaction to make sure everything saves
+			await session.withTransaction(async () => {
+				await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
+					new: true,
+					userID: this._campaignProperties.user,
+					session
+				});
+
+				returnedCampaign = await Campaign.findOneAndUpdate(
+					{ _id: this._campaignProperties._id },
+					this._campaignProperties,
+					{
+						new: true,
+						userID: this._campaignProperties.user,
+						session
+					}
+				);
+			});
+		} finally {
+			session.endSession();
+		}
+
+		if (returnedCampaign) {
+			return returnedCampaign;
+		}
+
+		throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
 	}
 }

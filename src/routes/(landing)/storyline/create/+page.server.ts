@@ -13,26 +13,35 @@ export const load = (async (event) => {
 	const parentStorylineID = event.url.searchParams.get('parentStorylineID');
 	const chapterID = event.url.searchParams.get('chapterID');
 
-	if (!bookID || !parentStorylineID || !chapterID) {
+	if (!bookID) {
 		throw error(404, {
 			message: 'Not found'
 		});
 	}
 
-	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		id: bookID
-	})) as HydratedDocument<BookProperties>;
+	const userAuthoredBookResponse = (
+		await trpc(event).books.getById.query({
+			id: bookID
+		})
+	).data as HydratedDocument<BookProperties>;
 
-	const storylineResponse = (await trpc(event).storylines.getById.query({
-		bookID: bookID,
-		storylineID: parentStorylineID
-	})) as HydratedDocument<StorylineProperties>;
+	if (!parentStorylineID || !chapterID) {
+		return { userAuthoredBookResponse };
+	}
 
-	const storylineChapters = (await trpc(event).chapters.getByStoryline.query({
-		storylineID: storylineResponse._id,
-		storylineChapterIDs: storylineResponse.chapters as string[],
-		toChapterID: chapterID
-	})) as HydratedDocument<ChapterProperties>[];
+	const storylineResponse = (
+		await trpc(event).storylines.getById.query({
+			id: parentStorylineID
+		})
+	).data as HydratedDocument<StorylineProperties>;
+
+	const storylineChapters = (
+		await trpc(event).chapters.getByStoryline.query({
+			storylineID: storylineResponse._id,
+			storylineChapterIDs: storylineResponse.chapters as string[],
+			toChapterID: chapterID
+		})
+	).data as HydratedDocument<ChapterProperties>[];
 
 	const chapterResponses: { [key: string]: HydratedDocument<ChapterProperties> } = {};
 	storylineChapters.forEach((chapterResponse) => {

@@ -13,7 +13,6 @@ export const readMenuList = [
 
 export const collaborateMenuList = [
 	{ url: '/open-calls', label: 'Open Calls' },
-	{ url: '/campaigns', label: 'Campaigns' }
 ];
 
 export const creatorsMenuList = [

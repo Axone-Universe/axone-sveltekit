@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
 /*place global styles here */
 html,
 body {
@@ -11,6 +16,7 @@ body {
 		'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 	--theme-rounded-base: 9999px;
 	--theme-rounded-container: 8px;
+	--tawk-header-background-color: rgb(var(--color-surface-300)) !important;
 }
 
 .dark .card {
@@ -40,13 +46,39 @@ textarea::placeholder {
 
 .ql-editor {
 	outline-style: none !important;
-	outline-color: rgb(var(--color-surface-100)) !important;
 	font-family: 'Crimson Text', serif;
 }
 
-.dark .ql-editor {
-	outline-color: rgb(var(--color-surface-800)) !important;
+.ql-snow {
+	border: none !important;
 }
+
+// toolbar
+
+.ql-toolbar .ql-picker {
+	color: rgb(var(--color-surface-500)) !important;
+}
+
+.dark .ql-toolbar .ql-stroke {
+	fill: none;
+	stroke: rgb(var(--color-surface-400)) !important;
+}
+
+.dark .ql-toolbar .ql-fill {
+	fill: rgb(var(--color-surface-400)) !important;
+	stroke: none;
+}
+
+.ql-toolbar .ql-fill {
+	fill: #444 !important;
+	stroke: none;
+}
+
+.dark .ql-toolbar .ql-active .ql-stroke {
+	stroke: #fff !important;
+}
+
+//\\//\\//\\//\\
 
 .ql-editor.ql-blank::before {
 	color: rgb(var(--color-surface-400)) !important;
@@ -101,4 +133,26 @@ textarea::placeholder {
 /* For list boxes to have background color before being selected */
 [aria-selected='false'].soft-listbox {
 	background-color: rgb(var(--color-primary-500) / 0.1) !important;
+}
+
+/* for tutorials */
+.shepherd-text {
+	color: unset !important;
+}
+
+.dark .shepherd-arrow:before {
+	background: rgb(var(--color-surface-600)) !important;
+}
+
+.shepherd-arrow:before {
+	background: rgb(var(--color-surface-300)) !important;
+}
+
+.shepherd-footer {
+	justify-content: center !important;
+}
+
+/* for tawk button */
+.tawk-custom-color {
+	color: rgb(var(--color-surface-300)) !important;
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
-	import Icon from 'svelte-awesome';
-	import { expand } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { expand, plus } from 'svelte-awesome/icons';
 	import { afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
@@ -13,6 +13,10 @@
 	import type { HydratedDocument } from 'mongoose';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
+	import { formattedDate } from '$lib/util/studio/strings';
+	import { decodeTime } from 'ulid';
+	import Tutorial from './tutorial.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);
@@ -54,31 +58,34 @@
 				storylineID: activateStoryline._id,
 				storylineChapterIDs: activateStoryline.chapters as string[]
 			})
-			.then((chaptersResponse) => {
-				activateStoryline.chapters = chaptersResponse as HydratedDocument<ChapterProperties>[];
+			.then((response) => {
+				activateStoryline.chapters = response.data as HydratedDocument<ChapterProperties>[];
 				activeStoryline = activateStoryline;
 			});
 	}
 </script>
 
+<Tutorial />
 <Container class="mx-2 md:mx-40 xl:mx-96">
 	<BookHeader
 		session={data.session}
 		{bookData}
 		storylineData={activeStoryline}
 		{storylines}
-		on:storylineClicked={loadChapters}
+		on:selectedStoryline={loadChapters}
 	/>
 
 	<div class="px-4 md:px-10 overflow-hidden space-y-4 bg-surface-50-900-token">
 		{#if !activeStoryline.userPermissions?.view}
 			<RequestPermissionModal class="mt-4" document={activeStoryline} />
 		{:else}
-			<div class="flex w-full p-4 space-x-4">
-				<div class="flex items-center justify-start w-3/5">
-					<p class="text-l md:text-3xl font-bold">Chapters</p>
+			{#if activeStoryline.chapters && activeStoryline.chapters.length > 0}
+				<div class="flex w-full p-1 space-x-4">
+					<div class="flex items-center justify-start w-3/5">
+						<p class="text-l md:text-3xl font-bold">Chapters</p>
+					</div>
 				</div>
-			</div>
+			{/if}
 			<div class="flex flex-col w-full space-y-4">
 				{#if activeStoryline.chapters}
 					{#each activeStoryline.chapters as chapter}
@@ -86,16 +93,14 @@
 							<div class="space-y-2 text-center lg:text-left">
 								<p class="text-xl font-bold">{chapter.title}</p>
 								<div class="flex justify-start items-center space-x-2">
-									<Avatar
-										src="https://source.unsplash.com/YOErFW8AfkI/32x32"
-										width="w-8"
-										rounded="rounded-full"
-									/>
+									{#if typeof chapter.user !== 'string'}
+										<Avatar src={chapter.user?.imageURL} width="w-8" rounded="rounded-full" />
+									{/if}
 									<div class="flex-auto flex justify-between items-center">
 										{#if typeof chapter.user !== 'string'}
 											<h6 class="font-bold">By {chapter.user?.firstName}</h6>
 										{/if}
-										<small>On 17/06/2023</small>
+										<small>On {formattedDate(new Date(decodeTime(chapter._id)))}</small>
 									</div>
 								</div>
 								<div class="flex flex-col justify-between items-center">
@@ -109,19 +114,36 @@
 										>
 											Read
 										</a>
-										<a
-											class="button"
-											href="/editor/{bookData._id}?mode=writer&storylineID={activeStoryline._id}&chapterID={chapter._id}"
-										>
-											Edit
-										</a>
-										{#if bookData.userPermissions?.collaborate}
+
+										{#if chapter.userPermissions?.collaborate}
 											<a
 												class="button"
-												href="/storyline/create?bookID={bookData._id}&parentStorylineID={activeStoryline._id}&chapterID={chapter._id}"
+												href="/editor/{bookData._id}?mode=writer&storylineID={activeStoryline._id}&chapterID={chapter._id}"
 											>
-												<Icon data={expand} scale={1.2} />
+												Edit
 											</a>
+										{/if}
+										{#if bookData.userPermissions?.collaborate}
+											<Tooltip
+												on:click={() => {
+													window.open(
+														`/storyline/create?bookID=${bookData._id}&parentStorylineID=${
+															activeStoryline._id
+														}&chapterID=${typeof chapter === 'string' ? chapter : chapter._id}`,
+														'_blank'
+													);
+												}}
+												content="Create new storyline"
+												placement="top"
+												target="{chapter._id}-create-storyline"
+											>
+												<button
+													id="create-storyline-btn"
+													class="btn-icon btn-icon-sm variant-filled-primary"
+												>
+													<span><Icon data={plus} scale={1.2} /></span>
+												</button>
+											</Tooltip>
 										{/if}
 									</div>
 								</div>

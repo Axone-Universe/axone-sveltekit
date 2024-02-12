@@ -1,14 +1,16 @@
 <script lang="ts">
-	// The ordering of these imports is critical to your app working properly
-	import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
-	// If you have source.organizeImports set to true in VSCode, then it will auto change this ordering
-	import '@skeletonlabs/skeleton/styles/all.css';
 	import { QueryClientProvider } from '@tanstack/svelte-query';
 	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
 
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { storePopup, Toast, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
+	import {
+		initializeStores,
+		storePopup,
+		Toast,
+		Modal,
+		type ModalComponent
+	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	import ReadingListModal from '$lib/components/modal/ReadingListModal.svelte';
@@ -17,6 +19,11 @@
 	import type { LayoutData } from './$types';
 
 	export let data: LayoutData;
+
+	let Tawk_API = {};
+	let Tawk_LoadStart = new Date();
+
+	initializeStores();
 
 	$: ({ supabase, session, user } = data);
 
@@ -28,6 +35,7 @@
 				invalidate('supabase:auth');
 			}
 		});
+		// setupTawkto();
 		return () => subscription.unsubscribe();
 	});
 
@@ -37,11 +45,21 @@
 		}
 	};
 
+	function setupTawkto() {
+		var s1 = document.createElement('script'),
+			s0 = document.getElementsByTagName('script')[0];
+		s1.async = true;
+		s1.src = 'https://embed.tawk.to/65b6ad518d261e1b5f58e698/1hl8pa1rm';
+		s1.charset = 'UTF-8';
+		s1.setAttribute('crossorigin', '*');
+		s0?.parentNode?.insertBefore(s1, s0);
+	}
+
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
 <QueryClientProvider client={data.queryClient}>
 	<slot />
 	<Modal components={modalComponentRegistry} />
-	<Toast />
+	<Toast zIndex="z-[1000]" />
 </QueryClientProvider>

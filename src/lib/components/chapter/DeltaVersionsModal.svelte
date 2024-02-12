@@ -1,16 +1,18 @@
 <script lang="ts">
 	import {
-		modalStore,
-		toastStore,
 		type ToastSettings,
 		ListBox,
-		ListBoxItem
+		ListBoxItem,
+		getToastStore,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
-	import { Icon } from 'svelte-awesome';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import QuillDelta from 'quill-delta';
+	import type Op from 'quill-delta/dist/Op';
 	import {
 		VersionPropertyBuilder,
 		type DeltaProperties,
@@ -18,25 +20,33 @@
 	} from '$lib/properties/delta';
 
 	export let delta: HydratedDocument<DeltaProperties>;
+	export let selectedVersionID: string | undefined;
+	export let disabled: false;
 
 	let customClass = '';
 	export { customClass as class };
 
+	const toastStore = getToastStore();
+	const modalStore = getModalStore();
+
 	let version: VersionProperties = new VersionPropertyBuilder().getProperties();
-	let selectedVersionID = '';
 	let versions = delta.versions ? createVersionCopy(delta.versions).reverse() : [];
 
 	let closeModal = () => {
+		if ($modalStore[0]) {
+			$modalStore[0].response ? $modalStore[0].response(delta) : '';
+		}
 		modalStore.close();
 	};
 
 	function createVersionCopy(versions: VersionProperties[]): VersionProperties[] {
-		const versionsCopy = JSON.parse(JSON.stringify(versions)) as VersionProperties[];
+		let versionsCopy = JSON.parse(JSON.stringify(versions)) as VersionProperties[];
+		versionsCopy.pop();
 		return versionsCopy;
 	}
 
 	async function createVersion() {
-		let toastMessage = 'Creation Failed';
+		let toastMessage = 'Version creation failed';
 		let toastBackground = 'bg-warning-500';
 
 		trpc($page)
@@ -45,16 +55,19 @@
 				chapterID: typeof delta.chapter === 'string' ? delta.chapter : delta.chapter!._id,
 				id: delta._id
 			})
-			.then((deltaResponse) => {
+			.then((response) => {
 				toastMessage = 'Creation Successful';
 				toastBackground = 'bg-success-500';
 
-				delta = deltaResponse as HydratedDocument<DeltaProperties>;
+				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
 
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(delta) : '';
 				}
+			})
+			.catch((response) => {
+				toastMessage = response.message;
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -63,7 +76,37 @@
 					autohide: true
 				};
 				toastStore.trigger(t);
+				modalStore.close();
 			});
+	}
+
+	/**
+	 * Creates a delta up and until the specified version
+	 */
+	function previewVersion() {
+		let quillDelta = new QuillDelta();
+
+		// create a copy of the delta
+		const deltaCopy = JSON.parse(JSON.stringify(delta)) as DeltaProperties;
+		deltaCopy._id = '';
+
+		const versionsCopy = [];
+		for (const version of delta.versions!) {
+			versionsCopy.push(version);
+			const revisionDelta = new QuillDelta(version.ops as Op[]);
+			quillDelta = quillDelta.compose(revisionDelta);
+			if (version._id === selectedVersionID) {
+				break;
+			}
+		}
+
+		deltaCopy.versions = versionsCopy;
+		deltaCopy.ops = quillDelta.ops;
+
+		if ($modalStore[0]) {
+			$modalStore[0].response ? $modalStore[0].response(deltaCopy) : '';
+		}
+		modalStore.close();
 	}
 
 	function restoreVersion() {
@@ -76,11 +119,11 @@
 				id: delta._id,
 				versionID: version._id
 			})
-			.then((deltaResponse) => {
+			.then((response) => {
 				toastMessage = 'Restoration Successful';
 				toastBackground = 'bg-success-500';
 
-				delta = deltaResponse as HydratedDocument<DeltaProperties>;
+				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
 
 				if ($modalStore[0]) {
@@ -109,33 +152,39 @@
 
 <div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
 	<form on:submit|preventDefault={createVersion}>
-		<div class="modal-form p-4 space-y-4 rounded-container-token">
-			<label>
-				Title
+		<fieldset {disabled}>
+			<div class="modal-form p-4 space-y-4 rounded-container-token">
+				<label>
+					Title
 
-				<input
-					class="input"
-					type="text"
-					placeholder="e.g. Version 1"
-					bind:value={version.title}
-					disabled={!!selectedVersionID}
-				/>
-			</label>
-			<label>
-				Date
+					<input
+						class="input"
+						type="text"
+						placeholder="e.g. Version 1"
+						bind:value={version.title}
+						disabled={!!selectedVersionID}
+					/>
+				</label>
+				<label>
+					Date
 
-				<input class="input" type="text" bind:value={version.date} disabled />
-			</label>
-		</div>
+					<input class="input" type="text" bind:value={version.date} disabled />
+				</label>
+			</div>
 
-		<footer class="modal-footer flex justify-end space-x-2">
-			<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button>
-			{#if !selectedVersionID}
-				<button class="btn variant-filled" type="submit">Create</button>
-			{:else if selectedVersionID !== versions[0]._id}
-				<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button>
-			{/if}
-		</footer>
+			<footer class="modal-footer flex justify-end space-x-2">
+				<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button
+				>
+				{#if !selectedVersionID}
+					<button class="btn variant-filled" type="submit">Create</button>
+				{:else}
+					<button on:click={previewVersion} class="btn variant-filled" type="button">Preview</button
+					>
+					<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button
+					>
+				{/if}
+			</footer>
+		</fieldset>
 	</form>
 
 	<hr class="opacity-100 mx-4" />
@@ -147,7 +196,7 @@
 				bind:group={selectedVersionID}
 				name="chapter"
 				class="soft-listbox"
-				value=""
+				value={undefined}
 			>
 				<div class="flex justify-between items-center">
 					<p class="line-clamp-1">New Version</p>

@@ -1,24 +1,38 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
-	import { leanpub, star, infoCircle, caretDown, eyeSlash, bookmark } from 'svelte-awesome/icons';
-	import Icon from 'svelte-awesome';
+	import {
+		star,
+		infoCircle,
+		bookmark,
+		plusCircle,
+		plus,
+		pencil,
+		leanpub,
+		info,
+		warning,
+		calendar
+	} from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
+	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
 	import {
 		type PopupSettings,
 		popup,
-		ListBox,
-		ListBoxItem,
 		type ModalSettings,
-		modalStore
+		getModalStore,
+		type ModalComponent
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	import { page } from '$app/stores';
 	import type { UserProperties } from '$lib/properties/user';
 	import { trpc } from '$lib/trpc/client';
 	import type { Session } from '@supabase/supabase-js';
+	import DocumentCarousel from '../documents/DocumentCarousel.svelte';
+	import type { CampaignProperties } from '$lib/properties/campaign';
 
 	let customClass = '';
 	export { customClass as class };
@@ -27,24 +41,13 @@
 	export let session: Session | null;
 	export let storylineData: HydratedDocument<StorylineProperties>;
 
-	let dispatch = createEventDispatcher();
-
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
-	onMount(() => {
-		async function getUser() {
-			if (session) {
-				const maybeUser = await trpc($page).users.getById.query({
-					id: session.user.id
-				});
-				if (maybeUser) {
-					user = maybeUser as HydratedDocument<UserProperties>;
-				}
-			}
-		}
+	const modalStore = getModalStore();
 
-		getUser();
+	onMount(() => {
+		user = $page.data.user;
 	});
 
 	afterUpdate(() => {
@@ -69,6 +72,15 @@
 		}
 	};
 
+	const campaignDetailsComponent: ModalComponent = {
+		ref: CampaignDetails
+	};
+
+	const campaignDetailsModal: ModalSettings = {
+		type: 'component',
+		component: campaignDetailsComponent
+	};
+
 	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineData;
 	const storylinesPopup: PopupSettings = {
 		event: 'focus-click',
@@ -77,10 +89,11 @@
 		closeQuery: '.listbox-item'
 	};
 
-	const storylineClicked = (id: string) => {
-		storylineData = storylines[id];
-		dispatch('storylineClicked', id);
-	};
+	let dispatch = createEventDispatcher();
+	function handleSelected(event: { detail: any }) {
+		storylineData = storylines[event.detail];
+		dispatch('selectedStoryline', event.detail);
+	}
 
 	function openReadingListModal() {
 		readingListModal.meta = {
@@ -91,12 +104,52 @@
 		modalStore.trigger(readingListModal);
 	}
 
+	function openCampaignInfo() {
+		campaignDetailsComponent.props = {
+			book: bookData,
+			campaign: bookData.campaign,
+			disabled: true,
+			cancelCallback: modalStore.close
+		};
+		modalStore.trigger(campaignDetailsModal);
+	}
+
+	function campaignDaysLeft(): [number, string] {
+		if (!bookData.campaign) {
+			return [0, ''];
+		}
+
+		// One day in milliseconds
+		const oneDay = 1000 * 60 * 60 * 24;
+
+		const campaignEndDate = new Date(
+			(bookData.campaign as HydratedDocument<CampaignProperties>).endDate as unknown as string
+		);
+
+		// Calculating the time difference between two dates
+		const diffInTime = campaignEndDate.getTime() - new Date().getTime();
+
+		// Calculating the no. of days between two dates
+		const diffInDays = Math.round(diffInTime / oneDay);
+
+		let color = 'variant-filled-success';
+		if (diffInDays >= 0 && diffInDays <= 2) {
+			color = 'variant-filled-warning';
+		} else if (diffInDays < 0) {
+			color = 'variant-filled-error';
+		}
+
+		return [diffInDays, color];
+	}
+
 	async function addToReadingList(names: string[]) {
 		try {
-			user = (await trpc($page).users.updateReadingLists.mutate({
-				names,
-				storylineID: selectedStoryline!._id
-			})) as HydratedDocument<UserProperties>;
+			user = (
+				await trpc($page).users.updateReadingLists.mutate({
+					names,
+					storylineID: selectedStoryline!._id
+				})
+			).data as HydratedDocument<UserProperties>;
 		} catch (e) {
 			console.log(e);
 		}
@@ -104,8 +157,8 @@
 </script>
 
 <div
-	class={`bg-center bg-no-repeat bg-cover ${customClass}`}
-	style="background-image: url({bookData.imageURL})"
+	class={`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}
+	style="background-image: url({storylineData.imageURL ?? bookData.imageURL})"
 >
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
@@ -120,11 +173,32 @@
 						{bookData.title}
 					</p>
 				</div>
-				<div class="flex flex-row items-center p-2">
-					<div>
-						<button use:popup={infoPopup}>
-							<Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
-						</button>
+				<div class="flex flex-col p-2 space-x-4 w-full items-center">
+					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
+						{#if bookData.userPermissions?.collaborate && bookData.campaign}
+							<Tooltip
+								on:click={() => {
+									if (campaignDaysLeft()[0] >= 0)
+										window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+								}}
+								content="Create new storyline"
+								placement="top"
+								target="create-storyline"
+							>
+								<button class="btn-icon bg-orange-700" disabled={campaignDaysLeft()[0] < 0}>
+									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
+								</button>
+							</Tooltip>
+						{/if}
+
+						<div class="relative">
+							<h3 class="book-title">{storylineData.title}</h3>
+							<button
+								use:popup={infoPopup}
+								class="badge-icon z-10 variant-filled absolute -top-3 -right-5"
+								><Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
+							</button>
+						</div>
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
@@ -147,57 +221,83 @@
 							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;" />
 						</div>
 					</div>
-					<div class="flex w-4/5 p-2 space-x-4">
-						<div class="flex">
-							<button class="flex space-x-12 w-full !bg-transparent" use:popup={storylinesPopup}>
-								<p class="book-title text-2xl text-center font-bold line-clamp-1">
-									{storylineData.title}
-								</p>
-								<Icon data={caretDown} scale={1.5} />
-							</button>
 
-							<div class="card w-96 shadow-xl p-2" data-popup="storylinesPopup">
-								<ListBox>
-									{#each Object.entries(storylines) as [id, storyline]}
-										<ListBoxItem
-											on:click={() => storylineClicked(id)}
-											bind:group={selectedStoryline}
-											name=""
-											class="soft-listbox"
-											value={storyline}
-										>
-											<div class="line-clamp-1 flex justify-between items-center">
-												<p class="w-5/6 line-clamp-1">
-													{storyline.title ? storyline.title : 'New Storyline'}
-												</p>
-												<div class="line-clamp-1 flex justify-end space-x-2 items-center">
-													{#if !storyline.userPermissions?.view}
-														<Icon data={eyeSlash} scale={1.2} />
-													{/if}
-												</div>
-											</div>
-										</ListBoxItem>
-									{/each}
-								</ListBox>
-								<div class="arrow bg-surface-100-800-token" />
-							</div>
-						</div>
-					</div>
-					<div class="overflow-hidden flex items-center">
-						<Icon class="p-2" data={star} scale={2} />
-						<p class="text-lg font-bold">{storylineData.numRatings}</p>
-					</div>
+					{#if Object.values(storylines).length > 1}
+						<DocumentCarousel
+							on:selectedStoryline={handleSelected}
+							documentType="Storyline"
+							documents={Object.values(storylines)}
+						/>
+					{/if}
 				</div>
 
 				<div class="flex flex-row space-x-2">
-					<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
-						<Icon class="p-2" data={leanpub} scale={2.5} />
-						Read
-					</a>
+					{#if bookData.campaign}
+						<div class="flex items-center bg-orange-700 px-2 rounded-full">
+							<p class="text-md tracking-widest font-bold text-white">campaign</p>
+						</div>
+					{:else}
+						<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
+							<Icon class="p-2" data={leanpub} scale={2.5} />
+							Read
+						</a>
+					{/if}
 					{#if session}
-						<button class="btn-icon variant-filled" on:click={openReadingListModal}>
-							<Icon class="p-2" data={bookmark} scale={2.5} />
-						</button>
+						<Tooltip
+							on:click={openReadingListModal}
+							content="Add to reading list"
+							placement="top"
+							target="reading-list"
+						>
+							<button id="reading-list-btn" class="btn-icon variant-filled">
+								<Icon class="p-2" data={bookmark} scale={2.5} />
+							</button>
+						</Tooltip>
+						{#if selectedStoryline.userPermissions?.collaborate}
+							<Tooltip
+								on:click={() => {
+									window.open(`/editor/${bookData._id}?mode=writer`, '_blank');
+								}}
+								content="Edit storyline"
+								placement="top"
+								target="edit-storyline"
+							>
+								<button class="btn-icon variant-filled">
+									<Icon class="p-2" data={pencil} scale={2.5} />
+								</button>
+							</Tooltip>
+						{/if}
+					{/if}
+					{#if storylineData.numRatings > 0}
+						<div class="overflow-hidden flex items-center">
+							<Icon class="p-2" data={star} scale={2} />
+							<p class="text-lg font-bold">{storylineData.numRatings}</p>
+						</div>
+					{/if}
+					{#if bookData.campaign}
+						<div class="flex w-full justify-end gap-2">
+							<div class="flex items-center {campaignDaysLeft()[1]} px-2 rounded-full">
+								<p class="flex items-center !py-0 text-md tracking-widest font-bold text-white">
+									{#if campaignDaysLeft()[0] > 0}
+										<Icon class="p-2  !hidden md:!block" data={calendar} scale={2} />
+										{campaignDaysLeft()[0]} days left
+									{:else}
+										<Icon class="p-2 !hidden md:!block" data={warning} scale={2} />
+										closed
+									{/if}
+								</p>
+							</div>
+							<Tooltip
+								on:click={openCampaignInfo}
+								content="View campaign details"
+								placement="top"
+								target="campaign-details"
+							>
+								<button id="reading-list-btn" class="btn-icon bg-orange-700">
+									<Icon class="p-2" data={infoCircle} scale={2.5} />
+								</button>
+							</Tooltip>
+						</div>
 					{/if}
 				</div>
 				<div class="space-x-2 line-clamp-1">

@@ -8,9 +8,9 @@
 	export let data: PageData;
 </script>
 
-<div class="flex flex-col h-screen">
+<div class="flex flex-col min-h-screen">
 	<Header {data} />
 	<Drawer {data} />
-	<slot />
+	<slot {data} />
 	<Footer />
 </div>

@@ -2,118 +2,145 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, toastStore } from '@skeletonlabs/skeleton';
-	import { Icon } from 'svelte-awesome';
-	import { check } from 'svelte-awesome/icons';
+	import { type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { HydratedDocument } from 'mongoose';
 	import type { BookProperties } from '$lib/properties/book';
-	import { onMount } from 'svelte';
 	import ManagePermissions from '../permissions/ManagePermissions.svelte';
-	import BookNav from '../book/BookNav.svelte';
-	import { GENRES, type Genre } from '$lib/properties/genre';
+	import ImageUploader from '../util/ImageUploader.svelte';
+	import { uploadImage } from '$lib/util/bucket/bucket';
+	import type { SupabaseClient } from '@supabase/supabase-js';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let storyline: HydratedDocument<StorylineProperties>;
+	export let supabase: SupabaseClient;
+	export let cancelCallback: () => void = () => undefined;
+	export let title: string | undefined;
 
 	let customClass = '';
 	export { customClass as class };
 
-	let bookGenres: Genre[] = [];
-	let genres: Genre[] = [];
+	let imageFile: File;
+	let notifications = {};
 
-	onMount(() => {
-		bookGenres = book.genres ?? [];
-		genres = storyline.genres ?? [];
-	});
+	$: title = storyline.title;
+	const toastStore = getToastStore();
 
-	async function createStoryline() {
-		trpc($page)
-			.storylines.create.mutate({
+	async function createStorylineData() {
+		let response;
+		let newStoryline = false;
+		if (storyline._id) {
+			response = await trpc($page).storylines.update.mutate({
+				id: storyline._id,
+				title: storyline.title,
+				description: storyline.description,
+				permissions: storyline.permissions,
+				imageURL: storyline.imageURL,
+				notifications: notifications
+			});
+		} else {
+			newStoryline = true;
+			response = await trpc($page).storylines.create.mutate({
 				title: storyline.title,
 				description: storyline.description,
 				book: storyline.book,
-				parent: storyline.parent,
-				parentChapter: storyline.parentChapter,
-				permissions: storyline.permissions
-			})
-			.then(async (storyline) => {
-				const t: ToastSettings = {
-					message: 'Storyline created successfully',
-					background: 'variant-filled-primary'
-				};
-				toastStore.trigger(t);
+				parent: storyline.parent ?? undefined,
+				parentChapter: storyline.parentChapter ?? undefined,
+				permissions: storyline.permissions,
+				imageURL: ''
+			});
+		}
 
+		if (response.success) {
+			storyline = response.data as HydratedDocument<StorylineProperties>;
+
+			if (imageFile) {
+				const response = await uploadImage(
+					supabase,
+					`books/${book._id}/storylines/${storyline._id}`,
+					imageFile,
+					toastStore
+				);
+				if (response.url && response.url !== null) {
+					await saveStorylineImage(response.url);
+				} else {
+					const t: ToastSettings = {
+						message: response.error?.message ?? 'Error uploading storyline cover',
+						background: 'variant-filled-error'
+					};
+					toastStore.trigger(t);
+				}
+			}
+
+			if (newStoryline)
 				await goto(
-					`/editor/${book._id}?storylineID=${
+					`/editor/${book._id}?mode=writer&storylineID=${
 						(storyline as HydratedDocument<ChapterProperties>)._id
 					}`
 				);
-			});
+		}
+
+		const t: ToastSettings = {
+			message: response.message,
+			background: 'variant-filled-primary'
+		};
+		toastStore.trigger(t);
 	}
 
-	let leftDrawerSelectedItem: string;
+	async function saveStorylineImage(imageURL?: string) {
+		await trpc($page).storylines.update.mutate({
+			id: storyline._id,
+			title: storyline.title,
+			description: storyline.description,
+			permissions: storyline.permissions,
+			imageURL: imageURL,
+			notifications: notifications
+		});
+	}
 </script>
 
-<div class={`${customClass}`}>
-	<BookNav
-		class="card mx-2 w-5/6 md:w-2/6 h-full p-2"
-		storylines={[storyline]}
-		bind:selectedChapter={leftDrawerSelectedItem}
-	/>
-	<form on:submit|preventDefault={createStoryline} class="card p-4 h-full space-y-4 md:w-4/6">
-		<label>
-			* Storyline Title
+<div class={`card p-2 sm:p-4 space-y-4 w-modal ${customClass}`}>
+	<div class="flex justify-between gap-2">
+		<div class="flex flex-col w-full">
+			<label for="storyline-title"> * Storyline Title </label>
 			<input
+				id="storyline-title"
 				class="input"
 				type="text"
 				bind:value={storyline.title}
 				placeholder="Untitled Book"
 				required
 			/>
-		</label>
-		<label>
-			* Description
-			<textarea class="textarea h-44 overflow-hidden" bind:value={storyline.description} required />
-		</label>
-		<!-- svelte-ignore a11y-label-has-associated-control -->
-		<label>
-			Genres
-			<div class="space-x-4 space-y-4 w-full h-auto">
-				{#each GENRES as genre}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<span
-						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
-							const index = genres.indexOf(genre);
-							if (index > -1) {
-								genres = genres.filter((v) => v !== genre);
-							} else {
-								genres = [...genres, genre];
-							}
-						}}
-					>
-						{#if genres.includes(genre)}<span><Icon data={check} /></span>{/if}
-						<span class="capitalize">{genre}</span>
-					</span>
-				{/each}
-			</div>
-		</label>
-		<!-- svelte-ignore a11y-label-has-associated-control -->
-		<label>
-			Tags
-			<InputChip bind:value={storyline.tags} name="tags" placeholder="Enter any value..." />
-		</label>
 
-		<div>
-			Permissions
-			<ManagePermissions bind:permissionedDocument={storyline} />
+			<label for="storyline-description"> * Description </label>
+			<textarea
+				id="storyline-description"
+				class="textarea w-full h-full overflow-hidden"
+				bind:value={storyline.description}
+				required
+			/>
 		</div>
+		<ImageUploader
+			bind:imageURL={storyline.imageURL}
+			bind:imageFile
+			class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
+		/>
+	</div>
 
-		<div class="flex flex-col sm:flex-row gap-4">
-			<a class="btn variant-filled-error" href="/campaigns">Cancel</a>
-			<button class="btn variant-filled-primary" type="submit">Create Storyline</button>
-		</div>
-	</form>
+	<div>
+		Permissions
+		<ManagePermissions
+			bind:permissionedDocument={storyline}
+			{notifications}
+			permissionedDocumentType="Storyline"
+		/>
+	</div>
+
+	<div class="flex flex-col justify-end sm:flex-row gap-2">
+		<button class="btn variant-ghost-surface" on:click={cancelCallback}>Cancel</button>
+		<button class="btn variant-filled" on:click={createStorylineData}>
+			{storyline._id ? 'Update' : 'Create'}
+		</button>
+	</div>
 </div>

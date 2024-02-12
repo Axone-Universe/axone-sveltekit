@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { permissions } from './permissions';
+import { userNotification } from './notifications';
 
 export const storylineQuerySchema = z.object({
 	bookID: z.string().optional(),
@@ -15,15 +16,8 @@ export const update = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional()
-});
-export const search = z.object({
-	bookID: z.string().optional(),
-	storylineID: z.string().optional(),
-	main: z.boolean().optional(),
-	searchTerm: z.string().optional(),
-	limit: z.number().optional(),
-	skip: z.number().optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const create = z.object({
@@ -33,7 +27,8 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional()
+	permissions: z.record(z.string(), permissions).optional(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const read = z.object({
@@ -43,5 +38,10 @@ export const read = z.object({
 	main: z.boolean().optional(),
 	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
-	skip: z.number().optional()
+	skip: z.number().optional(),
+	cursor: z.string().optional(),
+	user: z.string().optional(),
+	archived: z.boolean().optional()
 });
+
+export type ReadStoryline = z.infer<typeof read>;
