@@ -8,7 +8,7 @@
 	import UserProfileDetails from '$lib/components/user/UserProfileDetails.svelte';
 
 	export let data: PageData;
-	const { session, userProperties } = data;
+	const { session, userProperties, supabase } = data;
 
 	userProperties.about = userProperties.about ? userProperties.about : '';
 	userProperties.email = session?.user.email;
@@ -25,8 +25,9 @@
 	const onSubmit = (userProperties: UserProperties) => {
 		submit(userProperties);
 	};
+
 </script>
 
 <Container class="mx-4  md:mx-40 xl:mx-96">
-	<UserProfileDetails {onSubmit} {userProperties} />
+	<UserProfileDetails {onSubmit} {userProperties} {supabase} />
 </Container>

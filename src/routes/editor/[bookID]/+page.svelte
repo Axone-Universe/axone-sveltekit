@@ -17,7 +17,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import Quill from 'quill';
 	import type { Illustration } from '$lib/util/editor/quill';
-	import { changeDelta, QuillEditor, type UploadFileToBucketParams } from '$lib/util/editor/quill';
+	import { changeDelta, QuillEditor } from '$lib/util/editor/quill';
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
@@ -50,7 +50,7 @@
 	import 'quill-comment';
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
-	import type { EditorMode, StorageFileError } from '$lib/util/types';
+	import type {EditorMode, StorageFileError, UploadFileToBucketParams} from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';

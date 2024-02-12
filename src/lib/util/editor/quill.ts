@@ -11,7 +11,7 @@ import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import { QuillIllustration } from '@axone-network/quill-illustration/quill.illustration';
 import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { StorageBucketError } from '$lib/util/types';
+import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 
 export const changeDelta = writable<Delta>(new Delta());
 
@@ -31,13 +31,6 @@ export interface Illustration {
 
 export interface QuillOptions extends QuillOptionsStatic {
 	reader?: boolean;
-}
-
-export interface UploadFileToBucketParams {
-	supabase: SupabaseClient;
-	file: File;
-	bucket: string;
-	newFileName: string | undefined;
 }
 
 export class QuillEditor extends Quill {

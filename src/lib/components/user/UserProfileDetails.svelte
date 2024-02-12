@@ -1,18 +1,45 @@
 <script lang="ts">
-	import { Avatar, Step, Stepper } from '@skeletonlabs/skeleton';
-
+	import { Avatar, Step, Stepper, FileButton, getToastStore } from '@skeletonlabs/skeleton';
+	import type { ToastSettings } from '@skeletonlabs/skeleton';
 	import defaultUserImage from '$lib/assets/default-user.png';
 	import { USER_LABELS, type UserProperties } from '$lib/properties/user';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import { GENRES } from '$lib/properties/genre';
+	import { pencil as pencilIcon } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome';
+	import type { SupabaseClient } from '@supabase/supabase-js';
+	import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
+	export let supabase: SupabaseClient;
 
 	let genres = userProperties.genres ?? [];
 	let labels = userProperties.labels ?? [];
 
+	const toastStore = getToastStore();
+
 	const aboutMaxLength = 500;
+	/**
+	 * Toast settings
+	 */
+	const successUploadToast: ToastSettings = {
+		message: 'Profile picture has been uploaded successfully',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-success'
+	};
+	const progressUploadToast: ToastSettings = {
+		message: 'Uploading profile picture...',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-secondary',
+		autohide: false
+	};
+	const errorUploadToast: ToastSettings = {
+		message: 'There was an issue uploading the profile picture',
+		// Provide any utility or variant background style:
+		background: 'variant-filled-error'
+	};
 
 	let profileImage = defaultUserImage;
 
@@ -21,13 +48,58 @@
 		userProperties.labels = labels;
 		onSubmit(userProperties);
 	}
+
+	/**
+	 * The avatarFileSelected function is an asynchronous function that handles the selection of an avatar image file.
+	 * It triggers a toast message to indicate the progress of the file upload, uploads the file to a specified bucket,
+	 * and then triggers a success or error toast message based on the response. Finally, it updates the profile photo.
+	 * @param event The event object that contains information about the file selection.
+	 */
+	async function avatarFileSelected(event: Event) {
+		let newAvatarImage = (event.target as HTMLInputElement)?.files?.[0] as File;
+		newAvatarImage = renameFile(newAvatarImage, 'profile');
+
+		const bucketName = `profiles/${userProperties._id}`;
+
+		const response = await uploadImage(supabase, bucketName, newAvatarImage, toastStore);
+
+		if (response.error) {
+			errorUploadToast.message = errorUploadToast.message + '. Reason: ' + response.error.message;
+			toastStore.trigger(errorUploadToast);
+		} else {
+			userProperties.imageURL = response.url!;
+			toastStore.trigger(successUploadToast);
+		}
+	}
+
+	function renameFile(originalFile: File, newName: string) {
+		const originalName = originalFile.name;
+		newName = newName + '.' + originalName.split('.').pop();
+
+		return new File([originalFile], newName, {
+			type: originalFile.type,
+			lastModified: originalFile.lastModified
+		});
+	}
 </script>
 
 <Stepper on:complete={submit}>
 	<Step>
 		<svelte:fragment slot="header">Basic Information</svelte:fragment>
 		<div class="min-h-[calc(60vh)] space-y-4">
-			<Avatar src={profileImage} width="w-24" rounded="rounded-full" />
+			<div class="flex flex-col items-center w-full">
+				<div class="relative inline-block w-24 h-24">
+					<FileButton
+						on:change={avatarFileSelected}
+						name="avatarFileButton"
+						button=""
+						class="badge-icon variant-filled-primary w-6 h-6 absolute -bottom-0 -right-0 z-10"
+					>
+						<Icon data={pencilIcon} />
+					</FileButton>
+					<Avatar src={userProperties.imageURL} width="w-24" rounded="rounded-full" />
+				</div>
+			</div>
 			<label>
 				*First name
 				<input class="input" type="text" bind:value={userProperties.firstName} />

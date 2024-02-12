@@ -1,5 +1,6 @@
-import type { Bucket, StorageError as SupabasStorageError, FileObject } from '@supabase/storage-js';
+import type { Bucket, FileObject, StorageError as SupabasStorageError } from '@supabase/storage-js';
 import type { IconData } from 'svelte-awesome/components/Icon.svelte';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
@@ -46,3 +47,10 @@ export type StorageBucketError =
 export type StorageFileError =
 	| { data: FileObject[]; error: null }
 	| { data: null; error: SupabasStorageError };
+
+export interface UploadFileToBucketParams {
+	supabase: SupabaseClient;
+	file: File;
+	bucket: string;
+	newFileName: string | undefined;
+}
