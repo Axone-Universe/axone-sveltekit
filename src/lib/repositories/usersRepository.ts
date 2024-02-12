@@ -1,31 +1,77 @@
 import { User } from '$lib/models/user';
 import { Repository } from '$lib/repositories/repository';
-import type { UserProperties } from '$lib/shared/user';
+import { label as StorylineLabel } from '$lib/properties/storyline';
+import type { UserLabel, UserProperties } from '$lib/properties/user';
 import type { Session } from '@supabase/supabase-js';
-import type { HydratedDocument } from 'mongoose';
+import type { HydratedDocument, PipelineStage } from 'mongoose';
+import type { Genre } from '$lib/properties/genre';
 
 export class UsersRepository extends Repository {
 	async getById(
 		session: Session | null,
-		uid?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<UserProperties>[]> {
-		let query = User.find(uid ? { _id: uid } : {});
+		id?: string
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const query = User.findById(id);
 
-		if (skip) {
-			query = query.skip(skip);
-		}
+		return await query;
+	}
 
-		if (limit) {
-			query = query.limit(limit);
-		}
+	async getReadingList(id: string, name?: string) {
+		const query = await User.aggregate([
+			{
+				$match: { _id: id }
+			},
+			{
+				$project: {
+					item: 1,
+					readingLists: { $objectToArray: '$readingLists' }
+				}
+			},
+			{
+				$unwind: '$readingLists'
+			},
+			...(name
+				? [
+						{
+							$match: { 'readingLists.k': name }
+						}
+				  ]
+				: []),
+			{
+				$lookup: {
+					from: 'storylines',
+					localField: 'readingLists.v',
+					foreignField: '_id',
+					as: 'storylines'
+				}
+			},
+			{
+				$unwind: '$storylines'
+			},
+			{
+				$replaceRoot: { newRoot: '$storylines' }
+			},
+			{
+				$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+			},
+			{
+				$unwind: {
+					path: '$user',
+					preserveNullAndEmptyArrays: true
+				}
+			},
+			{
+				$lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' }
+			},
+			{
+				$unwind: {
+					path: '$book',
+					preserveNullAndEmptyArrays: true
+				}
+			}
+		]);
 
-		const users = await query;
-
-		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
-			resolve(users);
-		});
+		return query;
 	}
 
 	/**
@@ -36,19 +82,38 @@ export class UsersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async getByDetails(
+	async get(
 		session: Session | null,
 		searchTerm: string,
 		limit?: number,
+		cursor?: string,
+		genres?: Genre[],
+		labels?: UserLabel[],
 		skip?: number
 	): Promise<HydratedDocument<UserProperties>[]> {
-		let query = User.find({
+		const filterQueries = [];
+		filterQueries.push({
 			$or: [
 				{ email: { $regex: '^' + searchTerm, $options: 'i' } },
 				{ firstName: { $regex: '^' + searchTerm, $options: 'i' } },
 				{ lastName: { $regex: '^' + searchTerm, $options: 'i' } }
 			]
 		});
+
+		if (cursor) {
+			filterQueries.push({ _id: { $gt: cursor } });
+		}
+
+		if (genres && genres.length > 0) {
+			filterQueries.push({ genres: { $all: genres } });
+		}
+
+		if (labels && labels.length > 0) {
+			filterQueries.push({ labels: { $all: labels } });
+		}
+
+		const filter = { $and: filterQueries };
+		let query = User.find(filter);
 
 		if (skip) {
 			query = query.skip(skip);
@@ -58,11 +123,7 @@ export class UsersRepository extends Repository {
 			query = query.limit(limit);
 		}
 
-		const users = await query;
-
-		return new Promise<HydratedDocument<UserProperties>[]>((resolve) => {
-			resolve(users);
-		});
+		return await query;
 	}
 
 	async count(): Promise<number> {

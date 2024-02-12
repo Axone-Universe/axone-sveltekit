@@ -1,11 +1,12 @@
+import { DEFAULT_READING_LIST } from '$lib/properties/user';
 import { router } from '$lib/trpc/router';
 import {
 	connectTestDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	testUserOne,
-	testUserTwo
+	generateTestUser,
+	createBook
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
@@ -13,62 +14,178 @@ beforeAll(async () => {
 });
 
 describe('users', () => {
+	const userOne = generateTestUser();
+	const userTwo = generateTestUser();
+	const testSessionOne = createTestSession(userOne);
+	const testSessionTwo = createTestSession(userTwo);
+
 	beforeEach(async () => {
 		await cleanUpDatabase();
 	});
 
 	test('create user', async () => {
-		const testSessionOne = createTestSession(testUserOne);
 		const userResponse = await createDBUser(testSessionOne);
 
-		expect(userResponse._id).toEqual(testSessionOne.user.id);
-		expect(userResponse.firstName).toEqual(testUserOne.user_metadata.firstName);
-		expect(userResponse.lastName).toEqual(testUserOne.user_metadata.lastName);
+		expect(userResponse.data._id).toEqual(testSessionOne.user.id);
+		expect(userResponse.data.firstName).toEqual(userOne.user_metadata.firstName);
+		expect(userResponse.data.lastName).toEqual(userOne.user_metadata.lastName);
 	});
 
 	test('get all users', async () => {
-		const testSessionOne = createTestSession(testUserOne);
-		const testSessionTwo = createTestSession(testUserTwo);
-
 		const userResponse1 = await createDBUser(testSessionOne);
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list();
+		const userResponses = await caller.users.get({});
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a._id).sort()).toEqual(
-			[userResponse1._id, userResponse2._id].sort()
+		expect(userResponses.data.map((a) => a._id).sort()).toEqual(
+			[userResponse1.data._id, userResponse2.data._id].sort()
 		);
 	});
 
 	test('get by details', async () => {
-		const testSessionOne = createTestSession(testUserOne);
-		const testSessionTwo = createTestSession(testUserTwo);
-
 		await createDBUser(testSessionOne);
 		const userResponse2 = await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.getByDetails({ searchTerm: 'user_t' });
+		const userResponses = await caller.users.get({ detail: userTwo.email });
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a._id).sort()).toEqual([userResponse2._id].sort());
+		expect(userResponses.data.map((a) => a._id).sort()).toEqual([userResponse2.data._id].sort());
+	});
+
+	test('update user details', async () => {
+		await createDBUser(testSessionOne);
+
+		const caller = router.createCaller({ session: testSessionOne });
+		const updateUserResponse = await caller.users.update({
+			facebook: 'www.facebook.com/user1'
+		});
+
+		expect(updateUserResponse.data?.facebook).toEqual('www.facebook.com/user1');
 	});
 
 	test('get single user', async () => {
-		const testSessionOne = createTestSession(testUserOne);
-		const testSessionTwo = createTestSession(testUserTwo);
-
-		const userResponse = await createDBUser(testSessionOne);
+		const createUserResponse = await createDBUser(testSessionOne);
 		await createDBUser(testSessionTwo);
 
 		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list({ searchTerm: userResponse._id });
+		const userResponse = await caller.users.getById({ id: createUserResponse.data._id });
 
-		const user = userResponses[0];
-
-		expect(userResponses.length).toEqual(1);
-		expect(user!._id).toEqual(userResponse._id);
+		expect(userResponse.data!._id).toEqual(createUserResponse.data._id);
 	});
+
+	test('create reading list', async () => {
+		const favourites = 'Favourites';
+
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const response = await caller.users.createReadingList({ name: favourites });
+		expect(Object.fromEntries(response.data!.readingLists.entries())).toEqual({
+			All: [],
+			Favourites: []
+		});
+	});
+
+	test('throws on creating a reading list with same name', async () => {
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const createResponse = await caller.users.createReadingList({ name: DEFAULT_READING_LIST });
+		expect(createResponse.message.includes('duplicate key error')).toEqual(true);
+	});
+
+	test('delete reading list', async () => {
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const res = await caller.users.deleteReadingList({ name: DEFAULT_READING_LIST });
+
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({});
+	});
+
+	test('update reading lists', async () => {
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const bookResponse = await createBook(testSessionOne, 'My Book');
+		const storylines = [
+			(
+				await caller.storylines.get({
+					bookID: bookResponse.data._id
+				})
+			).data[0]
+		];
+
+		await caller.users.createReadingList({ name: 'Favourites' });
+		await caller.users.createReadingList({ name: 'Read Later' });
+
+		let res = await caller.users.updateReadingLists({
+			names: [DEFAULT_READING_LIST, 'Favourites'],
+			storylineID: storylines[0]._id
+		});
+
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
+			All: [storylines[0]._id],
+			Favourites: [storylines[0]._id],
+			'Read Later': []
+		});
+
+		res = await caller.users.updateReadingLists({
+			names: ['Read Later', 'Favourites'],
+			storylineID: storylines[0]._id
+		});
+
+		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
+			All: [],
+			Favourites: [storylines[0]._id],
+			'Read Later': [storylines[0]._id]
+		});
+	});
+
+	test('get reading list', async () => {
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const favourites = 'Favourites';
+
+		await caller.users.createReadingList({ name: favourites });
+
+		const bookResponse = await createBook(testSessionOne, 'My Book');
+		const storylines = [
+			(
+				await caller.storylines.get({
+					bookID: bookResponse.data._id
+				})
+			).data[0]
+		];
+
+		await caller.users.updateReadingLists({
+			names: [DEFAULT_READING_LIST],
+			storylineID: storylines[0]._id
+		});
+
+		const res = await caller.users.getReadingList({ name: DEFAULT_READING_LIST });
+
+		expect(res.data.length).toEqual(1);
+		expect(res.data[0]._id).toEqual(storylines[0]._id);
+	});
+
+	test('rename reading list', async () => {
+		const caller = router.createCaller({ session: testSessionOne });
+		await createDBUser(testSessionOne);
+
+		const favourites = 'Favourites';
+
+		const user = await caller.users.renameReadingList({
+			oldName: DEFAULT_READING_LIST,
+			newName: favourites
+		});
+
+		expect(Object.fromEntries(user.data!.readingLists.entries())).toEqual({ Favourites: [] });
+	});
+
+	// TODO: test cascading deletes of storylines
 });

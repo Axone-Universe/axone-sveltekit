@@ -4,8 +4,9 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { UserPropertyBuilder, type UserProperties } from '$lib/shared/user';
+	import { UserPropertyBuilder, type UserProperties } from '$lib/properties/user';
 	import UserProfileDetails from '$lib/components/user/UserProfileDetails.svelte';
+	import { user } from 'svelte-awesome/icons';
 
 	export let data: PageData;
 	const { session } = data;
@@ -28,10 +29,11 @@
 	}
 
 	const onSubmit = (userProperties: UserProperties) => {
+		console.log(userProperties);
 		submit(userProperties);
 	};
 </script>
 
-<Container class="mx-4 md:mx-40 xl:mx-96">
+<Container class="mx-4 md:mx-40 xl:mx-96 mt-8">
 	<UserProfileDetails {onSubmit} {userProperties} />
 </Container>

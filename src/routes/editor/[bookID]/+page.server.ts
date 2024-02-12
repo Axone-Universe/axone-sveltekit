@@ -1,9 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from '$lib/shared/book';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import type { ChapterProperties } from '$lib/shared/chapter';
+import type { BookProperties } from '$lib/properties/book';
+import type { StorylineProperties } from '$lib/properties/storyline';
+import { redirect } from '@sveltejs/kit';
 
 export const ssr = false;
 
@@ -11,24 +11,33 @@ export const load = (async (event) => {
 	const bookID = event.params.bookID;
 	const storylineID = event.url.searchParams.get('storylineID');
 
-	const userAuthoredBookResponse = (await trpc(event).books.getById.query({
-		searchTerm: bookID,
-		limit: 10
-	})) as HydratedDocument<BookProperties>;
+	const userAuthoredBookResponse = (
+		await trpc(event).books.getById.query({
+			id: bookID,
+			limit: 10
+		})
+	).data as HydratedDocument<BookProperties>;
 
-	const storylineResponse = (await trpc(event).storylines.getById.query({
-		bookID: bookID,
-		storylineID: storylineID ? storylineID : undefined
-	})) as HydratedDocument<StorylineProperties>;
+	// If there are no viewing permissions redirect
+	if (!userAuthoredBookResponse.userPermissions?.view) {
+		throw redirect(303, '/permissions/' + bookID + '/?documentType=book');
+	}
 
-	const storylineChapters = (await trpc(event).chapters.getAll.query({
-		storylineID: storylineResponse._id
-	})) as HydratedDocument<ChapterProperties>[];
+	const storylineResponses = (
+		await trpc(event).storylines.getByBookID.query({
+			bookID: bookID
+		})
+	).data as HydratedDocument<StorylineProperties>[];
 
-	const chapterResponses: { [key: string]: HydratedDocument<ChapterProperties> } = {};
-	storylineChapters.forEach((chapterResponse) => {
-		chapterResponses[chapterResponse._id] = chapterResponse;
+	const storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
+	let selectedStoryline: HydratedDocument<StorylineProperties> = storylineResponses[0];
+
+	storylineResponses.forEach((storylineResponse) => {
+		if (storylineResponse._id === storylineID) {
+			selectedStoryline = storylineResponse;
+		}
+		storylines[storylineResponse._id] = storylineResponse;
 	});
 
-	return { userAuthoredBookResponse, storylineResponse, chapterResponses };
+	return { userAuthoredBookResponse, storylines, selectedStoryline };
 }) satisfies PageServerLoad;

@@ -3,46 +3,61 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, submitToCampaign, update } from '$lib/trpc/schemas/books';
-import { search } from '$lib/trpc/schemas/shared';
+import { create, read, submitToCampaign, update } from '$lib/trpc/schemas/books';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { setArchived } from '../schemas/shared';
+import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { BookProperties } from '$lib/properties/book';
+import type mongoose from 'mongoose';
 
 export const books = t.router({
-	getAll: t.procedure
+	get: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getAll(ctx.session, input?.limit, input?.skip);
 
-			return result;
-		}),
+			const response: Response = { success: true, message: 'books retrieved', data: {} };
+			try {
+				const result = await booksRepo.get(
+					ctx.session,
+					input.limit,
+					input.cursor,
+					input.genres,
+					input.tags,
+					input.title,
+					input.user,
+					input.archived
+				);
+				response.data = result;
+				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
 
-	getByTitle: t.procedure
-		.use(logger)
-		.input(search.optional())
-		.query(async ({ input, ctx }) => {
-			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getByTitle(
-				ctx.session!,
-				input?.searchTerm,
-				input?.limit,
-				input?.skip
-			);
-
-			return result;
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties>[] } };
 		}),
 
 	getById: t.procedure
 		.use(logger)
-		.input(search.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
-			const result = await booksRepo.getById(ctx.session, input?.searchTerm);
 
-			return result;
+			const response: Response = { success: true, message: 'book retrieved', data: {} };
+			try {
+				const result = await booksRepo.getById(ctx.session, input.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
+
 	update: t.procedure
 		.use(logger)
 		.use(auth)
@@ -54,13 +69,65 @@ export const books = t.router({
 
 			if (input.title) bookBuilder.title(input.title);
 			if (input.description) bookBuilder.description(input.description);
-			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
+			if (input.imageURL !== undefined) bookBuilder.imageURL(input.imageURL);
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 
-			const bookNode = await bookBuilder.update();
-			return bookNode;
+			const response: Response = { success: true, message: 'book updated', data: {} };
+			try {
+				const book = await bookBuilder.update();
+
+				if (input.notifications) {
+					sendUserNotifications(input.notifications);
+				}
+				response.data = book;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
+
+	setArchived: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(setArchived)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder()
+				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.session!.user.id)
+				.archived(input.archived);
+
+			const response: Response = { success: true, message: 'book archived', data: {} };
+			try {
+				await bookBuilder.setArchived(input.ids);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return response;
+		}),
+
+	getBooksByUserID: t.procedure
+		.use(logger)
+		.input(read.optional())
+		.query(async ({ input, ctx }) => {
+			const booksRepo = new BooksRepository();
+
+			const response: Response = { success: true, message: 'book returned', data: {} };
+			try {
+				const result = await booksRepo.getBooksByUserID(ctx.session, input?.id);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties>[] } };
+		}),
+
 	create: t.procedure
 		.use(logger)
 		.use(auth)
@@ -73,24 +140,53 @@ export const books = t.router({
 				.description(input.description)
 				.imageURL(input.imageURL);
 
-			if (input?.permissions) {
-				bookBuilder.permissions(input.permissions as any);
+			if (input.permissions) bookBuilder.permissions(input.permissions as any);
+			if (input.genres) bookBuilder.genres(input.genres);
+
+			const response: Response = {
+				success: true,
+				message: 'book successfully created',
+				data: '' as string
+			};
+			try {
+				const book = await bookBuilder.build();
+
+				if (input.notifications) {
+					sendUserNotifications(input.notifications);
+				}
+				response.data = book;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			if (input.genres) {
-				bookBuilder.genres(input.genres);
-			}
-
-			const bookNode = await bookBuilder.build();
-
-			return bookNode;
+			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
 
 	submitToCampaign: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(submitToCampaign) // TODO: use createBook schema
+		.input(submitToCampaign)
 		.mutation(async () => {
 			throw new Error('not Implemented');
+		}),
+
+	delete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(update)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
+
+			const response: Response = { success: true, message: 'book successfully deleted', data: {} };
+			try {
+				const result = await bookBuilder.delete();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
 		})
 });

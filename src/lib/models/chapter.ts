@@ -1,34 +1,48 @@
-import { label, type ChapterProperties } from '$lib/shared/chapter';
-import mongoose, { Schema, model } from 'mongoose';
-import { label as BookLabel } from '$lib/shared/book';
-import { label as UserLabel } from '$lib/shared/user';
-import { label as DeltaLabel } from '$lib/shared/delta';
+import { label, type ChapterProperties } from '$lib/properties/chapter';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
+import { label as BookLabel } from '$lib/properties/book';
+import { label as StorylineLabel } from '$lib/properties/storyline';
+import { label as UserLabel } from '$lib/properties/user';
+import { label as DeltaLabel } from '$lib/properties/delta';
 import {
-	addReadPermissionFilter,
-	addDeletePermissionFilter,
-	addUpdatePermissionFilter,
-	permissionSchema
+	addUserPermissionPipeline,
+	addViewRestrictionPipeline,
+	addOwnerUpdateRestrictionFilter,
+	permissionSchema,
+	addArchivedRestrictionFilter
 } from './permission';
+import { Storyline } from './storyline';
+import { Delta } from './delta';
 
 export const chapterSchema = new Schema<ChapterProperties>({
 	_id: { type: String, required: true },
 	book: { type: String, ref: BookLabel, required: true },
+	storyline: { type: String, ref: StorylineLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
-	description: String
+	description: String,
+	archived: { type: Boolean, default: false }
 });
 
-chapterSchema.pre(['find', 'findOne'], function (next) {
-	const userID = this.getOptions().userID;
-	const filter = this.getFilter();
+interface ChapterMethods extends ChapterProperties {
+	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
+}
 
-	const updatedFilter = addReadPermissionFilter(userID, filter);
-	this.setQuery(updatedFilter);
+chapterSchema.pre(['find', 'findOne'], function () {
+	throw new Error('Please use aggregate.');
+});
 
-	populate(this);
+chapterSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const storylineID = this.options.storylineID;
+	const pipeline = this.pipeline();
+
+	populate(pipeline);
+	addUserPermissionPipeline(userID, pipeline);
+	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
 	next();
 });
 
@@ -36,7 +50,7 @@ chapterSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functio
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -48,15 +62,91 @@ chapterSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
 	}
 );
 
-function populate(query: any) {
-	query.populate([{ path: 'user' }, { path: 'permissions.$*.user' }]);
+chapterSchema.pre('save', async function (next) {
+	const userID = this.user as string;
+	const storylineID = this.storyline as string;
+
+	const storyline = await Storyline.aggregate(
+		[
+			{
+				$match: {
+					_id: storylineID
+				}
+			}
+		],
+		{
+			userID: userID
+		}
+	)
+		.cursor()
+		.next();
+
+	if (storyline) {
+		if (!storyline.userPermissions?.collaborate) {
+			throw new Error('You have no permission to collaborate on this storyline');
+		}
+
+		if (storyline.archived) {
+			throw new Error('This storyline is archived');
+		}
+	}
+
+	next();
+});
+
+/**
+ * Adding a child to chapter.children array cannot use findOneAndUpdate because of permission restrictions
+ * Use this method instead, by calling addChild on the model instance
+ * @param chapterID
+ * @returns
+ */
+chapterSchema.methods.addChild = async function (chapterID: string, session: ClientSession) {
+	this.children.push(chapterID);
+	await this.save({ session });
+};
+
+function populate(pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+		},
+		{
+			$unwind: {
+				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		}
+	);
+
+	pipeline.push(
+		{
+			$addFields: {
+				permissionsArray: { $objectToArray: '$permissions' }
+			}
+		},
+		{
+			$lookup: {
+				from: 'users',
+				localField: 'permissionsArray.v.user',
+				foreignField: '_id',
+				as: 'permissionsUsers'
+			}
+		},
+		{
+			$unset: ['permissionsArray']
+		}
+	);
 }
 
-export const Chapter = mongoose.models[label] || model<ChapterProperties>(label, chapterSchema);
+export const Chapter = mongoose.models[label]
+	? model<ChapterMethods>(label)
+	: model<ChapterMethods>(label, chapterSchema);

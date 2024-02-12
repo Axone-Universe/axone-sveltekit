@@ -1,74 +1,72 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
-	import BookModal from './BookModal.svelte';
-
-	import { modalStore } from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
-
-	import Icon from 'svelte-awesome';
-	import { user, star } from 'svelte-awesome/icons';
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import type { BookProperties } from '$lib/shared/book';
-	import type { UserProperties } from '$lib/shared/user';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { star } from 'svelte-awesome/icons';
 
-	export let bookData: HydratedDocument<BookProperties>;
+	import BookModal from './BookModal.svelte';
+	import type { BookProperties } from '$lib/properties/book';
+	import ImageWithFallback from '../util/ImageWithFallback.svelte';
+	import type { UserProperties } from '$lib/properties/user';
 
-	let customClass = '';
-	export { customClass as class };
+	export let book: HydratedDocument<BookProperties>;
 
-	const bookUser = bookData.user as unknown as HydratedDocument<UserProperties>;
+	const modalStore = getModalStore();
+	let user = book.user as UserProperties;
+	let didError = false;
 
 	const modalComponent: ModalComponent = {
-		// Pass a reference to your custom component
 		ref: BookModal,
-		// Add the component properties as key/value pairs
-		props: { bookData: bookData },
-		// Provide a template literal for the default component slot
-		slot: '<p>Skeleton</p>'
+		props: { book }
 	};
 
 	const modal: ModalSettings = {
 		type: 'component',
-		// Pass the component directly:
 		component: modalComponent
-	};
-
-	let showModal = () => {
-		modalStore.trigger(modal);
 	};
 </script>
 
-<div
-	class={`card aspect-[8/13] pb-2 card-hover overflow-hidden flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33%] xl:flex-[0_0_20%] ${customClass}`}
+<button
+	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
+		didError || !book.imageURL ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
+	}`}
+	on:click={() => modalStore.trigger(modal)}
 >
-	<header>
-		<div class="flex p-2 items-center">
-			<p class="text-sm lg:text-lg font-bold line-clamp-1">{bookData.title}</p>
+	<ImageWithFallback src={book.imageURL} alt={book.title} bind:didError />
+	<div
+		class="bg-black/40 absolute top-0 w-full h-full md:bg-black/0 md:hover:bg-black/40 duration-300"
+	>
+		<div
+			class="opacity-100 md:opacity-0 md:group-hover:opacity-100 flex flex-col justify-between duration-300 p-2"
+		>
+			<p class="whitespace-normal text-sm sm:text-base font-bold line-clamp-2">{book.title}</p>
+			<p class="whitespace-normal text-sm italic">{`by ${user.firstName} ${user.lastName}`}</p>
 		</div>
-	</header>
-	<div class="min-w-7/8">
-		<button on:click={showModal}>
-			<img src={bookData.imageURL} class="object-cover w-full aspect-[7/8]" alt="Post" />
-		</button>
 	</div>
-	<hr class="opacity-50" />
-	<footer class="p-2 flex justify-start items-center space-x-4">
-		{#if bookUser.imageURL}
-			<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />
-		{:else}
-			<div class="overflow-hidden rounded-full">
-				<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />
-			</div>
-		{/if}
-		<div class="overflow-hidden w-2/6 flex-auto flex items-center">
-			<p class="text-sm line-clamp-1">
-				{bookUser.firstName}
-				{bookUser.lastName}
+	{#if book.rating > 0}
+		<div
+			class="overflow-hidden flex items-center absolute bottom-1 right-1 bg-white md:bg-black group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+		>
+			<Icon
+				class="w-3 h-3 text-black md:text-white group-hover:text-black duration-300"
+				data={star}
+			/>
+			<p
+				class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300"
+			>
+				{book.rating.toFixed(1)}
 			</p>
 		</div>
-		<div class="overflow-hidden flex-auto flex items-center">
-			<Icon class="p-2" data={star} scale={2} />
-			<p class="text-sm font-bold line-clamp-1">4.5</p>
+	{/if}
+	{#if book.campaign}
+		<div
+			class="overflow-hidden flex items-center absolute bottom-1 left-1 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+		>
+			<p
+				class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+			>
+				campaign
+			</p>
 		</div>
-	</footer>
-</div>
+	{/if}
+</button>

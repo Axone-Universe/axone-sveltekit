@@ -1,29 +1,25 @@
-import type { CampaignProperties } from '$lib/shared/campaign';
+import type { CampaignProperties } from '$lib/properties/campaign';
 import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';
+import type { Session } from '@supabase/supabase-js';
+import type { ReadCampaign } from '$lib/trpc/schemas/campaigns';
 
 export class CampaignsRepository extends Repository {
-	async get(
-		title?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<CampaignProperties>[]> {
-		let query = Campaign.find(title ? { title: title } : {});
+	async get(readCampaign: ReadCampaign): Promise<HydratedDocument<CampaignProperties>[]> {
+		const filter: any = {};
 
-		if (skip) {
-			query = query.skip(skip);
+		if (readCampaign.id) {
+			filter._id = readCampaign.id;
 		}
 
-		if (limit) {
-			query = query.limit(limit);
+		if (readCampaign.cursor) {
+			filter._id = { $gt: readCampaign.cursor };
 		}
 
-		const campaigns = await query;
+		const query = Campaign.find(filter, null, { limit: readCampaign.limit });
 
-		return new Promise<HydratedDocument<CampaignProperties>[]>((resolve) => {
-			resolve(campaigns);
-		});
+		return await query;
 	}
 
 	// Might not be necessary since the number of campaigns shouldn't be excessively high.
@@ -37,19 +33,7 @@ export class CampaignsRepository extends Repository {
 		});
 	}
 
-	getById(
-		searchTerm?: string | undefined,
-		limit?: number | undefined,
-		skip?: number | undefined
-	): Promise<unknown> {
-		throw new Error('Method not implemented.');
-	}
-
-	getByTitle(
-		searchTerm?: string | undefined,
-		limit?: number | undefined,
-		skip?: number | undefined
-	): Promise<unknown[]> {
+	getById(session: Session | null, id?: string): Promise<unknown> {
 		throw new Error('Method not implemented.');
 	}
 }

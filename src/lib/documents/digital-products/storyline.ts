@@ -1,9 +1,11 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { StorylineProperties } from '$lib/shared/storyline';
+import mongoose, { startSession } from 'mongoose';
+import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { PermissionProperties } from '$lib/properties/permission';
+import { Chapter } from '$lib/models/chapter';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -19,7 +21,9 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		this._storylineProperties = {
 			_id: id ? id : ulid(),
 			main: false,
-			permissions: new Map()
+			permissions: {},
+			cumulativeRating: 0,
+			numRatings: 0
 		};
 	}
 
@@ -73,14 +77,106 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this._storylineProperties;
 	}
 
-	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
+	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._storylineProperties.permissions = permissions;
+		return this;
+	}
+
+	archived(archived: boolean) {
+		this._storylineProperties.archived = archived;
 		return this;
 	}
 
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
 		return this;
+	}
+
+	async delete(): Promise<mongoose.mongo.DeleteResult> {
+		const session = await mongoose.startSession();
+
+		let result = {};
+
+		await session.withTransaction(async () => {
+			const chapters = await Chapter.aggregate(
+				[
+					{
+						$match: {
+							storyline: this._storylineProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID
+				}
+			);
+
+			if (chapters && chapters.length !== 0) {
+				throw new Error('Please delete all chapters before deleting the storyline');
+			}
+
+			result = await Storyline.deleteOne(
+				{ _id: this._storylineProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
+
+			return result;
+		});
+		session.endSession();
+
+		return result as mongoose.mongo.DeleteResult;
+	}
+
+	async update(): Promise<HydratedDocument<StorylineProperties>> {
+		const storyline = await Storyline.findOneAndUpdate(
+			{ _id: this._storylineProperties._id },
+			this._storylineProperties,
+			{
+				new: true,
+				userID: this._sessionUserID
+			}
+		);
+
+		if (storyline) {
+			return storyline;
+		}
+
+		throw new Error("Couldn't update storyline");
+	}
+
+	async setArchived(ids: string[]): Promise<boolean> {
+		const session = await startSession();
+		let acknowledged = false;
+
+		try {
+			await session.withTransaction(async () => {
+				acknowledged = (
+					await Storyline.updateMany(
+						{ _id: { $in: ids }, user: this._storylineProperties.user },
+						{ archived: this._storylineProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session
+						}
+					)
+				).acknowledged;
+
+				if (acknowledged) {
+					await Chapter.updateMany(
+						{ storyline: { $in: ids }, user: this._storylineProperties.user },
+						{ archived: this._storylineProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session
+						}
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
+
+		return acknowledged;
 	}
 
 	/**
@@ -102,13 +198,25 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		// get the parent chapter ids
 		// we assume they are already sorted in correct order by the push
 		if (this._parentStorylineID) {
-			const parentStoryline = await Storyline.findById(this._parentStorylineID, null, {
-				userID: this._userID
-			});
+			const parentStoryline = await Storyline.aggregate(
+				[
+					{
+						$match: {
+							_id: this._parentStorylineID
+						}
+					}
+				],
+				{
+					userID: this._userID
+				}
+			)
+				.cursor()
+				.next();
+
 			for (const chapter of parentStoryline.chapters) {
 				const chapterID = typeof chapter === 'string' ? chapter : chapter._id;
 
-				storyline.chapters.push(chapterID);
+				storyline.chapters?.push(chapterID);
 				if (chapterID === this._branchOffChapterID) {
 					break;
 				}

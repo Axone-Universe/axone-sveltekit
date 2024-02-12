@@ -1,12 +1,14 @@
 import { ulid } from 'ulid';
 
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
-import type { HydratedDocument } from 'mongoose';
+import type { ClientSession, HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
-import type { ChapterProperties } from '$lib/shared/chapter';
+import type { ChapterProperties } from '$lib/properties/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
-import type { PermissionProperties } from '$lib/shared/permission';
+import type { PermissionProperties } from '$lib/properties/permission';
+import { Delta } from '$lib/models/delta';
+import { DeltaBuilder } from '../digital-assets/delta';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -19,7 +21,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		super();
 		this._chapterProperties = {
 			_id: id ? id : ulid(),
-			permissions: new Map()
+			permissions: {}
 		};
 	}
 
@@ -40,15 +42,13 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	storylineID(storylineID: string): ChapterBuilder {
 		this._storylineID = storylineID;
-
+		this._chapterProperties.storyline = storylineID;
 		return this;
 	}
 
 	bookID(bookID: string): ChapterBuilder {
 		this._bookID = bookID;
-
 		this._chapterProperties.book = bookID;
-
 		return this;
 	}
 
@@ -57,8 +57,13 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
-	permissions(permissions: Map<string, HydratedDocument<PermissionProperties>>) {
+	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._chapterProperties.permissions = permissions;
+		return this;
+	}
+
+	archived(archived: boolean) {
+		this._chapterProperties.archived = archived;
 		return this;
 	}
 
@@ -72,45 +77,178 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 		let result = {};
 
-		await session.withTransaction(async () => {
-			const chapter = await Chapter.findById(this._chapterProperties._id, null, {
-				userID: this._sessionUserID
+		try {
+			await session.withTransaction(async () => {
+				await this.deleteChapterFromParents(session);
+				await this.deleteChapterFromStoryline(session);
+
+				result = await Chapter.deleteOne(
+					{ _id: this._chapterProperties._id },
+					{ session: session, userID: this._sessionUserID }
+				);
+
+				return result;
 			});
-
-			const children = chapter.children;
-			if (children && children.length !== 0) {
-				// re-assign children to the parent
-				const parents = await Chapter.find({
-					children: this._chapterProperties._id
-				});
-
-				for (const parent of parents) {
-					parent.children = parent.children.concat(children);
-					await parent.save({ session });
-				}
-			}
-
-			result = await Chapter.deleteOne(
-				{ _id: this._chapterProperties._id },
-				{ session: session, userID: this._sessionUserID }
-			);
-
-			return result;
-		});
-		session.endSession();
+		} finally {
+			session.endSession();
+		}
 
 		return result as mongoose.mongo.DeleteResult;
 	}
 
-	async update(): Promise<HydratedDocument<ChapterProperties>> {
-		await Chapter.findOneAndUpdate({ _id: this._chapterProperties._id }, this._chapterProperties, {
-			new: true,
-			userID: this._sessionUserID
-		});
+	async deleteChapterFromParents(session: ClientSession) {
+		const chapter = await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
+				},
+				{
+					$lookup: {
+						from: 'chapters',
+						localField: 'children',
+						foreignField: '_id',
+						as: 'children'
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
 
-		return (await Chapter.findById(this._chapterProperties._id, null, {
-			userID: this._sessionUserID
-		})) as HydratedDocument<ChapterProperties>;
+		const children = chapter.children;
+		if (children && children.length !== 0) {
+			// check if children was created by the owner
+			for (const child of children) {
+				if (child.user !== chapter.user._id) {
+					throw new Error(
+						'This chapter was referenced by another author, it can only be archived.'
+					);
+				}
+			}
+
+			// re-assign children to the parent
+			const parents = await Chapter.aggregate([
+				{
+					$match: {
+						children: this._chapterProperties._id
+					}
+				}
+			]);
+
+			for (const parent of parents) {
+				parent.children = parent.children.filter(
+					(chapterID: string) => chapterID !== this._chapterProperties._id
+				);
+				parent.children = parent.children.concat(children);
+
+				await Chapter.findOneAndUpdate({ _id: parent._id }, parent, {
+					userID: this._sessionUserID,
+					session: session
+				});
+			}
+		}
+	}
+
+	async deleteChapterFromStoryline(session: ClientSession) {
+		// remove chapter from storylines refering it
+		const storylines = await Storyline.aggregate([
+			{
+				$match: {
+					chapters: this._chapterProperties._id
+				}
+			}
+		]);
+
+		for (const storyline of storylines) {
+			storyline.chapters = storyline.chapters.filter(
+				(chapterID: string) => chapterID !== this._chapterProperties._id
+			);
+
+			await Storyline.findOneAndUpdate({ _id: storyline._id }, storyline, {
+				userID: this._sessionUserID,
+				session: session
+			});
+		}
+	}
+
+	async update(): Promise<HydratedDocument<ChapterProperties>> {
+		const session = await mongoose.startSession();
+		await session.withTransaction(async () => {
+			const chapter = await Chapter.findOneAndUpdate(
+				{ _id: this._chapterProperties._id },
+				this._chapterProperties,
+				{
+					new: true,
+					userID: this._sessionUserID,
+					session: session
+				}
+			);
+
+			// update delta inherited fields
+			if (chapter?.delta) {
+				await Delta.findOneAndUpdate(
+					{ _id: chapter.delta },
+					{ archived: chapter.archived, permissions: chapter.permissions },
+					{ session }
+				);
+			}
+		});
+		session.endSession();
+
+		const chapter = await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next();
+
+		return chapter;
+	}
+
+	async setArchived(ids: string[]): Promise<boolean> {
+		const session = await mongoose.startSession();
+		let acknowledged = false;
+		await session.withTransaction(async () => {
+			acknowledged = (
+				await Chapter.updateMany(
+					{ _id: { $in: ids }, user: this._chapterProperties.user },
+					{ archived: this._chapterProperties.archived },
+					{
+						userID: this._sessionUserID,
+						session: session
+					}
+				)
+			).acknowledged;
+
+			if (acknowledged) {
+				acknowledged = (
+					await Delta.updateMany(
+						{ chapter: { $in: ids }, user: this._chapterProperties.user },
+						{ archived: this._chapterProperties.archived },
+						{
+							userID: this._sessionUserID,
+							session: session
+						}
+					)
+				).acknowledged;
+			}
+		});
+		session.endSession();
+
+		return acknowledged;
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {
@@ -121,29 +259,85 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 		const chapter: HydratedDocument<ChapterProperties> = new Chapter(this._chapterProperties);
 
-		// use a transaction to make sure everything saves
-		await session.withTransaction(async () => {
-			await chapter.save({ session });
+		try {
+			await session.withTransaction(async () => {
+				// Create the delta
+				const deltaBuilder = new DeltaBuilder()
+					.sessionUserID(this._sessionUserID!)
+					.chapterID(this._chapterProperties._id)
+					.userID(this._chapterProperties.user as string)
+					.permissions(chapter.permissions);
 
-			const storyline = await Storyline.findById(this._storylineID, null, {
-				userID: this._chapterProperties.user
+				const delta = new Delta(deltaBuilder.properties());
+				await delta.save({ session });
+
+				// Create the chapter
+				chapter.isNew = true;
+				chapter.delta = delta._id;
+				await chapter.save({ session });
+
+				const storyline = new Storyline(
+					await Storyline.aggregate(
+						[
+							{
+								$match: {
+									_id: this._storylineID
+								}
+							}
+						],
+						{
+							userID: this._chapterProperties.user
+						}
+					)
+						.session(session)
+						.cursor()
+						.next()
+				);
+				storyline.isNew = false;
+				const prevChapterID = storyline.chapters?.at(-1);
+				await storyline.addChapter(chapter._id, session);
+
+				if (prevChapterID) {
+					const prevChapter = new Chapter(
+						await Chapter.aggregate(
+							[
+								{
+									$match: {
+										_id: prevChapterID
+									}
+								}
+							],
+							{
+								userID: this._chapterProperties.user
+							}
+						)
+							.session(session)
+							.cursor()
+							.next()
+					);
+					prevChapter.isNew = false;
+					await prevChapter.addChild(chapter._id, session);
+				}
 			});
+		} finally {
+			session.endSession();
+		}
 
-			storyline.chapters.push(chapter._id);
-			await storyline.save({ session });
-
-			if (this._prevChapterID) {
-				const prevChapter = await Chapter.findById(this._prevChapterID, null, {
-					userID: this._chapterProperties.user
-				});
-				prevChapter.children.push(chapter._id);
-				await prevChapter.save({ session });
+		const newChapter = await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
+				}
+			],
+			{
+				userID: this._chapterProperties.user
 			}
-		});
-		session.endSession();
+		)
+			.cursor()
+			.next();
 
-		return (await Chapter.findById(this._chapterProperties._id, null, {
-			userID: this._sessionUserID
-		})) as HydratedDocument<ChapterProperties>;
+		return newChapter;
 	}
 }

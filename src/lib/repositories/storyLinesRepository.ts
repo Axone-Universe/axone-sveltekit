@@ -1,43 +1,36 @@
 import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
-import type { StorylineProperties } from '$lib/shared/storyline';
+import type { StorylineProperties } from '$lib/properties/storyline';
 import type { Session } from '@supabase/supabase-js';
 import type { Document, HydratedDocument } from 'mongoose';
+import type { ReadStoryline } from '$lib/trpc/schemas/storylines';
 
 export class StorylinesRepository extends Repository {
-	private _bookID?: string;
-
 	constructor() {
 		super();
 	}
 
-	bookId(bookId: string): StorylinesRepository {
-		this._bookID = bookId;
-		return this;
-	}
-
-	async getAll(
+	async get(
 		session: Session | null,
-		limit?: number,
-		skip?: number
+		readStoryline: ReadStoryline
 	): Promise<HydratedDocument<StorylineProperties>[]> {
-		let query = Storyline.find(this._bookID ? { book: this._bookID } : {}, null, {
+		const pipeline = [];
+		const filter: any = {};
+
+		if (readStoryline.user) filter.user = readStoryline.user;
+		if (readStoryline.bookID) filter.book = readStoryline.bookID;
+		if (readStoryline.cursor) filter._id = { $gt: readStoryline.cursor };
+		if (readStoryline.archived !== undefined) filter.archived = readStoryline.archived;
+
+		pipeline.push({ $match: filter });
+
+		if (readStoryline.limit) pipeline.push({ $limit: readStoryline.limit });
+
+		const query = Storyline.aggregate(pipeline, {
 			userID: session?.user.id
 		});
 
-		if (skip) {
-			query = query.skip(skip);
-		}
-
-		if (limit) {
-			query = query.limit(limit);
-		}
-
-		const storylines = await query;
-
-		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
-			resolve(storylines);
-		});
+		return await query;
 	}
 
 	async getByTitle(
@@ -51,21 +44,49 @@ export class StorylinesRepository extends Repository {
 
 	async getById(
 		session: Session | null,
-		id?: string
+		id: string
 	): Promise<HydratedDocument<StorylineProperties>> {
-		let query;
-
-		if (!id) {
-			query = Storyline.findOne({ main: true, book: this._bookID }, null, {
-				userID: session?.user.id
-			});
-		} else {
-			query = Storyline.findById(id, null, { userID: session?.user.id });
-		}
-
-		const storyline = await query;
+		const storyline = await Storyline.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
 
 		return new Promise<HydratedDocument<StorylineProperties>>((resolve) => {
+			resolve(storyline);
+		});
+	}
+
+	async getByBookID(
+		session: Session | null,
+		bookID: string,
+		main?: boolean | undefined
+	): Promise<HydratedDocument<StorylineProperties>[]> {
+		const pipeline = [];
+
+		pipeline.push(main ? { $match: { book: bookID, main: true } } : { $match: { book: bookID } });
+
+		const storyline = await Storyline.aggregate(pipeline, {
+			userID: session?.user.id
+		});
+
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
+			resolve(storyline);
+		});
+	}
+
+	async getStorylinesByUserID(
+		session: Session | null,
+		id?: string
+	): Promise<HydratedDocument<StorylineProperties>[]> {
+		const pipeline = [];
+
+		pipeline.push({ $match: { user: id, main: true } });
+
+		const storyline = (await Storyline.aggregate(pipeline, {
+			userID: session?.user.id
+		})) as HydratedDocument<StorylineProperties>[];
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storyline);
 		});
 	}
@@ -77,4 +98,10 @@ export class StorylinesRepository extends Repository {
 			resolve(count);
 		});
 	}
+
+	// async getHighestReview() {
+	// 	const storylines = (await Storyline.aggregate([{
+	// 		$group:
+	// 	}])) as HydratedDocument<StorylineProperties>[];
+	// }
 }

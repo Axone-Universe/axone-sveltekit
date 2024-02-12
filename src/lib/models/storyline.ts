@@ -1,14 +1,16 @@
-import { label, type StorylineProperties } from '$lib/shared/storyline';
-import mongoose, { Schema, model } from 'mongoose';
-import { label as BookLabel } from '$lib/shared/book';
-import { label as UserLabel } from '$lib/shared/user';
-import { label as ChapterLabel } from '$lib/shared/chapter';
+import { label, type StorylineProperties } from '$lib/properties/storyline';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
+import { label as BookLabel } from '$lib/properties/book';
+import { label as UserLabel } from '$lib/properties/user';
+import { label as ChapterLabel } from '$lib/properties/chapter';
 import {
-	addReadPermissionFilter,
-	addDeletePermissionFilter,
-	addUpdatePermissionFilter,
-	permissionSchema
+	addUserPermissionPipeline,
+	addViewRestrictionPipeline,
+	addOwnerUpdateRestrictionFilter,
+	permissionSchema,
+	addArchivedRestrictionFilter
 } from './permission';
+import { Book } from './book';
 
 export const storylineSchema = new Schema<StorylineProperties>({
 	_id: { type: String, required: true },
@@ -19,17 +21,23 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String,
-	imageURL: String
+	imageURL: String,
+	cumulativeRating: { type: Number, default: 0 },
+	numRatings: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false }
 });
 
-storylineSchema.pre(['find', 'findOne'], function (next) {
-	const userID = this.getOptions().userID;
-	const filter = this.getFilter();
+interface StorylineMethods extends StorylineProperties {
+	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
+}
 
-	const updatedFilter = addReadPermissionFilter(userID, filter);
-	this.setQuery(updatedFilter);
+storylineSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const pipeline = this.pipeline();
 
-	this.populate({ path: 'user chapters permissions.$*.user', options: { userID: userID } });
+	populate(pipeline);
+	addUserPermissionPipeline(userID, pipeline);
+	addViewRestrictionPipeline(userID, pipeline, 'books', 'book');
 	next();
 });
 
@@ -37,7 +45,7 @@ storylineSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], funct
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -49,12 +57,104 @@ storylineSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
 	}
 );
 
-export const Storyline =
-	mongoose.models[label] || model<StorylineProperties>(label, storylineSchema);
+storylineSchema.pre('save', async function (next) {
+	const userID = this.user as string;
+	const bookID = this.book as string;
+
+	const book = await Book.aggregate(
+		[
+			{
+				$match: {
+					_id: bookID
+				}
+			}
+		],
+		{
+			userID: userID
+		}
+	)
+		.cursor()
+		.next();
+
+	if (book) {
+		if (!book.userPermissions?.collaborate) {
+			throw new Error('You have no permission to collaborate on the book');
+		}
+
+		if (book.archived) {
+			throw new Error('This book is archived');
+		}
+
+		if (book.campaign) {
+			if (Date.now() > book.campaign.endDate) {
+				throw new Error('This campaign has ended. No more entries allowed');
+			}
+		}
+	}
+
+	next();
+});
+
+/**
+ * Adding a chapter to storyline.chapters array cannot use findOneAndUpdate because of permission restrictions
+ * Use this method instead, by
+ * 1. getting the storyline using aggregate
+ * 2. Creating model instance of Storyline from the returned object
+ * 3. calling addChapter on the model instance
+ * @param chapterID
+ * @returns
+ */
+storylineSchema.methods.addChapter = async function (chapterID: string, session: ClientSession) {
+	this.chapters.push(chapterID);
+	await this.save({ session });
+};
+
+/**
+ * Add fields you want to be populated by default here
+ * @param query
+ */
+function populate(pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+		},
+		{
+			$unwind: {
+				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		}
+	);
+
+	pipeline.push(
+		{
+			$addFields: {
+				permissionsArray: { $objectToArray: '$permissions' }
+			}
+		},
+		{
+			$lookup: {
+				from: 'users',
+				localField: 'permissionsArray.v.user',
+				foreignField: '_id',
+				as: 'permissionsUsers'
+			}
+		},
+		{
+			$unset: ['permissionsArray']
+		}
+	);
+}
+
+export const Storyline = mongoose.models[label]
+	? model<StorylineMethods>(label)
+	: model<StorylineMethods>(label, storylineSchema);

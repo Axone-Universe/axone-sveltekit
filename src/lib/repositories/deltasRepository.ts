@@ -1,6 +1,7 @@
 import { Delta } from '$lib/models/delta';
 import { Repository } from '$lib/repositories/repository';
-import type { DeltaProperties } from '$lib/shared/delta';
+import type { DeltaProperties } from '$lib/properties/delta';
+import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 
 export class DeltasRepository extends Repository {
@@ -8,23 +9,16 @@ export class DeltasRepository extends Repository {
 		super();
 	}
 
-	async getById(id?: string): Promise<HydratedDocument<DeltaProperties>> {
-		const delta = await Delta.findById(id);
+	async getById(session: Session | null, id?: string): Promise<HydratedDocument<DeltaProperties>> {
+		// We use exec here because cursor doesn't go through post middleware for aggregate
+		const result = await Delta.aggregate([{ $match: { _id: id } }], {
+			userID: session?.user.id
+		}).exec();
 
-		return new Promise<HydratedDocument<DeltaProperties>>((resolve) => {
-			resolve(delta);
-		});
+		return result[0];
 	}
 
-	async getAll(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {
-		throw new Error('not Implemented');
-	}
-
-	async getByTitle(
-		title?: string,
-		limit?: number,
-		skip?: number
-	): Promise<HydratedDocument<DeltaProperties>[]> {
+	async get(limit?: number, skip?: number): Promise<HydratedDocument<DeltaProperties>[]> {
 		throw new Error('not Implemented');
 	}
 

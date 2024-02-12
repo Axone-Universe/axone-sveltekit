@@ -1,15 +1,13 @@
 import { z } from 'zod';
-import { genres } from './shared';
-import type { UserProperties, Users } from '$lib/shared/user';
+import { genreSchema } from './genres';
+import { USER_LABELS } from '$lib/properties/user';
+import { readingList } from './readingLists';
 
-export const users = z.object({
-	Writer: z.boolean(),
-	Illustrator: z.boolean(),
-	Editor: z.boolean()
-}) satisfies z.ZodType<Users>;
+const UserSchema = z.enum(USER_LABELS);
+
+export const userSchema = z.array(UserSchema);
 
 export const create = z.object({
-	_id: z.string(),
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
 	imageURL: z.string().optional(),
@@ -18,12 +16,11 @@ export const create = z.object({
 	facebook: z.string().optional(),
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
-	genres: genres.optional(),
-	labels: users.optional()
-}) satisfies z.ZodType<UserProperties>;
+	genres: genreSchema.optional(),
+	labels: userSchema.optional()
+});
 
 export const update = z.object({
-	_id: z.string(),
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
 	imageURL: z.string().optional(),
@@ -32,6 +29,39 @@ export const update = z.object({
 	facebook: z.string().optional(),
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
-	genres: genres.optional(),
-	labels: users.optional()
+	genres: genreSchema.optional(),
+	labels: userSchema.optional(),
+	readingLists: z.map(z.string(), z.array(z.string())).optional()
 });
+
+export const getReadingList = z.object({
+	name: z.string().optional()
+});
+
+export const createDeleteReadingList = z.object({
+	name: z.string()
+});
+
+export const renameReadingList = z.object({
+	oldName: z.string(),
+	newName: z.string()
+});
+
+export const updateReadingLists = z.object({
+	names: z.array(z.string()),
+	storylineID: z.string()
+});
+
+export const read = z.object({
+	limit: z.number().optional(),
+	cursor: z.string().optional(),
+	id: z.string().optional(),
+	detail: z.string().optional(),
+	genres: genreSchema.optional(),
+	labels: userSchema.optional()
+});
+
+export type CreateDeleteReadingList = z.infer<typeof createDeleteReadingList>;
+export type RenameReadingList = z.infer<typeof renameReadingList>;
+export type GetReadingList = z.infer<typeof getReadingList>;
+export type UpdateReadingList = z.infer<typeof updateReadingLists>;

@@ -1,8 +1,11 @@
+import { faker } from '@faker-js/faker';
 import type { Session, User } from '@supabase/supabase-js';
-import { router } from '$lib/trpc/router';
 import mongoose, { type HydratedDocument } from 'mongoose';
-import { GenresBuilder } from '$lib/shared/genres';
-import type { PermissionProperties } from '$lib/shared/permission';
+import { ulid } from 'ulid';
+
+import { GenresBuilder, type Genre } from '$lib/properties/genre';
+import type { StorylineProperties } from '$lib/properties/storyline';
+import { router } from '$lib/trpc/router';
 
 import {
 	TEST_MONGO_PASSWORD,
@@ -17,13 +20,15 @@ import {
 	TEST_USER_FIRST_NAME,
 	TEST_USER_LAST_NAME
 } from '$env/static/private';
-import type { StorylineProperties } from '$lib/shared/storyline';
-import { ulid } from 'ulid';
+import { UserPropertyBuilder } from '$lib/properties/user';
+import type { Rating, ReviewOf } from '$lib/properties/review';
+import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
+import type { CreateBook } from '$lib/trpc/schemas/books';
 
 /** Supabase Test User Infos */
 export const testUserOne: User = {
 	id: TEST_USER_ID ? TEST_USER_ID : '1',
-	email: 'user_one@test.com',
+	email: 'test.user.one@test.com',
 	user_metadata: {
 		firstName: TEST_USER_FIRST_NAME ? TEST_USER_FIRST_NAME : 'user',
 		lastName: TEST_USER_LAST_NAME ? TEST_USER_LAST_NAME : 'one'
@@ -35,7 +40,7 @@ export const testUserOne: User = {
 
 export const testUserTwo: User = {
 	id: '2',
-	email: 'user_two@test.com',
+	email: 'test.user.two@test.com',
 	user_metadata: { firstName: 'user', lastName: 'two' },
 	app_metadata: {},
 	aud: '',
@@ -44,12 +49,29 @@ export const testUserTwo: User = {
 
 export const testUserThree: User = {
 	id: '3',
-	email: 'user_three@test.com',
+	email: 'test.user.three@test.com',
 	user_metadata: { firstName: 'user', lastName: 'three' },
 	app_metadata: {},
 	aud: '',
 	created_at: ''
 };
+
+export function generateTestUser(): User {
+	const id = `test-${ulid()}`;
+	const firstName = faker.person.firstName();
+	const lastName = faker.person.lastName();
+	return {
+		id,
+		email: `${firstName}.${lastName}.${id.substring(id.length - 5, id.length - 1)}@test.com`,
+		user_metadata: {
+			firstName,
+			lastName
+		},
+		app_metadata: {},
+		aud: '',
+		created_at: ''
+	};
+}
 
 /**
  * Creates a session from a given user supabase
@@ -70,24 +92,67 @@ export function createTestSession(supabaseUser: User) {
 /**
  * Creates a book from a given title ans session
  * @param session
- * @param title
  * @returns
  */
-export async function createBook(session: Session, title: string) {
-	const caller = router.createCaller({ session: session });
+export async function createBook(testSession: Session, title?: string, genres: Genre[] = []) {
+	const caller = router.createCaller({ session: testSession });
 
-	const genres = new GenresBuilder();
-	genres.genre('Action');
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
 
-	const book = await caller.books.create({
-		title,
-		imageURL: 'www.example.com',
-		genres: genres.getGenres(),
-		description: '',
-		permissions: { ['public']: { _id: ulid(), public: true } }
+	const response = await caller.books.create({
+		title: title ? title : faker.commerce.productName() + ' But a Book',
+		description: faker.commerce.productDescription(),
+		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
+		permissions: {
+			public: publicPermission
+		},
+		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
 	});
 
-	return book;
+	return response;
+}
+
+/**
+ * Creates a campaign and returns the book object of the campaign
+ * @param session
+ * @returns
+ */
+export async function createCampaign(testSession: Session) {
+	const caller = router.createCaller({ session: testSession });
+
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
+
+	const genres: Genre[] = [];
+	const startDate = new Date();
+	const endDate = new Date();
+	const submissionCriteria =
+		'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.';
+	const rewards = 'Book publishing deal with Penguin!';
+
+	const book: CreateBook = {
+		title: faker.commerce.productName() + ' But a Book',
+		description: faker.commerce.productDescription(),
+		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`,
+		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),
+		permissions: {
+			public: publicPermission
+		}
+	};
+
+	const campaignResponse = await caller.campaigns.create({
+		startDate,
+		endDate,
+		submissionCriteria,
+		rewards,
+		book
+	});
+
+	const createdBook = (await caller.books.getById({ id: campaignResponse.data.book })).data;
+	return createdBook;
 }
 
 export async function createChapter(
@@ -99,16 +164,48 @@ export async function createChapter(
 ) {
 	const caller = router.createCaller({ session: session });
 
-	const chapter = await caller.chapters.create({
+	const publicPermission =
+		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
+	publicPermission.permission = 'collaborate';
+
+	const response = await caller.chapters.create({
 		title: title,
 		description: description,
 		storylineID: storyline._id,
 		bookID: typeof storyline.book === 'string' ? storyline.book : storyline.book!._id,
 		prevChapterID: prevChapterID,
-		permissions: { ['public']: { _id: ulid(), public: true } }
+		permissions: {
+			public: publicPermission
+		}
 	});
 
-	return chapter;
+	return response;
+}
+
+/**
+ * Creates a test review
+ * @param testSession
+ * @returns
+ */
+export async function createReview(
+	testSession: Session,
+	itemID: string,
+	reviewOf: ReviewOf,
+	rating: Rating,
+	title?: string,
+	text?: string
+) {
+	const caller = router.createCaller({ session: testSession });
+
+	const review = await caller.reviews.create({
+		item: itemID,
+		reviewOf,
+		rating,
+		title,
+		text
+	});
+
+	return review;
 }
 
 /**
@@ -134,8 +231,17 @@ export async function connectDevDatabase() {
 	await mongoose.connect(MONGO_URL, options);
 }
 
-export async function cleanUpDatabase() {
-	await mongoose.connection.db.dropDatabase();
+export async function cleanUpDatabase(isPartOfDBSetup = false) {
+	await Promise.all(
+		Object.values(mongoose.connection.collections).map(async (collection) => {
+			if (isPartOfDBSetup && collection.collectionName.toLowerCase() === 'users') {
+				await collection.deleteMany({ $or: [{ _id: /^test-/ }, { email: /^test./ }] });
+			} else {
+				await collection.deleteMany({});
+			}
+		})
+	);
+	// await mongoose.connection.db.dropDatabase();
 }
 
 /**
@@ -143,15 +249,30 @@ export async function cleanUpDatabase() {
  * @param session
  * @returns
  */
-export const createDBUser = async (session: Session) => {
+export async function createDBUser(session: Session, genres: Genre[] = []) {
 	const caller = router.createCaller({ session });
 
 	const supabaseUser = session.user;
-	const userDetails = {
-		_id: '',
-		firstName: supabaseUser.user_metadata.firstName,
-		lastName: supabaseUser.user_metadata.lastName,
-		email: session.user.email
-	};
-	return await caller.users.create(userDetails);
-};
+
+	const userPropertyBuilder = new UserPropertyBuilder();
+	const userProperties = userPropertyBuilder.getProperties();
+
+	userProperties._id = '';
+	userProperties.firstName = supabaseUser.user_metadata.firstName;
+	userProperties.lastName = supabaseUser.user_metadata.lastName;
+	userProperties.email = session.user.email;
+	userProperties.about = faker.person.bio() + ' - ' + faker.lorem.paragraph();
+	userProperties.imageURL = `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`;
+	userProperties.genres = genres;
+
+	return await caller.users.create(userProperties);
+}
+
+export function getRandomElement<T>(list: T[] | readonly T[]): T {
+	return list[Math.floor(Math.random() * list.length)];
+}
+
+export function getRandomKey(obj: Record<string, unknown>): string {
+	const keys = Object.keys(obj);
+	return keys[Math.floor(Math.random() * keys.length)];
+}

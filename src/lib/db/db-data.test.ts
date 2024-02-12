@@ -1,160 +1,161 @@
-import { beforeAll } from 'vitest';
-
+import { faker } from '@faker-js/faker';
 import { router } from '$lib/trpc/router';
-import { GenresBuilder } from '$lib/shared/genres';
 import {
 	cleanUpDatabase,
 	connectDevDatabase,
 	createDBUser,
 	createTestSession,
+	createChapter,
+	generateTestUser,
+	createBook,
+	getRandomElement,
 	testUserOne,
-	testUserTwo,
-	testUserThree,
-	createChapter
+	createCampaign
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
-import { ulid } from 'ulid';
+
+import {
+	TEST_DATA_CHAPTERS_PER_STORYLINE,
+	TEST_DATA_NUM_USERS,
+	TEST_DATA_NUM_BOOKS_PER_USER,
+	TEST_DATA_NUM_STORYLINES_PER_BOOK
+} from '$env/static/private';
+import { RATING } from '$lib/properties/review';
+import type { ChapterProperties } from '$lib/properties/chapter';
+import type { HydratedDocument } from 'mongoose';
+import type { CreateBook } from '$lib/trpc/schemas/books';
+
+const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
+const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '3');
+const CHAPTERS_PER_STORYLINE = parseInt(TEST_DATA_CHAPTERS_PER_STORYLINE ?? '5');
+const NUM_STORYLINES_PER_BOOK = parseInt(TEST_DATA_NUM_STORYLINES_PER_BOOK ?? '3');
+
+const TIMEOUT_SECONDS = 3000;
 
 beforeAll(async () => {
+	console.log('CLEANING UP');
+
 	await connectDevDatabase();
-	await cleanUpDatabase();
-});
+	await cleanUpDatabase(true);
 
-const createBook = async (title: string, testSession: Session) => {
-	const caller = router.createCaller({ session: testSession });
+	console.log('CLEANED');
+}, TIMEOUT_SECONDS * 1000);
 
-	const genres = new GenresBuilder();
-	genres.genre('Action');
-	genres.genre('Adventure');
-	genres.genre('Science Fiction');
+/**
+ * Helper "test" to set up the local db with test data.
+ * Sets up test users, books, storyline, chapters, and reviews.
+ * If you time out (somehow), increase TIMEOUT_SECONDS.
+ * If the setup fails for any other reason, just run it again (happens sometimes 🤷‍♂️).
+ */
+test(
+	'db setup',
+	async () => {
+		console.log('SETTING UP DB WITH TEST DATA');
 
-	const book = await caller.books.create({
-		title: title,
-		description:
-			'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness, it was the spring of hope, it was the winter of despair.',
-		genres: genres.getGenres(),
-		permissions: { ['public']: { _id: ulid(), public: true } },
-		imageURL:
-			'https://cdn.discordapp.com/attachments/1008571211179118703/1112713149867626496/taku_futuristic_4k_high_definition_image_of_african_financial_i_13f539da-a1d5-4b40-879c-c9d11443086e.png'
-	});
+		const sessions: Session[] = [];
 
-	await caller.storylines.getAll({
-		bookID: book._id
-	});
+		// push default user
+		sessions.push(createTestSession(testUserOne));
 
-	return book;
-};
+		for (let i = 0; i < NUM_USERS; i++) {
+			sessions.push(createTestSession(generateTestUser()));
+		}
 
-describe('db test data', () => {
-	const testSessionOne = createTestSession(testUserOne);
-	const testSessionTwo = createTestSession(testUserTwo);
-	const testSessionThree = createTestSession(testUserThree);
+		const reviewCallers = [];
 
-	test('create users', async () => {
-		const userResponse1 = await createDBUser(testSessionOne);
-		const userResponse2 = await createDBUser(testSessionTwo);
-		const userResponse3 = await createDBUser(testSessionThree);
+		// Number of reviewers could be an env variable - should be fine for now
+		for (let i = 0; i < 3; i++) {
+			const reviewer1 = createTestSession(generateTestUser());
+			await createDBUser(reviewer1);
+			reviewCallers.push(router.createCaller({ session: reviewer1 }));
+		}
 
-		const caller = router.createCaller({ session: null });
-		const userResponses = await caller.users.list();
+		for (let i = 0; i < sessions.length; i++) {
+			await createDBUser(sessions[i]);
+		}
 
-		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.map((a) => a._id).sort()).toEqual(
-			[userResponse1._id, userResponse2._id, userResponse3._id].sort()
-		);
-	});
+		for (let i = 0; i < sessions.length; i++) {
+			const caller = router.createCaller({ session: sessions[i] });
+			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
+				const campaign = Math.random() < 0.2;
 
-	test('create books', async () => {
-		const testBookTitle1 = 'My Book 1';
-		const testBookTitle2 = 'My Book 2';
-		const testBookTitle3 = 'My Book 3';
+				let newBook: any = undefined;
 
-		const userAuthoredBookResponse1 = await createBook(testBookTitle1, testSessionOne);
-		const userAuthoredBookResponse2 = await createBook(testBookTitle2, testSessionTwo);
-		const userAuthoredBookResponse3 = await createBook(testBookTitle3, testSessionThree);
+				if (campaign) {
+					newBook = createCampaign(sessions[i]);
+				}
 
-		const caller = router.createCaller({ session: testSessionOne });
-		const bookResponses = await caller.books.getAll();
+				newBook = await createBook(sessions[i]);
+				const storylines = (
+					await caller.storylines.getByBookID({
+						bookID: newBook.data._id
+					})
+				).data;
+				const chapters: HydratedDocument<ChapterProperties>[] = [];
 
-		// Create chapters
-		const chapter1Title = 'The Quantum Nexus';
-		const chapter2_1Title = 'Echoes from Epsilon Prime';
-		const chapter3_1Title = 'The Dark Nexus Unleashed';
-		const chapter2_2Title = 'Echoes from Megadrones';
+				for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
+					chapters.push(
+						(
+							await createChapter(
+								sessions[i],
+								`${faker.person.firstName()} in ${faker.location.city()}`,
+								`${faker.commerce.productDescription()} But a chapter.`,
+								storylines[0]
+							)
+						).data
+					);
+				}
 
-		const storylines = await caller.storylines.getAll({
-			bookID: userAuthoredBookResponse1._id
-		});
+				for (let l = 0; l < NUM_STORYLINES_PER_BOOK; l++) {
+					const storyline = (
+						await caller.storylines.create({
+							title: `Storyline ${l}`,
+							description: `Storyline ${l} description`,
+							book: newBook.data._id,
+							parent: storylines[0]._id,
+							parentChapter: getRandomElement(chapters)._id,
+							imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
+						})
+					).data;
+					for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
+						await createChapter(
+							sessions[i],
+							`${faker.person.firstName()} in ${faker.location.city()}`,
+							`${faker.commerce.productDescription()} But a chapter.`,
+							storyline
+						);
+					}
+				}
 
-		const chapter1Response = await createChapter(
-			testSessionOne,
-			chapter1Title,
-			`In a not-too-distant future, Dr. Samantha Walker, a brilliant physicist, 
-		discovers a groundbreaking breakthrough in quantum technology. 
-		With the ability to harness the power of the quantum realm, 
-		she unveils a new method of transportation that promises to revolutionize interstellar travel. 
-		As Samantha's invention catches the attention of powerful factions and sparks a race for control, 
-		she finds herself at the center of a perilous adventure where the boundaries of reality blur and the 
-		fate of the universe hangs in the balance.`,
-			storylines[0]
-		);
+				const num = Math.random();
 
-		const chapter2_1Response = await createChapter(
-			testSessionTwo,
-			chapter2_1Title,
-			`While testing the limits of her quantum device, Samantha accidentally picks up a mysterious distress signal 
-				from the distant planet of Epsilon Prime. Curiosity piqued, she assembles a team of experts and embarks on a 
-				perilous journey to investigate the signal's origin. What they discover on Epsilon Prime is beyond their wildest 
-				imaginations—an ancient civilization on the brink of extinction, struggling to preserve their knowledge and 
-				existence. Samantha and her team must unravel the secrets of the planet and confront the enigmatic forces at 
-				play if they hope to survive and bring hope to a dying world.`,
-			storylines[0],
-			chapter1Response._id
-		);
+				// randomly review the storyline
+				if (num > 0.3) {
+					await reviewCallers[0].reviews.create({
+						item: storylines[0]._id,
+						reviewOf: 'Storyline',
+						rating: getRandomElement(RATING)
+					});
+					if (num > 0.4) {
+						await reviewCallers[1].reviews.create({
+							item: storylines[0]._id,
+							reviewOf: 'Storyline',
+							rating: getRandomElement(RATING)
+						});
+					}
+					if (num > 0.5) {
+						await reviewCallers[2].reviews.create({
+							item: storylines[0]._id,
+							reviewOf: 'Storyline',
+							rating: getRandomElement(RATING)
+						});
+					}
+				}
+			}
+		}
 
-		const chapter3_1Response = await createChapter(
-			testSessionTwo,
-			chapter3_1Title,
-			`Back on Earth, Samantha's quantum technology becomes the subject of a global power struggle. The nefarious 
-				organization known as the Dark Nexus, led by the enigmatic and ruthless Dr. Victor Thorn, seeks to harness the 
-				quantum device's power for their own sinister agenda. As they unleash chaos and destruction, Samantha and her 
-				team must gather their wits and allies to stop the Dark Nexus before it's too late. In a battle that spans 
-				across dimensions, Samantha realizes the true extent of her invention's capabilities and the responsibility 
-				she holds in shaping the destiny of humanity.`,
-			storylines[0],
-			chapter2_1Response._id
-		);
-
-		// Create a new storyline
-		const storyline2 = await caller.storylines.create({
-			title: 'Storyline 1',
-			description: 'Storyline 1',
-			book: userAuthoredBookResponse1._id,
-			parent: storylines[0]._id,
-			parentChapter: chapter1Response._id,
-			permissions: { ['public']: { _id: ulid(), public: true } }
-		});
-
-		await createChapter(
-			testSessionOne,
-			chapter2_2Title,
-			`While testing the limits of her quantum device, Samantha accidentally picks up a mysterious distress signal 
-			from the distant planet of Megadrones. Curiosity piqued, she assembles a team of experts and embarks on a 
-			perilous journey to investigate the signal's origin. What they discover on Epsilon Prime is beyond their wildest 
-			imaginations—an ancient civilization on the brink of extinction, struggling to preserve their knowledge and 
-			existence. Samantha and her team must unravel the secrets of the planet and confront the enigmatic forces at 
-			play if they hope to survive and bring hope to a dying world.`,
-			storyline2,
-			chapter1Response._id
-		);
-
-		expect(bookResponses.map((a) => a._id).sort()).toEqual(
-			[
-				userAuthoredBookResponse1._id,
-				userAuthoredBookResponse2._id,
-				userAuthoredBookResponse3._id
-			].sort()
-		);
-	});
-});
+		console.log('DB SETUP COMPLETE');
+	},
+	TIMEOUT_SECONDS * 1000
+);

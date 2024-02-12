@@ -2,11 +2,11 @@ import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { PermissionProperties, Permissions } from '$lib/shared/permission';
+import type { PermissionProperties, Permissions } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
-import { label as BookLabel, type BookProperties } from '$lib/shared/book';
-import { label as ChapterLabel, type ChapterProperties } from '$lib/shared/chapter';
-import { label as StorylineLabel, type StorylineProperties } from '$lib/shared/storyline';
+import { label as BookLabel, type BookProperties } from '$lib/properties/book';
+import { label as ChapterLabel, type ChapterProperties } from '$lib/properties/chapter';
+import { label as StorylineLabel, type StorylineProperties } from '$lib/properties/storyline';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
 
@@ -19,8 +19,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 	constructor(id?: string) {
 		super();
 		this._permissionProperties = {
-			_id: id ? id : ulid(),
-			public: false
+			_id: id ? id : ulid()
 		};
 	}
 
@@ -37,11 +36,6 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	permissionSetterID(permissionSetterID: string): PermissionBuilder {
 		this._sessionUserID = permissionSetterID;
-		return this;
-	}
-
-	public(isPublic: boolean): PermissionBuilder {
-		this._permissionProperties.public = isPublic;
 		return this;
 	}
 
@@ -94,21 +88,57 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		let document: any;
 		switch (this._documentType) {
 			case BookLabel: {
-				document = await Book.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Book.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			case StorylineLabel: {
-				document = await Storyline.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Storyline.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			case ChapterLabel: {
-				document = await Chapter.findById(this._documentID, null, {
-					userID: this._sessionUserID
-				});
+				document = await Chapter.aggregate(
+					[
+						{
+							$match: {
+								_id: this._documentID
+							}
+						}
+					],
+					{
+						userID: this._sessionUserID
+					}
+				)
+					.cursor()
+					.next();
+
 				break;
 			}
 			default: {

@@ -8,6 +8,7 @@ import { createContext } from '$lib/trpc/context';
 import { router } from '$lib/trpc/router';
 import { sequence } from '@sveltejs/kit/hooks';
 import { startMongo } from '$lib/db/mongo';
+import type { UserProperties } from '$lib/properties/user';
 
 const userRepo = new UsersRepository();
 
@@ -28,6 +29,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 	 * of calling `const { data: { session } } = await supabase.auth.getSession()`
 	 * you just call this `await getSession()`
 	 */
+
 	event.locals.getSession = async () => {
 		const {
 			data: { session }
@@ -41,12 +43,22 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		if (event.url.pathname === '/profile/create' || event.url.pathname === '/profile/edit') {
 			throw redirect(303, '/login');
 		}
+
+		//Add protected pages name in the list
+		const pages = ['home', 'studio', 'profile', 'book', 'library'];
+
+		for (const page of pages) {
+			if (event.url.pathname.startsWith('/' + page)) {
+				throw redirect(303, '/login');
+			}
+		}
 	} else {
-		const users = await userRepo.getById(session, session.user.id);
+		const user = await userRepo.getById(session, session.user.id);
+		event.locals.user = user as UserProperties;
 
 		// if the user is not created yet in the DB, create the user
 		if (
-			users.length === 0 &&
+			!user &&
 			event.url.pathname !== '/profile/create' &&
 			event.url.pathname !== '/trpc/users.create'
 		) {
@@ -58,7 +70,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, '/home');
 		}
 
-		if (users.length === 1 && event.url.pathname === '/profile/create') {
+		if (user && event.url.pathname === '/profile/create') {
 			// user already has a profile - go to it instead of creating one
 			throw redirect(303, `/profile/${session.user.id}`);
 		}

@@ -1,13 +1,14 @@
-import { label, type BookProperties } from '$lib/shared/book';
-import mongoose, { Schema, model } from 'mongoose';
-import { genresSchemaProperties } from './genres';
-import { label as UserLabel } from '$lib/shared/user';
+import { label, type BookProperties } from '$lib/properties/book';
+import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
+import { label as UserLabel } from '$lib/properties/user';
+import { label as CampaignLabel } from '$lib/properties/campaign';
 import {
-	addDeletePermissionFilter,
-	addReadPermissionFilter,
-	addUpdatePermissionFilter,
-	permissionSchema
+	addUserPermissionPipeline,
+	addOwnerUpdateRestrictionFilter,
+	permissionSchema,
+	addArchivedRestrictionFilter
 } from './permission';
+import { GENRES } from '$lib/properties/genre';
 
 export const bookSchema = new Schema<BookProperties>({
 	_id: { type: String, required: true },
@@ -17,17 +18,29 @@ export const bookSchema = new Schema<BookProperties>({
 	imageURL: String,
 	tags: String,
 	permissions: { type: Map, of: permissionSchema },
-	genres: genresSchemaProperties
+	genres: [
+		{
+			type: String,
+			enum: GENRES
+		}
+	],
+	rating: { type: Number, default: 0 },
+	archived: { type: Boolean, default: false },
+	campaign: { type: String, ref: CampaignLabel, required: false }
 });
 
-bookSchema.pre(['find', 'findOne'], function (next) {
-	const userID = this.getOptions().userID;
-	const filter = this.getFilter();
+bookSchema.index({ title: 'text' });
 
-	const updatedFilter = addReadPermissionFilter(userID, filter);
-	this.setQuery(updatedFilter);
+bookSchema.pre(['find', 'findOne'], function () {
+	throw new Error('Please use aggregate.');
+});
 
-	populate(this);
+bookSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const pipeline = this.pipeline();
+
+	populate(pipeline);
+	addUserPermissionPipeline(userID, pipeline);
 	next();
 });
 
@@ -35,7 +48,7 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 	const userID = this.getOptions().userID;
 	const filter = this.getFilter();
 
-	const updatedFilter = addDeletePermissionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -47,7 +60,9 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
-		const updatedFilter = addUpdatePermissionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
 		this.setQuery(updatedFilter);
 
 		next();
@@ -58,8 +73,29 @@ bookSchema.pre(
  * Add fields you want to be populated by default here
  * @param query
  */
-function populate(query: any) {
-	query.populate([{ path: 'user' }, { path: 'permissions.$*.user' }]);
+function populate(pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
+		},
+		{
+			$unwind: {
+				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$lookup: { from: 'campaigns', localField: 'campaign', foreignField: '_id', as: 'campaign' }
+		},
+		{
+			$unwind: {
+				path: '$campaign',
+				preserveNullAndEmptyArrays: true
+			}
+		}
+	);
 }
 
-export const Book = mongoose.models[label] || model<BookProperties>(label, bookSchema);
+export const Book = mongoose.models[label]
+	? model<BookProperties>(label)
+	: model<BookProperties>(label, bookSchema);

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { toastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
@@ -12,6 +12,8 @@
 		password: '',
 		confirmPassword: ''
 	};
+
+	const toastStore = getToastStore();
 
 	const onSubmit = async () => {
 		if (formData.password != formData.confirmPassword) {

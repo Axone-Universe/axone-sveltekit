@@ -1,17 +1,43 @@
-import { label, type CampaignProperties } from '$lib/shared/campaign';
+import { label, type CampaignProperties } from '$lib/properties/campaign';
+import { label as BookLabel } from '$lib/properties/book';
 import mongoose, { Schema, model } from 'mongoose';
+import { addArchivedRestrictionFilter, addOwnerUpdateRestrictionFilter } from './permission';
 
 export const campaignSchema = new Schema<CampaignProperties>({
 	_id: { type: String, required: true },
-	title: String,
-	organizer: String,
-	dates: [String],
-	previewText: String,
-	tags: [String],
-	bannerURL: String,
+	user: { type: String, required: true },
+	startDate: Date,
+	endDate: Date,
 	submissionCriteria: String,
 	rewards: String,
-	about: String
+	book: { type: String, ref: BookLabel, required: true }
 });
 
-export const Campaign = mongoose.models[label] || model<CampaignProperties>(label, campaignSchema);
+campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
+	const userID = this.getOptions().userID;
+	const filter = this.getFilter();
+
+	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+	this.setQuery(updatedFilter);
+
+	next();
+});
+
+campaignSchema.pre(
+	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
+	function (next) {
+		const userID = this.getOptions().userID;
+		const filter = this.getFilter();
+
+		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
+		this.setQuery(updatedFilter);
+
+		next();
+	}
+);
+
+export const Campaign = mongoose.models[label]
+	? model<CampaignProperties>(label)
+	: model<CampaignProperties>(label, campaignSchema);
