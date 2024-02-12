@@ -16,7 +16,6 @@
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let supabase: SupabaseClient;
 	export let cancelCallback: () => void = () => undefined;
-	export let createCallback: (() => void) | undefined = undefined;
 	export let title: string | undefined;
 
 	let customClass = '';
@@ -28,32 +27,7 @@
 	$: title = storyline.title;
 	const toastStore = getToastStore();
 
-	async function createStoryline() {
-		if (!imageFile) {
-			createStorylineData();
-			return;
-		}
-
-		const response = await uploadImage(
-			supabase,
-			`books/storylines/${storyline._id}`,
-			imageFile,
-			toastStore
-		);
-
-		if (response.url) {
-			createStorylineData(response.url);
-			return;
-		}
-
-		const t: ToastSettings = {
-			message: 'Error uploading book cover',
-			background: 'variant-filled-error'
-		};
-		toastStore.trigger(t);
-	}
-
-	async function createStorylineData(imageURL?: string) {
+	async function createStorylineData() {
 		let response;
 		let newStoryline = false;
 		if (storyline._id) {
@@ -62,7 +36,7 @@
 				title: storyline.title,
 				description: storyline.description,
 				permissions: storyline.permissions,
-				imageURL: imageURL ?? storyline.imageURL,
+				imageURL: storyline.imageURL,
 				notifications: notifications
 			});
 		} else {
@@ -74,18 +48,31 @@
 				parent: storyline.parent ?? undefined,
 				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
-				imageURL: imageURL ?? ''
+				imageURL: ''
 			});
 		}
 
-		const t: ToastSettings = {
-			message: response.message,
-			background: response.success ? 'variant-filled-primary' : 'variant-filled-error'
-		};
-		toastStore.trigger(t);
-
 		if (response.success) {
 			storyline = response.data as HydratedDocument<StorylineProperties>;
+
+			if (imageFile) {
+				const response = await uploadImage(
+					supabase,
+					`books/${book._id}/storylines/${storyline._id}`,
+					imageFile,
+					toastStore
+				);
+				if (response.url && response.url !== null) {
+					await saveStorylineImage(response.url);
+				} else {
+					const t: ToastSettings = {
+						message: response.error?.message ?? 'Error uploading storyline cover',
+						background: 'variant-filled-error'
+					};
+					toastStore.trigger(t);
+				}
+			}
+
 			if (newStoryline)
 				await goto(
 					`/editor/${book._id}?mode=writer&storylineID=${
@@ -94,9 +81,22 @@
 				);
 		}
 
-		if (createCallback !== undefined) {
-			createCallback();
-		}
+		const t: ToastSettings = {
+			message: response.message,
+			background: 'variant-filled-primary'
+		};
+		toastStore.trigger(t);
+	}
+
+	async function saveStorylineImage(imageURL?: string) {
+		await trpc($page).storylines.update.mutate({
+			id: storyline._id,
+			title: storyline.title,
+			description: storyline.description,
+			permissions: storyline.permissions,
+			imageURL: imageURL,
+			notifications: notifications
+		});
 	}
 </script>
 
@@ -139,7 +139,7 @@
 
 	<div class="flex flex-col justify-end sm:flex-row gap-2">
 		<button class="btn variant-ghost-surface" on:click={cancelCallback}>Cancel</button>
-		<button class="btn variant-filled" on:click={createStoryline}>
+		<button class="btn variant-filled" on:click={createStorylineData}>
 			{storyline._id ? 'Update' : 'Create'}
 		</button>
 	</div>

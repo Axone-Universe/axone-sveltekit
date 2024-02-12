@@ -137,11 +137,11 @@ export const books = t.router({
 				.sessionUserID(ctx.session!.user.id)
 				.userID(ctx.session!.user.id)
 				.title(input.title)
-				.description(input.description)
-				.imageURL(input.imageURL);
+				.description(input.description);
 
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 			if (input.genres) bookBuilder.genres(input.genres);
+			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
 
 			const response: Response = {
 				success: true,

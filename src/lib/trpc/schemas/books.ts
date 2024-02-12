@@ -11,7 +11,7 @@ export const tagsSchema = z.array(TagsEnum);
 export const create = z.object({
 	title: z.string(),
 	description: z.string(),
-	imageURL: z.string(),
+	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
 	permissions: z.record(z.string(), permissions).optional(),
 	notifications: z.record(z.string(), userNotification).optional()

@@ -158,7 +158,7 @@
 
 <div
 	class={`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}
-	style="background-image: url({storylineData.imageURL})"
+	style="background-image: url({storylineData.imageURL ?? bookData.imageURL})"
 >
 	<div
 		class="bg-gradient-to-b from-transparent from-10%
