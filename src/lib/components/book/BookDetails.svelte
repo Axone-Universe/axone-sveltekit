@@ -15,14 +15,12 @@
 	import { GENRES } from '$lib/properties/genre';
 	import ImageUploader from '../util/ImageUploader.svelte';
 	import { uploadImage } from '$lib/util/bucket/bucket';
-	import { onMount } from 'svelte';
 
 	let notifications = {};
 
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
 	export let cancelCallback: () => void = () => undefined;
-	export let createCallback: (() => void) | undefined = undefined;
 	let customClass = '';
 	export { customClass as class };
 
@@ -32,68 +30,64 @@
 
 	const toastStore = getToastStore();
 
-	async function createBook() {
-		if (!imageFile) {
-			createBookData();
-			return;
+	async function createBookData() {
+		let newBook = false;
+		let response;
+		if (book._id) {
+			response = await trpc($page).books.update.mutate({
+				id: book._id,
+				title: book.title,
+				imageURL: book.imageURL,
+				description: book.description,
+				genres,
+				permissions: book.permissions
+			});
+		} else {
+			newBook = true;
+			response = await trpc($page).books.create.mutate({
+				title: book.title,
+				imageURL: book.imageURL,
+				description: book.description,
+				genres,
+				permissions: book.permissions
+			});
 		}
 
-		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
+		if (response.success) {
+			book = response.data as HydratedDocument<BookProperties>;
 
-		if (response.url && response.url !== null) {
-			createBookData(response.url);
-			return;
+			if (imageFile) {
+				const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
+				if (response.url && response.url !== null) {
+					await saveBookImage(response.url);
+				} else {
+					const t: ToastSettings = {
+						message: response.error?.message ?? 'Error uploading book cover',
+						background: 'variant-filled-error'
+					};
+					toastStore.trigger(t);
+				}
+			}
+
+			if (newBook) await goto(`/editor/${book._id}?mode=writer`);
 		}
 
 		const t: ToastSettings = {
-			message: response.error?.message ?? 'Error uploading book cover',
-			background: 'variant-filled-error'
+			message: response.message,
+			background: 'variant-filled-primary'
 		};
 		toastStore.trigger(t);
 	}
 
-	async function createBookData(imageURL?: string) {
-		try {
-			let newBook = false;
-			let response;
-			if (book._id) {
-				console.log('** send up');
-				console.log(imageURL);
-				response = await trpc($page).books.update.mutate({
-					id: book._id,
-					title: book.title,
-					description: book.description,
-					imageURL: imageURL ?? book.imageURL,
-					genres,
-					permissions: book.permissions
-				});
-			} else {
-				newBook = true;
-				response = await trpc($page).books.create.mutate({
-					title: book.title,
-					description: book.description,
-					imageURL: imageURL ?? '',
-					genres,
-					permissions: book.permissions
-				});
-			}
-
-			book = response.data as HydratedDocument<BookProperties>;
-
-			const t: ToastSettings = {
-				message: response.message,
-				background: 'variant-filled-primary'
-			};
-			toastStore.trigger(t);
-
-			if (newBook) await goto(`/editor/${book._id}?mode=writer`);
-
-			if (createCallback !== undefined) {
-				createCallback();
-			}
-		} catch (e) {
-			console.log(e);
-		}
+	async function saveBookImage(imageURL?: string) {
+		await trpc($page).books.update.mutate({
+			id: book._id,
+			title: book.title,
+			imageURL: imageURL,
+			description: book.description,
+			genres,
+			permissions: book.permissions
+		});
 	}
 </script>
 
@@ -160,7 +154,7 @@
 			<button id="cancel-btn" class="btn variant-ghost-surface" on:click={cancelCallback}
 				>Cancel</button
 			>
-			<button class="btn variant-filled" type="submit" on:click={createBook}>
+			<button class="btn variant-filled" type="submit" on:click={createBookData}>
 				{book._id ? 'Update' : 'Create'}
 			</button>
 		</div>

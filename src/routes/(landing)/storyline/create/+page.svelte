@@ -14,6 +14,7 @@
 
 	export let data: PageData;
 	$: ({ userAuthoredBookResponse: bookData, storylineResponse, chapterResponses } = data);
+
 	let leftDrawerSelectedItem: string;
 	let title = '';
 	beforeUpdate(() => {
