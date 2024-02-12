@@ -22,6 +22,7 @@ export interface RowAction {
 	callback(arg: any): void;
 	class?: string;
 	notification?: string | number;
+	scale?: number;
 }
 
 export type Response = {

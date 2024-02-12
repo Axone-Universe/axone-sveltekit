@@ -9,7 +9,7 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import ManagePermissions from '../permissions/ManagePermissions.svelte';
 	import ImageUploader from '../util/ImageUploader.svelte';
-	import { uploadBookCover } from '$lib/util/bucket/bucket';
+	import { uploadImage } from '$lib/util/bucket/bucket';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 
 	export let book: HydratedDocument<BookProperties>;
@@ -34,10 +34,15 @@
 			return;
 		}
 
-		const url = await uploadBookCover(supabase, imageFile);
+		const response = await uploadImage(
+			supabase,
+			`books/storylines/${storyline._id}`,
+			imageFile,
+			toastStore
+		);
 
-		if (url) {
-			createStorylineData(url);
+		if (response.url) {
+			createStorylineData(response.url);
 			return;
 		}
 

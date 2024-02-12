@@ -2,14 +2,20 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
+	import {
+		InputChip,
+		type ToastSettings,
+		getToastStore,
+		type PopupSettings
+	} from '@skeletonlabs/skeleton';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 	import { GENRES } from '$lib/properties/genre';
 	import ImageUploader from '../util/ImageUploader.svelte';
-	import { uploadBookCover } from '$lib/util/bucket/bucket';
+	import { uploadImage } from '$lib/util/bucket/bucket';
+	import { onMount } from 'svelte';
 
 	let notifications = {};
 
@@ -32,15 +38,15 @@
 			return;
 		}
 
-		const url = await uploadBookCover(supabase, imageFile);
+		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
 
-		if (url) {
-			createBookData(url);
+		if (response.url && response.url !== null) {
+			createBookData(response.url);
 			return;
 		}
 
 		const t: ToastSettings = {
-			message: 'Error uploading book cover',
+			message: response.error?.message ?? 'Error uploading book cover',
 			background: 'variant-filled-error'
 		};
 		toastStore.trigger(t);
@@ -51,6 +57,8 @@
 			let newBook = false;
 			let response;
 			if (book._id) {
+				console.log('** send up');
+				console.log(imageURL);
 				response = await trpc($page).books.update.mutate({
 					id: book._id,
 					title: book.title,
