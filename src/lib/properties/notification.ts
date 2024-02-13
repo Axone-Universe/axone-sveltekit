@@ -8,9 +8,8 @@ export interface UserNotificationProperties {
 }
 
 export interface TopicNotificationProperties {
-	senderName: string;
-	receiverID: string;
-	receiverName: string;
-	receiverEmail: string;
+	topicKey: string;
+	topicName: string;
+	url: string;
 	notification: string;
 }

@@ -40,7 +40,8 @@
 				imageURL: book.imageURL,
 				description: book.description,
 				genres,
-				permissions: book.permissions
+				permissions: book.permissions,
+				notifications: notifications
 			});
 		} else {
 			newBook = true;
@@ -49,7 +50,8 @@
 				imageURL: book.imageURL,
 				description: book.description,
 				genres,
-				permissions: book.permissions
+				permissions: book.permissions,
+				notifications: notifications
 			});
 		}
 

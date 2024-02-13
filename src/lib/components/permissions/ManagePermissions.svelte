@@ -20,6 +20,7 @@
 	import { ulid } from 'ulid';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { UserNotificationProperties } from '$lib/properties/notification';
+	import { documentURL } from '$lib/util/links';
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
@@ -50,46 +51,6 @@
 	afterUpdate(() => {
 		permissions = permissions;
 	});
-
-	function documentURL(): string {
-		let url = '';
-		switch (permissionedDocumentType) {
-			case 'Book': {
-				let book = permissionedDocument as HydratedDocument<BookProperties>;
-
-				url = `book/${book._id}`;
-				break;
-			}
-
-			case 'Storyline': {
-				let storyline = permissionedDocument as HydratedDocument<StorylineProperties>;
-				let bookId = '';
-
-				if (typeof storyline.book === 'string') bookId = storyline.book;
-				if (typeof storyline.book !== 'string') bookId = storyline.book!._id;
-
-				url = `/editor/${bookId}?mode=reader&storylineID=${storyline._id}`;
-				break;
-			}
-
-			case 'Chapter': {
-				let chapter = permissionedDocument as HydratedDocument<ChapterProperties>;
-
-				let bookId = '';
-				if (typeof chapter.book === 'string') bookId = chapter.book;
-				if (typeof chapter.book !== 'string') bookId = chapter.book!._id;
-
-				let storylineId = '';
-				if (typeof chapter.storyline === 'string') storylineId = chapter.storyline;
-				if (typeof chapter.storyline !== 'string') storylineId = chapter.storyline!._id;
-
-				url = `/editor/${bookId}?mode=reader&storylineID=${storylineId}&chapterID=${chapter._id}`;
-				break;
-			}
-		}
-
-		return url;
-	}
 
 	let autocompletePopupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -200,7 +161,7 @@
 				receiverID: userID,
 				receiverName: permission.user.firstName!,
 				receiverEmail: permission.user.email!,
-				url: documentURL(),
+				url: documentURL(permissionedDocumentType, permissionedDocument),
 				notification: `${documentOwner.firstName!} has requested you to collaborate on the ${permissionedDocumentType} '${
 					permissionedDocument.title
 				}'!`

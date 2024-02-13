@@ -50,7 +50,7 @@
 	import 'quill-comment';
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
-	import type {EditorMode, StorageFileError, UploadFileToBucketParams} from '$lib/util/types';
+	import type { EditorMode, StorageFileError, UploadFileToBucketParams } from '$lib/util/types';
 	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
@@ -75,6 +75,7 @@
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 	const drawerStore = getDrawerStore();
+	// const Tawk_API: any = Tawk_API || {};
 
 	let mode: EditorMode = ($page.url.searchParams.get('mode') as EditorMode) || 'reader';
 	let selectedChapterID = $page.url.searchParams.get('chapterID');
@@ -981,7 +982,7 @@
 					</div>
 				{/if}
 
-				<div class="flex flex-col p-2 bg-surface-50-900-token">
+				<div class="flex flex-col p-2 bg-surface-50-900-token mb-14">
 					<div class="h-3/4 flex flex-col items-center">
 						{#if selectedChapter}
 							<EditorNav
