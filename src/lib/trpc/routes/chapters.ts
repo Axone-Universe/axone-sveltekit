@@ -5,12 +5,13 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendTopicNotification, sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
+import { documentURL } from '$lib/util/links';
 
 export const chapters = t.router({
 	get: t.procedure
@@ -197,6 +198,13 @@ export const chapters = t.router({
 				if (input.notifications) {
 					await sendUserNotifications(input.notifications);
 				}
+
+				sendTopicNotification({
+					topicKey: input.storylineID,
+					topicName: input.title,
+					url: documentURL('Chapter', result as HydratedDocument<ChapterProperties>),
+					notification: `A new chapter '${input.title}' has been added to a storyline in your reading list!`
+				});
 
 				response.data = result;
 			} catch (error) {

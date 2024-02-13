@@ -9,7 +9,7 @@
 	import { user } from 'svelte-awesome/icons';
 
 	export let data: PageData;
-	const { session } = data;
+	const { supabase, session } = data;
 
 	const aboutMaxLength = 500;
 
@@ -35,5 +35,5 @@
 </script>
 
 <Container class="mx-4 md:mx-40 xl:mx-96 mt-8">
-	<UserProfileDetails {onSubmit} {userProperties} />
+	<UserProfileDetails {supabase} {onSubmit} {userProperties} />
 </Container>

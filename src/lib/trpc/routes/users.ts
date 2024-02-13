@@ -16,6 +16,7 @@ import {
 } from '$lib/trpc/schemas/users';
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
+import { subscribeToDocument } from '$lib/util/notifications/novu';
 
 export const users = t.router({
 	getById: t.procedure
@@ -247,6 +248,10 @@ export const users = t.router({
 				const result = await new UserBuilder(ctx.session!.user.id)
 					.sessionUserID(ctx.session!.user.id)
 					.updateReadingLists(input);
+
+				if (input.storylineID) {
+					subscribeToDocument(input.storylineID, ctx.session!.user.id);
+				}
 				response.data = result;
 			} catch (error) {
 				response.success = false;

@@ -3,7 +3,10 @@
  */
 import { Novu } from '@novu/node';
 import { NOVU_API_KEY } from '$env/static/private';
-import type { UserNotificationProperties } from '$lib/properties/notification';
+import type {
+	TopicNotificationProperties,
+	UserNotificationProperties
+} from '$lib/properties/notification';
 
 export const novu = new Novu(NOVU_API_KEY);
 
@@ -54,4 +57,29 @@ export async function sendUserNotifications(notifications: {
 	const result = await novu.bulkTrigger(notificationPayloads);
 
 	return result;
+}
+
+/**
+ * When a user adds a storyline to a reading list they will receive storyline notifications
+ * @param documentID
+ * @param userID
+ * @returns
+ */
+export async function subscribeToDocument(documentID: string, userID: string) {
+	const response = await novu.topics.addSubscribers(documentID, {
+		subscribers: [userID]
+	});
+
+	return response;
+}
+
+export async function sendTopicNotification(notification: TopicNotificationProperties) {
+	await novu.trigger('user-notification', {
+		to: [{ type: 'Topic' as any, topicKey: notification.topicKey }],
+		payload: {
+			firstName: notification.topicName,
+			notification: notification.notification,
+			url: notification.url
+		}
+	});
 }
