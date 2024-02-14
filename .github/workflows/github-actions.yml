@@ -18,8 +18,23 @@ env:
   NOVU_API_KEY: ''
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: password
+          MONGO_INITDB_DATABASE: axone-books-test
+        options: >-
+          --health-cmd mongo
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
