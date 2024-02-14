@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_MONGO_PASSWORD:
-  TEST_MONGO_USER:
+  TEST_MONGO_PASSWORD: admin
+  TEST_MONGO_USER: admin
   TEST_MONGO_URL: mongodb://localhost:27017
   TEST_MONGO_DB: axone-books-test
   VERSION_OP_LENGTH: 500
@@ -24,10 +24,10 @@ jobs:
       mongodb:
         image: mongo:4.4.6
         env:
-          MONGO_INITDB_ROOT_USERNAME: ${TEST_MONGO_USER}
-          MONGO_INITDB_ROOT_PASSWORD: ${TEST_MONGO_PASSWORD}
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
           # I think MONOGDB_INITDB_DATABASE has no effect in here (see https://hub.docker.com/_/mongo, section MONGO_INITDB_DATABASE)
-          MONGO_INITDB_DATABASE: ${TEST_MONGO_DB}
+          MONGO_INITDB_DATABASE: axone-books-test
         ports:
           - 27017:27017
         options: >-
@@ -39,7 +39,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-        # mongodb-version: ['4.2', '4.4', '5.0', '6.0']
 
     steps:
       - name: Git checkout
