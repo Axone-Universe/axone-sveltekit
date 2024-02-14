@@ -40,8 +40,9 @@ jobs:
         mongodb-version: ${{ matrix.mongodb-version }}
 
     - name: Install
-    - run: pnpm install
-
-    - run: pnpm test
+      run: pnpm install
+      
+    - name: Test
+      run: pnpm test
       env:
         CI: true
