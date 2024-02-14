@@ -19,10 +19,6 @@ export const novu = new Novu(NOVU_API_KEY);
 export async function sendUserNotifications(notifications: {
 	[key: string]: UserNotificationProperties;
 }) {
-	if (process.env.VITEST) {
-		return;
-	}
-
 	if (!notifications || Object.keys(notifications).length === 0) {
 		return;
 	}
@@ -55,12 +51,16 @@ export async function sendUserNotifications(notifications: {
 		notificationPayloads.push(notificationPayload);
 	}
 
-	// first create the subscriber / the person receiving the notification
-	await novu.subscribers.bulkCreate(subscriberPayloads);
-	// Then send the notifications
-	const result = await novu.bulkTrigger(notificationPayloads);
-
-	return result;
+	try {
+		// first create the subscriber / the person receiving the notification
+		await novu.subscribers.bulkCreate(subscriberPayloads);
+		// Then send the notifications
+		const result = await novu.bulkTrigger(notificationPayloads);
+		return result;
+	} catch (e: any) {
+		console.log('novu send user notification error');
+		console.log(e);
+	}
 }
 
 /**
@@ -70,26 +70,29 @@ export async function sendUserNotifications(notifications: {
  * @returns
  */
 export async function subscribeToDocument(documentID: string, userID: string) {
-	if (process.env.VITEST) {
-		return;
+	try {
+		const response = await novu.topics.addSubscribers(documentID, {
+			subscribers: [userID]
+		});
+		return response;
+	} catch (e: any) {
+		console.log('novu - subscribe to document error');
+		console.log(e);
 	}
-	const response = await novu.topics.addSubscribers(documentID, {
-		subscribers: [userID]
-	});
-
-	return response;
 }
 
 export async function sendTopicNotification(notification: TopicNotificationProperties) {
-	if (process.env.VITEST) {
-		return;
+	try {
+		await novu.trigger('user-notification', {
+			to: [{ type: 'Topic' as any, topicKey: notification.topicKey }],
+			payload: {
+				firstName: notification.topicName,
+				notification: notification.notification,
+				url: notification.url
+			}
+		});
+	} catch (e: any) {
+		console.log('novu - send topic notification error');
+		console.log(e);
 	}
-	await novu.trigger('user-notification', {
-		to: [{ type: 'Topic' as any, topicKey: notification.topicKey }],
-		payload: {
-			firstName: notification.topicName,
-			notification: notification.notification,
-			url: notification.url
-		}
-	});
 }
