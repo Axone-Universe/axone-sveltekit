@@ -34,6 +34,8 @@ describe('books', () => {
 			bookID: bookResponse.data._id
 		});
 
+		console.log('** book response');
+		console.log(bookResponse);
 		expect(bookResponse.data.title).toEqual(testBookTitle);
 	});
 
