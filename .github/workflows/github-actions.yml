@@ -53,7 +53,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8.0.5
+          version: 8.15.2
 
       # - name: Start MongoDB
       #   uses: supercharge/mongodb-github-action@1.10.0
