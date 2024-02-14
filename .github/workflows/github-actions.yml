@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEST_MONGO_PASSWORD: ''
+  TEST_MONGO_USER: ''
+  TEST_MONGO_URL: 'mongodb://localhost:27017'
+  TEST_MONGO_DB: 'axone-books-test'
+  VERSION_OP_LENGTH: '500'
+  NOVU_API_KEY: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+        mongodb-version: ['4.2', '4.4', '5.0', '6.0']
+
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+
+    - name: Install
+    - run: pnpm install
+
+    - run: pnpm test
+      env:
+        CI: true
