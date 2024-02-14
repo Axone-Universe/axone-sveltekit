@@ -33,7 +33,6 @@ describe('books', () => {
 		await caller.storylines.get({
 			bookID: bookResponse.data._id
 		});
-
 		expect(bookResponse.data.title).toEqual(testBookTitle);
 	});
 

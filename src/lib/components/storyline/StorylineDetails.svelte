@@ -48,7 +48,8 @@
 				parent: storyline.parent ?? undefined,
 				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
-				imageURL: ''
+				imageURL: '',
+				notifications: notifications
 			});
 		}
 
@@ -94,8 +95,7 @@
 			title: storyline.title,
 			description: storyline.description,
 			permissions: storyline.permissions,
-			imageURL: imageURL,
-			notifications: notifications
+			imageURL: imageURL
 		});
 	}
 </script>

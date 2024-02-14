@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { QueryClientProvider } from '@tanstack/svelte-query';
-	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
 
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
@@ -35,7 +34,7 @@
 				invalidate('supabase:auth');
 			}
 		});
-		// setupTawkto();
+		setupTawkto();
 		return () => subscription.unsubscribe();
 	});
 
