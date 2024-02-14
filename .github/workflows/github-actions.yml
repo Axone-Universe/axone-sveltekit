@@ -10,30 +10,31 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_MONGO_PASSWORD: ''
-  TEST_MONGO_USER: ''
-  TEST_MONGO_URL: 'mongodb://localhost:27017'
-  TEST_MONGO_DB: 'axone-books-test'
-  VERSION_OP_LENGTH: '500'
-  NOVU_API_KEY: ''
+  TEST_MONGO_PASSWORD:
+  TEST_MONGO_USER:
+  TEST_MONGO_URL: mongodb://localhost:27017
+  TEST_MONGO_DB: axone-books-test
+  VERSION_OP_LENGTH: 500
+  NOVU_API_KEY:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     services:
       mongodb:
-        image: mongo
+        image: mongo:4.4.6
         env:
-          MONGO_INITDB_ROOT_USERNAME: test
-          MONGO_INITDB_ROOT_PASSWORD: password
-          MONGO_INITDB_DATABASE: axone-books-test
+          MONGO_INITDB_ROOT_USERNAME: ${TEST_MONGO_USER}
+          MONGO_INITDB_ROOT_PASSWORD: ${TEST_MONGO_PASSWORD}
+          # I think MONOGDB_INITDB_DATABASE has no effect in here (see https://hub.docker.com/_/mongo, section MONGO_INITDB_DATABASE)
+          MONGO_INITDB_DATABASE: ${TEST_MONGO_DB}
+        ports:
+          - 27017:27017
         options: >-
           --health-cmd mongo
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 27017:27017
 
     strategy:
       matrix:
