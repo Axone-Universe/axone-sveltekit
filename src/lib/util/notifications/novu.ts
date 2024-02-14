@@ -19,6 +19,10 @@ export const novu = new Novu(NOVU_API_KEY);
 export async function sendUserNotifications(notifications: {
 	[key: string]: UserNotificationProperties;
 }) {
+	if (process.env.VITEST) {
+		return;
+	}
+
 	if (!notifications || Object.keys(notifications).length === 0) {
 		return;
 	}
@@ -66,6 +70,9 @@ export async function sendUserNotifications(notifications: {
  * @returns
  */
 export async function subscribeToDocument(documentID: string, userID: string) {
+	if (process.env.VITEST) {
+		return;
+	}
 	const response = await novu.topics.addSubscribers(documentID, {
 		subscribers: [userID]
 	});
@@ -74,6 +81,9 @@ export async function subscribeToDocument(documentID: string, userID: string) {
 }
 
 export async function sendTopicNotification(notification: TopicNotificationProperties) {
+	if (process.env.VITEST) {
+		return;
+	}
 	await novu.trigger('user-notification', {
 		to: [{ type: 'Topic' as any, topicKey: notification.topicKey }],
 		payload: {
