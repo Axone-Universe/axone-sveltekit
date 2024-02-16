@@ -123,22 +123,25 @@
 				<svelte:fragment slot="panel">
 					{#if tabSet === 0}
 						<DocumentsInfiniteScroll
+							class="max-h-[600px] overflow-auto"
 							documentType="Book"
-							userID={userData._id}
+							parameters={{ userID: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>
 					{:else if tabSet === 1}
 						<DocumentsInfiniteScroll
+							class="max-h-[600px] overflow-auto"
 							documentType="Storyline"
-							userID={userData._id}
+							parameters={{ userID: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>
 					{:else if tabSet === 2}
 						<DocumentsInfiniteScroll
+							class="max-h-[600px] overflow-auto"
 							documentType="Chapter"
-							userID={userData._id}
+							parameters={{ userID: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>

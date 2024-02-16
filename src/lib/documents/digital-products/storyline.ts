@@ -6,6 +6,7 @@ import type { StorylineProperties } from '$lib/properties/storyline';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
+import type { Genre } from '$lib/properties/genre';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -89,6 +90,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	sessionUserID(sessionUserID: string): StorylineBuilder {
 		this._sessionUserID = sessionUserID;
+		return this;
+	}
+
+	genres(genres: Genre[]) {
+		this._storylineProperties.genres = genres;
 		return this;
 	}
 

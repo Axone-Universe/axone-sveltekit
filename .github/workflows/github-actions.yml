@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TEST_MONGO_PASSWORD: #admin
-  TEST_MONGO_USER: #admin
+  TEST_MONGO_PASSWORD:
+  TEST_MONGO_USER:
   TEST_MONGO_URL: mongodb://localhost:27017
   TEST_MONGO_DB: axone-books-test
   VERSION_OP_LENGTH: 500
@@ -20,21 +20,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # services:
-    #   mongodb:
-    #     image: mongo:4.4.6
-    #     env:
-    #       MONGO_INITDB_ROOT_USERNAME: admin
-    #       MONGO_INITDB_ROOT_PASSWORD: admin
-    #       # I think MONOGDB_INITDB_DATABASE has no effect in here (see https://hub.docker.com/_/mongo, section MONGO_INITDB_DATABASE)
-    #       MONGO_INITDB_DATABASE: axone-books-test
-    #     ports:
-    #       - 27017:27017
-    #     options: >-
-    #       --health-cmd mongo
-    #       --health-interval 10s
-    #       --health-timeout 5s
-    #       --health-retries 5
 
     strategy:
       matrix:
@@ -55,7 +40,6 @@ jobs:
         with:
           mongodb-version: ${{ matrix.mongodb-version }}
           mongodb-replica-set: test-rs
-          # mongodb-port: 42069
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3

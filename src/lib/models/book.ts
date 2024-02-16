@@ -38,9 +38,17 @@ bookSchema.pre(['find', 'findOne'], function () {
 bookSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
+	// Used for pipelines that must be put after the default populate and permissions
+	// The order is usually important e.g. limit pipeline should be at the end
+	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
 	addUserPermissionPipeline(userID, pipeline);
+
+	for (const filter of postPipeline) {
+		pipeline.push(filter);
+	}
+
 	next();
 });
 

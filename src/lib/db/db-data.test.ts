@@ -25,6 +25,7 @@ import { RATING } from '$lib/properties/review';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
 import type { CreateBook } from '$lib/trpc/schemas/books';
+import { GenresBuilder } from '$lib/properties/genre';
 
 const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
 const NUM_BOOKS_PER_USER = parseInt(TEST_DATA_NUM_BOOKS_PER_USER ?? '3');
@@ -113,6 +114,7 @@ test(
 							title: `Storyline ${l}`,
 							description: `Storyline ${l} description`,
 							book: newBook.data._id,
+							genres: new GenresBuilder().random(0.3).build(),
 							parent: storylines[0]._id,
 							parentChapter: getRandomElement(chapters)._id,
 							imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`
