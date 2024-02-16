@@ -1,10 +1,15 @@
 <script lang="ts">
-	import type Shepherd from 'shepherd.js';
 	import 'shepherd.js/dist/css/shepherd.css';
 	import { afterUpdate, onMount } from 'svelte';
-	import { Icon } from 'svelte-awesome';
-	import { info } from 'svelte-awesome/icons';
-	import { back, complete, next, tour, getShepherdStep, autoStartTour } from '$lib/util/tour/tour';
+	import {
+		back,
+		complete,
+		next,
+		tour,
+		getShepherdStep,
+		autoStartTour,
+		getBaseURL
+	} from '$lib/util/tour/tour';
 	import { page } from '$app/stores';
 
 	onMount(() => {
@@ -12,7 +17,8 @@
 	});
 
 	afterUpdate(() => {
-		autoStartTour($page.url + '-tour');
+		const baseURL = getBaseURL($page);
+		autoStartTour(baseURL + '-tour');
 	});
 
 	export function setupTour() {

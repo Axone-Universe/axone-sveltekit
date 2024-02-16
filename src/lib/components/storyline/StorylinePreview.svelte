@@ -9,6 +9,7 @@
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import type { BookProperties } from '$lib/properties/book';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let dispatchEvent: boolean = false;
@@ -21,6 +22,7 @@
 	const modalStore = getModalStore();
 
 	let storylineUser = storyline.user as UserProperties;
+	let book = storyline.book as BookProperties;
 
 	let didError = false;
 
@@ -94,6 +96,17 @@
 				class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300"
 			>
 				{(storyline.cumulativeRating / storyline.numRatings).toFixed(1)}
+			</p>
+		</div>
+	{/if}
+	{#if book.campaign}
+		<div
+			class="overflow-hidden flex items-center absolute bottom-1 left-1 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+		>
+			<p
+				class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+			>
+				campaign
 			</p>
 		</div>
 	{/if}

@@ -241,6 +241,7 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 		.main(true)
 		.description(hydratedBook.description!)
 		.imageURL(hydratedBook.imageURL!)
+		.genres(hydratedBook.genres!)
 		.permissions(hydratedBook.permissions);
 
 	const storyline = new Storyline(storylineBuilder.properties());

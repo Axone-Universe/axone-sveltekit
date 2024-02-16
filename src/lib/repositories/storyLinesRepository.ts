@@ -2,8 +2,9 @@ import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import type { Session } from '@supabase/supabase-js';
-import type { Document, HydratedDocument } from 'mongoose';
+import type { HydratedDocument } from 'mongoose';
 import type { ReadStoryline } from '$lib/trpc/schemas/storylines';
+import { UsersRepository } from './usersRepository';
 
 export class StorylinesRepository extends Repository {
 	constructor() {
@@ -12,22 +13,49 @@ export class StorylinesRepository extends Repository {
 
 	async get(
 		session: Session | null,
-		readStoryline: ReadStoryline
+		input: ReadStoryline
 	): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
+		const postPipeline = [];
 		const filter: any = {};
 
-		if (readStoryline.user) filter.user = readStoryline.user;
-		if (readStoryline.bookID) filter.book = readStoryline.bookID;
-		if (readStoryline.cursor) filter._id = { $gt: readStoryline.cursor };
-		if (readStoryline.archived !== undefined) filter.archived = readStoryline.archived;
+		if (input.title) filter.$text = { $search: input.title };
+		if (input.user) filter.user = input.user;
+		if (input.bookID) filter.book = input.bookID;
+		if (input.cursor) filter._id = { $gt: input.cursor };
+		if (input.archived !== undefined) filter.archived = input.archived;
+
+		if (input.genres) {
+			if (input.genres.length > 0) {
+				filter.genres = { $all: input.genres };
+			}
+		}
+
+		if (input.tags) {
+			if (input.tags.includes('Campaigns')) {
+				postPipeline.push({
+					$match: {
+						'book.campaign': { $exists: true }
+					}
+				});
+			}
+
+			if (input.tags.includes('Recommended')) {
+				const userRepo = new UsersRepository();
+				const user = await userRepo.getById(session, session?.user.id);
+				if (user && user.genres) {
+					filter.genres = { $in: user.genres };
+				}
+			}
+		}
 
 		pipeline.push({ $match: filter });
 
-		if (readStoryline.limit) pipeline.push({ $limit: readStoryline.limit });
+		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Storyline.aggregate(pipeline, {
-			userID: session?.user.id
+			userID: session?.user.id,
+			postPipeline: postPipeline
 		});
 
 		return await query;

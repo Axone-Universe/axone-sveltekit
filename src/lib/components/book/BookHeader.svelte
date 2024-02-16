@@ -92,8 +92,10 @@
 
 	let dispatch = createEventDispatcher();
 	function handleSelected(event: { detail: any }) {
-		storylineData = storylines[event.detail];
-		dispatch('selectedStoryline', event.detail);
+		if (event.detail) {
+			storylineData = storylines[event.detail];
+			dispatch('selectedStoryline', event.detail);
+		}
 	}
 
 	function openReadingListModal() {

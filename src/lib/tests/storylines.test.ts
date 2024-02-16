@@ -8,6 +8,7 @@ import {
 	createTestSession,
 	testUserOne,
 	testUserTwo,
+	testUserThree,
 	createChapter
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
@@ -123,6 +124,30 @@ describe('storylines', () => {
 		// bookResponses.map((a) => a._id).sort()
 		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
 		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
+	});
+
+	test('get storylines by genres', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(testUserThree));
+
+		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
+			'Action',
+			'Adventure'
+		]);
+		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+			'Action',
+			'Adventure',
+			'Fantasy'
+		]);
+		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+
+		const caller = router.createCaller({ session: null });
+		const storylineResponses = await caller.storylines.get({ genres: ['Action', 'Adventure'] });
+
+		expect(
+			storylineResponses.data.map((a) => (typeof a.book === 'string' ? a.book : a.book!._id)).sort()
+		).toEqual([bookResponse1.data._id, bookResponse2.data._id].sort());
 	});
 
 	test('updating archived status', async () => {

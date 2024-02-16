@@ -34,12 +34,15 @@ export const load = (async (event) => {
 		activeStoryline = storylineResponses[0];
 	}
 
+	const storylineID = event.url.searchParams.get('storylineID');
 	storylineResponses.forEach((storylineResponse) => {
 		if (storylineResponse.main) {
 			activeStoryline = storylineResponse;
 		}
 		storylines[storylineResponse._id] = storylineResponse;
 	});
+
+	if (storylineID) activeStoryline = storylines[storylineID];
 
 	return { bookData, storylines, activeStoryline };
 }) satisfies PageServerLoad;

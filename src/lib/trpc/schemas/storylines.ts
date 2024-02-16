@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { permissions } from './permissions';
 import { userNotification } from './notifications';
+import { genreSchema } from './genres';
+import { HOME_FILTER_TAGS } from '$lib/util/types';
+
+const TagsEnum = z.enum(HOME_FILTER_TAGS);
+export const tagsSchema = z.array(TagsEnum);
 
 export const storylineQuerySchema = z.object({
 	bookID: z.string().optional(),
@@ -14,6 +19,7 @@ export const update = z.object({
 	description: z.string().optional(),
 	book: z.unknown().optional(),
 	imageURL: z.string().optional(),
+	genres: genreSchema.optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
 	permissions: z.record(z.string(), permissions).optional(),
@@ -25,6 +31,7 @@ export const create = z.object({
 	description: z.string().optional(),
 	book: z.unknown().optional(),
 	imageURL: z.string().optional(),
+	genres: genreSchema.optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
 	permissions: z.record(z.string(), permissions).optional(),
@@ -37,6 +44,9 @@ export const read = z.object({
 	storylineID: z.string().optional(),
 	main: z.boolean().optional(),
 	searchTerm: z.string().optional(),
+	genres: genreSchema.optional(),
+	tags: tagsSchema.optional(),
+	title: z.string().optional(),
 	limit: z.number().optional(),
 	skip: z.number().optional(),
 	cursor: z.string().optional(),
