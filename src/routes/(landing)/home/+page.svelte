@@ -1,22 +1,20 @@
 <script lang="ts">
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
-	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
-	import BookPreview from '$lib/components/book/BookPreview.svelte';
-	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { GENRES, type Genre } from '$lib/properties/genre';
 	import { HOME_FILTER_TAGS, type HomeFilterTag } from '$lib/util/types';
-	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
-	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
-	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import Tutorial from './tutorial.svelte';
+	import DocumentsInfiniteScroll from '$lib/components/documents/DocumentsInfiniteScroll.svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
+	export let { user } = data;
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	const TAGS_FILTER_KEY = $page.url + '-tags';
@@ -25,7 +23,6 @@
 	let genres: Genre[] = [];
 	let tags: HomeFilterTag[] = [];
 
-	let lastLoadEpoch = 0;
 	let filterCount = -1;
 	let mounted = false;
 
@@ -35,41 +32,19 @@
 		filterCount = genres.length + tags.length;
 	}
 
+	$: parameters = {
+		genres: genres,
+		tags: tags,
+		title: debouncedSearchValue ? debouncedSearchValue : undefined
+	};
+
 	let accordionOpen = false;
 	let searchValue = '';
 	let debouncedSearchValue = '';
 	let scroll = 0;
 
-	$: getBooksInfinite = trpcWithQuery($page).books.get.createInfiniteQuery(
-		{
-			limit: 20,
-			genres: genres,
-			tags: tags,
-			title: debouncedSearchValue ? debouncedSearchValue : undefined
-		},
-		{
-			queryKey: ['booksHome' + scroll++, debouncedSearchValue],
-			getNextPageParam: (lastPage) => lastPage.cursor,
-			staleTime: Infinity
-		}
-	);
-
-	$: items = $getBooksInfinite.data
-		? ($getBooksInfinite.data.pages.flatMap(
-				(page) => page.data
-		  ) as HydratedDocument<BookProperties>[])
-		: [];
-
 	function handleClear() {
 		genres = [];
-	}
-
-	function loadMore() {
-		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getBooksInfinite.fetchNextPage);
-	}
-
-	function handleTryAgain() {
-		$getBooksInfinite.refetch();
 	}
 
 	function debounce(timeout = SEARCH_DEBOUNCE_SECONDS * 1000) {
@@ -117,17 +92,15 @@
 	});
 </script>
 
-<svelte:window on:scroll={loadMore} />
-
 <Tutorial />
 <Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
 			id="search-input"
 			class="input text-sm h-8 p-2"
-			title="Search for books"
+			title="Search for stoylines"
 			type="search"
-			placeholder="Search for a book title"
+			placeholder="Search for a storyline title"
 			bind:value={searchValue}
 			on:input={onType}
 		/>
@@ -192,44 +165,11 @@
 		</Accordion>
 	</div>
 
-	{#if $getBooksInfinite.isLoading}
-		<div class="h-screen flex justify-center items-center pb-32">
-			<LoadingSpinner />
-		</div>
-	{:else if $getBooksInfinite.isError}
-		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
-			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
-				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
-			</InfoHeader>
-		</div>
-	{:else if items.length === 0}
-		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
-			<InfoHeader
-				emoji="🤲"
-				heading="We're empty handed!"
-				description={tags.length !== 0
-					? "We can't find any books that match your genre preferences. Try changing your filters!"
-					: 'Try changing your filters or write your own book!'}
-			>
-				{#if tags.length === 0}
-					<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
-				{/if}
-			</InfoHeader>
-		</div>
-	{:else}
-		<div class="min-h-screen">
-			<div
-				class="pt-4 px-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 grid-flow-row gap-2 w-full"
-			>
-				{#each items as item}
-					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-						<BookPreview book={item} />
-					</div>
-				{/each}
-			</div>
-			{#if !$getBooksInfinite.hasNextPage}
-				<ScrollToTopButton />
-			{/if}
-		</div>
-	{/if}
+	<DocumentsInfiniteScroll
+		class="min-h-screen"
+		documentType="Storyline"
+		bind:parameters
+		gridStyle={'grid-cols-2 md:grid-cols-6'}
+		limit={20}
+	/>
 </Container>

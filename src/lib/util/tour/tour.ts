@@ -54,6 +54,16 @@ export function getShepherdStep(
 	};
 }
 
+export function getBaseURL(page: any) {
+	let baseUrl = page.url.toString().replace(page.url.search, '');
+
+	for (const param in page.params) {
+		baseUrl = baseUrl.replace(page.params[param], '');
+	}
+
+	return baseUrl;
+}
+
 export function autoStartTour(key: string) {
 	const toured = localStorage.getItem(key) ?? undefined;
 	if (!toured) {

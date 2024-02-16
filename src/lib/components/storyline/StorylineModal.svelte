@@ -33,11 +33,22 @@
 	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
-	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden">
+	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden relative">
 		<ImageWithFallback
 			src={storylineData.imageURL ?? ''}
 			alt={storylineData.title ?? 'Storyline Title'}
 		/>
+		{#if book.campaign}
+			<div
+				class="overflow-hidden flex items-center absolute top-2 right-2 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
+			>
+				<p
+					class="text-xs font-bold line-clamp-1 text-orange-700 md:text-white group-hover:text-orange-700 duration-300"
+				>
+					campaign
+				</p>
+			</div>
+		{/if}
 	</div>
 
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
@@ -86,7 +97,10 @@
 		<div class="w-full flex flex-col gap-4 items-center px-4">
 			<hr class="opacity-50 min-w-full" />
 			<footer class="btn-group variant-filled py-1 max-w-fit">
-				<a on:click={() => closeModal(false)} href="/book/{book._id}">View</a>
+				<a
+					on:click={() => closeModal(false)}
+					href="/book/{book._id}?storylineID={storylineData._id}">View</a
+				>
 				<a
 					on:click={() => closeModal(false)}
 					href="/editor/{book._id}?mode=reader&storylineID={storylineData._id}"

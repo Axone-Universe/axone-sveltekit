@@ -39,10 +39,16 @@ chapterSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const storylineID = this.options.storylineID;
 	const pipeline = this.pipeline();
+	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
 	addUserPermissionPipeline(userID, pipeline);
 	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
+
+	for (const filter of postPipeline) {
+		pipeline.push(filter);
+	}
+
 	next();
 });
 

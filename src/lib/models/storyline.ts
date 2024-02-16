@@ -11,6 +11,7 @@ import {
 	addArchivedRestrictionFilter
 } from './permission';
 import { Book } from './book';
+import { GENRES } from '$lib/properties/genre';
 
 export const storylineSchema = new Schema<StorylineProperties>({
 	_id: { type: String, required: true },
@@ -19,6 +20,12 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	user: { type: String, ref: UserLabel, required: true },
 	chapters: [{ type: String, ref: ChapterLabel }],
 	permissions: { type: Map, of: permissionSchema },
+	genres: [
+		{
+			type: String,
+			enum: GENRES
+		}
+	],
 	title: String,
 	description: String,
 	imageURL: String,
@@ -31,13 +38,21 @@ interface StorylineMethods extends StorylineProperties {
 	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
+storylineSchema.index({ title: 'text' });
+
 storylineSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
+	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
 	addUserPermissionPipeline(userID, pipeline);
 	addViewRestrictionPipeline(userID, pipeline, 'books', 'book');
+
+	for (const filter of postPipeline) {
+		pipeline.push(filter);
+	}
+
 	next();
 });
 

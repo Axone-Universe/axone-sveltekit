@@ -11,6 +11,7 @@
 	import ImageUploader from '../util/ImageUploader.svelte';
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import type { SupabaseClient } from '@supabase/supabase-js';
+	import { GENRES } from '$lib/properties/genre';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let storyline: HydratedDocument<StorylineProperties>;
@@ -22,6 +23,7 @@
 	export { customClass as class };
 
 	let imageFile: File;
+	let genres = storyline.genres ?? [];
 	let notifications = {};
 
 	$: title = storyline.title;
@@ -36,6 +38,7 @@
 				title: storyline.title,
 				description: storyline.description,
 				permissions: storyline.permissions,
+				genres,
 				imageURL: storyline.imageURL,
 				notifications: notifications
 			});
@@ -48,6 +51,7 @@
 				parent: storyline.parent ?? undefined,
 				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
+				genres,
 				imageURL: '',
 				notifications: notifications
 			});
@@ -95,6 +99,7 @@
 			title: storyline.title,
 			description: storyline.description,
 			permissions: storyline.permissions,
+			genres,
 			imageURL: imageURL
 		});
 	}
@@ -127,7 +132,26 @@
 			class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
 		/>
 	</div>
-
+	<div>
+		Genres
+		<div id="genres-div" class="flex flex-wrap gap-1">
+			{#each GENRES as genre}
+				<button
+					class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+					on:click={() => {
+						const index = genres.indexOf(genre);
+						if (index > -1) {
+							genres = genres.filter((v) => v !== genre);
+						} else {
+							genres = [...genres, genre];
+						}
+					}}
+				>
+					<span class="capitalize">{genre}</span>
+				</button>
+			{/each}
+		</div>
+	</div>
 	<div>
 		Permissions
 		<ManagePermissions
