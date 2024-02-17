@@ -125,7 +125,7 @@
 						<DocumentsInfiniteScroll
 							class="max-h-[600px] overflow-auto"
 							documentType="Book"
-							parameters={{ userID: userData._id }}
+							parameters={{ user: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>
@@ -133,7 +133,7 @@
 						<DocumentsInfiniteScroll
 							class="max-h-[600px] overflow-auto"
 							documentType="Storyline"
-							parameters={{ userID: userData._id }}
+							parameters={{ user: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>
@@ -141,7 +141,7 @@
 						<DocumentsInfiniteScroll
 							class="max-h-[600px] overflow-auto"
 							documentType="Chapter"
-							parameters={{ userID: userData._id }}
+							parameters={{ user: userData._id }}
 							gridStyle={'grid-cols-2 md:grid-cols-4'}
 							limit={8}
 						/>
