@@ -297,6 +297,7 @@
 						id="public-permissions-btn"
 						use:popup={permissionsPopupSettings('permissionsPopup')}
 						disabled={!('public' in permissions)}
+						type="button"
 					>
 						<span class="capitalize text-xs">{publicPermission.permission}</span>
 						<Icon class="border-none" data={caretDown} scale={1} />
