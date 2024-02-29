@@ -28,8 +28,8 @@
 		<div>
 			<p>
 				The Axone Universe is a collaborative writing platform for authors. Overcome the writer's
-				block through collaboration and co-authorship. Put up your unfinished book on Axone, and let
-				the community write the book with you! <br /><br />
+				block through collaboration and co-authorship. Put up chapters of your unfinished book on
+				Axone, and let the community write the book with you! <br /><br />
 				Contribute to existing books by creating new
 				<a class="anchor" href="#storylines">storylines</a> or writing new
 				<a class="anchor" href="#chapters">chapters</a> for a book storyline. Engage your creative side
@@ -40,8 +40,8 @@
 		<h2 class="h2" id="books">Books</h2>
 		<div class="flex flex-col gap-2">
 			<p>
-				On Axone a book is a story with a main character/s and a plot which the book creator has set
-				in the book description. To quickly create a book:
+				On Axone a book is a story with different character/s and a plot which the book creator has
+				set in the book description. To quickly create a book:
 			</p>
 
 			<ol class="list">
@@ -77,12 +77,12 @@
 				<h3 class="h3" id="storylines">Storylines</h3>
 				<p>
 					A book can have multiple storylines. Each storyline is a trajectory of a book in a
-					different unique direction. For example, in the book <i><b>Romeo and Juliet</b></i> in
-					chapter 5 the message to that Juliet wasn't not dead failed to reach Romeo in time
-					resulting in him taking poison and dying of sorrow, thinking that Juliet was dead. In an
-					alternative storyline from chapter 5, Romeo receives the message and avoids taking the
-					poison leading to reconciliation between their feuding families, the Montagues and
-					Capulets.
+					different unique direction. You can think of a storyline as a different version of the
+					original book. For example, in the book <i><b>Romeo and Juliet</b></i> in chapter 5 the
+					message to Romeo that Juliet wasn't dead failed to reach him in time resulting in him
+					taking poison and dying of sorrow, thinking that Juliet was dead. In an alternative
+					storyline from chapter 5, Romeo receives the message and avoids taking the poison leading
+					to reconciliation between their feuding families, the Montagues and Capulets.
 					<br /><br />
 					To create a new storyline for a book:
 				</p>
@@ -106,7 +106,10 @@
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
 				<h3 class="h3" id="chapters">Chapters</h3>
-				<p>A storyline is made up of multiple chapters. To add a chapter to a storyline:</p>
+				<p>
+					A storyline is made up of multiple chapters. Any author with permissions can add a chapter
+					to a storyline. To add a chapter to a storyline:
+				</p>
 				<ol class="list">
 					<li>
 						<span class="badge-icon p-4 variant-soft-primary">1</span>

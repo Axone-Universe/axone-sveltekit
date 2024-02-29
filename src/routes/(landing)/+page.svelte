@@ -148,7 +148,8 @@
 					firstName: 'Takunda',
 					lastName: 'Chirema',
 					labels: ['Writer'],
-					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					imageURL:
+						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7db7a801332787aa0ca_takunda_circle_final.png',
 					about: '"Axone has allowed me to publish and monetize my unfinished book"'
 				},
 				{
@@ -156,7 +157,8 @@
 					firstName: 'Lindi',
 					lastName: 'Kers',
 					labels: ['Writer', 'Editor'],
-					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					imageURL:
+						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7db3caa2ced19faedbb_lindi_circle_final.png',
 					about:
 						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
 				},
@@ -165,7 +167,8 @@
 					firstName: 'Danae',
 					lastName: 'Bouwer',
 					labels: ['Illustrator'],
-					imageURL: 'https://source.unsplash.com/YOErFW8AfkI/128x128',
+					imageURL:
+						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7dbc74e50249144ff41_danae_circle_final.png',
 					about:
 						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
 				}
