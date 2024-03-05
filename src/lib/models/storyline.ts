@@ -13,13 +13,18 @@ import {
 import { Book } from './book';
 import { GENRES } from '$lib/properties/genre';
 
-export const storylineSchema = new Schema<StorylineProperties>({
+interface ExtendedStorylineProperties extends StorylineProperties {
+	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
+}
+
+export const storylineSchema = new Schema<ExtendedStorylineProperties>({
 	_id: { type: String, required: true },
 	main: { type: Boolean, required: true },
 	book: { type: String, ref: BookLabel, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	chapters: [{ type: String, ref: ChapterLabel }],
 	permissions: { type: Map, of: permissionSchema },
+	tags: [{ type: String }],
 	genres: [
 		{
 			type: String,
@@ -34,11 +39,7 @@ export const storylineSchema = new Schema<StorylineProperties>({
 	archived: { type: Boolean, default: false }
 });
 
-interface StorylineMethods extends StorylineProperties {
-	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
-}
-
-storylineSchema.index({ title: 'text' });
+storylineSchema.index({ title: 'text', tags: 'text' });
 
 storylineSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
@@ -171,5 +172,5 @@ function populate(pipeline: PipelineStage[]) {
 }
 
 export const Storyline = mongoose.models[label]
-	? model<StorylineMethods>(label)
-	: model<StorylineMethods>(label, storylineSchema);
+	? model<ExtendedStorylineProperties>(label)
+	: model<ExtendedStorylineProperties>(label, storylineSchema);

@@ -12,6 +12,7 @@
 	import Tutorial from './tutorial.svelte';
 	import DocumentsInfiniteScroll from '$lib/components/documents/DocumentsInfiniteScroll.svelte';
 	import type { PageData } from './$types';
+	import { setupTour } from '../../editor/[bookID]/tutorial';
 
 	export let data: PageData;
 	export let { user } = data;
@@ -41,7 +42,6 @@
 	let accordionOpen = false;
 	let searchValue = '';
 	let debouncedSearchValue = '';
-	let scroll = 0;
 
 	function handleClear() {
 		genres = [];
@@ -84,7 +84,7 @@
 
 		mounted = true;
 
-		// setupTour();
+		setupTour();
 
 		return () => {
 			window.removeEventListener('click', onClickListener);
@@ -100,7 +100,7 @@
 			class="input text-sm h-8 p-2"
 			title="Search for stoylines"
 			type="search"
-			placeholder="Search for a storyline title"
+			placeholder="Search by title or #tag"
 			bind:value={searchValue}
 			on:input={onType}
 		/>

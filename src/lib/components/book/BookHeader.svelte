@@ -234,9 +234,9 @@
 					{/if}
 				</div>
 
-				<div class="flex flex-row space-x-2">
+				<div class="flex flex-row items-center space-x-2">
 					{#if bookData.campaign}
-						<div class="flex items-center bg-orange-700 px-2 rounded-full">
+						<div class="flex h-fit items-center bg-orange-700 py-2 px-2 rounded-full">
 							<p class="text-md tracking-widest font-bold text-white">campaign</p>
 						</div>
 					{:else}
@@ -278,8 +278,8 @@
 						</div>
 					{/if}
 					{#if bookData.campaign}
-						<div class="flex w-full justify-end gap-2">
-							<div class="flex items-center {campaignDaysLeft()[1]} px-2 rounded-full">
+						<div class="flex items-center w-full justify-end gap-x-2">
+							<div class="flex h-fit items-center {campaignDaysLeft()[1]} py-1 px-2 rounded-full">
 								<p class="flex items-center !py-0 text-md tracking-widest font-bold text-white">
 									{#if campaignDaysLeft()[0] > 0}
 										<Icon class="p-2  !hidden md:!block" data={calendar} scale={2} />

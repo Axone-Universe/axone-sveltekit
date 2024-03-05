@@ -25,6 +25,7 @@
 		storyline.parentChapter = chapterID;
 		storyline.chapters = chapterResponses ? Object.values(chapterResponses) : [];
 		storyline.genres = bookData.genres;
+		storyline.tags = bookData.tags;
 	});
 </script>
 

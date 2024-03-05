@@ -59,6 +59,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
+	tags(tags: string[]) {
+		this._bookProperties.tags = tags;
+		return this;
+	}
+
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
 		this._bookProperties.permissions = permissions;
 		return this;
@@ -110,36 +115,45 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async update(): Promise<HydratedDocument<BookProperties>> {
-		let book = await Book.findOneAndUpdate(
-			{ _id: this._bookProperties._id },
-			this._bookProperties,
-			{
-				new: true,
-				userID: this._sessionUserID
-			}
-		);
+		const session = await startSession();
 
-		if (book) {
-			// aggregate is called again so that the db middleware runs
-			book = await Book.aggregate(
-				[
+		try {
+			// use a transaction to make sure everything saves
+			await session.withTransaction(async () => {
+				await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
+					new: true,
+					userID: this._sessionUserID
+				});
+
+				await Storyline.findOneAndUpdate(
+					{ $and: [{ book: this._bookProperties._id }, { main: true }] },
+					{ imageURL: this._bookProperties.imageURL },
 					{
-						$match: {
-							_id: this._bookProperties._id
-						}
+						userID: this._sessionUserID
 					}
-				],
-				{
-					userID: this._userID.id
-				}
-			)
-				.cursor()
-				.next();
-
-			return book as HydratedDocument<BookProperties>;
+				);
+			});
+		} finally {
+			session.endSession();
 		}
 
-		throw new Error("Couldn't update book");
+		// aggregate is called again so that the db middleware runs
+		const book = await Book.aggregate(
+			[
+				{
+					$match: {
+						_id: this._bookProperties._id
+					}
+				}
+			],
+			{
+				userID: this._userID.id
+			}
+		)
+			.cursor()
+			.next();
+
+		return book as HydratedDocument<BookProperties>;
 	}
 
 	async setArchived(ids: string[]): Promise<boolean> {
@@ -242,6 +256,7 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 		.description(hydratedBook.description!)
 		.imageURL(hydratedBook.imageURL!)
 		.genres(hydratedBook.genres!)
+		.tags(hydratedBook.tags!)
 		.permissions(hydratedBook.permissions);
 
 	const storyline = new Storyline(storylineBuilder.properties());

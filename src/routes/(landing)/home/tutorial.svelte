@@ -27,7 +27,7 @@
 			getShepherdStep(
 				'search-input',
 				'bottom',
-				'Search for books by title. The results will auto-load when you enter the title in the input.',
+				'Search for stories by title or hash-tags. The results will auto-load when you enter the title in the input.',
 				[next]
 			)
 		);

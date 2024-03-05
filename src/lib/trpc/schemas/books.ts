@@ -13,6 +13,7 @@ export const create = z.object({
 	description: z.string(),
 	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
+	tags: z.array(z.string()).optional(),
 	permissions: z.record(z.string(), permissions).optional(),
 	notifications: z.record(z.string(), userNotification).optional()
 });
@@ -34,6 +35,7 @@ export const update = z.object({
 	description: z.string().optional(),
 	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
+	tags: z.array(z.string()).optional(),
 	permissions: z.record(z.string(), permissions).optional(),
 	notifications: z.record(z.string(), userNotification).optional()
 });

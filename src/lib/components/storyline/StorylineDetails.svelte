@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
+	import { type ToastSettings, getToastStore, InputChip } from '@skeletonlabs/skeleton';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { HydratedDocument } from 'mongoose';
@@ -24,6 +24,7 @@
 
 	let imageFile: File;
 	let genres = storyline.genres ?? [];
+	let tags = storyline.tags ?? [];
 	let notifications = {};
 
 	$: title = storyline.title;
@@ -39,6 +40,7 @@
 				description: storyline.description,
 				permissions: storyline.permissions,
 				genres,
+				tags,
 				imageURL: storyline.imageURL,
 				notifications: notifications
 			});
@@ -52,6 +54,7 @@
 				parentChapter: storyline.parentChapter ?? undefined,
 				permissions: storyline.permissions,
 				genres,
+				tags,
 				imageURL: '',
 				notifications: notifications
 			});
@@ -151,6 +154,17 @@
 				</button>
 			{/each}
 		</div>
+	</div>
+	<div>
+		Tags
+		<InputChip
+			bind:value={tags}
+			name="tags"
+			placeholder="e.g. #zombies"
+			validation={(tag) => {
+				return tag.startsWith('#');
+			}}
+		/>
 	</div>
 	<div>
 		Permissions

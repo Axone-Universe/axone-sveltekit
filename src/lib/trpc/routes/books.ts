@@ -69,8 +69,9 @@ export const books = t.router({
 
 			if (input.title) bookBuilder.title(input.title);
 			if (input.description) bookBuilder.description(input.description);
-			if (input.imageURL !== undefined) bookBuilder.imageURL(input.imageURL);
+			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
 			if (input.genres) bookBuilder.genres(input.genres);
+			if (input.tags) bookBuilder.tags(input.tags);
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 
 			const response: Response = { success: true, message: 'book updated', data: {} };
@@ -142,6 +143,7 @@ export const books = t.router({
 			if (input.permissions) bookBuilder.permissions(input.permissions as any);
 			if (input.genres) bookBuilder.genres(input.genres);
 			if (input.imageURL) bookBuilder.imageURL(input.imageURL);
+			if (input.tags) bookBuilder.tags(input.tags);
 
 			const response: Response = {
 				success: true,

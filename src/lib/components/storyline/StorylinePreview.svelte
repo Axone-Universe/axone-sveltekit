@@ -68,7 +68,7 @@
 	on:click={dispatchEvent ? selected : () => modalStore.trigger(modal)}
 >
 	<ImageWithFallback
-		src={storyline.imageURL ?? ''}
+		src={storyline.imageURL}
 		alt={storyline.title ?? 'Storyline Title'}
 		bind:didError
 	/>
