@@ -17,7 +17,8 @@ export const GENRES = [
 	'Journalism',
 	'Self-help',
 	'Science',
-	'Travel Guides'
+	'Travel Guides',
+	'Fan Fiction'
 ] as const;
 
 export type Genre = (typeof GENRES)[number];

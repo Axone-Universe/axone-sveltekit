@@ -7,7 +7,6 @@ import {
 } from '$lib/properties/user';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import mongoose, { Schema, model } from 'mongoose';
-import { addOwnerUpdateRestrictionFilter } from './permission';
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },

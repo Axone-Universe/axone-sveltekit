@@ -16,7 +16,7 @@ export const bookSchema = new Schema<BookProperties>({
 	title: String,
 	description: String,
 	imageURL: String,
-	tags: String,
+	tags: [{ type: String }],
 	permissions: { type: Map, of: permissionSchema },
 	genres: [
 		{
@@ -29,7 +29,7 @@ export const bookSchema = new Schema<BookProperties>({
 	campaign: { type: String, ref: CampaignLabel, required: false }
 });
 
-bookSchema.index({ title: 'text' });
+bookSchema.index({ title: 'text', tags: 'text' });
 
 bookSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');

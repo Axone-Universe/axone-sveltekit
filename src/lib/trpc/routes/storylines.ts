@@ -113,6 +113,7 @@ export const storylines = t.router({
 			if (input.permissions) storylineBuilder.permissions(input.permissions as any);
 			if (input.imageURL !== undefined) storylineBuilder.imageURL(input.imageURL);
 			if (input?.genres) storylineBuilder.genres(input.genres);
+			if (input?.tags) storylineBuilder.tags(input.tags);
 
 			const response: Response = {
 				success: true,
@@ -172,6 +173,7 @@ export const storylines = t.router({
 			if (input?.parentChapter) storylineBuilder.branchOffChapterID(input.parentChapter);
 			if (input?.imageURL) storylineBuilder.imageURL(input.imageURL);
 			if (input?.genres) storylineBuilder.genres(input.genres);
+			if (input?.tags) storylineBuilder.tags(input.tags);
 
 			if (input?.permissions) {
 				storylineBuilder.permissions(input.permissions as any);

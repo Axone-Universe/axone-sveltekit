@@ -26,7 +26,7 @@
 
 	let imageFile: File;
 	let genres = book.genres ?? [];
-	$: tags = book.tags ?? [];
+	let tags = book.tags ?? [];
 
 	const toastStore = getToastStore();
 
@@ -40,6 +40,7 @@
 				imageURL: book.imageURL,
 				description: book.description,
 				genres,
+				tags,
 				permissions: book.permissions,
 				notifications: notifications
 			});
@@ -50,6 +51,7 @@
 				imageURL: book.imageURL,
 				description: book.description,
 				genres,
+				tags,
 				permissions: book.permissions,
 				notifications: notifications
 			});
@@ -142,7 +144,14 @@
 		</div>
 		<div>
 			Tags
-			<InputChip bind:value={tags} name="tags" placeholder="Enter any value..." />
+			<InputChip
+				bind:value={tags}
+				name="tags"
+				placeholder="e.g. #zombies"
+				validation={(tag) => {
+					return tag.startsWith('#');
+				}}
+			/>
 		</div>
 		<div>
 			Permissions

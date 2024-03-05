@@ -19,7 +19,7 @@ export interface StorylineProperties extends ReviewableProperties {
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; collaborate: boolean };
 	description?: string;
-	imageURL?: string;
+	imageURL: string;
 	tags?: string[];
 	genres?: Genre[];
 	parent?: string;
@@ -38,7 +38,7 @@ export interface HydratedStorylineProperties extends StorylineProperties {
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; collaborate: boolean };
 	description?: string;
-	imageURL?: string;
+	imageURL: string;
 	tags?: string[];
 	genres?: Genre[];
 	parent?: string;

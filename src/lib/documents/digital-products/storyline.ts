@@ -21,6 +21,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		super();
 		this._storylineProperties = {
 			_id: id ? id : ulid(),
+			imageURL: '',
 			main: false,
 			permissions: {},
 			cumulativeRating: 0,
@@ -95,6 +96,11 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	genres(genres: Genre[]) {
 		this._storylineProperties.genres = genres;
+		return this;
+	}
+
+	tags(tags: string[]) {
+		this._storylineProperties.tags = tags;
 		return this;
 	}
 
