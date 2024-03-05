@@ -47,6 +47,10 @@ export class StorylinesRepository extends Repository {
 					filter.genres = { $in: user.genres };
 				}
 			}
+
+			if (input.tags.includes('Newest')) {
+				postPipeline.push({ $sort: { _id: -1 } });
+			}
 		}
 
 		pipeline.push({ $match: filter });

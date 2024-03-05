@@ -12,9 +12,12 @@ import {
 	addArchivedRestrictionFilter
 } from './permission';
 import { Storyline } from './storyline';
-import { Delta } from './delta';
 
-export const chapterSchema = new Schema<ChapterProperties>({
+interface ExtendedChapterProperties extends ChapterProperties {
+	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
+}
+
+export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	_id: { type: String, required: true },
 	book: { type: String, ref: BookLabel, required: true },
 	storyline: { type: String, ref: StorylineLabel, required: true },
@@ -26,10 +29,6 @@ export const chapterSchema = new Schema<ChapterProperties>({
 	description: String,
 	archived: { type: Boolean, default: false }
 });
-
-interface ChapterMethods extends ChapterProperties {
-	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
-}
 
 chapterSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
@@ -154,5 +153,5 @@ function populate(pipeline: PipelineStage[]) {
 }
 
 export const Chapter = mongoose.models[label]
-	? model<ChapterMethods>(label)
-	: model<ChapterMethods>(label, chapterSchema);
+	? model<ExtendedChapterProperties>(label)
+	: model<ExtendedChapterProperties>(label, chapterSchema);
