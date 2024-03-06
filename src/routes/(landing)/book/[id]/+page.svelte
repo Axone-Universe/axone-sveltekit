@@ -133,7 +133,7 @@
 														'_blank'
 													);
 												}}
-												content="Create new storyline"
+												content="Create new storyline branch"
 												placement="top"
 												target="{chapter._id}-create-storyline"
 											>
