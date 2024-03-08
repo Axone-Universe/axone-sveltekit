@@ -157,6 +157,7 @@
 					{#each GENRES as genre}
 						<button
 							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+							type="button"
 							on:click={() => {
 								const index = genres.indexOf(genre);
 								if (index > -1) {
