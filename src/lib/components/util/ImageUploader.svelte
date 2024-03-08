@@ -167,10 +167,10 @@
 		<ul class="flex flex-col list justify-start">
 			{#each creatorsMenuList as menuItem}
 				<li>
-					<button on:click={menuItem.callback} class="w-full">
+					<button on:click={menuItem.callback} class="w-full" type="button">
 						<Icon class="p-2" data={menuItem.icon} scale={2.3} />
-						{menuItem.label}</button
-					>
+						{menuItem.label}
+					</button>
 				</li>
 			{/each}
 		</ul>
