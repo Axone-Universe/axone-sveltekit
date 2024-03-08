@@ -15,7 +15,6 @@
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
-	import Quill from 'quill';
 	import type { Illustration } from '$lib/util/editor/quill';
 	import { changeDelta, QuillEditor } from '$lib/util/editor/quill';
 	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
@@ -1100,15 +1099,15 @@
 		</Drawer>
 	</svelte:fragment>
 	<svelte:fragment slot="default">
-		<div class="flex h-screen w-full overflow-y-clip">
+		<div class="flex justify-between h-screen w-full overflow-y-clip">
+			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
+				{#if $drawerStore.open}
+					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
+				{:else}
+					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
+				{/if}
+			</div>
 			{#if selectedChapter}
-				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-					{#if $drawerStore.open}
-						<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-					{:else}
-						<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-					{/if}
-				</div>
 				<div class="editor-container py-10 flex flex-col w-full items-center">
 					{#if versionPreview}
 						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
@@ -1129,18 +1128,18 @@
 					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
 					<div class="w-10/12 !h-[85%]" id="editor" style={cssVarStyles} />
 				</div>
-				<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-					{#if $drawerStore.open}
-						<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-					{:else}
-						<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-					{/if}
-				</div>
 			{:else if !selectedStoryline.userPermissions?.view}
 				<div class="flex h-full w-full justify-center items-center">
 					<RequestPermissionModal class="mt-4" document={selectedStoryline} />
 				</div>
 			{/if}
+			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
+				{#if $drawerStore.open}
+					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
+				{:else}
+					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
+				{/if}
+			</div>
 		</div>
 	</svelte:fragment>
 </AppShell>
