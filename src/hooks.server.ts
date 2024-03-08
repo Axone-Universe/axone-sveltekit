@@ -56,15 +56,6 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		const user = await userRepo.getById(session, session.user.id);
 		event.locals.user = user as UserProperties;
 
-		// if the user is not created yet in the DB, create the user
-		if (
-			!user &&
-			event.url.pathname !== '/profile/create' &&
-			event.url.pathname !== '/trpc/users.create'
-		) {
-			throw redirect(303, '/profile/create');
-		}
-
 		// User if the user is logged in and coming from the landing page, go to the homepage
 		if (event.url.pathname === '/') {
 			throw redirect(303, '/home');
