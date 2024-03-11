@@ -109,6 +109,7 @@
 			regionPanel="absolute accordion"
 			padding="py-1"
 			regionControl="px-4 h-8 accordion"
+			class="fill-accordion"
 		>
 			<AccordionItem id="filter-input" bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
