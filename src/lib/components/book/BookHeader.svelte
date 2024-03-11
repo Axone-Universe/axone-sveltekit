@@ -256,7 +256,10 @@
 						{#if selectedStoryline && selectedStoryline.userPermissions?.collaborate}
 							<Tooltip
 								on:click={() => {
-									window.open(`/editor/${bookData._id}?mode=writer`, '_blank');
+									window.open(
+										`/editor/${bookData._id}?storylineID=${selectedStoryline?._id}&mode=writer`,
+										'_blank'
+									);
 								}}
 								content="Edit storyline"
 								placement="top"
@@ -314,9 +317,11 @@
 						<svelte:fragment slot="lead"><Icon scale={1.5} data={tag} /></svelte:fragment>
 						<svelte:fragment slot="summary">Tags</svelte:fragment>
 						<svelte:fragment slot="content">
-							{#each storylineData.tags as tag}
-								<div class="chip variant-filled">{tag}</div>
-							{/each}
+							<div class="gap-2">
+								{#each storylineData.tags as tag}
+									<div class="chip variant-filled">{tag}</div>
+								{/each}
+							</div>
 						</svelte:fragment>
 					</AccordionItem>
 				{/if}

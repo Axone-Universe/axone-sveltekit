@@ -17,7 +17,7 @@
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 
-	export let chapterNode: HydratedDocument<ChapterProperties>;
+	export let chapter: HydratedDocument<ChapterProperties>;
 	export let disabled: false;
 
 	let customClass = '';
@@ -28,13 +28,9 @@
 
 	let note: NoteProperties = new NotePropertyBuilder().getProperties();
 
-	let chapterNotes: HydratedDocument<NoteProperties>[] = [];
-	let filteredChapterNotes: HydratedDocument<NoteProperties>[] = [];
+	$: chapterNotes = chapter.chapterNotes ?? [];
+	let filteredChapterNotes = chapter.chapterNotes ?? [];
 	let chapterNotesList = '';
-
-	onMount(() => {
-		getChapterNotes();
-	});
 
 	let closeModal = () => {
 		modalStore.close();
@@ -79,17 +75,6 @@
 		);
 	};
 
-	function getChapterNotes() {
-		trpc($page)
-			.notes.getByChapterID.query({
-				chapterID: chapterNode._id
-			})
-			.then((response) => {
-				chapterNotes = response.data as HydratedDocument<NoteProperties>[];
-				filteredChapterNotes = response.data as HydratedDocument<NoteProperties>[];
-			});
-	}
-
 	async function submit() {
 		if (note._id) {
 			updateNote();
@@ -107,7 +92,7 @@
 		trpc($page)
 			.notes.create.mutate({
 				title: note.title!,
-				chapterID: chapterNode._id,
+				chapterID: chapter._id,
 				note: note.note!,
 				tags: note.tags
 			})
@@ -116,6 +101,9 @@
 				toastBackground = 'bg-success-500';
 
 				chapterNotes.push(response.data as HydratedDocument<NoteProperties>);
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(chapterNotes) : '';
+				}
 				searchNotes();
 			})
 			.finally(() => {
@@ -169,6 +157,9 @@
 					chapterNotes.findIndex((e) => e._id === note._id),
 					1
 				);
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(chapterNotes) : '';
+				}
 				searchNotes();
 			})
 			.finally(() => {
@@ -240,7 +231,7 @@
 					<button on:click={closeModal} class="btn variant-ghost-surface" type="button"
 						>Cancel</button
 					>
-					<button class="btn variant-filled" type="submit">{note._id ? 'Edit' : 'Create'}</button>
+					<button class="btn variant-filled" type="submit">{note._id ? 'Update' : 'Create'}</button>
 				</footer>
 			{/if}
 		</fieldset>

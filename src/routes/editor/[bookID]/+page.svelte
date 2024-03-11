@@ -168,7 +168,7 @@
 			versionID = undefined;
 			selectedChapter = selectedStorylineChapters[itemID];
 		} else {
-			quill.chapter = undefined;
+			if (quill) quill.chapter = undefined;
 			selectedChapter = undefined;
 			selectedStoryline = storylines[itemID];
 			loadChapters();
@@ -467,8 +467,14 @@
 		modalComponent.ref = ChapterNotesModal;
 		modalComponent.props = {
 			storylineNode: selectedStoryline,
-			chapterNode: selectedChapter,
+			chapter: selectedChapter,
 			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+		};
+
+		modalSettings.response = (chapterNotes) => {
+			if (chapterNotes) {
+				selectedChapter!.chapterNotes = chapterNotes;
+			}
 		};
 		modalStore.trigger(modalSettings);
 	};
@@ -840,6 +846,8 @@
 
 			await quill.getChapterDelta();
 
+			selectedChapter = await quill.getChapterNotes();
+
 			numComments = Object.keys(quill.comments).length;
 			numIllustrations = Object.keys(quill.illustrations).length;
 
@@ -1026,6 +1034,8 @@
 										label: 'Add chapter notes',
 										icon: stickyNote,
 										callback: showChapterNotes,
+										class: 'relative',
+										notification: selectedChapter.chapterNotes?.length,
 										mode: 'writer'
 									},
 									{
