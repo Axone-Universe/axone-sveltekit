@@ -138,7 +138,7 @@
 	function openStorylineModal(storyline: HydratedDocument<StorylineProperties>) {
 		storylineModalComponent.props = {
 			storylineData: storyline,
-			isStudio: true
+			showEdit: true
 		};
 		modalStore.trigger(storylineModal);
 	}
