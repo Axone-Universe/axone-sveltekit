@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { trpc } from '$lib/trpc/client';
 import type { HydratedDocument } from 'mongoose';
-import type { BookProperties } from '$lib/properties/book';
+import type { HydratedBookProperties } from '$lib/properties/book';
 import { StorylinePropertyBuilder, type StorylineProperties } from '$lib/properties/storyline';
 import { redirect } from '@sveltejs/kit';
 
@@ -11,7 +11,7 @@ export const load = (async (event) => {
 			id: event.params.id,
 			limit: 10
 		})
-	).data as HydratedDocument<BookProperties>;
+	).data as HydratedDocument<HydratedBookProperties>;
 
 	// If there are no viewing permissions redirect
 	if (!bookData.userPermissions?.view) {

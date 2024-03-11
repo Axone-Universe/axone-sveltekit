@@ -63,12 +63,13 @@
 				</ListBox>
 			</svelte:fragment>
 		</AccordionItem>
-		{#if chapters.length > 0}
-			<AccordionItem open>
-				<svelte:fragment slot="summary">
-					<p id="chapters-list" class="text-lg font-bold">Chapters</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
+
+		<AccordionItem open>
+			<svelte:fragment slot="summary">
+				<p id="chapters-list" class="text-lg font-bold">Chapters</p>
+			</svelte:fragment>
+			<svelte:fragment slot="content">
+				{#if chapters.length > 0}
 					<ListBox>
 						{#each Object.entries(chapters) as [id, chapter]}
 							<ListBoxItem
@@ -94,9 +95,10 @@
 							</ListBoxItem>
 						{/each}
 					</ListBox>
-				</svelte:fragment>
-			</AccordionItem>
-		{/if}
+				{/if}
+			</svelte:fragment>
+		</AccordionItem>
+
 		<!-- ... -->
 	</Accordion>
 </div>

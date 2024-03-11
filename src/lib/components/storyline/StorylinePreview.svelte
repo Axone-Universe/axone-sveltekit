@@ -100,7 +100,7 @@
 			</p>
 		</div>
 	{/if}
-	{#if book.campaign}
+	{#if book.campaign && storyline.main}
 		<div
 			class="overflow-hidden flex items-center absolute bottom-1 left-1 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
 		>

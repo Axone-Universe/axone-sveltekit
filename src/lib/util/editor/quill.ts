@@ -12,6 +12,7 @@ import { QuillIllustration } from '@axone-network/quill-illustration/quill.illus
 import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
+import type { NoteProperties } from '$lib/properties/note';
 
 export const changeDelta = writable<Delta>(new Delta());
 
@@ -132,6 +133,19 @@ export class QuillEditor extends Quill {
 		// now update the content
 		const composedDelta = chapterContentDelta.compose(this.changeDeltaSnapshot!);
 		delta.ops = composedDelta.ops;
+	}
+
+	async getChapterNotes(): Promise<HydratedDocument<ChapterProperties>> {
+		await trpc(this.page)
+			.notes.getByChapterID.query({
+				chapterID: this.chapter?._id
+			})
+			.then((response) => {
+				const chapterNotes = response.data as HydratedDocument<NoteProperties>[];
+				this.chapter!.chapterNotes = chapterNotes;
+			});
+
+		return this.chapter!;
 	}
 
 	async getChapterDelta(): Promise<HydratedDocument<ChapterProperties>> {

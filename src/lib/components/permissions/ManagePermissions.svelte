@@ -62,7 +62,7 @@
 		return {
 			event: 'focus-click',
 			target: target,
-			placement: 'bottom'
+			placement: 'top'
 		} as PopupSettings;
 	};
 
