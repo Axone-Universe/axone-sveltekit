@@ -9,9 +9,9 @@
 	import type { BookProperties } from '$lib/properties/book';
 
 	export let storylineData: HydratedDocument<StorylineProperties>;
-	export let isStudio = false;
 	let customClass = '';
 	export { customClass as class };
+	export let showEdit: false;
 
 	const modalStore = getModalStore();
 
@@ -107,15 +107,13 @@
 				>
 					Read
 				</a>
-				{#if isStudio}
+				{#if showEdit}
 					<a
 						on:click={() => closeModal(false)}
 						href="/editor/{book._id}?mode=writer&storylineID={storylineData._id}"
 					>
 						Edit
 					</a>
-				{:else}
-					<button on:click={() => closeModal(true)}>Manage</button>
 				{/if}
 			</footer>
 		</div>

@@ -18,6 +18,7 @@
 		| undefined
 		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
 	export let user: HydratedDocument<UserProperties> | undefined;
+	export let showEdit = false;
 
 	const modalStore = getModalStore();
 
@@ -28,7 +29,7 @@
 
 	const modalComponent: ModalComponent = {
 		ref: StorylineModal,
-		props: { storylineData: storyline, isStudio: addToReadingList ? false : true }
+		props: { storylineData: storyline, showEdit: showEdit }
 	};
 
 	const readingListModal: ModalSettings = {

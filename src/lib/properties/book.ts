@@ -22,6 +22,22 @@ export interface BookProperties {
 	campaign?: string | HydratedDocument<CampaignProperties>;
 }
 
+export interface HydratedBookProperties extends BookProperties {
+	_id: string;
+	user: HydratedDocument<UserProperties>;
+	title: string;
+	description: string;
+	imageURL: string;
+	tags?: string[];
+	permissions: Record<string, HydratedDocument<PermissionProperties>>;
+	permissionsUsers?: HydratedDocument<UserProperties>[];
+	userPermissions?: { view: boolean; collaborate: boolean };
+	genres?: Genre[];
+	rating: number;
+	archived?: boolean;
+	campaign?: HydratedDocument<CampaignProperties>;
+}
+
 export class BookPropertyBuilder {
 	private readonly _properties: BookProperties;
 
