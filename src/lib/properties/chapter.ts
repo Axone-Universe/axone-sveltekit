@@ -5,6 +5,7 @@ import type { DeltaProperties } from './delta';
 import type { PermissionProperties } from './permission';
 import type { Genre } from './genre';
 import type { StorylineProperties } from './storyline';
+import type { NoteProperties } from './note';
 
 export const label = 'Chapter';
 
@@ -18,6 +19,7 @@ export interface ChapterProperties {
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
 	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
+	chapterNotes?: HydratedDocument<NoteProperties>[];
 	genres?: Genre[];
 	title?: string;
 	description?: string;
@@ -34,6 +36,7 @@ export interface HydratedChapterProperties extends ChapterProperties {
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
 	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
+	chapterNotes?: HydratedDocument<NoteProperties>[];
 	genres?: Genre[];
 	title?: string;
 	description?: string;
