@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BookProperties } from '$lib/properties/book';
+	import type { BookProperties, HydratedBookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import {
 		star,
@@ -11,7 +11,11 @@
 		leanpub,
 		info,
 		warning,
-		calendar
+		calendar,
+		tag,
+		check,
+		checkCircle,
+		trophy
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
@@ -22,7 +26,9 @@
 		popup,
 		type ModalSettings,
 		getModalStore,
-		type ModalComponent
+		type ModalComponent,
+		Accordion,
+		AccordionItem
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 	import Tooltip from '$lib/components/Tooltip.svelte';
@@ -33,11 +39,12 @@
 	import type { Session } from '@supabase/supabase-js';
 	import DocumentCarousel from '../documents/DocumentCarousel.svelte';
 	import type { CampaignProperties } from '$lib/properties/campaign';
+	import { formattedDate } from '$lib/util/studio/strings';
 
 	let customClass = '';
 
 	export { customClass as class };
-	export let bookData: HydratedDocument<BookProperties>;
+	export let bookData: HydratedDocument<HydratedBookProperties>;
 	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
 	export let session: Session | null;
 	export let storylineData: HydratedDocument<StorylineProperties>;
@@ -105,16 +112,6 @@
 		};
 		readingListModal.body = `Select the reading lists to add "${selectedStoryline!.title}" to.`;
 		modalStore.trigger(readingListModal);
-	}
-
-	function openCampaignInfo() {
-		campaignDetailsComponent.props = {
-			book: bookData,
-			campaign: bookData.campaign,
-			disabled: true,
-			cancelCallback: modalStore.close
-		};
-		modalStore.trigger(campaignDetailsModal);
 	}
 
 	function campaignDaysLeft(): [number, string] {
@@ -237,7 +234,7 @@
 				<div class="flex flex-row items-center space-x-2">
 					{#if bookData.campaign}
 						<div class="flex h-fit items-center bg-orange-700 py-2 px-2 rounded-full">
-							<p class="text-md tracking-widest font-bold text-white">campaign</p>
+							<p class="text-sm md:text-md font-bold text-white">campaign</p>
 						</div>
 					{:else}
 						<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
@@ -280,7 +277,7 @@
 					{#if bookData.campaign}
 						<div class="flex items-center w-full justify-end gap-x-2">
 							<div class="flex h-fit items-center {campaignDaysLeft()[1]} py-1 px-2 rounded-full">
-								<p class="flex items-center !py-0 text-md tracking-widest font-bold text-white">
+								<p class="flex items-center !py-0 text-sm md:text-md font-bold text-white">
 									{#if campaignDaysLeft()[0] > 0}
 										<Icon class="p-2  !hidden md:!block" data={calendar} scale={2} />
 										{campaignDaysLeft()[0]} days left
@@ -290,16 +287,6 @@
 									{/if}
 								</p>
 							</div>
-							<Tooltip
-								on:click={openCampaignInfo}
-								content="View campaign details"
-								placement="top"
-								target="campaign-details"
-							>
-								<button id="reading-list-btn" class="btn-icon bg-orange-700">
-									<Icon class="p-2" data={infoCircle} scale={2.5} />
-								</button>
-							</Tooltip>
 						</div>
 					{/if}
 				</div>
@@ -312,11 +299,78 @@
 				</div>
 			</div>
 			<hr class="opacity-50" />
-			<div>
-				<p class="text-lg font-thin line-clamp-3 md:line-clamp-5">
-					{storylineData.description}
-				</p>
-			</div>
+			<Accordion>
+				<AccordionItem open>
+					<svelte:fragment slot="lead"><Icon scale={1.5} data={infoCircle} /></svelte:fragment>
+					<svelte:fragment slot="summary">Description</svelte:fragment>
+					<svelte:fragment slot="content">
+						<p class="text-lg font-thin">
+							{storylineData.description}
+						</p>
+					</svelte:fragment>
+				</AccordionItem>
+				{#if storylineData.tags && storylineData.tags.length > 0}
+					<AccordionItem>
+						<svelte:fragment slot="lead"><Icon scale={1.5} data={tag} /></svelte:fragment>
+						<svelte:fragment slot="summary">Tags</svelte:fragment>
+						<svelte:fragment slot="content">
+							{#each storylineData.tags as tag}
+								<div class="chip variant-filled">{tag}</div>
+							{/each}
+						</svelte:fragment>
+					</AccordionItem>
+				{/if}
+				{#if bookData.campaign}
+					<AccordionItem>
+						<svelte:fragment slot="lead"><Icon scale={1.1} data={calendar} /></svelte:fragment>
+						<svelte:fragment slot="summary">
+							{formattedDate(
+								new Date(
+									typeof bookData.campaign.endDate === 'string' ? bookData.campaign.endDate : ''
+								)
+							)}
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<div class="flex flex-col md:flex-row justify-between gap-2">
+								<div class="chip variant-filled">
+									Start Date - {formattedDate(
+										new Date(
+											typeof bookData.campaign.startDate === 'string'
+												? bookData.campaign.startDate
+												: ''
+										)
+									)}
+								</div>
+								<div class="chip variant-filled">
+									End Date - {formattedDate(
+										new Date(
+											typeof bookData.campaign.endDate === 'string' ? bookData.campaign.endDate : ''
+										)
+									)}
+								</div>
+							</div>
+						</svelte:fragment>
+					</AccordionItem>
+					<AccordionItem>
+						<svelte:fragment slot="lead"><Icon scale={1.5} data={checkCircle} /></svelte:fragment>
+						<svelte:fragment slot="summary">Criteria</svelte:fragment>
+						<svelte:fragment slot="content">
+							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
+								{bookData.campaign.submissionCriteria}
+							</pre>
+						</svelte:fragment>
+					</AccordionItem>
+					<AccordionItem>
+						<svelte:fragment slot="lead"><Icon scale={1.4} data={trophy} /></svelte:fragment>
+						<svelte:fragment slot="summary">Rewards</svelte:fragment>
+						<svelte:fragment slot="content">
+							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
+								{bookData.campaign.rewards}
+							</pre>
+						</svelte:fragment>
+					</AccordionItem>
+				{/if}
+			</Accordion>
 			<hr class="opacity-50" />
 		</div>
 	</div>
