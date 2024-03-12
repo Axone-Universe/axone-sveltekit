@@ -113,9 +113,9 @@
 		>
 			<AccordionItem id="filter-input" bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
-				<svelte:fragment slot="summary"
-					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment
-				>
+				<svelte:fragment slot="summary">
+					<p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p>
+				</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="card p-4 space-y-2">
 						<p class="font-bold">Tags</p>

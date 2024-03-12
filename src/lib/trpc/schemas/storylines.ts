@@ -16,6 +16,7 @@ export const storylineQuerySchema = z.object({
 export const update = z.object({
 	id: z.string(),
 	title: z.string().optional(),
+	main: z.boolean().optional(),
 	description: z.string().optional(),
 	book: z.unknown().optional(),
 	imageURL: z.string().optional(),

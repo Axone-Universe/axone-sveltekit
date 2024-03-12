@@ -36,6 +36,7 @@
 		if (storyline._id) {
 			response = await trpc($page).storylines.update.mutate({
 				id: storyline._id,
+				main: storyline.main,
 				title: storyline.title,
 				description: storyline.description,
 				permissions: storyline.permissions,
@@ -99,6 +100,7 @@
 	async function saveStorylineImage(imageURL?: string) {
 		await trpc($page).storylines.update.mutate({
 			id: storyline._id,
+			main: storyline.main,
 			title: storyline.title,
 			description: storyline.description,
 			permissions: storyline.permissions,

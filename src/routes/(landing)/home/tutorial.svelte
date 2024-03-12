@@ -34,11 +34,13 @@
 
 		tour.addStep(
 			getShepherdStep(
-				'accordion-control-filter-input',
+				'filter-input',
 				'bottom',
 				'Filter search results by suggested tags or genre.',
-				[back, complete]
+				[back, next]
 			)
 		);
+
+		tour.addStep(getShepherdStep('email-btn', 'bottom', 'Manage your account', [back, complete]));
 	}
 </script>
