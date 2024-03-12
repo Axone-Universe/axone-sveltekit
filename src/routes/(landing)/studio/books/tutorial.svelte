@@ -53,7 +53,6 @@
 		/**
 		 * Create book tour
 		 */
-
 		let stepOptions: Shepherd.Step.StepOptions = getShepherdStep(
 			'create-book-btn',
 			'bottom',

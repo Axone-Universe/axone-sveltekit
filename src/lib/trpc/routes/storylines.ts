@@ -114,6 +114,7 @@ export const storylines = t.router({
 			if (input.imageURL !== undefined) storylineBuilder.imageURL(input.imageURL);
 			if (input?.genres) storylineBuilder.genres(input.genres);
 			if (input?.tags) storylineBuilder.tags(input.tags);
+			if (input?.main) storylineBuilder.main(input.main);
 
 			const response: Response = {
 				success: true,

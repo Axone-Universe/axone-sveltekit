@@ -161,7 +161,8 @@
 
 						<div>
 							<button
-								class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+								id="email-btn"
+								class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none variant-soft-secondary"
 								use:popup={profilePopupBox}
 							>
 								<Icon data={user} />
@@ -174,6 +175,7 @@
 							<div class="card p-2 shadow-xl" data-popup="profilePopupBox">
 								<div class="grid grid-cols-1">
 									<a
+										id="profile-btn"
 										class="btn space-x-6 hover:variant-soft-primary"
 										href={`/profile/${data.session.user.id}`}
 									>
