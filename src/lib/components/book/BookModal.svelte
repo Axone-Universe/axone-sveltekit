@@ -45,7 +45,6 @@
 			</div>
 		{/if}
 	</div>
-
 	<div class="flex flex-col justify-between items-center gap-4 h-full">
 		<header class="space-y-2">
 			<p class="text-lg font-bold line-clamp-2">{book.title}</p>
