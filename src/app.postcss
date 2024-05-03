@@ -68,6 +68,7 @@ textarea::placeholder {
 	stroke: rgb(var(--color-surface-400)) !important;
 }
 
+/* default color when inactive */
 .dark .ql-toolbar .ql-fill {
 	fill: rgb(var(--color-surface-400)) !important;
 	stroke: none;
@@ -78,8 +79,24 @@ textarea::placeholder {
 	stroke: none;
 }
 
+/* default color when active */
 .dark .ql-toolbar .ql-active .ql-stroke {
 	stroke: #fff !important;
+}
+
+.ql-toolbar .ql-active .ql-stroke {
+	stroke: green !important;
+}
+
+/* always on despite active or not; for comments and illustrations */
+.dark .ql-toolbar .ql-filled {
+	fill: #fff !important;
+	stroke: none;
+}
+
+.ql-toolbar .ql-filled {
+	fill: green !important;
+	stroke: none;
 }
 
 //\\//\\//\\//\\

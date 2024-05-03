@@ -1,5 +1,11 @@
 import { label, type ChapterProperties } from '$lib/properties/chapter';
-import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
+import mongoose, {
+	Schema,
+	model,
+	type PipelineStage,
+	type ClientSession,
+	type HydratedDocument
+} from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import { label as UserLabel } from '$lib/properties/user';
@@ -15,6 +21,7 @@ import { Storyline } from './storyline';
 
 interface ExtendedChapterProperties extends ChapterProperties {
 	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
+	deleteChild: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
 export const chapterSchema = new Schema<ExtendedChapterProperties>({
@@ -116,6 +123,15 @@ chapterSchema.pre('save', async function (next) {
  */
 chapterSchema.methods.addChild = async function (chapterID: string, session: ClientSession) {
 	this.children.push(chapterID);
+	await this.save({ session });
+};
+
+chapterSchema.methods.deleteChild = async function (
+	chapter: HydratedDocument<ChapterProperties>,
+	session: ClientSession
+) {
+	this.children = this.children.filter((chapterID: string) => chapterID !== chapter._id);
+	this.children = this.children.concat(chapter.children);
 	await this.save({ session });
 };
 

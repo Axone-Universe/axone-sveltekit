@@ -1,8 +1,14 @@
 import { label, type StorylineProperties } from '$lib/properties/storyline';
-import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
+import mongoose, {
+	Schema,
+	model,
+	type PipelineStage,
+	type ClientSession,
+	type HydratedDocument
+} from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as UserLabel } from '$lib/properties/user';
-import { label as ChapterLabel } from '$lib/properties/chapter';
+import { label as ChapterLabel, type ChapterProperties } from '$lib/properties/chapter';
 import {
 	addUserPermissionPipeline,
 	addViewRestrictionPipeline,
@@ -15,6 +21,7 @@ import { GENRES } from '$lib/properties/genre';
 
 interface ExtendedStorylineProperties extends StorylineProperties {
 	addChapter: (chapterID: string, session: ClientSession) => Promise<void>;
+	deleteChapter: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
 export const storylineSchema = new Schema<ExtendedStorylineProperties>({
@@ -131,6 +138,14 @@ storylineSchema.pre('save', async function (next) {
  */
 storylineSchema.methods.addChapter = async function (chapterID: string, session: ClientSession) {
 	this.chapters.push(chapterID);
+	await this.save({ session });
+};
+
+storylineSchema.methods.deleteChapter = async function (
+	deleteChapterID: string,
+	session: ClientSession
+) {
+	this.chapters = this.chapters.filter((chapterID: string) => chapterID !== deleteChapterID);
 	await this.save({ session });
 };
 
