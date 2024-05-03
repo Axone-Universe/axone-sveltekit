@@ -44,7 +44,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@axone-network/quill-illustration": "^1.0.0",
 		"@floating-ui/dom": "^1.5.4",
 		"@novu/headless": "^0.20.0",
 		"@novu/node": "^0.20.0",

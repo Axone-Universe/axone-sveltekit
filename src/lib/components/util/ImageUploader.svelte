@@ -84,7 +84,7 @@
 					ccERoot.style.position = 'absolute';
 					ccERoot.style.zIndex = 2000;
 				} catch (err) {
-					console.log('ERROR', err);
+					console.log('*** ERROR', err);
 				}
 			},
 			onPublish: async (publishParams: any) => {
@@ -121,16 +121,37 @@
 			}
 		};
 
-		ccEverywhere.createDesign({
-			callbacks: createDesignCallback,
-			modalParams: {},
-			inputParams: {
-				canvasSize: 'BookCover'
-			},
-			outputParams: {
-				outputType: 'url'
-			}
-		});
+		try {
+			ccEverywhere.editor.create(
+				{
+					canvasSize: 'BookCover'
+				},
+				{
+					selectedCategory: 'templates',
+					templateType: 'photo-book',
+					allowedFileTypes: ['image/jpeg'],
+					multiPage: false,
+					callbacks: createDesignCallback
+				},
+				[
+					{
+						id: 'download',
+						label: 'Download',
+						action: {
+							target: 'download',
+							publishFileType: 'image/jpeg'
+						},
+						style: {
+							uiType: 'button'
+						}
+					}
+				]
+			);
+		} catch (error: any) {
+			console.log('** error');
+			console.log(error);
+			ccEverywhere.terminate();
+		}
 	}
 
 	const popupSettings = (target: string) => {

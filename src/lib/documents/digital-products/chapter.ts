@@ -130,27 +130,21 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 					);
 				}
 			}
+		}
 
-			// re-assign children to the parent
-			const parents = await Chapter.aggregate([
-				{
-					$match: {
-						children: this._chapterProperties._id
-					}
+		// re-assign children to the parent
+		const parents = await Chapter.aggregate([
+			{
+				$match: {
+					children: this._chapterProperties._id
 				}
-			]);
-
-			for (const parent of parents) {
-				parent.children = parent.children.filter(
-					(chapterID: string) => chapterID !== this._chapterProperties._id
-				);
-				parent.children = parent.children.concat(children);
-
-				await Chapter.findOneAndUpdate({ _id: parent._id }, parent, {
-					userID: this._sessionUserID,
-					session: session
-				});
 			}
+		]);
+
+		for (const parent of parents) {
+			const parentChapter = new Chapter(parent);
+			parentChapter.isNew = false;
+			await parentChapter.deleteChild(chapter, session);
 		}
 	}
 
@@ -165,14 +159,9 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		]);
 
 		for (const storyline of storylines) {
-			storyline.chapters = storyline.chapters.filter(
-				(chapterID: string) => chapterID !== this._chapterProperties._id
-			);
-
-			await Storyline.findOneAndUpdate({ _id: storyline._id }, storyline, {
-				userID: this._sessionUserID,
-				session: session
-			});
+			const storylineModel = new Storyline(storyline);
+			storylineModel.isNew = false;
+			await storylineModel.deleteChapter(this._chapterProperties._id, session);
 		}
 	}
 

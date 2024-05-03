@@ -13,11 +13,11 @@
 		getModalStore,
 		getToastStore
 	} from '@skeletonlabs/skeleton';
-	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
+	import { afterUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
 	import type { Illustration } from '$lib/util/editor/quill';
+	import '$lib/util/editor/illustrations';
 	import { changeDelta, QuillEditor } from '$lib/util/editor/quill';
-	import '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import { setupTour, startTour } from './tutorial';
@@ -50,7 +50,7 @@
 	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { EditorMode, StorageFileError, UploadFileToBucketParams } from '$lib/util/types';
-	import type { IllustrationObject } from '@axone-network/quill-illustration/dist/quill.illustration.d.ts';
+	import type { IllustrationObject } from '$lib/util/editor/illustrations';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 	import type { UserProperties } from '$lib/properties/user';
@@ -535,21 +535,6 @@
 			numIllustrations = Object.keys(quill.illustrations).length;
 		}
 	});
-
-	// Quill toolbar options
-	let toolbarOptions = [
-		['bold', 'italic', 'underline', 'strike'],
-		['blockquote', { indent: '+1' }],
-		[
-			{ align: '' },
-			{ align: 'center' },
-			{ align: 'right' },
-			{ align: 'justify' },
-			'comments-add',
-			'comments-toggle',
-			'illustrations-add'
-		]
-	];
 
 	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
 	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';

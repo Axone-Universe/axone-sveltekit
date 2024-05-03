@@ -59,7 +59,7 @@ export async function sendUserNotifications(notifications: {
 		return result;
 	} catch (e: any) {
 		console.log('novu send user notification error');
-		console.log(e);
+		// console.log(e);
 	}
 }
 

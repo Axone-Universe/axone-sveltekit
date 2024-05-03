@@ -38,7 +38,7 @@
 			src={storylineData.imageURL ?? ''}
 			alt={storylineData.title ?? 'Storyline Title'}
 		/>
-		{#if book.campaign}
+		{#if book.campaign && storylineData.main}
 			<div
 				class="overflow-hidden flex items-center absolute top-2 right-2 bg-white md:bg-orange-700 group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"
 			>
@@ -88,9 +88,9 @@
 				{/if}
 			</div>
 		</header>
-		<div class="h-full">
+		<div class="h-48">
 			<hr class="opacity-50" />
-			<p class="font-thin overflow-y-auto my-2">
+			<p class="font-thin overflow-y-auto my-2 h-full">
 				{storylineData.description}
 			</p>
 		</div>
@@ -101,12 +101,14 @@
 					on:click={() => closeModal(false)}
 					href="/book/{book._id}?storylineID={storylineData._id}">View</a
 				>
-				<a
-					on:click={() => closeModal(false)}
-					href="/editor/{book._id}?mode=reader&storylineID={storylineData._id}"
-				>
-					Read
-				</a>
+				{#if storylineData.chapters && storylineData.chapters.length > 0}
+					<a
+						on:click={() => closeModal(false)}
+						href="/editor/{book._id}?mode=reader&storylineID={storylineData._id}"
+					>
+						Read
+					</a>
+				{/if}
 				{#if showEdit}
 					<a
 						on:click={() => closeModal(false)}

@@ -177,12 +177,29 @@ describe('chapters', () => {
 			storylines[0]
 		);
 
+		let storyline = (
+			await caller.storylines.getById({
+				id: storylines[0]._id
+			})
+		).data;
+
+		let storylineChapters = (
+			await caller.chapters.getByStoryline({
+				storylineChapterIDs: storyline.chapters as string[],
+				storylineID: storyline._id
+			})
+		).data;
+
+		expect(storylineChapters.length).toEqual(5);
+		expect(storylineChapters[0].children![0]).toEqual(chapter2Response.data._id);
+
+		// Delete chapter 2
 		caller = router.createCaller({ session: testUserOneSession });
 		const chapter2DeleteResponse = await caller.chapters.delete({
 			id: chapter2Response.data._id
 		});
 
-		const storyline = (
+		storyline = (
 			await caller.storylines.getById({
 				id: storylines[0]._id
 			})
@@ -190,7 +207,7 @@ describe('chapters', () => {
 
 		expect(storyline.chapters!.length).toEqual(4);
 
-		const storylineChapters = (
+		storylineChapters = (
 			await caller.chapters.getByStoryline({
 				storylineChapterIDs: storyline.chapters as string[],
 				storylineID: storyline._id
@@ -198,7 +215,7 @@ describe('chapters', () => {
 		).data;
 
 		expect(storylineChapters.length).toEqual(4);
-		expect(storylineChapters[0].children![0] === chapter3Response.data._id);
+		expect(storylineChapters[0].children![0]).toEqual(chapter3Response.data._id);
 		expect(chapter2DeleteResponse.data.deletedCount).toEqual(1);
 
 		const deleteChapterResponse = await caller.chapters.delete({
