@@ -5,6 +5,7 @@ import typography from '@tailwindcss/typography';
 import animated from 'tailwindcss-animated';
 // 1. Import the Skeleton plugin
 import { skeleton } from '@skeletonlabs/tw-plugin';
+import { themeOne } from './themes';
 
 const config = {
 	// 2. Opt for dark mode to be handled via the class method
@@ -28,7 +29,8 @@ const config = {
 					{ name: 'skeleton', enhancements: true },
 					{ name: 'modern', enhancements: true },
 					{ name: 'crimson', enhancements: true }
-				]
+				],
+				custom: [themeOne]
 			}
 		})
 	]

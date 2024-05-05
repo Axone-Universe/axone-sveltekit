@@ -72,7 +72,7 @@
 				<Icon data={navicon} scale={1.5} />
 			</button>
 			<a class="hidden lg:flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
-				<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
+				<span class="flex flex-row h-20 items-center logo-name"><Logo />XONE</span>
 			</a>
 		</svelte:fragment>
 		<div class="hidden lg:flex">
@@ -145,7 +145,7 @@
 			class="lg:hidden flex items-center text-l"
 			href={data.session && data.session.user.id ? '/home' : '/'}
 		>
-			<span class="flex flex-row h-20 items-center logo-name">A<Logo />ONE</span>
+			<span class="flex flex-row h-20 items-center logo-name"><Logo />XONE</span>
 		</a>
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
@@ -213,15 +213,3 @@
 		</svelte:fragment>
 	</AppBar>
 </div>
-
-<style>
-	@font-face {
-		font-family: colortube;
-		src: url('/fonts/color_tube.otf') format('opentype');
-	}
-
-	.logo-name {
-		font-family: colortube;
-		margin-bottom: -10px;
-	}
-</style>

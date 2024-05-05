@@ -6,7 +6,7 @@
 	import Author_2 from '$lib/assets/author-2.svelte';
 	import Author_3 from '$lib/assets/author-3.svelte';
 	import Author_4 from '$lib/assets/author-4.svelte';
-
+	import Components from '$lib/components/hero/components.svelte';
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { goto } from '$app/navigation';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
@@ -19,10 +19,10 @@
 
 <Section class="bg-surface-100-800-token flex items-center">
 	<Container>
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center p-14">
 			<div class="lg:order-2 w-full mx-auto">
 				<div class="aspect-video relative">
-					<Author_2 />
+					<Components />
 				</div>
 			</div>
 			<div
@@ -43,7 +43,7 @@
 	</Container>
 </Section>
 
-<Section class="bg-surface-50-900-token flex items-center">
+<Section class="flex items-center">
 	<Container>
 		<div class="text-center max-w-[700px] p-8">
 			<p class="tracking-wide leading-8">

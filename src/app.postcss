@@ -7,6 +7,8 @@
 html,
 body {
 	height: fit-content;
+	background-image: url('./grey-books-small.jpeg');
+	background-repeat: repeat-x repeat-y;
 }
 
 :root {
@@ -17,6 +19,14 @@ body {
 	--theme-rounded-base: 9999px;
 	--theme-rounded-container: 8px;
 	--tawk-header-background-color: rgb(var(--color-surface-300)) !important;
+}
+
+.body-div {
+	background-color: color-mix(in srgb, rgba(var(--color-surface-300)) 80%, transparent);
+}
+
+.dark .body-div {
+	background-color: color-mix(in srgb, rgba(var(--color-surface-900)) 80%, transparent);
 }
 
 pre {
@@ -31,13 +41,27 @@ pre {
 	background-color: rgb(var(--color-surface-300));
 }
 
+/* Logo */
+.fill-logo {
+	fill: rgba(var(--theme-font-color-base));
+}
+
 .dark .fill-logo {
 	fill: rgba(var(--theme-font-color-dark));
 }
 
-.fill-logo {
-	fill: rgba(var(--theme-font-color-base));
+.logo-name {
+	font-weight: 600;
+	color: rgba(var(--color-surface-700));
+	font-size: 30px;
+	letter-spacing: 7px;
 }
+
+.dark .logo-name {
+	color: white;
+}
+
+/***/
 
 textarea::placeholder {
 	color: rgb(var(--color-surface-400));
