@@ -113,7 +113,7 @@ export const books = t.router({
 
 	getBooksByUserID: t.procedure
 		.use(logger)
-		.input(read.optional())
+		.input(read)
 		.query(async ({ input, ctx }) => {
 			const booksRepo = new BooksRepository();
 
