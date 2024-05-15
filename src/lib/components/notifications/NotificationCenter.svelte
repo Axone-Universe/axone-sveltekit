@@ -35,7 +35,7 @@
 
 	const popupSettings = (target: string) => {
 		return {
-			event: 'focus-click',
+			event: 'click',
 			target: target,
 			placement: 'bottom'
 		} as PopupSettings;
