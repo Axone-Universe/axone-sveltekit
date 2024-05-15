@@ -17,7 +17,7 @@
 
 	const actionsPopupSettings = (target: string) => {
 		return {
-			event: 'focus-click',
+			event: 'click',
 			target: target,
 			placement: 'left'
 		} as PopupSettings;

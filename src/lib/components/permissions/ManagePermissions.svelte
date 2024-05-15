@@ -53,14 +53,14 @@
 	});
 
 	let autocompletePopupSettings: PopupSettings = {
-		event: 'focus-click',
+		event: 'click',
 		target: 'popupAutocomplete',
 		placement: 'bottom'
 	};
 
 	const permissionsPopupSettings = (target: string) => {
 		return {
-			event: 'focus-click',
+			event: 'click',
 			target: target,
 			placement: 'top'
 		} as PopupSettings;

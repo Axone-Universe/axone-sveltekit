@@ -91,7 +91,7 @@
 
 	let selectedStoryline: HydratedDocument<StorylineProperties> | undefined = storylineData;
 	const storylinesPopup: PopupSettings = {
-		event: 'focus-click',
+		event: 'click',
 		target: 'storylinesPopup',
 		placement: 'bottom',
 		closeQuery: '.listbox-item'
