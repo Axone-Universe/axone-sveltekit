@@ -28,7 +28,7 @@
 
 	let storylinesList: string;
 	const popupCombobox: PopupSettings = {
-		event: 'focus-click',
+		event: 'click',
 		target: 'popupCombobox',
 		placement: 'bottom',
 		closeQuery: '.listbox-item'
