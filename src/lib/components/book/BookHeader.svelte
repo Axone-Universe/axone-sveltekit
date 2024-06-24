@@ -177,25 +177,6 @@
 				</div>
 				<div class="flex flex-col p-2 space-x-4 w-full items-center">
 					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
-						{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
-							<Tooltip
-								on:click={() => {
-									if (campaignDaysLeft()[0] >= 0)
-										window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
-								}}
-								content="Create new storyline"
-								placement="top"
-								target="create-storyline"
-							>
-								<button
-									class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
-									disabled={campaignDaysLeft()[0] < 0}
-								>
-									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
-								</button>
-							</Tooltip>
-						{/if}
-
 						<div class="relative">
 							<h3 class="book-title">{storylineData.title}</h3>
 							<button
@@ -243,6 +224,24 @@
 						</a>
 					{/if}
 					{#if session}
+						{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
+							<Tooltip
+								on:click={() => {
+									if (campaignDaysLeft()[0] >= 0)
+										window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+								}}
+								content="Create new storyline"
+								placement="top"
+								target="create-storyline"
+							>
+								<button
+									class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
+									disabled={campaignDaysLeft()[0] < 0}
+								>
+									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
+								</button>
+							</Tooltip>
+						{/if}
 						<Tooltip
 							on:click={openReadingListModal}
 							content="Add to reading list"

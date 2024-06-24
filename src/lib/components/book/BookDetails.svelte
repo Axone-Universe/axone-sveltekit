@@ -96,78 +96,83 @@
 </script>
 
 <div class="{customClass} w-modal">
-	<div class="card p-2 sm:p-4 space-y-4">
-		<div class="flex justify-between gap-2">
-			<div class="flex flex-col w-full gap-2">
-				<label for="book-title"> * Book Title </label>
-				<input
-					id="book-title"
-					class="input"
-					type="text"
-					bind:value={book.title}
-					placeholder="Untitled Book"
-					required
-				/>
-				<label for="book-description">* Description </label>
-				<textarea
-					id="book-description"
-					class="textarea w-full h-full overflow-hidden"
-					bind:value={book.description}
-					required
+	<form on:submit|preventDefault={createBookData}>
+		<div class="card p-2 sm:p-4 space-y-4">
+			<div class="flex justify-between gap-2">
+				<div class="flex flex-col w-full gap-2">
+					<label for="book-title"> * Book Title </label>
+					<input
+						id="book-title"
+						class="input"
+						type="text"
+						bind:value={book.title}
+						placeholder="Untitled sdf Book"
+						required
+					/>
+					<label for="book-description">* Description </label>
+					<textarea
+						id="book-description"
+						class="textarea w-full h-full overflow-hidden"
+						bind:value={book.description}
+						required
+					/>
+				</div>
+				<ImageUploader
+					bind:imageURL={book.imageURL}
+					bind:imageFile
+					class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
 				/>
 			</div>
-			<ImageUploader
-				bind:imageURL={book.imageURL}
-				bind:imageFile
-				class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
-			/>
-		</div>
-		<div>
-			Genres
-			<div id="genres-div" class="flex flex-wrap gap-1">
-				{#each GENRES as genre}
-					<button
-						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
-							const index = genres.indexOf(genre);
-							if (index > -1) {
-								genres = genres.filter((v) => v !== genre);
-							} else {
-								genres = [...genres, genre];
-							}
-						}}
-					>
-						<span class="capitalize">{genre}</span>
-					</button>
-				{/each}
+			<div>
+				Genres
+				<div id="genres-div" class="flex flex-wrap gap-1">
+					{#each GENRES as genre}
+						<button
+							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+							on:click={() => {
+								const index = genres.indexOf(genre);
+								if (index > -1) {
+									genres = genres.filter((v) => v !== genre);
+								} else {
+									genres = [...genres, genre];
+								}
+							}}
+						>
+							<span class="capitalize">{genre}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+			<div>
+				Tags
+				<InputChip
+					bind:value={tags}
+					name="tags"
+					placeholder="e.g. #zombies"
+					validation={(tag) => {
+						return tag.startsWith('#');
+					}}
+				/>
+			</div>
+			<div>
+				Permissions
+				<ManagePermissions
+					bind:permissionedDocument={book}
+					{notifications}
+					permissionedDocumentType="Book"
+				/>
+			</div>
+			<div class="flex flex-col justify-end sm:flex-row gap-2">
+				<button
+					id="cancel-btn"
+					type="button"
+					class="btn variant-ghost-surface"
+					on:click={cancelCallback}>Cancel</button
+				>
+				<button class="btn variant-filled" type="submit">
+					{book._id ? 'Update' : 'Create'}
+				</button>
 			</div>
 		</div>
-		<div>
-			Tags
-			<InputChip
-				bind:value={tags}
-				name="tags"
-				placeholder="e.g. #zombies"
-				validation={(tag) => {
-					return tag.startsWith('#');
-				}}
-			/>
-		</div>
-		<div>
-			Permissions
-			<ManagePermissions
-				bind:permissionedDocument={book}
-				{notifications}
-				permissionedDocumentType="Book"
-			/>
-		</div>
-		<div class="flex flex-col justify-end sm:flex-row gap-2">
-			<button id="cancel-btn" class="btn variant-ghost-surface" on:click={cancelCallback}
-				>Cancel</button
-			>
-			<button class="btn variant-filled" type="submit" on:click={createBookData}>
-				{book._id ? 'Update' : 'Create'}
-			</button>
-		</div>
-	</div>
+	</form>
 </div>

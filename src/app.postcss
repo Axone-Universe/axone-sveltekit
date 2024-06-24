@@ -7,8 +7,22 @@
 html,
 body {
 	height: fit-content;
-	background-image: url('/grey-books-small.jpeg');
+	background: linear-gradient(
+			transparent,
+			rgb(var(--color-surface-50)),
+			rgb(var(--color-surface-50))
+		),
+		url('/grey-books-small.jpeg');
 	background-repeat: repeat-x repeat-y;
+}
+
+.dark body {
+	background: linear-gradient(
+			transparent,
+			rgb(var(--color-surface-900)),
+			rgb(var(--color-surface-900))
+		),
+		url('/grey-books-small.jpeg');
 }
 
 :root {
@@ -22,7 +36,7 @@ body {
 }
 
 .body-div {
-	background-color: color-mix(in srgb, rgba(var(--color-surface-300)) 80%, transparent);
+	background-color: color-mix(in srgb, rgba(var(--color-surface-50)) 80%, transparent);
 }
 
 .dark .body-div {
