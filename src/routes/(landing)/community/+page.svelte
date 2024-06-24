@@ -2,7 +2,7 @@
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { filter } from 'svelte-awesome/icons';
+	import { arrowDown, filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import UserPreview from '$lib/components/user/UserPreview.svelte';
@@ -15,6 +15,7 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	const FILTERS_KEY = 'creatorsFilters';
@@ -47,7 +48,7 @@
 			detail: debouncedSearchValue ? debouncedSearchValue : undefined
 		},
 		{
-			queryKey: ['usersHome', genresBuilder.build(), debouncedSearchValue],
+			queryKey: ['usersHome', debouncedSearchValue],
 			getNextPageParam: (lastPage) => lastPage.cursor,
 			staleTime: Infinity
 		}
@@ -127,6 +128,7 @@
 			regionPanel="absolute accordion"
 			padding="py-1"
 			regionControl="px-4 h-8 accordion"
+			class="fill-accordion"
 		>
 			<AccordionItem bind:open={accordionOpen}>
 				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
@@ -214,8 +216,14 @@
 					</div>
 				{/each}
 			</div>
-			{#if !$getUsersInfinite.hasNextPage}
-				<ScrollToTopButton />
+			{#if $getUsersInfinite.hasNextPage}
+				<div class="flex justify-center my-12">
+					<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
+						<button class="btn-icon variant-filled">
+							<Icon data={arrowDown} />
+						</button>
+					</Tooltip>
+				</div>
 			{/if}
 		</div>
 	{/if}

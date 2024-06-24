@@ -123,6 +123,8 @@ export class UsersRepository extends Repository {
 			query = query.limit(limit);
 		}
 
+		query.sort({ _id: 1 });
+
 		return await query;
 	}
 

@@ -49,8 +49,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	imageURL(imageURL: string): BookBuilder {
-		this._bookProperties.imageURL = imageURL;
+	imageURL(imageURL: string | undefined): BookBuilder {
+		if (imageURL) this._bookProperties.imageURL = imageURL;
 		return this;
 	}
 
