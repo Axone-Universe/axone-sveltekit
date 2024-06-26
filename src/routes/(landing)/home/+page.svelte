@@ -12,7 +12,7 @@
 	import Tutorial from './tutorial.svelte';
 	import DocumentsInfiniteScroll from '$lib/components/documents/DocumentsInfiniteScroll.svelte';
 	import type { PageData } from './$types';
-	import { setupTour } from '../../editor/[bookID]/tutorial';
+	import { setupTour } from '../editor/[bookID]/tutorial';
 
 	export let data: PageData;
 	export let { user } = data;
@@ -100,7 +100,7 @@
 			class="input text-sm h-8 p-2"
 			title="Search for stoylines"
 			type="search"
-			placeholder="Search by title or #tag"
+			placeholder="Search storylines by title or #tag"
 			bind:value={searchValue}
 			on:input={onType}
 		/>

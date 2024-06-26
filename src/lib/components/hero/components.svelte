@@ -4,8 +4,7 @@
 		ProgressRadial,
 		RadioGroup,
 		RadioItem,
-		SlideToggle,
-		LightSwitch
+		SlideToggle
 	} from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { pencil } from 'svelte-awesome/icons';
