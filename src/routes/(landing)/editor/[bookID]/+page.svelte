@@ -39,7 +39,8 @@
 		bookmark,
 		history,
 		lock,
-		info
+		info,
+		ellipsisH
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Toolbar from '$lib/components/editor/Toolbar.svelte';
@@ -61,6 +62,8 @@
 	import type Op from 'quill-delta/dist/Op';
 	import { autoStartTour, getBaseURL } from '$lib/util/tour/tour';
 	import { uploadImage } from '$lib/util/bucket/bucket';
+	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
+	import { type PermissionedDocument } from '$lib/properties/permission';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -164,15 +167,23 @@
 		let itemID = event.detail;
 
 		if (itemID in selectedStorylineChapters) {
-			versionPreview = false;
-			versionID = undefined;
-			selectedChapter = selectedStorylineChapters[itemID];
+			chapterClicked(itemID);
 		} else {
-			if (quill) quill.chapter = undefined;
-			selectedChapter = undefined;
-			selectedStoryline = storylines[itemID];
-			loadChapters();
+			storylineClicked(itemID);
 		}
+	}
+
+	function storylineClicked(storylineId: string) {
+		if (quill) quill.chapter = undefined;
+		selectedChapter = undefined;
+		selectedStoryline = storylines[storylineId];
+		loadChapters();
+	}
+
+	function chapterClicked(chapterId: string) {
+		versionPreview = false;
+		versionID = undefined;
+		selectedChapter = selectedStorylineChapters[chapterId];
 	}
 
 	let modalComponent: ModalComponent = {
@@ -259,6 +270,20 @@
 				selectedChapter = selectedStoryline.chapters[0] as any;
 			});
 	}
+
+	let showStorylines = () => {
+		modalComponent.ref = DocumentCarousel;
+		modalComponent.props = {
+			documentType: 'Storyline' as PermissionedDocument,
+			documents: Object.values(storylines),
+			class: 'md:!w-7/12'
+		};
+
+		modalSettings.response = (storylineId) => {
+			if (storylineId) storylineClicked(storylineId);
+		};
+		modalStore.trigger(modalSettings);
+	};
 
 	let showChapterDetails = () => {
 		modalComponent.ref = ChapterDetailsModal;
@@ -386,6 +411,14 @@
 		}
 
 		return false;
+	}
+
+	$: isChapterSelected = setChapterSelected(selectedChapter);
+	function setChapterSelected(selectedChapter: HydratedDocument<ChapterProperties> | undefined) {
+		if (!selectedChapter) {
+			return false;
+		}
+		return true;
 	}
 
 	$: hasSelectedChapterPermissions = setSelectedChapterPermissions(selectedChapter);
@@ -854,12 +887,11 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full"
+			class="md:!relative h-full pt-24 md:pt-1"
 		>
 			<BookNav
 				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
 				bind:chapters={navChapters}
-				storylines={Object.values(storylines)}
 				selectedStoryline={selectedStoryline._id}
 				selectedChapter={selectedChapter?._id}
 				on:navItemClicked={navItemClicked}
@@ -872,7 +904,7 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="max-w-[80px]"
 			position="right"
-			class="md:!relative h-full !left-auto"
+			class="md:!relative h-full !left-auto pt-24 md:pt-1"
 		>
 			<div class="flex h-full">
 				{#if showComments && numComments !== 0}
@@ -977,78 +1009,90 @@
 
 				<div class="flex flex-col p-2 bg-surface-50-900-token mb-14">
 					<div class="h-3/4 flex flex-col items-center">
-						{#if selectedChapter}
-							<EditorNav
-								{mode}
-								menuItems={[
-									{
-										id: 'chapter-info',
-										label: 'Edit chapter details',
-										icon: edit,
-										callback: showChapterDetails
-									},
-									{
-										id: 'rate-storyline',
-										label: 'Rate the storyline',
-										icon: star,
-										callback: rateStoryline,
-										mode: 'reader'
-									},
-									{
-										id: 'view-comments',
-										label: 'View chapter comments',
-										icon: dashcube,
-										callback: toggleShowComments,
-										class: 'relative',
-										notification: numComments,
-										mode: 'writer',
-										hidden: numComments === 0
-									},
-									{
-										id: 'view-illustrations',
-										label: 'View chapter illustrations',
-										icon: image,
-										callback: toggleShowIllustrations,
-										class: 'relative',
-										notification: numIllustrations,
-										mode: 'writer',
-										hidden: numIllustrations === 0
-									},
-									{
-										id: 'chapter-notes',
-										label: 'Add chapter notes',
-										icon: stickyNote,
-										callback: showChapterNotes,
-										class: 'relative',
-										notification: selectedChapter.chapterNotes?.length,
-										mode: 'writer'
-									},
-									{
-										id: 'reading-lists',
-										label: 'Add to Reading List',
-										icon: bookmark,
-										callback: openReadingListModal,
-										mode: 'reader'
-									},
-									{
-										id: 'view-permissions',
-										label: 'View chapter permissions',
-										icon: canEditSelectedChapter ? unlock : lock,
-										class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
-										callback: showChapterPermissions,
-										mode: 'writer'
-									},
-									{
-										id: 'page-info',
-										label: 'Information',
-										icon: infoCircle,
-										callback: () => {
-											startTour();
-										}
+						<!-- {#if selectedChapter} -->
+						<EditorNav
+							{mode}
+							menuItems={[
+								{
+									id: 'view-storylines',
+									label: 'View more storylines',
+									icon: ellipsisH,
+									class: '!bg-primary-300-600-token',
+									callback: showStorylines,
+									hidden: Object.keys(storylines).length <= 1
+								},
+								{
+									id: 'chapter-info',
+									label: isSelectedChapterOwner ? 'Edit chapter details' : 'View chapter details',
+									icon: edit,
+									callback: showChapterDetails,
+									hidden: !isChapterSelected
+								},
+								{
+									id: 'rate-storyline',
+									label: 'Rate the storyline',
+									icon: star,
+									callback: rateStoryline,
+									mode: 'reader',
+									hidden: !isChapterSelected
+								},
+								{
+									id: 'view-comments',
+									label: 'View chapter comments',
+									icon: dashcube,
+									callback: toggleShowComments,
+									class: 'relative',
+									notification: numComments,
+									mode: 'writer',
+									hidden: !isChapterSelected || numComments === 0
+								},
+								{
+									id: 'view-illustrations',
+									label: 'View chapter illustrations',
+									icon: image,
+									callback: toggleShowIllustrations,
+									class: 'relative',
+									notification: numIllustrations,
+									mode: 'writer',
+									hidden: !isChapterSelected || numIllustrations === 0
+								},
+								{
+									id: 'chapter-notes',
+									label: 'Add chapter notes',
+									icon: stickyNote,
+									callback: showChapterNotes,
+									class: 'relative',
+									notification: selectedChapter?.chapterNotes?.length,
+									mode: 'writer',
+									hidden: !isChapterSelected
+								},
+								{
+									id: 'reading-lists',
+									label: 'Add to Reading List',
+									icon: bookmark,
+									callback: openReadingListModal,
+									mode: 'reader'
+								},
+								{
+									id: 'view-permissions',
+									label: 'View chapter permissions',
+									icon: canEditSelectedChapter ? unlock : lock,
+									class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
+									callback: showChapterPermissions,
+									mode: 'writer',
+									hidden: !isChapterSelected
+								},
+								{
+									id: 'page-info',
+									label: 'Information',
+									icon: infoCircle,
+									callback: () => {
+										startTour();
 									}
-								]}
-							/>
-						{/if}
+								}
+							]}
+						/>
+						<!-- {/if} -->
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						<EditorNav
@@ -1109,11 +1153,19 @@
 							<span>Version Preview</span>
 						</button>
 					{/if}
-					<div class=" h-[15%]">
+					<div class="w-full h-[15%]">
 						<textarea
 							id="message"
-							rows="2"
-							class="block h-fit p-2.5 resize-none w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							rows="1"
+							class="block text-primary-700-200-token resize-none h-fit p-2.5 w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							placeholder="Storyline Title"
+							bind:value={selectedStoryline.title}
+							disabled
+						/>
+						<textarea
+							id="message"
+							rows="1"
+							class="block resize-none h-fit p-2.5 w-full text-center text-xl md:text-2xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
 							placeholder="Chapter Title"
 							bind:value={selectedChapter.title}
 							disabled

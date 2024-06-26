@@ -14,11 +14,15 @@
 	import { createEventDispatcher } from 'svelte';
 	import UserPreview from '../user/UserPreview.svelte';
 	import type { UserProperties } from '$lib/properties/user';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	export let documentType: PermissionedDocument | 'User';
 	export let documents: HydratedDocument<any>[];
 	export let selectedID: string = documents.at(0)._id;
 	export let viewPort: string = 'w-[70%] md:w-[28%]';
+
+	let customClass = '';
+	export { customClass as class };
 
 	let elemDocuments: HTMLDivElement;
 
@@ -40,6 +44,12 @@
 	function handleSelected(event: { detail: any }) {
 		selectedID = event.detail;
 		dispatch('selectedStoryline', selectedID);
+
+		// if the carousel was opened as a modal
+		if ($modalStore[0]) {
+			$modalStore[0].response ? $modalStore[0].response(selectedID) : '';
+		}
+		modalStore.close();
 	}
 
 	function bookItem(item: HydratedDocument<unknown>) {
@@ -57,9 +67,10 @@
 	function userItem(item: HydratedDocument<unknown>) {
 		return item as unknown as HydratedDocument<UserProperties>;
 	}
+	const modalStore = getModalStore();
 </script>
 
-<Section id="document-carousel" class="flex items-center w-full p-4">
+<Section id="document-carousel" class="{customClass} flex items-center w-full p-4">
 	<div class="grid grid-cols-[auto_1fr_auto] gap-4 items-center">
 		<!-- Button: Left -->
 		<button type="button" class="btn-icon variant-filled" on:click={multiColumnLeft}>
