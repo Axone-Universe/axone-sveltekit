@@ -104,6 +104,7 @@ describe('campaigns', async () => {
 		expect(returnedCampaign.submissionCriteria).toEqual(newSubmissionCriteria);
 		expect(returnedCampaign.startDate).toEqual(startDate);
 		expect(returnedCampaign.endDate).toEqual(endDate);
+		expect(returnedCampaign.updatedAt).greaterThan(returnedCampaign.createdAt!);
 		expect(returnedCampaign.rewards).toEqual(rewards);
 
 		expect(returnedBook.title).toEqual(newTitle);

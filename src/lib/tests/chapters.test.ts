@@ -129,6 +129,7 @@ describe('chapters', () => {
 		});
 
 		expect(chapterUpdateResponse.data.description).toEqual('Updated chapter 1');
+		expect(chapterUpdateResponse.data.updatedAt).greaterThan(chapterUpdateResponse.data.createdAt!);
 	});
 
 	test('delete chapters', async () => {
