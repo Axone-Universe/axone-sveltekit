@@ -7,6 +7,7 @@ import {
 } from '$lib/properties/user';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import mongoose, { Schema, model } from 'mongoose';
+import { setUpdateDate } from './permission';
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },
@@ -39,7 +40,9 @@ export const userSchema = new Schema<UserProperties>({
 			}
 		],
 		default: new Map([[DEFAULT_READING_LIST, []]])
-	}
+	},
+	createdAt: Date,
+	updatedAt: Date
 });
 
 userSchema.pre(
@@ -48,6 +51,8 @@ userSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
+		setUpdateDate(this.getUpdate());
+
 		const updatedFilter = { $and: [filter, { _id: userID }] };
 
 		this.setQuery(updatedFilter);
@@ -55,6 +60,11 @@ userSchema.pre(
 		next();
 	}
 );
+
+userSchema.pre('save', function (next) {
+	this.createdAt = this.updatedAt = new Date();
+	next();
+});
 
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
 

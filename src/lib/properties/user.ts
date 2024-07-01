@@ -19,6 +19,8 @@ export interface UserProperties {
 	genres?: Genre[];
 	labels?: UserLabel[];
 	readingLists?: Map<string, string[]>;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 export class UserPropertyBuilder {

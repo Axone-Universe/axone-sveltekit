@@ -14,7 +14,8 @@ import {
 	addViewRestrictionPipeline,
 	addOwnerUpdateRestrictionFilter,
 	permissionSchema,
-	addArchivedRestrictionFilter
+	addArchivedRestrictionFilter,
+	setUpdateDate
 } from './permission';
 import { Book } from './book';
 import { GENRES } from '$lib/properties/genre';
@@ -43,7 +44,9 @@ export const storylineSchema = new Schema<ExtendedStorylineProperties>({
 	imageURL: String,
 	cumulativeRating: { type: Number, default: 0 },
 	numRatings: { type: Number, default: 0 },
-	archived: { type: Boolean, default: false }
+	archived: { type: Boolean, default: false },
+	createdAt: Date,
+	updatedAt: Date
 });
 
 storylineSchema.index({ title: 'text', tags: 'text' });
@@ -80,6 +83,8 @@ storylineSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
+		setUpdateDate(this.getUpdate());
+
 		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
@@ -92,6 +97,8 @@ storylineSchema.pre(
 storylineSchema.pre('save', async function (next) {
 	const userID = this.user as string;
 	const bookID = this.book as string;
+
+	this.createdAt = this.updatedAt = new Date();
 
 	const book = await Book.aggregate(
 		[
