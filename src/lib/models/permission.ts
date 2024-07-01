@@ -196,3 +196,15 @@ export function addCollaboratorUpdateRestrictionFilter(userID: string, filter: a
 
 	return updatedFilter;
 }
+
+export function setUpdateDate(update: any) {
+	if (update) {
+		if (update.$set) {
+			update.$set.updatedAt = new Date();
+		} else {
+			update.$set = { updatedAt: new Date() };
+		}
+	}
+
+	return update;
+}

@@ -89,7 +89,7 @@
 		component: campaignDetailsComponent
 	};
 
-	let selectedStoryline: HydratedDocument<StorylineProperties> | undefined = storylineData;
+	$: selectedStoryline = storylineData;
 	const storylinesPopup: PopupSettings = {
 		event: 'click',
 		target: 'storylinesPopup',
@@ -220,7 +220,10 @@
 				</div>
 
 				<div class="flex flex-row items-center space-x-2">
-					<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
+					<a
+						href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
+						class="btn variant-filled py-1"
+					>
 						<Icon class="p-2" data={leanpub} scale={2.5} />
 						Read
 					</a>

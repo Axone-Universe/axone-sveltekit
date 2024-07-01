@@ -20,6 +20,8 @@ export interface BookProperties {
 	rating: number;
 	archived?: boolean;
 	campaign?: string | HydratedDocument<CampaignProperties>;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 export interface HydratedBookProperties extends BookProperties {

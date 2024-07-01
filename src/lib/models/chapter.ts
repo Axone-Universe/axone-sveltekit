@@ -15,7 +15,8 @@ import {
 	addViewRestrictionPipeline,
 	addOwnerUpdateRestrictionFilter,
 	permissionSchema,
-	addArchivedRestrictionFilter
+	addArchivedRestrictionFilter,
+	setUpdateDate
 } from './permission';
 import { Storyline } from './storyline';
 
@@ -34,7 +35,9 @@ export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	permissions: { type: Map, of: permissionSchema },
 	title: String,
 	description: String,
-	archived: { type: Boolean, default: false }
+	archived: { type: Boolean, default: false },
+	createdAt: Date,
+	updatedAt: Date
 });
 
 chapterSchema.pre(['find', 'findOne'], function () {
@@ -74,6 +77,8 @@ chapterSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
+		setUpdateDate(this.getUpdate());
+
 		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
@@ -86,6 +91,8 @@ chapterSchema.pre(
 chapterSchema.pre('save', async function (next) {
 	const userID = this.user as string;
 	const storylineID = this.storyline as string;
+
+	this.createdAt = this.updatedAt = new Date();
 
 	const storyline = await Storyline.aggregate(
 		[
