@@ -1147,7 +1147,7 @@
 				{/if}
 			</div>
 			{#if selectedChapter}
-				<div class="editor-container py-10 flex flex-col w-full items-center">
+				<div class="editor-container flex flex-col h-full w-full items-center overflow-scroll">
 					{#if versionPreview}
 						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
 							<span>Version Preview</span>
@@ -1173,7 +1173,7 @@
 					</div>
 
 					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
-					<div class="w-10/12 !h-[85%]" id="editor" style={cssVarStyles} />
+					<div class="w-10/12 !h-fit" id="editor" style={cssVarStyles} />
 				</div>
 			{:else if !selectedStoryline.userPermissions?.view}
 				<div class="flex h-full w-full justify-center items-center">
