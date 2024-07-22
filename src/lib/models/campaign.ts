@@ -1,7 +1,11 @@
 import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
 import mongoose, { Schema, model } from 'mongoose';
-import { addArchivedRestrictionFilter, addOwnerUpdateRestrictionFilter } from './permission';
+import {
+	addArchivedRestrictionFilter,
+	addOwnerUpdateRestrictionFilter,
+	setUpdateDate
+} from './permission';
 
 export const campaignSchema = new Schema<CampaignProperties>({
 	_id: { type: String, required: true },
@@ -10,7 +14,9 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	endDate: Date,
 	submissionCriteria: String,
 	rewards: String,
-	book: { type: String, ref: BookLabel, required: true }
+	book: { type: String, ref: BookLabel, required: true },
+	createdAt: Date,
+	updatedAt: Date
 });
 
 campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
@@ -29,6 +35,8 @@ campaignSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
+		setUpdateDate(this.getUpdate());
+
 		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
@@ -37,6 +45,11 @@ campaignSchema.pre(
 		next();
 	}
 );
+
+campaignSchema.pre('save', function (next) {
+	this.createdAt = this.updatedAt = new Date();
+	next();
+});
 
 export const Campaign = mongoose.models[label]
 	? model<CampaignProperties>(label)

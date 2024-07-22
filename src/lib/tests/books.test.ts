@@ -22,18 +22,27 @@ describe('books', () => {
 	const testUserTwo = generateTestUser();
 	const testUserThree = generateTestUser();
 
-	test('create a book', async () => {
+	test('create and update a book', async () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
 		await createDBUser(testUserOneSession);
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		let bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		const caller = router.createCaller({ session: testUserOneSession });
 		await caller.storylines.get({
 			bookID: bookResponse.data._id
 		});
+
 		expect(bookResponse.data.title).toEqual(testBookTitle);
+		expect(bookResponse.data.createdAt).greaterThan(new Date(Date.now() - 1_000));
+
+		bookResponse = await caller.books.update({
+			id: bookResponse.data._id,
+			title: 'My Book Update'
+		});
+		expect(bookResponse.data.title).toEqual('My Book Update');
+		expect(bookResponse.data.updatedAt).greaterThan(bookResponse.data.createdAt!);
 	});
 
 	test('get all books', async () => {

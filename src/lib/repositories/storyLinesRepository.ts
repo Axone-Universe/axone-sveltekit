@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import type { ReadStoryline } from '$lib/trpc/schemas/storylines';
 import { UsersRepository } from './usersRepository';
+import { ulid } from 'ulid';
 
 export class StorylinesRepository extends Repository {
 	constructor() {
@@ -51,10 +52,16 @@ export class StorylinesRepository extends Repository {
 			if (input.tags.includes('Newest')) {
 				postPipeline.push({ $sort: { _id: -1 } });
 			}
+
+			if (input.tags.includes('Past 30 Days')) {
+				let ulid30 = ulid(this.getUnixTimeDaysAgo(30));
+				if (!input.cursor || ulid30 > input.cursor) {
+					filter._id = { $gt: ulid30 };
+				}
+			}
 		}
 
 		pipeline.push({ $match: filter });
-
 		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Storyline.aggregate(pipeline, {
@@ -63,6 +70,13 @@ export class StorylinesRepository extends Repository {
 		});
 
 		return await query;
+	}
+
+	getUnixTimeDaysAgo(days: number): number {
+		const currentTime = Date.now();
+		const millisecondsInADay = 86400_000;
+		const thirtyDaysAgo = currentTime - days * millisecondsInADay;
+		return thirtyDaysAgo;
 	}
 
 	async getByTitle(
@@ -130,10 +144,4 @@ export class StorylinesRepository extends Repository {
 			resolve(count);
 		});
 	}
-
-	// async getHighestReview() {
-	// 	const storylines = (await Storyline.aggregate([{
-	// 		$group:
-	// 	}])) as HydratedDocument<StorylineProperties>[];
-	// }
 }

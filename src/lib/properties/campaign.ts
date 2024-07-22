@@ -8,6 +8,8 @@ export interface CampaignProperties {
 	submissionCriteria?: string;
 	rewards?: string;
 	book?: string;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 export class CampaignPropertyBuilder {

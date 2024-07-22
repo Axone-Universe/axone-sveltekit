@@ -24,6 +24,8 @@ export interface ChapterProperties {
 	title?: string;
 	description?: string;
 	archived?: boolean;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 export interface HydratedChapterProperties extends ChapterProperties {

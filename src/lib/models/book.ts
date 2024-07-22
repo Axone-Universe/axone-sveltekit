@@ -1,12 +1,13 @@
 import { label, type BookProperties } from '$lib/properties/book';
-import mongoose, { Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage, type UpdateQuery } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as CampaignLabel } from '$lib/properties/campaign';
 import {
 	addUserPermissionPipeline,
 	addOwnerUpdateRestrictionFilter,
 	permissionSchema,
-	addArchivedRestrictionFilter
+	addArchivedRestrictionFilter,
+	setUpdateDate
 } from './permission';
 import { GENRES } from '$lib/properties/genre';
 
@@ -26,7 +27,9 @@ export const bookSchema = new Schema<BookProperties>({
 	],
 	rating: { type: Number, default: 0 },
 	archived: { type: Boolean, default: false },
-	campaign: { type: String, ref: CampaignLabel, required: false }
+	campaign: { type: String, ref: CampaignLabel, required: false },
+	createdAt: Date,
+	updatedAt: Date
 });
 
 bookSchema.index({ title: 'text', tags: 'text' });
@@ -68,6 +71,8 @@ bookSchema.pre(
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
 
+		setUpdateDate(this.getUpdate());
+
 		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
@@ -76,6 +81,11 @@ bookSchema.pre(
 		next();
 	}
 );
+
+bookSchema.pre('save', function (next) {
+	this.createdAt = this.updatedAt = new Date();
+	next();
+});
 
 /**
  * Add fields you want to be populated by default here

@@ -25,6 +25,8 @@ export interface StorylineProperties extends ReviewableProperties {
 	parent?: string;
 	parentChapter?: string;
 	archived?: boolean;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 export interface HydratedStorylineProperties extends StorylineProperties {

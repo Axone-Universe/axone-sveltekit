@@ -89,7 +89,7 @@
 		component: campaignDetailsComponent
 	};
 
-	let selectedStoryline: HydratedDocument<StorylineProperties> | undefined = storylineData;
+	$: selectedStoryline = storylineData;
 	const storylinesPopup: PopupSettings = {
 		event: 'click',
 		target: 'storylinesPopup',
@@ -168,7 +168,14 @@
         [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
 	>
-		<div class="px-4 md:px-10 pt-60 overflow-hidden space-y-4">
+		<div class="px-4 md:px-10 pt-60 overflow-hidden space-y-4 relative">
+			{#if bookData.campaign}
+				<div
+					class="absolute top-4 right-4 flex h-fit items-center bg-orange-700 py-1 px-2 rounded-full"
+				>
+					<p class="text-sm md:text-md font-bold text-white">campaign</p>
+				</div>
+			{/if}
 			<div class="p-2 space-y-4">
 				<div class="flex flex-col items-center p-2">
 					<p class="book-title text-4xl font-bold">
@@ -213,16 +220,13 @@
 				</div>
 
 				<div class="flex flex-row items-center space-x-2">
-					{#if bookData.campaign}
-						<div class="flex h-fit items-center bg-orange-700 py-2 px-2 rounded-full">
-							<p class="text-sm md:text-md font-bold text-white">campaign</p>
-						</div>
-					{:else}
-						<a href="/editor/{bookData._id}?mode=reader" class="btn variant-filled py-1">
-							<Icon class="p-2" data={leanpub} scale={2.5} />
-							Read
-						</a>
-					{/if}
+					<a
+						href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
+						class="btn variant-filled py-1"
+					>
+						<Icon class="p-2" data={leanpub} scale={2.5} />
+						Read
+					</a>
 					{#if session}
 						{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 							<Tooltip
