@@ -33,6 +33,16 @@
 	async function createStorylineData() {
 		let response;
 		let newStoryline = false;
+
+		if (!imageFile) {
+			const t: ToastSettings = {
+				message: 'Please create and upload the storyline image cover',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(t);
+			return;
+		}
+
 		if (storyline._id) {
 			response = await trpc($page).storylines.update.mutate({
 				id: storyline._id,
@@ -64,22 +74,20 @@
 		if (response.success) {
 			storyline = response.data as HydratedDocument<StorylineProperties>;
 
-			if (imageFile) {
-				const response = await uploadImage(
-					supabase,
-					`books/${book._id}/storylines/${storyline._id}`,
-					imageFile,
-					toastStore
-				);
-				if (response.url && response.url !== null) {
-					await saveStorylineImage(response.url);
-				} else {
-					const t: ToastSettings = {
-						message: response.error?.message ?? 'Error uploading storyline cover',
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(t);
-				}
+			const imageResponse = await uploadImage(
+				supabase,
+				`books/${book._id}/storylines/${storyline._id}`,
+				imageFile,
+				toastStore
+			);
+			if (imageResponse.url && imageResponse.url !== null) {
+				await saveStorylineImage(imageResponse.url);
+			} else {
+				const t: ToastSettings = {
+					message: imageResponse.error?.message ?? 'Error uploading storyline cover',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(t);
 			}
 
 			if (newStoryline)
