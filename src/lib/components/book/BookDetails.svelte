@@ -33,6 +33,16 @@
 	async function createBookData() {
 		let newBook = false;
 		let response;
+
+		if (!imageFile) {
+			const t: ToastSettings = {
+				message: 'Please create and upload book cover',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(t);
+			return;
+		}
+
 		if (book._id) {
 			response = await trpc($page).books.update.mutate({
 				id: book._id,
@@ -60,17 +70,15 @@
 		if (response.success) {
 			book = response.data as HydratedDocument<BookProperties>;
 
-			if (imageFile) {
-				const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
-				if (response.url && response.url !== null) {
-					await saveBookImage(response.url);
-				} else {
-					const t: ToastSettings = {
-						message: response.error?.message ?? 'Error uploading book cover',
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(t);
-				}
+			const imageResponse = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
+			if (imageResponse.url && imageResponse.url !== null) {
+				await saveBookImage(imageResponse.url);
+			} else {
+				const t: ToastSettings = {
+					message: imageResponse.error?.message ?? 'Error uploading book cover',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(t);
 			}
 
 			if (newBook) await goto(`/editor/${book._id}?mode=writer`);
