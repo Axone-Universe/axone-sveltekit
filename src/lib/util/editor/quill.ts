@@ -83,8 +83,7 @@ export class QuillEditor extends Quill {
 				deltaID = (this.chapter?.delta as HydratedDocument<DeltaProperties>)._id;
 			}
 
-			// take a snapshot of current delta state.
-			// that is the one sent to the server
+			// Stringify illustration ops
 			this.changeDelta.ops.forEach((op: Op) => {
 				if (
 					op.attributes &&
@@ -95,10 +94,16 @@ export class QuillEditor extends Quill {
 				}
 			});
 
+			/**  take a snapshot of the current change delta state.
+			 * On success:
+			 *	Merge the chapter delta with the snapshot.
+			 *	The accrued changes are already in the new change delta created before sending to the server
+			 * On fail:
+			 * 	Merge the change delta snapshot to the existing change delta
+			 */
 			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
 			changeDelta.update(() => new Delta());
 
-			// TODO: If the autosave fails, merge snapshot and change deltas
 			trpc(this.page)
 				.deltas.update.mutate({
 					id: deltaID,
@@ -110,13 +115,15 @@ export class QuillEditor extends Quill {
 					this.updateChapterContent();
 				})
 				.catch((e) => {
-					alert('bad response');
+					// Merge snapshot and change deltas
+					changeDelta.update(() => this.changeDeltaSnapshot!.compose(this.changeDelta));
 				});
 		}
 	}
 
 	/**
-	 * Updates the chapter delta ops and versions to be the same as server side after the saved changes
+	 * Merges the changeDeltaSnapshot with the local running delta
+	 * This makes the local delta the same as the server delta
 	 */
 	updateChapterContent() {
 		const delta = this.chapter!.delta as HydratedDocument<DeltaProperties>;
