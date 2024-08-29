@@ -7,6 +7,7 @@ import { DeltaBuilder } from '$lib/documents/digital-assets/delta';
 import type { Response } from '$lib/util/types';
 import type { DeltaProperties, VersionProperties } from '$lib/properties/delta';
 import type { HydratedDocument } from 'mongoose';
+import { ChapterProperties } from '$lib/properties/chapter';
 
 export const deltas = t.router({
 	create: t.procedure
@@ -69,17 +70,17 @@ export const deltas = t.router({
 			const response: Response = {
 				success: true,
 				message: 'delta successfully updated',
-				data: {}
+				data: {} as HydratedDocument<ChapterProperties>
 			};
 			try {
 				const result = await deltaBuilder.update();
-				response.data = result.versions?.at(-1);
+				response.data = result.chapter as HydratedDocument<ChapterProperties>;
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return { ...response, ...{ data: response.data as HydratedDocument<VersionProperties> } };
+			return { ...response, ...{ data: response.data as HydratedDocument<ChapterProperties> } };
 		}),
 
 	createVersion: t.procedure

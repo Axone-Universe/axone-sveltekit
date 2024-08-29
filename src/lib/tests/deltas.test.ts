@@ -52,7 +52,10 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		const ops = JSON.stringify(deltaUpdateResponse.data.ops);
+		const deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+		const ops = JSON.stringify(deltaResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 	});
 
@@ -92,7 +95,10 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.data.ops);
+		let deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+		let ops = JSON.stringify(deltaResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
@@ -109,7 +115,10 @@ describe('deltas', () => {
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.data.ops);
+		deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+		ops = JSON.stringify(deltaResponse.data.versions![1].ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
 
 		let paragraph = `The average number of letters in a paragraph of a novel can vary widely depending on factors such as the 
@@ -128,7 +137,10 @@ describe('deltas', () => {
 			ops: `[{"insert": "${paragraph}"}]`
 		});
 
-		expect(deltaUpdateResponse.data.ops).toEqual([]);
+		deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+		expect(deltaResponse.data.versions![2].ops).toEqual([]);
 	});
 
 	test('restore version', async () => {
@@ -167,7 +179,10 @@ describe('deltas', () => {
 			ops: '[{"insert": "This is the story of the best of us"}]'
 		});
 
-		let ops = JSON.stringify(deltaUpdateResponse.data.ops);
+		let deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+		let ops = JSON.stringify(deltaResponse.data.ops);
 		expect(ops).toEqual('[{"insert":"This is the story of the best of us"}]');
 
 		const versionCreateResponse = await caller.deltas.createVersion({
@@ -184,11 +199,15 @@ describe('deltas', () => {
 			ops: '[{"insert": "And it goes on"}]'
 		});
 
-		ops = JSON.stringify(deltaUpdateResponse.data.ops);
+		deltaResponse = await caller.deltas.getById({
+			id: deltaUpdateResponse.data.delta as string
+		});
+
+		ops = JSON.stringify(deltaResponse.data.versions![1].ops);
 		expect(ops).toEqual('[{"insert":"And it goes on"}]');
 
 		// get delta
-		const deltaResponse = await caller.deltas.getById({ id: deltaCreateResponse.data._id });
+		deltaResponse = await caller.deltas.getById({ id: deltaCreateResponse.data._id });
 
 		const versionRestoreResponse = await caller.deltas.restoreVersion({
 			id: deltaCreateResponse.data._id,

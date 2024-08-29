@@ -77,7 +77,6 @@ export async function subscribeToDocument(documentID: string, userID: string) {
 		return response;
 	} catch (e: any) {
 		console.log('novu - subscribe to document error');
-		console.log(e);
 	}
 }
 
@@ -93,6 +92,5 @@ export async function sendTopicNotification(notification: TopicNotificationPrope
 		});
 	} catch (e: any) {
 		console.log('novu - send topic notification error');
-		console.log(e);
 	}
 }
