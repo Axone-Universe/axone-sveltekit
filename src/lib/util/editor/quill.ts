@@ -14,7 +14,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 import type { NoteProperties } from '$lib/properties/note';
 
-export const changeDelta = writable<Delta>(new Delta());
+export const savingDeltaWritable = writable<boolean>(false);
 
 export interface Comment {
 	id: string;
@@ -42,8 +42,9 @@ export class QuillEditor extends Quill {
 	oldSelectedRange: { index: number; length: number } | undefined | null = undefined;
 	ops: Op[] | undefined;
 	page: Page;
-	chapter: HydratedDocument<ChapterProperties> | undefined;
-
+	chapters: { [key: string]: HydratedDocument<ChapterProperties> };
+	/** True when saving delta to the server */
+	savingDelta = false;
 	/**
 	 * Track changes which can be saved on the server
 	 * Should only be changed through the store NOT directly
@@ -56,17 +57,16 @@ export class QuillEditor extends Quill {
 
 	constructor(
 		container: string | Element,
-		chapter: HydratedDocument<ChapterProperties>,
+		chapters: { [key: string]: HydratedDocument<ChapterProperties> },
 		page: Page,
 		options?: QuillOptions
 	) {
 		super(container, options);
 		Quill.register('modules/illustration', QuillIllustration);
-		this.chapter = chapter;
+		this.chapters = chapters;
 		this.page = page;
-		// changeDelta.update(() => new Delta());
-		changeDelta.subscribe((changeDelta) => {
-			this.changeDelta = changeDelta;
+		savingDeltaWritable.subscribe((savingDelta) => {
+			this.savingDelta = savingDelta;
 		});
 		if (options?.reader) {
 			this.reader = true;
@@ -74,59 +74,74 @@ export class QuillEditor extends Quill {
 		}
 	}
 
-	saveDelta() {
-		if (this.changeDelta && this.changeDelta.length() > 0) {
-			let deltaID: string;
-			if (typeof this.chapter?.delta === 'string') {
-				deltaID = this.chapter?.delta as string;
-			} else {
-				deltaID = (this.chapter?.delta as HydratedDocument<DeltaProperties>)._id;
-			}
-
-			// Stringify illustration ops
-			this.changeDelta.ops.forEach((op: Op) => {
-				if (
-					op.attributes &&
-					op.attributes.illustration &&
-					typeof op.attributes.illustration === 'object'
-				) {
-					op.attributes.illustration = JSON.stringify(op.attributes.illustration as string);
-				}
-			});
-
-			/**  take a snapshot of the current change delta state.
-			 * On success:
-			 *	Merge the chapter delta with the snapshot.
-			 *	The accrued changes are already in the new change delta created before sending to the server
-			 * On fail:
-			 * 	Merge the change delta snapshot to the existing change delta
-			 */
-			this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
-			changeDelta.update(() => new Delta());
-
-			trpc(this.page)
-				.deltas.update.mutate({
-					id: deltaID,
-					chapterID: this.chapter!._id,
-					ops: JSON.stringify(this.changeDeltaSnapshot.ops)
-				})
-				.then((deltaUdpateResponse) => {
-					// Update the content to be one delta
-					this.updateChapterContent();
-				})
-				.catch((e) => {
-					// Merge snapshot and change deltas
-					changeDelta.update(() => this.changeDeltaSnapshot!.compose(this.changeDelta));
-				});
+	saveDelta(chapterId: string) {
+		if (!this.changeDelta || this.changeDelta.length() == 0) {
+			return;
 		}
+
+		if (this.savingDelta) {
+			return;
+		}
+
+		const chapter = this.chapters[chapterId];
+		let deltaID: string;
+		if (typeof chapter?.delta === 'string') {
+			deltaID = chapter?.delta as string;
+		} else {
+			deltaID = (chapter?.delta as HydratedDocument<DeltaProperties>)._id;
+		}
+
+		// Stringify illustration ops
+		this.changeDelta.ops.forEach((op: Op) => {
+			if (
+				op.attributes &&
+				op.attributes.illustration &&
+				typeof op.attributes.illustration === 'object'
+			) {
+				op.attributes.illustration = JSON.stringify(op.attributes.illustration as string);
+			}
+		});
+
+		/**  take a snapshot of the current change delta state.
+		 * On success:
+		 *	Merge the chapter delta with the snapshot.
+		 *	The accrued changes are already in the new change delta created before sending to the server
+		 * On fail:
+		 * 	Merge the change delta snapshot to the existing change delta
+		 */
+		this.changeDeltaSnapshot = new Delta(this.changeDelta.ops);
+		this.changeDelta = new Delta();
+		savingDeltaWritable.update(() => true);
+
+		trpc(this.page)
+			.deltas.update.mutate({
+				id: deltaID,
+				chapterID: chapter!._id,
+				ops: JSON.stringify(this.changeDeltaSnapshot.ops)
+			})
+			.then(async (result) => {
+				const data = result.data as HydratedDocument<ChapterProperties>;
+
+				data.delta;
+				// Update the content to be one delta
+				this.updateChapterContent(data._id);
+			})
+			.catch((e) => {
+				// Merge snapshot and change deltas
+				this.changeDelta = this.changeDeltaSnapshot!.compose(this.changeDelta);
+			})
+			.finally(() => {
+				savingDeltaWritable.update(() => false);
+			});
 	}
 
 	/**
 	 * Merges the changeDeltaSnapshot with the local running delta
 	 * This makes the local delta the same as the server delta
 	 */
-	updateChapterContent() {
-		const delta = this.chapter!.delta as HydratedDocument<DeltaProperties>;
+	updateChapterContent(chapterId: string) {
+		const chapter = this.chapters[chapterId];
+		const delta = chapter!.delta as HydratedDocument<DeltaProperties>;
 		let chapterContentDelta: Delta = new Delta();
 
 		if (!delta) {
@@ -142,26 +157,28 @@ export class QuillEditor extends Quill {
 		delta.ops = composedDelta.ops;
 	}
 
-	async getChapterNotes(): Promise<HydratedDocument<ChapterProperties>> {
+	async getChapterNotes(chapterId: string): Promise<HydratedDocument<ChapterProperties>> {
+		const chapter = this.chapters[chapterId];
 		await trpc(this.page)
 			.notes.getByChapterID.query({
-				chapterID: this.chapter?._id
+				chapterID: chapter?._id
 			})
 			.then((response) => {
 				const chapterNotes = response.data as HydratedDocument<NoteProperties>[];
-				this.chapter!.chapterNotes = chapterNotes;
+				chapter!.chapterNotes = chapterNotes;
 			});
 
-		return this.chapter!;
+		return chapter!;
 	}
 
-	async getChapterDelta(): Promise<HydratedDocument<ChapterProperties>> {
-		const delta = this.chapter!.delta;
+	async getChapterDelta(chapterId: string): Promise<HydratedDocument<ChapterProperties>> {
+		const chapter = this.chapters[chapterId];
+		const delta = chapter!.delta;
 
 		this.disable();
 
-		if (!this.chapter?.userPermissions?.view) {
-			return this.chapter!;
+		if (!chapter?.userPermissions?.view) {
+			return chapter!;
 		}
 
 		if (delta) {
@@ -170,26 +187,26 @@ export class QuillEditor extends Quill {
 					id: delta as string
 				});
 				this.setChapterContents(
-					this.chapter!,
+					chapter!,
 					deltaResponse.data as HydratedDocument<ChapterProperties>
 				);
 			} else {
-				this.setChapterContents(this.chapter!, delta as HydratedDocument<ChapterProperties>);
+				this.setChapterContents(chapter!, delta as HydratedDocument<ChapterProperties>);
 			}
 		} else {
 			await trpc(this.page)
 				.deltas.create.mutate({
-					chapterID: this.chapter!._id
+					chapterID: chapter!._id
 				})
 				.then((deltaResponse) => {
 					this.setChapterContents(
-						this.chapter!,
+						chapter!,
 						deltaResponse.data as HydratedDocument<ChapterProperties>
 					);
 				});
 		}
 
-		return this.chapter!;
+		return chapter!;
 	}
 
 	/**
@@ -221,7 +238,7 @@ export class QuillEditor extends Quill {
 		this.on('selection-change', this.selectionChange.bind(this));
 		this.on('text-change', this.textChange.bind(this));
 
-		if (this.chapter?.userPermissions?.collaborate && !this.chapter?.archived) {
+		if (chapter?.userPermissions?.collaborate && !chapter?.archived) {
 			this.reader ? this.disable() : this.enable();
 		}
 	}
@@ -301,7 +318,7 @@ export class QuillEditor extends Quill {
 			return;
 		}
 
-		changeDelta.update(() => this.changeDelta.compose(delta));
+		this.changeDelta = this.changeDelta.compose(delta);
 
 		// check if new comment was added
 		const added: {

@@ -17,7 +17,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import type { Illustration } from '$lib/util/editor/quill';
 	import '$lib/util/editor/illustrations';
-	import { changeDelta, QuillEditor } from '$lib/util/editor/quill';
+	import { savingDeltaWritable, QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import { setupTour, startTour } from './tutorial';
@@ -105,9 +105,8 @@
 	 * We cannot update after return of modal result because the editor and the chapter node are out of sync
 	 */
 	afterUpdate(() => {
-		if (!quill || !quill.chapter || quill.chapter._id !== selectedChapter?._id) {
-			setupEditor();
-		}
+		if (!quill) setupEditor();
+
 		const baseURL = getBaseURL($page);
 		autoStartTour(baseURL + '-tour');
 	});
@@ -174,7 +173,6 @@
 	}
 
 	function storylineClicked(storylineId: string) {
-		if (quill) quill.chapter = undefined;
 		selectedChapter = undefined;
 		selectedStoryline = storylines[storylineId];
 		loadChapters();
@@ -518,7 +516,7 @@
 	let versionHistory = () => {
 		modalComponent.ref = DeltaVersionsModal;
 		modalComponent.props = {
-			delta: quill.chapter!.delta,
+			delta: selectedChapter!.delta,
 			selectedVersionID: versionID,
 			disabled: !isSelectedChapterOwner || selectedChapter?.archived
 		};
@@ -554,13 +552,13 @@
 	let quill: QuillEditor;
 	let showComments = false;
 	let showIllustrations = false;
-	let deltaChange;
+	let savingDelta: boolean;
 	let numComments = 0;
 	let numIllustrations = 0;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
-	changeDelta.subscribe((value) => {
-		deltaChange = value;
+	savingDeltaWritable.subscribe((value) => {
+		savingDelta = value;
 		if (quill) {
 			quill.comments = quill.comments;
 			quill.illustrations = quill.illustrations;
@@ -750,8 +748,8 @@
 			return; // No file selected
 		}
 
-		const chapterId = getCurrentChapter()?._id;
-		const bookId = getCurrentChapter()?.book;
+		const chapterId = selectedChapter?._id;
+		const bookId = selectedChapter?.book;
 
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
@@ -769,13 +767,6 @@
 		} else {
 			toastStore.trigger(errorUploadToast);
 		}
-	}
-
-	/**
-	 * Gets the current chapter from the quill
-	 */
-	function getCurrentChapter() {
-		return quill.chapter;
 	}
 
 	/**
@@ -824,6 +815,8 @@
 	 * It must only run after the page load and after the editor element was off the screen
 	 */
 	let saveDeltaInterval: string | number | NodeJS.Timeout | undefined;
+	$: selectedChapter && setupEditor();
+
 	async function setupEditor() {
 		if (!selectedChapter) {
 			return;
@@ -832,7 +825,7 @@
 		let container = document.getElementById('editor');
 		if (container) {
 			container.innerHTML = '';
-			quill = new QuillEditor(container, selectedChapter, $page, {
+			quill = new QuillEditor(container, selectedStorylineChapters, $page, {
 				reader: mode === 'reader' ? true : false,
 				theme: 'snow',
 				modules: {
@@ -862,15 +855,17 @@
 				placeholder: mode === 'writer' ? 'Let your voice be heard...' : 'Coming soon...'
 			});
 
-			await quill.getChapterDelta();
+			await quill.getChapterDelta(selectedChapter._id);
 
-			selectedChapter = await quill.getChapterNotes();
+			await quill.getChapterNotes(selectedChapter._id);
 
 			numComments = Object.keys(quill.comments).length;
 			numIllustrations = Object.keys(quill.illustrations).length;
 
 			clearInterval(saveDeltaInterval);
-			saveDeltaInterval = setInterval(quill.saveDelta.bind(quill), 2000);
+			saveDeltaInterval = setInterval(() => {
+				quill.saveDelta(selectedChapter!._id);
+			}, 2000);
 		}
 	}
 </script>
@@ -1124,10 +1119,10 @@
 								{
 									id: 'auto-save',
 									label: 'Auto Save',
-									icon: deltaChange.length() > 0 ? spinner : check,
-									pulse: deltaChange.length() > 0 ? true : false,
+									icon: savingDelta ? spinner : check,
+									pulse: savingDelta ? true : false,
 									callback: () => {},
-									class: deltaChange.length() > 0 ? '' : '!bg-success-300-600-token',
+									class: savingDelta ? '' : '!bg-success-300-600-token',
 									mode: 'writer'
 								}
 							]}
