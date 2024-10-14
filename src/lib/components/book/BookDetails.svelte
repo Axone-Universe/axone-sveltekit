@@ -20,7 +20,9 @@
 
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
-	export let cancelCallback: () => void = () => undefined;
+	export let cancelCallback: () => void = () => {
+		history.back();
+	};
 	let customClass = '';
 	export { customClass as class };
 

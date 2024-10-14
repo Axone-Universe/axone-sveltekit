@@ -34,40 +34,13 @@
 				<div class="h-full flex flex-col justify-between">
 					<div>
 						<AppRailTile bind:group={selectedTile} name="read" title="Read" value={0}>
-							<Tooltip
-								on:click={() => {
-									window.open('/community', '_self');
-								}}
-								content="Community"
-								placement="right"
-								target="community"
-							>
-								<Icon data={users} scale={1.5} />
-							</Tooltip>
+							<Icon data={users} scale={1.5} />
 						</AppRailTile>
 						<AppRailTile bind:group={selectedTile} name="trending" title="Trending" value={1}>
-							<Tooltip
-								on:click={() => {
-									window.open('/learn', '_self');
-								}}
-								content="Learn more"
-								placement="right"
-								target="learn"
-							>
-								<Icon data={infoCircle} scale={1.5} />
-							</Tooltip>
+							<Icon data={infoCircle} scale={1.5} />
 						</AppRailTile>
 						<AppRailTile bind:group={selectedTile} name="collaborate" title="Collaborate" value={2}>
-							<Tooltip
-								on:click={() => {
-									window.open('/book/create', '_self');
-								}}
-								content="Start writing"
-								placement="right"
-								target="write"
-							>
-								<Icon data={pencil} scale={1.5} />
-							</Tooltip>
+							<Icon data={pencil} scale={1.5} />
 						</AppRailTile>
 					</div>
 					<AppRailTile bind:group={selectedTile} name="profile" title="Profile" value={4}>
@@ -75,6 +48,63 @@
 					</AppRailTile>
 				</div>
 			</AppRail>
+			<section hidden={selectedTile != 0} class="m-4 col-span-2">
+				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+					Community
+				</div>
+				<hr class="my-3 opacity-50" />
+				<nav class="list-nav">
+					<ul class="list">
+						<li>
+							<a
+								class="w-full"
+								href="/community"
+								on:click={() => {
+									window.open('/community', '_self');
+								}}>Connect</a
+							>
+						</li>
+					</ul>
+				</nav>
+			</section>
+			<section hidden={selectedTile != 1} class="m-4 col-span-2">
+				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+					Learn
+				</div>
+				<hr class="my-3 opacity-50" />
+				<nav class="list-nav">
+					<ul class="list">
+						<li>
+							<a
+								class="w-full"
+								href="/learn"
+								on:click={() => {
+									window.open('/learn', '_self');
+								}}>About</a
+							>
+						</li>
+					</ul>
+				</nav>
+			</section>
+			<section hidden={selectedTile != 2} class="m-4 col-span-2">
+				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+					Write!
+				</div>
+				<hr class="my-3 opacity-50" />
+				<nav class="list-nav">
+					<ul class="list">
+						<li>
+							<a
+								class="w-full"
+								href="/book/create"
+								on:click={() => {
+									window.open('/book/create', '_self');
+								}}>Start!</a
+							>
+						</li>
+					</ul>
+				</nav>
+			</section>
 			<section hidden={selectedTile != 4} class="m-4 col-span-2">
 				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
 					Profile
