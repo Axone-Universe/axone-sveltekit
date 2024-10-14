@@ -39,7 +39,8 @@
 		bookmark,
 		history,
 		lock,
-		info,
+		pencil,
+		book,
 		ellipsisH
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
@@ -1015,6 +1016,17 @@
 									class: '!bg-primary-300-600-token',
 									callback: showStorylines,
 									hidden: Object.keys(storylines).length <= 1
+								},
+								{
+									id: 'toggle-mode',
+									label: mode === 'writer' ? 'Reader Mode' : 'Writer Mode',
+									icon: mode === 'writer' ? book : pencil,
+									class: '!bg-warning-300-600-token',
+									callback: () => {
+										mode = mode === 'writer' ? 'reader' : 'writer';
+										setupEditor();
+									},
+									hidden: !selectedChapter?.userPermissions?.collaborate
 								},
 								{
 									id: 'chapter-info',

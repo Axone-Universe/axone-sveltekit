@@ -6,7 +6,9 @@
 		ListBoxItem,
 		type ModalSettings,
 		getToastStore,
-		getModalStore
+		getModalStore,
+		TabGroup,
+		Tab
 	} from '@skeletonlabs/skeleton';
 	import TextArea from '../TextArea.svelte';
 	import { trpc } from '$lib/trpc/client';
@@ -31,6 +33,7 @@
 	$: chapterNotes = chapter.chapterNotes ?? [];
 	let filteredChapterNotes = chapter.chapterNotes ?? [];
 	let chapterNotesList = '';
+	let tabSet: number = 0;
 
 	let closeModal = () => {
 		modalStore.close();
@@ -173,6 +176,7 @@
 	}
 
 	function chapterNoteSelected(chapterNote?: HydratedDocument<NoteProperties>) {
+		tabSet = 1;
 		if (chapterNote) {
 			note = chapterNote;
 		} else {
@@ -182,122 +186,132 @@
 </script>
 
 <div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
-	<form on:submit|preventDefault={submit}>
-		<fieldset {disabled}>
-			<div class="modal-form p-4 space-y-4 rounded-container-token">
-				<!-- svelte-ignore a11y-label-has-associated-control -->
-				<label>
-					Select Tags
-
-					<div class="space-x-2 my-4">
-						{#each TAGS as tag}
-							<button
-								class="chip {note.tags && note.tags.includes(tag)
-									? 'variant-filled'
-									: 'variant-soft'}"
-								on:click={() => tagSelected(tag)}
-								type="button"
-							>
-								{tag}
-							</button>
-						{/each}
-					</div>
-				</label>
-				<label>
-					* Title
-
-					<input
-						class="input"
-						type="text"
-						placeholder="e.g. Harry Potter"
-						bind:value={note.title}
-						required
-					/>
-				</label>
-
-				<!-- svelte-ignore a11y-label-has-associated-control -->
-				<label>
-					* Note
-					<TextArea
-						maxLength={500}
-						bind:textContent={note.note}
-						required={true}
-						placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
-					/>
-				</label>
-			</div>
-			{#if !disabled}
-				<footer class="modal-footer flex justify-end space-x-2">
-					<button on:click={closeModal} class="btn variant-ghost-surface" type="button"
-						>Cancel</button
-					>
-					<button class="btn variant-filled" type="submit">{note._id ? 'Update' : 'Create'}</button>
-				</footer>
-			{/if}
-		</fieldset>
-	</form>
-
-	<hr class="opacity-100 mx-4" />
-
-	<div class="p-4">
-		<div>
-			<div class="flex input px-4 my-4 items-center">
-				<Icon data={search} scale={1.2} />
-				<input
-					class="input border-0 hover:bg-transparent"
-					type="text"
-					placeholder="e.g. Harry Potter"
-					bind:value={searchTerm}
-					on:input={() => searchNotes()}
-				/>
-			</div>
-			<div class="space-x-2 my-4">
-				{#each TAGS as tag}
-					<button
-						class="chip {tag === filterTag ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => searchNotes(tag)}
-						type="button"
-					>
-						{tag}
-					</button>
-				{/each}
-			</div>
-		</div>
-		<div class="max-h-48 overflow-y-auto">
-			<ListBox class="space-y-2">
-				<ListBoxItem
-					on:change={() => chapterNoteSelected()}
-					bind:group={chapterNotesList}
-					name="chapter"
-					class="soft-listbox"
-					value=""
-				>
-					<div class="flex justify-between items-center">
-						<p class="line-clamp-1">New Note</p>
-						<div class="space-x-4">
-							<Icon data={plus} scale={1.2} />
+	<TabGroup>
+		<Tab bind:group={tabSet} name="tab1" value={0}>Select Note</Tab>
+		<Tab bind:group={tabSet} name="tab2" value={1}>{note.title != '' ? note.title : 'New Note'}</Tab
+		>
+		<!-- Tab Panels --->
+		<svelte:fragment slot="panel">
+			{#if tabSet === 0}
+				<div class="p-8">
+					<div>
+						<div class="flex input px-4 my-4 items-center">
+							<Icon data={search} scale={1.2} />
+							<input
+								class="input border-0 hover:bg-transparent"
+								type="text"
+								placeholder="e.g. Harry Potter"
+								bind:value={searchTerm}
+								on:input={() => searchNotes()}
+							/>
 						</div>
-					</div>
-				</ListBoxItem>
-				{#each filteredChapterNotes as chapterNote}
-					<ListBoxItem
-						on:change={() => chapterNoteSelected(chapterNote)}
-						bind:group={chapterNotesList}
-						name="chapter"
-						class="soft-listbox"
-						value={chapterNote._id}
-					>
-						<div class="flex justify-between items-center">
-							<p class="line-clamp-1">{chapterNote.title}</p>
-							<div class="flex space-x-4">
-								<button on:click|stopPropagation={() => deleteNote(chapterNote)}>
-									<Icon data={trash} scale={1.2} />
+						<div class="space-x-2 my-4">
+							{#each TAGS as tag}
+								<button
+									class="chip {tag === filterTag ? 'variant-filled' : 'variant-soft'}"
+									on:click={() => searchNotes(tag)}
+									type="button"
+								>
+									{tag}
 								</button>
-							</div>
+							{/each}
 						</div>
-					</ListBoxItem>
-				{/each}
-			</ListBox>
-		</div>
-	</div>
+					</div>
+					<div class="max-h-48 overflow-y-auto">
+						<ListBox class="space-y-2">
+							<ListBoxItem
+								on:click={() => chapterNoteSelected()}
+								bind:group={chapterNotesList}
+								name="chapter"
+								class="soft-listbox"
+								value=""
+							>
+								<div class="flex justify-between items-center">
+									<p class="line-clamp-1">New Note</p>
+									<div class="space-x-4">
+										<Icon data={plus} scale={1.2} />
+									</div>
+								</div>
+							</ListBoxItem>
+							{#each filteredChapterNotes as chapterNote}
+								<ListBoxItem
+									on:click={() => chapterNoteSelected(chapterNote)}
+									bind:group={chapterNotesList}
+									name="chapter"
+									class="soft-listbox"
+									value={chapterNote._id}
+								>
+									<div class="flex justify-between items-center">
+										<p class="line-clamp-1">{chapterNote.title}</p>
+										<div class="flex space-x-4">
+											<button on:click|stopPropagation={() => deleteNote(chapterNote)}>
+												<Icon data={trash} scale={1.2} />
+											</button>
+										</div>
+									</div>
+								</ListBoxItem>
+							{/each}
+						</ListBox>
+					</div>
+				</div>
+			{:else if tabSet === 1}
+				<form on:submit|preventDefault={submit}>
+					<fieldset {disabled}>
+						<div class="modal-form p-4 space-y-4 rounded-container-token">
+							<!-- svelte-ignore a11y-label-has-associated-control -->
+							<label>
+								Select Tags
+
+								<div class="space-x-2 my-4">
+									{#each TAGS as tag}
+										<button
+											class="chip {note.tags && note.tags.includes(tag)
+												? 'variant-filled'
+												: 'variant-soft'}"
+											on:click={() => tagSelected(tag)}
+											type="button"
+										>
+											{tag}
+										</button>
+									{/each}
+								</div>
+							</label>
+							<label>
+								* Title
+
+								<input
+									class="input"
+									type="text"
+									placeholder="e.g. Harry Potter"
+									bind:value={note.title}
+									required
+								/>
+							</label>
+
+							<!-- svelte-ignore a11y-label-has-associated-control -->
+							<label>
+								* Note
+								<TextArea
+									maxLength={500}
+									bind:textContent={note.note}
+									required={true}
+									placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
+								/>
+							</label>
+						</div>
+						{#if !disabled}
+							<footer class="modal-footer flex justify-end space-x-2">
+								<button on:click={closeModal} class="btn variant-ghost-surface" type="button"
+									>Cancel</button
+								>
+								<button class="btn variant-filled" type="submit"
+									>{note._id ? 'Update' : 'Create'}</button
+								>
+							</footer>
+						{/if}
+					</fieldset>
+				</form>
+			{/if}
+		</svelte:fragment>
+	</TabGroup>
 </div>
