@@ -6,7 +6,8 @@ import {
 	addArchivedRestrictionFilter,
 	addCollaboratorUpdateRestrictionFilter,
 	addViewRestrictionPipeline,
-	permissionSchema
+	permissionSchema,
+	setUpdateDate
 } from './permission';
 import type Op from 'quill-delta/dist/Op';
 import QuillDelta from 'quill-delta';
@@ -24,7 +25,8 @@ export const deltaSchema = new Schema<DeltaProperties>({
 	chapter: { type: String, ref: ChapterLabel, required: true },
 	permissions: { type: Map, of: permissionSchema },
 	versions: [versionSchema],
-	archived: { type: Boolean, default: false }
+	archived: { type: Boolean, default: false },
+	updatedAt: Date
 });
 
 deltaSchema.pre(['find', 'findOne'], function () {
@@ -59,6 +61,8 @@ deltaSchema.pre(
 	function (next) {
 		const userID = this.getOptions().userID;
 		const filter = this.getFilter();
+
+		setUpdateDate(this.getUpdate());
 
 		let updatedFilter = addCollaboratorUpdateRestrictionFilter(userID, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);

@@ -26,9 +26,11 @@
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
-	import { edit, trash } from 'svelte-awesome/icons';
+	import { arrowDown, edit, trash } from 'svelte-awesome/icons';
 	import Tutorial from './tutorial.svelte';
 	import { deleteBucket } from '$lib/util/bucket/bucket';
+	import Tooltip from '$lib/components/Tooltip.svelte';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -144,7 +146,7 @@
 	}
 
 	function loadMore() {
-		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getStorylinesInfinite.fetchNextPage);
+		$getStorylinesInfinite.fetchNextPage();
 	}
 
 	async function refetch() {
@@ -326,8 +328,14 @@
 				</tbody>
 			</table>
 		</div>
-		{#if !$getStorylinesInfinite.hasNextPage}
-			<ScrollToTopButton />
+		{#if $getStorylinesInfinite.hasNextPage}
+			<div class="flex justify-center my-2">
+				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
+					<button class="btn-icon variant-filled">
+						<Icon data={arrowDown} />
+					</button>
+				</Tooltip>
+			</div>
 		{/if}
 	</div>
 </div>
