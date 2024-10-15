@@ -24,7 +24,8 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		super();
 		this._deltaProperties = {
 			_id: id ? id : ulid(),
-			versions: [new VersionPropertyBuilder().getProperties()]
+			versions: [new VersionPropertyBuilder().getProperties()],
+			updatedAt: new Date()
 		};
 	}
 
