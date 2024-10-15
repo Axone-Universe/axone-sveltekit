@@ -5,7 +5,7 @@
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
-	import { book, edit, plus, trash } from 'svelte-awesome/icons';
+	import { arrowDown, book, edit, plus, trash } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		type ModalSettings,
@@ -24,8 +24,6 @@
 	import RowActions from '$lib/components/studio/RowActions.svelte';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
 	import BookModal from '$lib/components/book/BookModal.svelte';
-	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
-	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import ArchiveSelectedButton from '$lib/components/studio/ArchiveSelectedButton.svelte';
 	import CreateBookModal from '$lib/components/studio/CreateBookModal.svelte';
 	import ViewFilters from '$lib/components/studio/ViewFilters.svelte';
@@ -225,7 +223,7 @@
 	}
 
 	function loadMore() {
-		lastLoadEpoch = debouncedScrollCallback(lastLoadEpoch, $getBooksInfinite.fetchNextPage);
+		$getBooksInfinite.fetchNextPage();
 	}
 
 	async function refetch() {
@@ -286,8 +284,6 @@
 		modalStore.trigger(modal);
 	}
 </script>
-
-<svelte:window on:scroll={loadMore} />
 
 <Tutorial />
 <div class="min-h-screen overflow-hidden w-full">
@@ -445,8 +441,14 @@
 				</tbody>
 			</table>
 		</div>
-		{#if !$getBooksInfinite.hasNextPage}
-			<ScrollToTopButton />
+		{#if $getBooksInfinite.hasNextPage}
+			<div class="flex justify-center my-2">
+				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
+					<button class="btn-icon variant-filled">
+						<Icon data={arrowDown} />
+					</button>
+				</Tooltip>
+			</div>
 		{/if}
 	</div>
 </div>

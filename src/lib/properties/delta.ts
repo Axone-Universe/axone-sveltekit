@@ -21,6 +21,7 @@ export interface DeltaProperties {
 	versions?: VersionProperties[];
 	ops?: object;
 	archived?: boolean;
+	updatedAt?: Date;
 }
 
 export class VersionPropertyBuilder {
