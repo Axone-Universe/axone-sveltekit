@@ -178,20 +178,25 @@
 			{/if}
 			<div class="p-2 space-y-4">
 				<div class="flex flex-col items-center p-2">
-					<p class="book-title text-4xl font-bold">
-						{bookData.title}
+					<p class="book-title text-4xl font-bold relative">
+						{storylineData.title}
+						<button
+							use:popup={infoPopup}
+							class="badge-icon z-10 variant-filled absolute -top-3 -right-5"
+							><Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
+						</button>
 					</p>
 				</div>
 				<div class="flex flex-col p-2 space-x-4 w-full items-center">
 					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
-						<div class="relative">
-							<h3 class="book-title">{storylineData.title}</h3>
-							<button
-								use:popup={infoPopup}
-								class="badge-icon z-10 variant-filled absolute -top-3 -right-5"
-								><Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
-							</button>
-						</div>
+						{#if Object.values(storylines).length > 1}
+							<div class="relative">
+								<h3 class="book-title">
+									{bookData.campaign ? 'Campaign Titled: ' : 'Book Titled: '}
+									{bookData.title}
+								</h3>
+							</div>
+						{/if}
 						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
@@ -199,8 +204,8 @@
 									<p class="opacity-50">@Storyline</p>
 								</div>
 								<p>
-									Storylines are alternative trajectories of the book stemming from the main
-									storyline
+									Storylines are alternative trajectories of the book or campaign stemming from the
+									main storyline
 								</p>
 								<a class="btn variant-soft w-full" href="/learn" target="_blank" rel="noreferrer">
 									More
@@ -256,7 +261,7 @@
 								<Icon class="p-2" data={bookmark} scale={2.5} />
 							</button>
 						</Tooltip>
-						{#if selectedStoryline && selectedStoryline.userPermissions?.collaborate}
+						{#if selectedStoryline?.userPermissions?.collaborate}
 							<Tooltip
 								on:click={() => {
 									window.open(

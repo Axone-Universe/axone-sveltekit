@@ -247,6 +247,12 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 
 	const hydratedBook = book as HydratedDocument<BookProperties>;
 
+	const permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
+	permissions['public'] = {
+		_id: ulid(),
+		permission: 'view'
+	} as HydratedDocument<PermissionProperties>;
+
 	// Also create the default/main storyline
 	const storylineBuilder = new StorylineBuilder()
 		.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
@@ -257,7 +263,7 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 		.imageURL(hydratedBook.imageURL!)
 		.genres(hydratedBook.genres!)
 		.tags(hydratedBook.tags!)
-		.permissions(hydratedBook.permissions);
+		.permissions(hydratedBook.campaign ? permissions : hydratedBook.permissions);
 
 	const storyline = new Storyline(storylineBuilder.properties());
 	await storyline.save({ session });
