@@ -32,9 +32,11 @@
 
 	async function createStorylineData() {
 		let response;
-		let newStoryline = false;
+		let newStoryline = true;
 
-		if (!imageFile) {
+		if (storyline._id) newStoryline = false;
+
+		if (!imageFile && newStoryline) {
 			const t: ToastSettings = {
 				message: 'Please create and upload the storyline image cover',
 				background: 'variant-filled-error'
@@ -43,7 +45,7 @@
 			return;
 		}
 
-		if (storyline._id) {
+		if (!newStoryline) {
 			response = await trpc($page).storylines.update.mutate({
 				id: storyline._id,
 				main: storyline.main,
@@ -56,7 +58,6 @@
 				notifications: notifications
 			});
 		} else {
-			newStoryline = true;
 			response = await trpc($page).storylines.create.mutate({
 				title: storyline.title,
 				description: storyline.description,
@@ -82,9 +83,9 @@
 			);
 			if (imageResponse.url && imageResponse.url !== null) {
 				await saveStorylineImage(imageResponse.url);
-			} else {
+			} else if (imageResponse.error) {
 				const t: ToastSettings = {
-					message: imageResponse.error?.message ?? 'Error uploading storyline cover',
+					message: imageResponse.error.message ?? 'Error uploading storyline cover',
 					background: 'variant-filled-error'
 				};
 				toastStore.trigger(t);

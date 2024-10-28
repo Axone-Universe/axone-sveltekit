@@ -33,7 +33,13 @@ export type Response = {
 	cursor?: string | undefined;
 };
 
-export const HOME_FILTER_TAGS = ['Recommended', 'Campaigns', 'Newest', 'Past 30 Days'] as const;
+export const HOME_FILTER_TAGS = [
+	'Recommended',
+	'Campaigns',
+	'Books',
+	'Newest',
+	'Past 30 Days'
+] as const;
 export type HomeFilterTag = (typeof HOME_FILTER_TAGS)[number];
 
 export type StorageError =

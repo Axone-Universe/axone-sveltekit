@@ -13,6 +13,12 @@ export async function uploadImage(
 	url: string | null;
 	error: null | StorageError;
 }> {
+	if (!imageFile) {
+		return new Promise((resolve) => {
+			resolve({ url: '', error: null });
+		});
+	}
+
 	const t: ToastSettings = {
 		message: 'Saving Image...',
 		autohide: false

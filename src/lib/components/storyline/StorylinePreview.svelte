@@ -10,6 +10,7 @@
 	import StorylineModal from './StorylineModal.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import type { BookProperties } from '$lib/properties/book';
+	import { lock } from 'svelte-awesome/icons';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let dispatchEvent: boolean = false;
@@ -85,6 +86,11 @@
 			</p>
 		</div>
 	</div>
+	{#if !storyline.userPermissions?.view}
+		<div class="absolute items-center top-1/3 right-1/3">
+			<Icon class="border-none !fill-[rgba(255,255,255,0.6)]" data={lock} scale={5} />
+		</div>
+	{/if}
 	{#if storyline.numRatings > 0}
 		<div
 			class="overflow-hidden flex items-center absolute bottom-1 right-1 bg-white md:bg-black group-hover:bg-white py-1 px-2 space-x-1 rounded-full duration-300"

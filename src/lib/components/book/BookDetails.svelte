@@ -33,10 +33,12 @@
 	const toastStore = getToastStore();
 
 	async function createBookData() {
-		let newBook = false;
 		let response;
+		let newBook = true;
 
-		if (!imageFile) {
+		if (book._id) newBook = false;
+
+		if (!imageFile && newBook) {
 			const t: ToastSettings = {
 				message: 'Please create and upload book cover',
 				background: 'variant-filled-error'
@@ -45,7 +47,7 @@
 			return;
 		}
 
-		if (book._id) {
+		if (!newBook) {
 			response = await trpc($page).books.update.mutate({
 				id: book._id,
 				title: book.title,
@@ -57,7 +59,6 @@
 				notifications: notifications
 			});
 		} else {
-			newBook = true;
 			response = await trpc($page).books.create.mutate({
 				title: book.title,
 				imageURL: book.imageURL,
@@ -75,7 +76,7 @@
 			const imageResponse = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
 			if (imageResponse.url && imageResponse.url !== null) {
 				await saveBookImage(imageResponse.url);
-			} else {
+			} else if (imageResponse.error) {
 				const t: ToastSettings = {
 					message: imageResponse.error?.message ?? 'Error uploading book cover',
 					background: 'variant-filled-error'

@@ -126,7 +126,7 @@
 			<span class="text-white">Login with linkedin</span>
 		</button>
 
-		<div class="justify-center text-center text-xl">or</div>
+		<!-- <div class="justify-center text-center text-xl">or</div>
 
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
@@ -146,7 +146,7 @@
 		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
 			<button class="btn variant-filled-primary" on:click={onSubmit}>Login</button>
-		</footer>
+		</footer> -->
 	</div>
 </Container>
 
