@@ -7,41 +7,40 @@ import type { Session } from '@supabase/supabase-js';
 import type { Genre } from '$lib/properties/genre';
 import { UsersRepository } from './usersRepository';
 import type { HomeFilterTag } from '$lib/util/types';
+import { ReadBook } from '$lib/trpc/schemas/books';
 
 export class BooksRepository extends Repository {
 	async get(
 		session: Session | null,
-		limit?: number,
-		cursor?: string,
-		genres?: Genre[],
-		tags?: HomeFilterTag[],
-		title?: string,
-		user?: string,
-		archived?: boolean
+		readBook: ReadBook
 	): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
-		if (title) {
-			filter.$text = { $search: title };
+		if (readBook.title) {
+			filter.$text = { $search: readBook.title };
 		}
 
-		if (user) {
-			filter.user = user;
+		if (readBook.user) {
+			filter.user = readBook.user;
 		}
 
-		if (genres) {
-			if (genres.length > 0) {
-				filter.genres = { $all: genres };
+		if (readBook.genres) {
+			if (readBook.genres.length > 0) {
+				filter.genres = { $all: readBook.genres };
 			}
 		}
 
-		if (tags) {
-			if (tags.includes('Campaigns')) {
+		if (readBook.tags) {
+			if (readBook.tags.includes('Campaigns')) {
 				filter.campaign = { $ne: null };
 			}
 
-			if (tags.includes('Recommended')) {
+			if (readBook.tags.includes('Books')) {
+				filter.campaign = { $eq: null };
+			}
+
+			if (readBook.tags.includes('Recommended')) {
 				const userRepo = new UsersRepository();
 				const user = await userRepo.getById(session, session?.user.id);
 				if (user && user.genres) {
@@ -50,21 +49,21 @@ export class BooksRepository extends Repository {
 			}
 		}
 
-		if (archived !== undefined) {
-			filter.archived = archived;
+		if (readBook.archived !== undefined) {
+			filter.archived = readBook.archived;
 		}
 
-		if (cursor) {
-			filter._id = { $gt: cursor };
+		if (readBook.cursor) {
+			filter._id = { $gt: readBook.cursor };
 		}
 
 		pipeline.push({ $match: filter });
 
-		if (title) {
+		if (readBook.title) {
 			pipeline.push({ $sort: { score: { $meta: 'textScore' } } });
 		}
 
-		if (limit) pipeline.push({ $limit: limit });
+		if (readBook.limit) pipeline.push({ $limit: readBook.limit });
 
 		const query = Book.aggregate(pipeline, {
 			userID: session?.user.id
