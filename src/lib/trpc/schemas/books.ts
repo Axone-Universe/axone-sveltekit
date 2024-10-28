@@ -54,3 +54,4 @@ export const search = z.object({
 });
 
 export type CreateBook = z.infer<typeof create>;
+export type ReadBook = z.infer<typeof read>;

@@ -40,12 +40,12 @@
 	const { supabase } = data;
 
 	let archiveMode: boolean = false;
-	let campaignMode: boolean = false;
-	let lastLoadEpoch = 0;
 	let selectedBooks: HydratedDocument<BookProperties>[] = [];
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
+
+	$: isCampaigns = $page.url.searchParams.get('campaigns') === 'true' ? true : false;
 
 	const bookDetailsModalComponent: ModalComponent = {
 		ref: BookDetails
@@ -96,11 +96,11 @@
 			limit: 10,
 			user: data.session?.user.id,
 			genres: [],
-			tags: campaignMode ? ['Campaigns'] : [],
+			tags: isCampaigns ? ['Campaigns'] : ['Books'],
 			archived: archiveMode
 		},
 		{
-			queryKey: ['booksStudio', archiveMode, campaignMode ? '' : null],
+			queryKey: ['booksStudio', archiveMode, isCampaigns ? '' : null],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -173,7 +173,7 @@
 			supabase: data.supabase,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				campaignMode = true;
+				isCampaigns = true;
 				refetch();
 				modalStore.close();
 			}
@@ -188,7 +188,7 @@
 			supabase: data.supabase,
 			cancelCallback: modalStore.close,
 			createCallback: () => {
-				campaignMode = true;
+				isCampaigns = true;
 				refetch();
 				modalStore.close();
 			}
@@ -308,53 +308,48 @@
 							<div class="flex sm:justify-start">
 								<ViewFilters>
 									<ArchiveToggle bind:archiveMode />
-									<button
-										id="campaigns-toggle"
-										on:click={() => (campaignMode = !campaignMode)}
-										class="chip {campaignMode ? 'variant-filled' : 'variant-soft'}"
-									>
-										<span>Campaigns</span>
-									</button>
 								</ViewFilters>
 							</div>
 						</td>
 						<td colspan="3">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
-								<Tooltip
-									on:click={openCreateCampaignModal}
-									content="Create new campaign"
-									placement="top"
-									target="create-campaign-btn"
-								>
-									<button
-										id="create-campaign-btn"
-										type="button"
-										class="btn btn-sm variant-filled-primary"
+								{#if isCampaigns}
+									<Tooltip
+										on:click={openCreateCampaignModal}
+										content="Create new campaign"
+										placement="top"
+										target="create-campaign-btn"
 									>
-										<span class="-mr-1"><Icon data={edit} /></span>
-										<span>
-											<Icon data={plus} />
-										</span>
-									</button>
-								</Tooltip>
-								<span class="divider-vertical h-6 mx-0" />
-								<Tooltip
-									on:click={openCreateBookModal}
-									content="Create new book"
-									placement="top"
-									target="create-book-btn"
-								>
-									<button
-										id="create-book-btn"
-										type="button"
-										class="btn btn-sm variant-filled-primary"
+										<button
+											id="create-campaign-btn"
+											type="button"
+											class="btn btn-sm variant-filled-primary"
+										>
+											<span class="-mr-1"><Icon data={edit} /></span>
+											<span>
+												<Icon data={plus} />
+											</span>
+										</button>
+									</Tooltip>
+								{:else}
+									<Tooltip
+										on:click={openCreateBookModal}
+										content="Create new book"
+										placement="top"
+										target="create-book-btn"
 									>
-										<span class="-mr-1"><Icon data={book} /></span>
-										<span>
-											<Icon data={plus} />
-										</span>
-									</button>
-								</Tooltip>
+										<button
+											id="create-book-btn"
+											type="button"
+											class="btn btn-sm variant-filled-primary"
+										>
+											<span class="-mr-1"><Icon data={book} /></span>
+											<span>
+												<Icon data={plus} />
+											</span>
+										</button>
+									</Tooltip>
+								{/if}
 
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
