@@ -145,32 +145,41 @@
 			documents={[
 				{
 					_id: '',
-					firstName: 'Takunda',
-					lastName: 'Chirema',
+					firstName: 'Laeeq',
+					lastName: 'Orrie',
 					labels: ['Writer'],
 					imageURL:
-						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7db7a801332787aa0ca_takunda_circle_final.png',
-					about: '"Axone has allowed me to publish and monetize my unfinished book"'
+						'https://ejrsceonrzysmcheplfg.supabase.co/storage/v1/object/public/profiles/6a95394a-fd2f-4137-b7e4-4c6c42d8d753/profile.jpg',
+					about:
+						'"Using Axone has been a delightful experience. The platform fosters collaboration on literary pieces, allowing me to learn from others and grow as a writer. The process was both enjoyable and enriching, providing a vibrant space for creativity and connection."'
 				},
 				{
 					_id: '',
-					firstName: 'Lindi',
-					lastName: 'Kers',
-					labels: ['Writer', 'Editor'],
+					firstName: 'Luke',
+					lastName: 'Ryan',
+					labels: ['Writer'],
 					imageURL:
-						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7db3caa2ced19faedbb_lindi_circle_final.png',
+						'https://ejrsceonrzysmcheplfg.supabase.co/storage/v1/object/public/profiles/1dcad11b-0ee0-4aca-92c1-8e5a195952d6/profile.jpg',
 					about:
-						'"I have found inspiration for continuing my stories and my creativity has been awakened!"'
+						'"When I first joined Axone, I quickly realized how much richer my storytelling became through collaboration. Working with others brings so many new ideas to the table—ideas that I would have never come up with on my own. It\'s amazing how a single concept can transform as different people contribute their perspectives, adding layers and depth to the plot and characters. The flow of creativity becomes so much more natural, and it’s like watching your story evolve in ways that feel unexpected yet perfect. What I love most is how the process feels less like a lonely task and more like an exciting group adventure. Every new chapter, every new storyline idea, brings the work forward in ways I couldn\'t have imagined alone. It’s easier to push past writer’s block when there’s a team of talented individuals supporting each other. And the best part? The energy in the creative process keeps everything moving smoothly. It’s a space where ideas flow freely, and the story grows into something truly special."'
 				},
 				{
 					_id: '',
-					firstName: 'Danae',
-					lastName: 'Bouwer',
-					labels: ['Illustrator'],
+					firstName: 'Si-Jia',
+					lastName: 'Wu',
+					labels: ['Writer'],
 					imageURL:
-						'https://assets-global.website-files.com/617bc671d1e4736f6e249501/626aa7dbc74e50249144ff41_danae_circle_final.png',
+						'https://ejrsceonrzysmcheplfg.supabase.co/storage/v1/object/public/profiles/ffd875b3-02ce-4ab3-b3b2-9d2ff6979356/profile.png',
 					about:
-						'"It is quite fun to explore the different authors, storylines and illustrations of artists. I love it!"'
+						'"I stumbled upon the Axone Universe Collaborative Writing Competition by chance and was thrilled to participate, grateful that I can share my writing with a broader audience. Although winning was an unexpected honor, I am ecstatic with the success. This experience has reinforced my love for storytelling."'
+				},
+				{
+					_id: '',
+					firstName: 'Illiana',
+					lastName: 'Norgard',
+					labels: ['Writer'],
+					about:
+						'"I stumbled upon the Axone Universe Collaborative Writing Competition by chance and was thrilled to participate, grateful that I can share my writing with a broader audience. Although winning was an unexpected honor, I am ecstatic with the success. This experience has reinforced my love for storytelling."'
 				}
 			]}
 		/>
