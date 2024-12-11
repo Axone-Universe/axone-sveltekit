@@ -3,12 +3,13 @@ import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import type { ClientSession, HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
-import type { ChapterProperties } from '$lib/properties/chapter';
+import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
 import { DeltaBuilder } from '../digital-assets/delta';
+import { formatDate } from '$lib/util/constants';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -238,6 +239,41 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		session.endSession();
 
 		return acknowledged;
+	}
+
+	async createComment(comment: string) {
+		const chapter = (await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID
+			}
+		)
+			.cursor()
+			.next()) as HydratedDocument<ChapterProperties>;
+
+		const comments = chapter?.comments ?? [];
+		const user = typeof chapter.user !== 'string' ? chapter.user : undefined;
+
+		const newComment = {
+			_id: ulid(),
+			userId: user ? user._id : '',
+			firstName: user ? user.firstName ?? '' : '',
+			lastName: user ? user.lastName ?? '' : '',
+			imageURL: user ? user.imageURL ?? '' : '',
+			date: formatDate(new Date()),
+			comment: comment
+		};
+
+		comments.push(newComment);
+
+		this._chapterProperties.comments = comments;
+		return this;
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {

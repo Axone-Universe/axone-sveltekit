@@ -1,4 +1,4 @@
-import { label, type ChapterProperties } from '$lib/properties/chapter';
+import { CommentProperties, label, type ChapterProperties } from '$lib/properties/chapter';
 import mongoose, {
 	Schema,
 	model,
@@ -25,6 +25,15 @@ interface ExtendedChapterProperties extends ChapterProperties {
 	deleteChild: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
+export const commentSchema = new Schema<CommentProperties>({
+	_id: String,
+	date: String,
+	userId: String,
+	firstName: String,
+	lastName: String,
+	comment: String
+});
+
 export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	_id: { type: String, required: true },
 	book: { type: String, ref: BookLabel, required: true },
@@ -33,6 +42,7 @@ export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
+	comments: [commentSchema],
 	title: String,
 	description: String,
 	archived: { type: Boolean, default: false },
@@ -173,6 +183,13 @@ function populate(pipeline: PipelineStage[]) {
 			$unset: ['permissionsArray']
 		}
 	);
+
+	// Initially only get 10 comments
+	pipeline.push({
+		$set: {
+			comments: { $slice: ['$comments', 10] }
+		}
+	});
 }
 
 export const Chapter = mongoose.models[label]

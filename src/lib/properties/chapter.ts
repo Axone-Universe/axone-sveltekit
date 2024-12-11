@@ -9,6 +9,16 @@ import type { NoteProperties } from './note';
 
 export const label = 'Chapter';
 
+export interface CommentProperties {
+	_id: string;
+	date: string;
+	userId: string;
+	firstName: string;
+	lastName: string;
+	imageURL: string;
+	comment: string;
+}
+
 export interface ChapterProperties {
 	_id: string;
 	book?: string | HydratedDocument<BookProperties>;
@@ -20,6 +30,7 @@ export interface ChapterProperties {
 	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
 	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
 	chapterNotes?: HydratedDocument<NoteProperties>[];
+	comments?: CommentProperties[];
 	genres?: Genre[];
 	title?: string;
 	description?: string;

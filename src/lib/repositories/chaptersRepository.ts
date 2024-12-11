@@ -1,11 +1,9 @@
 import { Chapter } from '$lib/models/chapter';
-import { Storyline } from '$lib/models/storyline';
 import { Repository } from '$lib/repositories/repository';
-import type { ChapterProperties } from '$lib/properties/chapter';
-import type { StorylineProperties } from '$lib/properties/storyline';
+import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
-import type { ReadChapter } from '$lib/trpc/schemas/chapters';
+import type { GetByIdSchema, ReadChapter } from '$lib/trpc/schemas/chapters';
 
 export class ChaptersRepository extends Repository {
 	constructor() {
@@ -108,6 +106,28 @@ export class ChaptersRepository extends Repository {
 		})) as HydratedDocument<ChapterProperties>[];
 
 		return chapters;
+	}
+
+	async getComments(
+		session: Session | null,
+		input: GetByIdSchema
+	): Promise<HydratedDocument<CommentProperties>[]> {
+		const pipeline = [];
+
+		pipeline.push({ $match: { _id: input.id } });
+		pipeline.push({
+			$set: {
+				comments: { $slice: ['$comments', input.skip ? input.skip + 1 : 1, input.limit ?? 10] }
+			}
+		});
+
+		const chapter = await Chapter.aggregate(pipeline, {
+			userID: session?.user.id
+		})
+			.cursor()
+			.next();
+
+		return chapter.comments;
 	}
 
 	async count(): Promise<number> {

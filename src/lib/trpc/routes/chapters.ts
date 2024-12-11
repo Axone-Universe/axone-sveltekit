@@ -3,12 +3,18 @@ import { ChaptersRepository } from '$lib/repositories/chaptersRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, readFromStoryline, update } from '$lib/trpc/schemas/chapters';
+import {
+	create,
+	createComment,
+	getById,
+	readFromStoryline,
+	update
+} from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 import { sendTopicNotification, sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
-import type { ChapterProperties } from '$lib/properties/chapter';
+import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
 import { documentURL } from '$lib/util/links';
@@ -63,7 +69,7 @@ export const chapters = t.router({
 
 	getById: t.procedure
 		.use(logger)
-		.input(read)
+		.input(getById)
 		.query(async ({ input, ctx }) => {
 			const chaptersRepo = new ChaptersRepository();
 
@@ -73,7 +79,7 @@ export const chapters = t.router({
 				data: {}
 			};
 			try {
-				const result = await chaptersRepo.getById(ctx.session, input.id!);
+				const result = await chaptersRepo.getById(ctx.session, input.id);
 
 				response.data = result;
 			} catch (error) {
@@ -237,5 +243,56 @@ export const chapters = t.router({
 			}
 
 			return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
+		}),
+
+	createComment: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(createComment)
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUserID(
+				ctx.session!.user.id
+			);
+
+			await chapterBuilder.createComment(input.comment);
+
+			const response: Response = {
+				success: true,
+				message: 'comment successfully created',
+				data: {}
+			};
+			try {
+				const result = await chapterBuilder.update();
+				response.data = result.comments?.at(-1);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<CommentProperties> } };
+		}),
+
+	getComments: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(getById)
+		.mutation(async ({ input, ctx }) => {
+			const chaptersRepo = new ChaptersRepository();
+
+			const response: Response = {
+				success: true,
+				message: 'chapter comments successfully obtained',
+				data: {}
+			};
+			try {
+				const result = await chaptersRepo.getComments(ctx.session, input);
+
+				response.data = result;
+				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<CommentProperties>[] } };
 		})
 });
