@@ -31,6 +31,7 @@ export const commentSchema = new Schema<CommentProperties>({
 	userId: String,
 	firstName: String,
 	lastName: String,
+	imageURL: String,
 	comment: String
 });
 
@@ -43,6 +44,7 @@ export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
 	comments: [commentSchema],
+	commentsCount: Number,
 	title: String,
 	description: String,
 	archived: { type: Boolean, default: false },
@@ -56,11 +58,12 @@ chapterSchema.pre(['find', 'findOne'], function () {
 
 chapterSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
+	const comments = this.options.comments;
 	const storylineID = this.options.storylineID;
 	const pipeline = this.pipeline();
 	const postPipeline = this.options.postPipeline ?? [];
 
-	populate(pipeline);
+	populate(pipeline, comments);
 	addUserPermissionPipeline(userID, pipeline);
 	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
 
@@ -152,7 +155,7 @@ chapterSchema.methods.deleteChild = async function (
 	await this.save({ session });
 };
 
-function populate(pipeline: PipelineStage[]) {
+function populate(pipeline: PipelineStage[], comments: boolean) {
 	pipeline.push(
 		{
 			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
@@ -185,11 +188,14 @@ function populate(pipeline: PipelineStage[]) {
 	);
 
 	// Initially only get 10 comments
-	pipeline.push({
-		$set: {
-			comments: { $slice: ['$comments', 10] }
-		}
-	});
+	if (!comments) {
+		pipeline.push({
+			$set: {
+				commentsCount: { $size: '$comments' },
+				comments: { $slice: ['$comments', 10] }
+			}
+		});
+	}
 }
 
 export const Chapter = mongoose.models[label]

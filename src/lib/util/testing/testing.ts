@@ -160,7 +160,8 @@ export async function createChapter(
 	title: string,
 	description: string,
 	storyline: HydratedDocument<StorylineProperties>,
-	prevChapterID?: string
+	prevChapterID?: string,
+	comments?: boolean
 ) {
 	const caller = router.createCaller({ session: session });
 
@@ -178,6 +179,15 @@ export async function createChapter(
 			public: publicPermission
 		}
 	});
+
+	if (comments) {
+		for (let i = 1; i < 15; i++) {
+			caller.chapters.createComment({
+				comment: faker.lorem.words(6),
+				chapterId: response.data._id ?? ''
+			});
+		}
+	}
 
 	return response;
 }

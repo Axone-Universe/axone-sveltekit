@@ -46,6 +46,9 @@ dependencies:
   embla-carousel-svelte:
     specifier: 8.0.0-rc05
     version: 8.0.0-rc05(svelte@3.59.2)
+  emoji-picker-element:
+    specifier: ^1.26.0
+    version: 1.26.0
   happy-dom:
     specifier: ^9.20.3
     version: 9.20.3
@@ -2762,6 +2765,10 @@ packages:
     resolution: {integrity: sha512-Ujl1Bp+zIEn0WY9QHiBmhNyC+y7DZMEOy02WnINvJUxwXmuE5DiTb6UyG5b7PG/yLjlCgaboAsUdFOOIS+T7uQ==}
     dev: false
 
+  /emoji-picker-element@1.26.0:
+    resolution: {integrity: sha512-IcffFc+LNymYScmMuxOJooZulOCOACGc1Xvj+s7XeKqpc+0EoZfWrV9o4rBjEiuM7XjsgcEjD+m5DHg0aIfnnA==}
+    dev: false
+
   /emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
@@ -3251,6 +3258,7 @@ packages:
   /glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
+    deprecated: Glob versions prior to v9 are no longer supported
     dependencies:
       fs.realpath: 1.0.0
       inflight: 1.0.6

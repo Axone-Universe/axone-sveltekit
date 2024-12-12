@@ -31,6 +31,7 @@ export interface ChapterProperties {
 	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
 	chapterNotes?: HydratedDocument<NoteProperties>[];
 	comments?: CommentProperties[];
+	commentsCount?: number;
 	genres?: Genre[];
 	title?: string;
 	description?: string;

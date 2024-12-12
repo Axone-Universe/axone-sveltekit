@@ -17,6 +17,11 @@ export const createComment = z.object({
 	comment: z.string()
 });
 
+export const deleteComment = z.object({
+	chapterId: z.string(),
+	commentId: z.string()
+});
+
 export const read = z.object({
 	id: z.string().optional(),
 	storylineChapterIDs: z.array(z.string()).optional(),

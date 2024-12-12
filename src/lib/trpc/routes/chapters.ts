@@ -6,6 +6,7 @@ import { t } from '$lib/trpc/t';
 import {
 	create,
 	createComment,
+	deleteComment,
 	getById,
 	readFromStoryline,
 	update
@@ -263,7 +264,33 @@ export const chapters = t.router({
 			};
 			try {
 				const result = await chapterBuilder.update();
-				response.data = result.comments?.at(-1);
+				response.data = result.comments?.at(0);
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data as HydratedDocument<CommentProperties> } };
+		}),
+
+	deleteComment: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(deleteComment)
+		.mutation(async ({ input, ctx }) => {
+			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUserID(
+				ctx.session!.user.id
+			);
+
+			await chapterBuilder.deleteComment(input.commentId);
+
+			const response: Response = {
+				success: true,
+				message: 'comment successfully deleted',
+				data: {}
+			};
+			try {
+				await chapterBuilder.update();
+				response.data = input.commentId;
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

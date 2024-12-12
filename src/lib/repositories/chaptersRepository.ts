@@ -117,7 +117,7 @@ export class ChaptersRepository extends Repository {
 		pipeline.push({ $match: { _id: input.id } });
 		pipeline.push({
 			$set: {
-				comments: { $slice: ['$comments', input.skip ? input.skip + 1 : 1, input.limit ?? 10] }
+				comments: { $slice: ['$comments', input.skip ? input.skip : 1, input.limit ?? 10] }
 			}
 		});
 

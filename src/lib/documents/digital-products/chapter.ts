@@ -251,7 +251,8 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			],
 			{
-				userID: this._sessionUserID
+				userID: this._sessionUserID,
+				comments: true
 			}
 		)
 			.cursor()
@@ -266,11 +267,35 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			firstName: user ? user.firstName ?? '' : '',
 			lastName: user ? user.lastName ?? '' : '',
 			imageURL: user ? user.imageURL ?? '' : '',
-			date: formatDate(new Date()),
+			date: new Date().toISOString(),
 			comment: comment
 		};
 
-		comments.push(newComment);
+		comments.unshift(newComment);
+
+		this._chapterProperties.comments = comments;
+		return this;
+	}
+
+	async deleteComment(commentId: string) {
+		const chapter = (await Chapter.aggregate(
+			[
+				{
+					$match: {
+						_id: this._chapterProperties._id
+					}
+				}
+			],
+			{
+				userID: this._sessionUserID,
+				comments: true
+			}
+		)
+			.cursor()
+			.next()) as HydratedDocument<ChapterProperties>;
+
+		let comments = chapter?.comments ?? [];
+		comments = comments.filter((comment) => comment._id !== commentId);
 
 		this._chapterProperties.comments = comments;
 		return this;

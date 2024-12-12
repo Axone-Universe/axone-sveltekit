@@ -352,6 +352,21 @@ describe('chapters', () => {
 
 		expect(comment1.comment).toEqual('amazing storyline!');
 
+		// test delete comments
+		await caller.chapters.deleteComment({
+			commentId: comment1._id,
+			chapterId: chapter1Response.data._id ?? ''
+		});
+
+		let chapterResponse = (
+			await caller.chapters.getById({
+				id: chapter1Response.data._id
+			})
+		).data;
+
+		expect(chapterResponse.comments?.length).toEqual(0);
+		expect(chapterResponse.commentsCount).toEqual(0);
+
 		// test comments limit
 		for (let i = 1; i < 21; i++) {
 			await caller.chapters.createComment({
@@ -360,13 +375,14 @@ describe('chapters', () => {
 			});
 		}
 
-		const chapterResponse = (
+		chapterResponse = (
 			await caller.chapters.getById({
 				id: chapter1Response.data._id
 			})
 		).data;
 
 		expect(chapterResponse.comments?.length).toEqual(10);
+		expect(chapterResponse.commentsCount).toEqual(20);
 
 		// test get comments
 		const comments = (
@@ -378,6 +394,6 @@ describe('chapters', () => {
 		).data;
 
 		expect(comments?.length).toEqual(5);
-		expect(comments![0].comment).toEqual('comment 6');
+		expect(comments![0].comment).toEqual('comment 15');
 	});
 });
