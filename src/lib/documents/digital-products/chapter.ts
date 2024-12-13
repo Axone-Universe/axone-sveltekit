@@ -10,6 +10,7 @@ import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
 import { DeltaBuilder } from '../digital-assets/delta';
 import { formatDate } from '$lib/util/constants';
+import { User } from '$lib/models/user';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -242,24 +243,25 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	async createComment(comment: string) {
-		const chapter = (await Chapter.aggregate(
-			[
-				{
-					$match: {
-						_id: this._chapterProperties._id
+		const chapter = new Chapter(
+			await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterProperties._id
+						}
 					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
 				}
-			],
-			{
-				userID: this._sessionUserID,
-				comments: true
-			}
-		)
-			.cursor()
-			.next()) as HydratedDocument<ChapterProperties>;
+			)
+				.cursor()
+				.next()
+		);
 
-		const comments = chapter?.comments ?? [];
-		const user = typeof chapter.user !== 'string' ? chapter.user : undefined;
+		const user = await User.findOne({ _id: this._sessionUserID });
 
 		const newComment = {
 			_id: ulid(),
@@ -271,34 +273,31 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			comment: comment
 		};
 
-		comments.unshift(newComment);
-
-		this._chapterProperties.comments = comments;
-		return this;
+		chapter.isNew = false;
+		return await chapter.createComment(newComment);
 	}
 
 	async deleteComment(commentId: string) {
-		const chapter = (await Chapter.aggregate(
-			[
-				{
-					$match: {
-						_id: this._chapterProperties._id
+		const chapter = new Chapter(
+			await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterProperties._id
+						}
 					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
 				}
-			],
-			{
-				userID: this._sessionUserID,
-				comments: true
-			}
-		)
-			.cursor()
-			.next()) as HydratedDocument<ChapterProperties>;
+			)
+				.cursor()
+				.next()
+		);
 
-		let comments = chapter?.comments ?? [];
-		comments = comments.filter((comment) => comment._id !== commentId);
-
-		this._chapterProperties.comments = comments;
-		return this;
+		chapter.isNew = false;
+		return await chapter.deleteComment(commentId);
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {
