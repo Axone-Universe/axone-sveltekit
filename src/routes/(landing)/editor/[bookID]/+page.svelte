@@ -275,6 +275,8 @@
 				storylineChapterIDs: selectedStoryline.chapters as string[]
 			})
 			.then((response) => {
+				console.log('** story');
+				console.log(response.message);
 				selectedStoryline.chapters = response.data as HydratedDocument<ChapterProperties>[];
 				selectedStoryline.chapters.forEach((chapter) => {
 					if (typeof chapter !== 'string') selectedStorylineChapters[chapter._id] = chapter;
@@ -644,9 +646,11 @@
 				comment: comment
 			})
 			.then((response) => {
-				selectedChapter?.comments?.unshift(response.data as CommentProperties);
-				if (selectedChapter) {
-					selectedChapter.comments = selectedChapter?.comments;
+				if (selectedChapter && response.success) {
+					let comments = selectedChapter.comments ?? [];
+					comments.unshift(response.data as CommentProperties);
+
+					selectedChapter.comments = comments;
 					selectedChapter.commentsCount = (selectedChapter.commentsCount ?? 0) + 1;
 				}
 				readerComment = '';

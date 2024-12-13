@@ -23,6 +23,8 @@ import { Storyline } from './storyline';
 interface ExtendedChapterProperties extends ChapterProperties {
 	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
 	deleteChild: (chapterID: string, session: ClientSession) => Promise<void>;
+	createComment: (comment: CommentProperties) => Promise<ChapterProperties>;
+	deleteComment: (commentId: string) => Promise<string>;
 }
 
 export const commentSchema = new Schema<CommentProperties>({
@@ -155,6 +157,24 @@ chapterSchema.methods.deleteChild = async function (
 	await this.save({ session });
 };
 
+chapterSchema.methods.createComment = async function (comment: CommentProperties) {
+	if (!this.comments) {
+		this.comments = [];
+	}
+
+	this.comments.unshift(comment);
+	return await this.save();
+};
+
+chapterSchema.methods.deleteComment = async function (commentId: string) {
+	if (!this.comments) {
+		this.comments = [];
+	}
+
+	this.comments = this.comments.filter((comment: { _id: string }) => comment._id !== commentId);
+	return await this.save();
+};
+
 function populate(pipeline: PipelineStage[], comments: boolean) {
 	pipeline.push(
 		{
@@ -191,7 +211,7 @@ function populate(pipeline: PipelineStage[], comments: boolean) {
 	if (!comments) {
 		pipeline.push({
 			$set: {
-				commentsCount: { $size: '$comments' },
+				commentsCount: { $size: { $ifNull: ['$comments', []] } },
 				comments: { $slice: ['$comments', 10] }
 			}
 		});
