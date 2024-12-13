@@ -318,4 +318,82 @@ describe('chapters', () => {
 
 		expect(chapterUpdateResponse.data.description).toEqual('My chapter 1');
 	});
+
+	test('chapter comments', async () => {
+		const testBookTitle = 'My Book';
+		const chapter1Title = 'Chapter 1';
+
+		const testUserOneSession = createTestSession(testUserOne);
+		const user = await createDBUser(testUserOneSession);
+
+		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+
+		const caller = router.createCaller({ session: testUserOneSession });
+		const storylines = (
+			await caller.storylines.get({
+				bookID: bookResponse.data._id
+			})
+		).data;
+
+		const chapter1Response = await createChapter(
+			testUserOneSession,
+			chapter1Title,
+			'My chapter 1',
+			storylines[0]
+		);
+
+		// create chapter comment
+		const comment1 = (
+			await caller.chapters.createComment({
+				comment: 'amazing storyline!',
+				chapterId: chapter1Response.data._id ?? ''
+			})
+		).data;
+
+		expect(comment1.comment).toEqual('amazing storyline!');
+
+		// test delete comments
+		await caller.chapters.deleteComment({
+			commentId: comment1._id,
+			chapterId: chapter1Response.data._id ?? ''
+		});
+
+		let chapterResponse = (
+			await caller.chapters.getById({
+				id: chapter1Response.data._id
+			})
+		).data;
+
+		expect(chapterResponse.comments?.length).toEqual(0);
+		expect(chapterResponse.commentsCount).toEqual(0);
+
+		// test comments limit
+		for (let i = 1; i < 21; i++) {
+			await caller.chapters.createComment({
+				comment: 'comment ' + i,
+				chapterId: chapter1Response.data._id ?? ''
+			});
+		}
+
+		chapterResponse = (
+			await caller.chapters.getById({
+				id: chapter1Response.data._id
+			})
+		).data;
+
+		expect(chapterResponse.comments?.length).toEqual(10);
+		expect(chapterResponse.commentsCount).toEqual(20);
+
+		// test get comments
+		const comments = (
+			await caller.chapters.getComments({
+				id: chapter1Response.data._id,
+				limit: 5,
+				skip: 5
+			})
+		).data;
+
+		expect(comments?.length).toEqual(5);
+		expect(comments![0].comment).toEqual('comment 15');
+	});
 });

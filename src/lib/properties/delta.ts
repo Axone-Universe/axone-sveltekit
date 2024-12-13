@@ -3,6 +3,7 @@ import type { ChapterProperties } from './chapter';
 import type { PermissionProperties } from './permission';
 import { ulid } from 'ulid';
 import type { UserProperties } from './user';
+import { formatDate } from '$lib/util/constants';
 
 export const label = 'Delta';
 
@@ -30,19 +31,9 @@ export class VersionPropertyBuilder {
 	constructor() {
 		this._properties = {
 			_id: ulid(),
-			date: this.formatDate(new Date()),
+			date: formatDate(new Date()),
 			ops: []
 		};
-	}
-
-	formatDate(date: Date) {
-		return date.toLocaleDateString(undefined, {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: 'numeric'
-		});
 	}
 
 	getProperties() {
