@@ -44,7 +44,8 @@
 		book,
 		ellipsisH,
 		comments,
-		trashO
+		trashO,
+		arrowDown
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Toolbar from '$lib/components/editor/Toolbar.svelte';
@@ -76,6 +77,7 @@
 	import { bubble } from 'svelte/internal';
 	import { timeAgo } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -651,6 +653,22 @@
 			});
 	}
 
+	function loadMoreReaderComments() {
+		trpc($page)
+			.chapters.getComments.mutate({
+				id: selectedChapter ? selectedChapter._id : '',
+				skip: selectedChapter?.comments?.length,
+				limit: 5
+			})
+			.then((response) => {
+				if (selectedChapter) {
+					selectedChapter.comments = selectedChapter?.comments?.concat(
+						response.data as CommentProperties[]
+					);
+				}
+			});
+	}
+
 	/**
 	 * Removes the illustration from the quill Parchment
 	 * Also removes the illustration from supabase storage
@@ -990,7 +1008,7 @@
 				{#if showReaderComments && selectedChapter}
 					<div
 						id="comments-container"
-						class="w-[30%] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+						class="w-[30%] right-24 fixed h-[90%] p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
 					>
 						<div class="card z-50 w-full p-2 scale-95 focus-within:scale-100 hover:scale-100">
 							<TextArea
@@ -1027,6 +1045,20 @@
 								</div>
 							</div>
 						{/each}
+						{#if selectedChapter.comments && selectedChapter.comments.length < (selectedChapter.commentsCount ?? 0)}
+							<div class="flex justify-center my-12">
+								<Tooltip
+									on:click={loadMoreReaderComments}
+									content="Load more"
+									placement="top"
+									target="reading-list"
+								>
+									<button class="btn-icon variant-filled">
+										<Icon data={arrowDown} />
+									</button>
+								</Tooltip>
+							</div>
+						{/if}
 					</div>
 				{/if}
 
