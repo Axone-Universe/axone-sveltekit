@@ -255,15 +255,13 @@ export const chapters = t.router({
 				ctx.session!.user.id
 			);
 
-			await chapterBuilder.createComment(input.comment);
-
 			const response: Response = {
 				success: true,
 				message: 'comment successfully created',
 				data: {}
 			};
 			try {
-				const result = await chapterBuilder.update();
+				const result = await chapterBuilder.createComment(input.comment);
 				response.data = result.comments?.at(0);
 			} catch (error) {
 				response.success = false;
