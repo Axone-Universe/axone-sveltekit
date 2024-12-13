@@ -24,7 +24,6 @@ import {
 import { RATING } from '$lib/properties/review';
 import type { ChapterProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
-import type { CreateBook } from '$lib/trpc/schemas/books';
 import { GenresBuilder } from '$lib/properties/genre';
 
 const NUM_USERS = parseInt(TEST_DATA_NUM_USERS ?? '20');
@@ -102,7 +101,9 @@ test(
 								sessions[i],
 								`${faker.person.firstName()} in ${faker.location.city()}`,
 								`${faker.commerce.productDescription()} But a chapter.`,
-								storylines[0]
+								storylines[0],
+								undefined,
+								true
 							)
 						).data
 					);
@@ -125,7 +126,9 @@ test(
 							sessions[i],
 							`${faker.person.firstName()} in ${faker.location.city()}`,
 							`${faker.commerce.productDescription()} But a chapter.`,
-							storyline
+							storyline,
+							undefined,
+							true
 						);
 					}
 				}

@@ -1,4 +1,4 @@
-import { label, type ChapterProperties } from '$lib/properties/chapter';
+import { CommentProperties, label, type ChapterProperties } from '$lib/properties/chapter';
 import mongoose, {
 	Schema,
 	model,
@@ -25,6 +25,16 @@ interface ExtendedChapterProperties extends ChapterProperties {
 	deleteChild: (chapterID: string, session: ClientSession) => Promise<void>;
 }
 
+export const commentSchema = new Schema<CommentProperties>({
+	_id: String,
+	date: String,
+	userId: String,
+	firstName: String,
+	lastName: String,
+	imageURL: String,
+	comment: String
+});
+
 export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	_id: { type: String, required: true },
 	book: { type: String, ref: BookLabel, required: true },
@@ -33,6 +43,8 @@ export const chapterSchema = new Schema<ExtendedChapterProperties>({
 	delta: { type: String, ref: DeltaLabel },
 	children: [{ type: String, ref: label }],
 	permissions: { type: Map, of: permissionSchema },
+	comments: [commentSchema],
+	commentsCount: Number,
 	title: String,
 	description: String,
 	archived: { type: Boolean, default: false },
@@ -46,11 +58,12 @@ chapterSchema.pre(['find', 'findOne'], function () {
 
 chapterSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
+	const comments = this.options.comments;
 	const storylineID = this.options.storylineID;
 	const pipeline = this.pipeline();
 	const postPipeline = this.options.postPipeline ?? [];
 
-	populate(pipeline);
+	populate(pipeline, comments);
 	addUserPermissionPipeline(userID, pipeline);
 	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
 
@@ -142,7 +155,7 @@ chapterSchema.methods.deleteChild = async function (
 	await this.save({ session });
 };
 
-function populate(pipeline: PipelineStage[]) {
+function populate(pipeline: PipelineStage[], comments: boolean) {
 	pipeline.push(
 		{
 			$lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' }
@@ -173,6 +186,16 @@ function populate(pipeline: PipelineStage[]) {
 			$unset: ['permissionsArray']
 		}
 	);
+
+	// Initially only get 10 comments
+	if (!comments) {
+		pipeline.push({
+			$set: {
+				commentsCount: { $size: '$comments' },
+				comments: { $slice: ['$comments', 10] }
+			}
+		});
+	}
 }
 
 export const Chapter = mongoose.models[label]

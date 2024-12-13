@@ -59,6 +59,7 @@
 		"browser-image-compression": "^2.0.2",
 		"date-fns": "^2.30.0",
 		"embla-carousel-svelte": "8.0.0-rc05",
+		"emoji-picker-element": "^1.26.0",
 		"happy-dom": "^9.20.3",
 		"javascript-time-ago": "^2.5.9",
 		"mongoose": "^7.6.8",
