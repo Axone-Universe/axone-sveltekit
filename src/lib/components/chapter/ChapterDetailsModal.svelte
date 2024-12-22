@@ -45,8 +45,6 @@
 			permissions: chapter.permissions,
 			notifications
 		};
-		console.log('** create chapter');
-		console.log(createDetails);
 
 		trpc($page)
 			.chapters.create.mutate({
@@ -82,8 +80,6 @@
 	async function updateChapter() {
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
-
-		console.log('** sv per,s');
 
 		trpc($page)
 			.chapters.update.mutate({
@@ -141,6 +137,7 @@
 					Permissions
 					<ManagePermissions
 						bind:permissionedDocument={chapter}
+						{notifications}
 						permissionedDocumentType="Chapter"
 					/>
 				</div>

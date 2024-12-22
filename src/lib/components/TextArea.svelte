@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import 'emoji-picker-element';
+	// @ts-ignore Import module
 	import insertText from 'https://cdn.jsdelivr.net/npm/insert-text-at-cursor@0.3.0/index.js';
 	import { onMount } from 'svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';

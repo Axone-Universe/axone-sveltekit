@@ -73,11 +73,11 @@
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
-	import { id } from 'date-fns/locale';
-	import { bubble } from 'svelte/internal';
 	import { timeAgo } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import { type UserNotificationProperties } from '$lib/properties/notification';
+	import { documentURL } from '$lib/util/links';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -640,10 +640,23 @@
 	}
 
 	function submitReaderComment(comment: string) {
+		const notifications: { [key: string]: UserNotificationProperties } = {};
+		notifications[''] = {
+			senderID: session!.user.id,
+			receiverID:
+				typeof selectedChapter!.user === 'string'
+					? selectedChapter!.user
+					: selectedChapter!.user!._id,
+			url: documentURL($page.url.origin, 'Chapter', selectedChapter!),
+			subject: 'Respond To Your Fans!',
+			notification: `${session!.user.email} has commented on your chapter!`
+		};
+
 		trpc($page)
 			.chapters.createComment.mutate({
 				chapterId: selectedChapter ? selectedChapter._id : '',
-				comment: comment
+				comment: comment,
+				notifications: notifications
 			})
 			.then((response) => {
 				if (selectedChapter && response.success) {

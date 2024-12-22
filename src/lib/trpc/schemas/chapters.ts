@@ -14,7 +14,8 @@ export const create = z.object({
 
 export const createComment = z.object({
 	chapterId: z.string(),
-	comment: z.string()
+	comment: z.string(),
+	notifications: z.record(z.string(), userNotification).optional()
 });
 
 export const deleteComment = z.object({

@@ -26,6 +26,7 @@ export const creatorsMenuList = [
 ];
 
 export function documentURL(
+	origin: string,
 	permissionedDocumentType: PermissionedDocument,
 	permissionedDocument:
 		| HydratedDocument<BookProperties>
@@ -37,7 +38,7 @@ export function documentURL(
 		case 'Book': {
 			const book = permissionedDocument as HydratedDocument<BookProperties>;
 
-			url = `book/${book._id}`;
+			url = `${origin}/book/${book._id}`;
 			break;
 		}
 
@@ -48,7 +49,7 @@ export function documentURL(
 			if (typeof storyline.book === 'string') bookId = storyline.book;
 			if (typeof storyline.book !== 'string') bookId = storyline.book!._id;
 
-			url = `/editor/${bookId}?mode=reader&storylineID=${storyline._id}`;
+			url = `${origin}/editor/${bookId}?mode=reader&storylineID=${storyline._id}`;
 			break;
 		}
 
@@ -63,7 +64,7 @@ export function documentURL(
 			if (typeof chapter.storyline === 'string') storylineId = chapter.storyline;
 			if (typeof chapter.storyline !== 'string') storylineId = chapter.storyline!._id;
 
-			url = `/editor/${bookId}?mode=reader&storylineID=${storylineId}&chapterID=${chapter._id}`;
+			url = `${origin}/editor/${bookId}?mode=reader&storylineID=${storylineId}&chapterID=${chapter._id}`;
 			break;
 		}
 	}
