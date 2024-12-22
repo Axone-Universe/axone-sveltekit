@@ -19,6 +19,7 @@ import type { ChapterProperties, CommentProperties } from '$lib/properties/chapt
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
 import { documentURL } from '$lib/util/links';
+import { UserNotificationProperties } from '$lib/properties/notification';
 
 export const chapters = t.router({
 	get: t.procedure
@@ -139,7 +140,7 @@ export const chapters = t.router({
 				const result = await chapterBuilder.update();
 
 				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
+					await sendUserNotifications(ctx.session, input.notifications);
 				}
 
 				response.data = result;
@@ -203,15 +204,15 @@ export const chapters = t.router({
 				const result = await chapterBuilder.build();
 
 				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
+					await sendUserNotifications(ctx.session, input.notifications);
 				}
 
-				sendTopicNotification({
-					topicKey: input.storylineID,
-					topicName: input.title,
-					url: documentURL('Chapter', result as HydratedDocument<ChapterProperties>),
-					notification: `A new chapter '${input.title}' has been added to a storyline in your reading list!`
-				});
+				// sendTopicNotification({
+				// 	topicKey: input.storylineID,
+				// 	topicName: input.title,
+				// 	url: documentURL('Chapter', result as HydratedDocument<ChapterProperties>),
+				// 	notification: `A new chapter '${input.title}' has been added to a storyline in your reading list!`
+				// });
 
 				response.data = result;
 			} catch (error) {
@@ -263,6 +264,10 @@ export const chapters = t.router({
 			try {
 				const result = await chapterBuilder.createComment(input.comment);
 				response.data = result.comments?.at(0);
+
+				if (input.notifications) {
+					await sendUserNotifications(ctx.session, input.notifications);
+				}
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

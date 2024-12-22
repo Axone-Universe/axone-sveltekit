@@ -8,6 +8,7 @@ import {
 	generateTestUser,
 	createBook
 } from '$lib/util/testing/testing';
+import * as novu from '$lib/util/notifications/novu';
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -24,8 +25,10 @@ describe('users', () => {
 	});
 
 	test('create user', async () => {
+		const mock = vi.spyOn(novu, 'createNotificationSubscriber');
 		const userResponse = await createDBUser(testSessionOne);
 
+		expect(mock).toHaveBeenCalled();
 		expect(userResponse.data._id).toEqual(testSessionOne.user.id);
 		expect(userResponse.data.firstName).toEqual(userOne.user_metadata.firstName);
 		expect(userResponse.data.lastName).toEqual(userOne.user_metadata.lastName);
@@ -83,7 +86,7 @@ describe('users', () => {
 		await createDBUser(testSessionOne);
 
 		const response = await caller.users.createReadingList({ name: favourites });
-		expect(Object.fromEntries(response.data!.readingLists.entries())).toEqual({
+		expect(Object.fromEntries(response.data!.readingLists!.entries())).toEqual({
 			All: [],
 			Favourites: []
 		});
@@ -103,7 +106,7 @@ describe('users', () => {
 
 		const res = await caller.users.deleteReadingList({ name: DEFAULT_READING_LIST });
 
-		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({});
+		expect(Object.fromEntries(res.data!.readingLists!.entries())).toEqual({});
 	});
 
 	test('update reading lists', async () => {
@@ -127,7 +130,7 @@ describe('users', () => {
 			storylineID: storylines[0]._id
 		});
 
-		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
+		expect(Object.fromEntries(res.data!.readingLists!.entries())).toEqual({
 			All: [storylines[0]._id],
 			Favourites: [storylines[0]._id],
 			'Read Later': []
@@ -138,7 +141,7 @@ describe('users', () => {
 			storylineID: storylines[0]._id
 		});
 
-		expect(Object.fromEntries(res.data!.readingLists.entries())).toEqual({
+		expect(Object.fromEntries(res.data!.readingLists!.entries())).toEqual({
 			All: [],
 			Favourites: [storylines[0]._id],
 			'Read Later': [storylines[0]._id]
@@ -184,7 +187,7 @@ describe('users', () => {
 			newName: favourites
 		});
 
-		expect(Object.fromEntries(user.data!.readingLists.entries())).toEqual({ Favourites: [] });
+		expect(Object.fromEntries(user.data!.readingLists!.entries())).toEqual({ Favourites: [] });
 	});
 
 	// TODO: test cascading deletes of storylines

@@ -7,6 +7,10 @@ import type {
 	TopicNotificationProperties,
 	UserNotificationProperties
 } from '$lib/properties/notification';
+import { HydratedDocument } from 'mongoose';
+import { UserProperties } from '$lib/properties/user';
+import { User } from '$lib/models/user';
+import { Session } from '@supabase/supabase-js';
 
 export const novu = new Novu(NOVU_API_KEY);
 
@@ -16,51 +20,73 @@ export const novu = new Novu(NOVU_API_KEY);
  * @param firstName
  * @param notification
  */
-export async function sendUserNotifications(notifications: {
-	[key: string]: UserNotificationProperties;
-}) {
+export async function sendUserNotifications(
+	session: Session | null,
+	notifications: {
+		[key: string]: UserNotificationProperties;
+	}
+) {
+	if (process.env.NODE_ENV === 'test') {
+		return;
+	}
+
 	if (!notifications || Object.keys(notifications).length === 0) {
 		return;
 	}
 
-	const subscriberPayloads = [];
 	const notificationPayloads = [];
 
 	for (const userID in notifications) {
 		const notification = notifications[userID];
 
-		const subscriberPayload = {
-			subscriberId: notification.receiverID,
-			firstName: notification.receiverName,
-			email: notification.receiverEmail
-		};
-		subscriberPayloads.push(subscriberPayload);
+		const users = await User.find({
+			_id: { $in: [notification.receiverID, notification.senderID] }
+		});
 
-		const notificationPayload = {
-			name: 'user-notification',
-			to: {
-				subscriberId: notification.receiverID,
-				email: notification.receiverEmail
-			},
-			payload: {
-				firstName: notification.senderName,
-				notification: notification.notification,
-				url: notification.url
-			}
-		};
-		notificationPayloads.push(notificationPayload);
+		const sender = users.find((user) => user.id === notification.senderID);
+		const receiver = users.find((user) => user.id === notification.receiverID);
+
+		if (sender && receiver) {
+			const notificationPayload = {
+				name: 'user-notification',
+				to: {
+					subscriberId: receiver.id,
+					email: receiver.email
+				},
+				payload: {
+					firstName: sender.firstName,
+					notification: notification.notification,
+					subject: notification.subject,
+					url: notification.url
+				}
+			};
+			notificationPayloads.push(notificationPayload);
+		}
 	}
 
 	try {
-		// first create the subscriber / the person receiving the notification
-		await novu.subscribers.bulkCreate(subscriberPayloads);
-		// Then send the notifications
+		//send the notifications
 		const result = await novu.bulkTrigger(notificationPayloads);
 		return result;
 	} catch (e: any) {
 		console.log('novu send user notification error');
-		// console.log(e);
+		console.log(e);
 	}
+}
+
+export async function createNotificationSubscriber(user: HydratedDocument<UserProperties>) {
+	if (process.env.NODE_ENV === 'test') {
+		return;
+	}
+
+	const subscriberPayload = {
+		subscriberId: user._id,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		avatar: user.imageURL,
+		email: user.email
+	};
+	await novu.subscribers.bulkCreate([subscriberPayload]);
 }
 
 /**
@@ -70,6 +96,10 @@ export async function sendUserNotifications(notifications: {
  * @returns
  */
 export async function subscribeToDocument(documentID: string, userID: string) {
+	if (process.env.NODE_ENV === 'test') {
+		return;
+	}
+
 	try {
 		const response = await novu.topics.addSubscribers(documentID, {
 			subscribers: [userID]
@@ -81,6 +111,10 @@ export async function subscribeToDocument(documentID: string, userID: string) {
 }
 
 export async function sendTopicNotification(notification: TopicNotificationProperties) {
+	if (process.env.NODE_ENV === 'test') {
+		return;
+	}
+
 	try {
 		await novu.trigger('user-notification', {
 			to: [{ type: 'Topic' as any, topicKey: notification.topicKey }],

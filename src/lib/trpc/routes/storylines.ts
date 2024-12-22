@@ -125,7 +125,7 @@ export const storylines = t.router({
 				const result = await storylineBuilder.update();
 
 				if (input.notifications) {
-					sendUserNotifications(input.notifications);
+					sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = result;
 			} catch (error) {
@@ -189,7 +189,7 @@ export const storylines = t.router({
 				const result = await storylineBuilder.build();
 
 				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
+					await sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = result;
 			} catch (error) {

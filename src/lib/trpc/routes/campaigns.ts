@@ -80,7 +80,7 @@ export const campaigns = t.router({
 				const result = await campaignBuilder.build();
 
 				if (input.book.notifications) {
-					sendUserNotifications(input.book.notifications);
+					sendUserNotifications(ctx.session, input.book.notifications);
 				}
 
 				response.data = result;
@@ -127,7 +127,7 @@ export const campaigns = t.router({
 				const result = await campaignBuilder.update();
 
 				if (input.book?.notifications) {
-					sendUserNotifications(input.book.notifications);
+					sendUserNotifications(ctx.session, input.book.notifications);
 				}
 				response.data = result;
 			} catch (error) {
