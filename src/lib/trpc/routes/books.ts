@@ -70,7 +70,7 @@ export const books = t.router({
 				const book = await bookBuilder.update();
 
 				if (input.notifications) {
-					sendUserNotifications(input.notifications);
+					sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = book;
 			} catch (error) {
@@ -145,7 +145,7 @@ export const books = t.router({
 				const book = await bookBuilder.build();
 
 				if (input.notifications) {
-					sendUserNotifications(input.notifications);
+					sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = book;
 			} catch (error) {
