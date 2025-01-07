@@ -3,12 +3,14 @@ import { ulid } from 'ulid';
 import { DocumentBuilder } from '$lib/documents/documentBuilder';
 import type { ClientSession, HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
-import type { ChapterProperties } from '$lib/properties/chapter';
+import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
 import { Chapter } from '$lib/models/chapter';
 import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Delta } from '$lib/models/delta';
 import { DeltaBuilder } from '../digital-assets/delta';
+import { formatDate } from '$lib/util/constants';
+import { User } from '$lib/models/user';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
@@ -238,6 +240,64 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		session.endSession();
 
 		return acknowledged;
+	}
+
+	async createComment(comment: string) {
+		const chapter = new Chapter(
+			await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)
+				.cursor()
+				.next()
+		);
+
+		const user = await User.findOne({ _id: this._sessionUserID });
+
+		const newComment = {
+			_id: ulid(),
+			userId: user ? user._id : '',
+			firstName: user ? user.firstName ?? '' : '',
+			lastName: user ? user.lastName ?? '' : '',
+			imageURL: user ? user.imageURL ?? '' : '',
+			date: new Date().toISOString(),
+			comment: comment
+		};
+
+		chapter.isNew = false;
+		return await chapter.createComment(newComment);
+	}
+
+	async deleteComment(commentId: string) {
+		const chapter = new Chapter(
+			await Chapter.aggregate(
+				[
+					{
+						$match: {
+							_id: this._chapterProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)
+				.cursor()
+				.next()
+		);
+
+		chapter.isNew = false;
+		return await chapter.deleteComment(commentId);
 	}
 
 	async build(): Promise<HydratedDocument<ChapterProperties>> {

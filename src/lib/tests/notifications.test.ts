@@ -1,6 +1,6 @@
 import { router } from '$lib/trpc/router';
 import { vi, expect, describe } from 'vitest';
-import { novu } from '$lib/util/notifications/novu';
+import * as novu from '$lib/util/notifications/novu';
 import {
 	cleanUpDatabase,
 	connectTestDatabase,
@@ -22,7 +22,7 @@ describe('notifications', () => {
 	});
 
 	test('send notifications', async () => {
-		const mock = vi.spyOn(novu.subscribers, 'bulkCreate');
+		const mock = vi.spyOn(novu, 'sendUserNotifications');
 
 		const testBookTitle = 'My Book';
 
@@ -41,12 +41,11 @@ describe('notifications', () => {
 
 		const notifications: { [key: string]: UserNotificationProperties } = {};
 		const notification = {
-			senderName: testUserOne.user_metadata.firstName,
+			senderID: testUserOne.id,
 			receiverID: testUserTwo.id,
-			receiverName: testUserTwo.user_metadata.firstName,
-			receiverEmail: testUserTwo.email!,
 			url: 'url',
-			notification: 'test notification'
+			notification: 'test notification',
+			subject: 'test notification'
 		};
 
 		notifications[testUserTwo.id] = notification;

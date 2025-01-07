@@ -12,6 +12,17 @@ export const create = z.object({
 	notifications: z.record(z.string(), userNotification).optional()
 });
 
+export const createComment = z.object({
+	chapterId: z.string(),
+	comment: z.string(),
+	notifications: z.record(z.string(), userNotification).optional()
+});
+
+export const deleteComment = z.object({
+	chapterId: z.string(),
+	commentId: z.string()
+});
+
 export const read = z.object({
 	id: z.string().optional(),
 	storylineChapterIDs: z.array(z.string()).optional(),
@@ -23,6 +34,13 @@ export const read = z.object({
 	cursor: z.string().optional(),
 	user: z.string().optional(),
 	archived: z.boolean().optional()
+});
+
+export const getById = z.object({
+	id: z.string(),
+	limit: z.number().optional(),
+	skip: z.number().optional(),
+	cursor: z.string().optional()
 });
 
 export const readFromStoryline = z.object({
@@ -42,3 +60,5 @@ export const update = z.object({
 });
 
 export type ReadChapter = z.infer<typeof read>;
+
+export type GetByIdSchema = z.infer<typeof getById>;

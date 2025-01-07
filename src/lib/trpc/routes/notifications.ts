@@ -10,7 +10,7 @@ export const notes = t.router({
 		.use(auth)
 		.input(userNotifications)
 		.mutation(async ({ input, ctx }) => {
-			const result = await sendUserNotifications(input.notifications);
+			const result = await sendUserNotifications(ctx.session, input.notifications);
 			console.log(result);
 		})
 });

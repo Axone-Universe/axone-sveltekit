@@ -186,6 +186,8 @@ export class QuillEditor extends Quill {
 				const deltaResponse = await trpc(this.page).deltas.getById.query({
 					id: delta as string
 				});
+				console.log('** got delta');
+				console.log(deltaResponse.data);
 				this.setChapterContents(
 					chapter!,
 					deltaResponse.data as HydratedDocument<ChapterProperties>

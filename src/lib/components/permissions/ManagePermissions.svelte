@@ -157,11 +157,10 @@
 			permissions[userID] = permission;
 			permissions = permissions;
 			notifications[userID] = {
-				senderName: documentOwner.firstName!,
+				senderID: documentOwner._id,
 				receiverID: userID,
-				receiverName: permission.user.firstName!,
-				receiverEmail: permission.user.email!,
-				url: documentURL(permissionedDocumentType, permissionedDocument),
+				subject: 'Request To Collaborate!',
+				url: documentURL($page.url.origin, permissionedDocumentType, permissionedDocument),
 				notification: `${documentOwner.firstName!} has requested you to collaborate on the ${permissionedDocumentType} '${
 					permissionedDocument.title
 				}'!`
@@ -256,11 +255,11 @@
 								</div>
 							</div>
 							<div class="flex-row btn-group variant-filled">
-								<button use:popup={permissionsPopupSettings(id)}>
+								<button use:popup={permissionsPopupSettings(id)} type="button">
 									<span class="capitalize text-xs">{permission.permission}</span>
 									<Icon class="border-none" data={caretDown} scale={1} />
 								</button>
-								<button on:click={() => removePermission(id)} class="!py-2 !px-3">
+								<button on:click={() => removePermission(id)} class="!py-2 !px-3" type="button">
 									<Icon data={trash} scale={1} />
 								</button>
 							</div>

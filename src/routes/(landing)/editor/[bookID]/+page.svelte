@@ -7,6 +7,7 @@
 	} from '@skeletonlabs/skeleton';
 	import {
 		AppShell,
+		Avatar,
 		Drawer,
 		FileDropzone,
 		getDrawerStore,
@@ -41,7 +42,10 @@
 		lock,
 		pencil,
 		book,
-		ellipsisH
+		ellipsisH,
+		comments,
+		trashO,
+		arrowDown
 	} from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Toolbar from '$lib/components/editor/Toolbar.svelte';
@@ -49,7 +53,11 @@
 	import RequestPermissionModal from '$lib/components/permissions/RequestPermissionModal.svelte';
 	import ChapterNotesModal from '$lib/components/chapter/ChapterNotesModal.svelte';
 	import 'quill-comment';
-	import { type ChapterProperties, ChapterPropertyBuilder } from '$lib/properties/chapter';
+	import {
+		type ChapterProperties,
+		ChapterPropertyBuilder,
+		type CommentProperties
+	} from '$lib/properties/chapter';
 	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
 	import type { EditorMode, StorageFileError, UploadFileToBucketParams } from '$lib/util/types';
 	import type { IllustrationObject } from '$lib/util/editor/illustrations';
@@ -65,6 +73,11 @@
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
+	import { timeAgo } from '$lib/util/constants';
+	import TextArea from '$lib/components/TextArea.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
+	import { type UserNotificationProperties } from '$lib/properties/notification';
+	import { documentURL } from '$lib/util/links';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -262,6 +275,8 @@
 				storylineChapterIDs: selectedStoryline.chapters as string[]
 			})
 			.then((response) => {
+				console.log('** story');
+				console.log(response.message);
 				selectedStoryline.chapters = response.data as HydratedDocument<ChapterProperties>[];
 				selectedStoryline.chapters.forEach((chapter) => {
 					if (typeof chapter !== 'string') selectedStorylineChapters[chapter._id] = chapter;
@@ -551,7 +566,8 @@
 	 * Quill Editor Settings
 	 */
 	let quill: QuillEditor;
-	let showComments = false;
+	let showAuthorComments = false;
+	let showReaderComments = false;
 	let showIllustrations = false;
 	let savingDelta: boolean;
 	let numComments = 0;
@@ -568,7 +584,7 @@
 		}
 	});
 
-	$: commentBgColor = showComments ? 'var(--color-primary-500)' : '';
+	$: commentBgColor = showAuthorComments ? 'var(--color-primary-500)' : '';
 	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
 	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
 
@@ -576,19 +592,23 @@
 	 * Toggles the showComments boolean and updates the quill module
 	 *
 	 */
-	function toggleShowComments() {
-		if (showIllustrations && !showComments) {
+	function toggleShowAuthorComments() {
+		if (showIllustrations && !showAuthorComments) {
 			toggleShowIllustrations();
 		}
-		showComments = !showComments;
+		showAuthorComments = !showAuthorComments;
+	}
+
+	function toggleShowUserComments() {
+		showReaderComments = !showReaderComments;
 	}
 
 	/**
 	 * Toggles the showIllustrations boolean and updates the quill module
 	 */
 	function toggleShowIllustrations() {
-		if (showComments && !showIllustrations) {
-			toggleShowComments();
+		if (showAuthorComments && !showIllustrations) {
+			toggleShowAuthorComments();
 		}
 		showIllustrations = !showIllustrations;
 		// if (showIllustrations) quill.getModule('illustration').addIllustrationStyle('green')
@@ -599,6 +619,71 @@
 		let editor = document.getElementById('editor');
 		quill.removeComment(id, editor);
 		quill.oldSelectedRange = null; // reset the old range
+	}
+
+	let readerComment = '';
+	function deleteReaderComment(id: string) {
+		trpc($page)
+			.chapters.deleteComment.mutate({
+				chapterId: selectedChapter ? selectedChapter._id : '',
+				commentId: id
+			})
+			.then((response) => {
+				const deletedId = response.data;
+				if (selectedChapter) {
+					selectedChapter.comments = selectedChapter.comments?.filter(
+						(comment) => comment._id !== deletedId
+					);
+					selectedChapter.commentsCount = (selectedChapter.commentsCount ?? 1) - 1;
+				}
+			});
+	}
+
+	function submitReaderComment(comment: string) {
+		const notifications: { [key: string]: UserNotificationProperties } = {};
+		notifications[''] = {
+			senderID: session!.user.id,
+			receiverID:
+				typeof selectedChapter!.user === 'string'
+					? selectedChapter!.user
+					: selectedChapter!.user!._id,
+			url: documentURL($page.url.origin, 'Chapter', selectedChapter!),
+			subject: 'Respond To Your Fans!',
+			notification: `${session!.user.email} has commented on your chapter!`
+		};
+
+		trpc($page)
+			.chapters.createComment.mutate({
+				chapterId: selectedChapter ? selectedChapter._id : '',
+				comment: comment,
+				notifications: notifications
+			})
+			.then((response) => {
+				if (selectedChapter && response.success) {
+					let comments = selectedChapter.comments ?? [];
+					comments.unshift(response.data as CommentProperties);
+
+					selectedChapter.comments = comments;
+					selectedChapter.commentsCount = (selectedChapter.commentsCount ?? 0) + 1;
+				}
+				readerComment = '';
+			});
+	}
+
+	function loadMoreReaderComments() {
+		trpc($page)
+			.chapters.getComments.mutate({
+				id: selectedChapter ? selectedChapter._id : '',
+				skip: selectedChapter?.comments?.length,
+				limit: 5
+			})
+			.then((response) => {
+				if (selectedChapter) {
+					selectedChapter.comments = selectedChapter?.comments?.concat(
+						response.data as CommentProperties[]
+					);
+				}
+			});
 	}
 
 	/**
@@ -674,11 +759,11 @@
 
 		if (quill.selectedContainsIllustration()) {
 			drawerStore.open(drawerSettings);
-			showComments = false;
+			showAuthorComments = false;
 			showIllustrations = true;
 		} else {
 			drawerStore.open(drawerSettings);
-			showComments = true;
+			showAuthorComments = true;
 			showIllustrations = false;
 		}
 	}
@@ -702,11 +787,11 @@
 
 		if (quill.selectedContainsComment()) {
 			drawerStore.open(drawerSettings);
-			showComments = true;
+			showAuthorComments = true;
 			showIllustrations = false;
 		} else {
 			drawerStore.open(drawerSettings);
-			showComments = false;
+			showAuthorComments = false;
 			showIllustrations = true;
 		}
 	}
@@ -903,7 +988,7 @@
 			class="md:!relative h-full !left-auto pt-24 md:pt-1"
 		>
 			<div class="flex h-full">
-				{#if showComments && numComments !== 0}
+				{#if showAuthorComments && numComments !== 0}
 					<div
 						id="comments-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
@@ -934,6 +1019,63 @@
 								</footer>
 							</div>
 						{/each}
+					</div>
+				{/if}
+
+				{#if showReaderComments && selectedChapter}
+					<div
+						id="comments-container"
+						class="w-[30%] right-24 fixed h-[90%] p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
+					>
+						<div class="card z-50 w-full p-2 scale-95 focus-within:scale-100 hover:scale-100">
+							<TextArea
+								submitButton={true}
+								submit={submitReaderComment}
+								placeholder="Add a comment"
+								maxLength={100}
+								bind:textContent={readerComment}
+							/>
+						</div>
+						{#each selectedChapter.comments ?? [] as comment}
+							<div
+								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
+							>
+								<div class="card grid grid-cols-[auto_1fr] gap-2 p-2">
+									<div class="w-12 flex flex-col items-center gap-2 justify-between">
+										<Avatar width="w-10" src={comment.imageURL} />
+										{#if comment.userId === session?.user.id}
+											<button
+												on:click={() => deleteReaderComment(comment._id)}
+												type="button"
+												class="btn-icon variant-filled w-fit p-2"
+												><Icon scale={1} class="w-fit" data={trash} /></button
+											>
+										{/if}
+									</div>
+									<div class="p-4 variant-soft-surface rounded-tl-none space-y-2">
+										<header class="flex justify-between items-center">
+											<p class="font-bold">{comment.firstName}</p>
+											<small class="opacity-50">{timeAgo(comment.date)}</small>
+										</header>
+										<p>{comment.comment}</p>
+									</div>
+								</div>
+							</div>
+						{/each}
+						{#if selectedChapter.comments && selectedChapter.comments.length < (selectedChapter.commentsCount ?? 0)}
+							<div class="flex justify-center my-12">
+								<Tooltip
+									on:click={loadMoreReaderComments}
+									content="Load more"
+									placement="top"
+									target="reading-list"
+								>
+									<button class="btn-icon variant-filled">
+										<Icon data={arrowDown} />
+									</button>
+								</Tooltip>
+							</div>
+						{/if}
 					</div>
 				{/if}
 
@@ -1045,13 +1187,23 @@
 								},
 								{
 									id: 'view-comments',
-									label: 'View chapter comments',
+									label: 'View author comments',
 									icon: dashcube,
-									callback: toggleShowComments,
+									callback: toggleShowAuthorComments,
 									class: 'relative',
 									notification: numComments,
 									mode: 'writer',
 									hidden: !isChapterSelected || numComments === 0
+								},
+								{
+									id: 'view-comments',
+									label: 'View user comments',
+									icon: comments,
+									callback: toggleShowUserComments,
+									class: 'relative',
+									notification: selectedChapter?.commentsCount,
+									mode: 'reader',
+									hidden: !isChapterSelected
 								},
 								{
 									id: 'view-illustrations',
