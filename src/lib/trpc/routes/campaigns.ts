@@ -16,14 +16,14 @@ export const campaigns = t.router({
 	get: t.procedure
 		.use(logger)
 		.input(read)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const response: Response = {
 				success: true,
 				message: 'campaigns successfully retrieved',
 				data: {}
 			};
 			try {
-				const result = await campaignsRepo.get(input);
+				const result = await campaignsRepo.get(ctx.session, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
 			} catch (error) {

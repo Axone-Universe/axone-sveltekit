@@ -186,11 +186,11 @@ textarea::placeholder {
 /* Global Styling */
 
 .dark .icon-info {
-	fill: rgb(var(--color-surface-300)) !important;
+	fill: rgb(var(--color-surface-300));
 }
 
 .icon-info {
-	fill: rgb(var(--color-surface-600)) !important;
+	fill: rgb(var(--color-surface-600));
 }
 
 /* For list boxes to have background color before being selected */
@@ -218,4 +218,17 @@ textarea::placeholder {
 /* for tawk button */
 .tawk-custom-color {
 	color: rgb(var(--color-surface-300)) !important;
+}
+
+/** embla carousel **/
+
+.embla {
+	overflow: hidden;
+}
+.embla__container {
+	display: flex;
+}
+.embla__slide {
+	flex: 0 0 100%;
+	min-width: 0;
 }

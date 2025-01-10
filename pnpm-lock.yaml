@@ -43,6 +43,9 @@ dependencies:
   date-fns:
     specifier: ^2.30.0
     version: 2.30.0
+  embla-carousel-autoplay:
+    specifier: ^8.5.2
+    version: 8.5.2(embla-carousel@8.5.2)
   embla-carousel-svelte:
     specifier: 8.0.0-rc05
     version: 8.0.0-rc05(svelte@3.59.2)
@@ -85,6 +88,9 @@ dependencies:
   svelte-awesome:
     specifier: ^3.3.1
     version: 3.3.1(svelte@3.59.2)
+  svelte-embla:
+    specifier: ^0.0.7
+    version: 0.0.7
   svelte-quill:
     specifier: ^1.2.0
     version: 1.2.0
@@ -2743,6 +2749,14 @@ packages:
     resolution: {integrity: sha512-osHqhtjojpCsACVnuD11xO5g9xaCyw7Qqn/C2KParkMv42i8jrJJgx3g7mkHfpxwhy9MnOJr8+pKOdZ7qzgizg==}
     dev: true
 
+  /embla-carousel-autoplay@8.5.2(embla-carousel@8.5.2):
+    resolution: {integrity: sha512-27emJ0px3q/c0kCHCjwRrEbYcyYUPfGO3g5IBWF1i7714TTzE6L9P81V6PHLoSMAKJ1aHoT2e7YFOsuFKCbyag==}
+    peerDependencies:
+      embla-carousel: 8.5.2
+    dependencies:
+      embla-carousel: 8.5.2
+    dev: false
+
   /embla-carousel-reactive-utils@8.0.0-rc05(embla-carousel@8.0.0-rc05):
     resolution: {integrity: sha512-gWmyjsTm5X4P/8vP7a27lSuboUjVve/QQEqYPP9YDyz97k5PEYd1qncgObB6LRdDuYsLcsJJnV1EinoJZ65YVQ==}
     peerDependencies:
@@ -2761,8 +2775,16 @@ packages:
       svelte: 3.59.2
     dev: false
 
+  /embla-carousel@6.2.0:
+    resolution: {integrity: sha512-dSNsiQ7nmSQJZgbYfZCLdzrnznHwpaAcdJFcMRKgm/pjH1doOgxmfsvlMy4VfO4J11hLz8jm/W8WxSSDqfuu4w==}
+    dev: false
+
   /embla-carousel@8.0.0-rc05:
     resolution: {integrity: sha512-Ujl1Bp+zIEn0WY9QHiBmhNyC+y7DZMEOy02WnINvJUxwXmuE5DiTb6UyG5b7PG/yLjlCgaboAsUdFOOIS+T7uQ==}
+    dev: false
+
+  /embla-carousel@8.5.2:
+    resolution: {integrity: sha512-xQ9oVLrun/eCG/7ru3R+I5bJ7shsD8fFwLEY7yPe27/+fDHCNj0OT5EoG5ZbFyOxOcG6yTwW8oTz/dWyFnyGpg==}
     dev: false
 
   /emoji-picker-element@1.26.0:
@@ -5264,6 +5286,12 @@ packages:
       - stylus
       - sugarss
     dev: true
+
+  /svelte-embla@0.0.7:
+    resolution: {integrity: sha512-IN2OAFRtdMaYFoUX4Uf33Un1GZ2Axrw4cX57HpVTc1T5epKwFBYn8KqJbD5StPYMMbqZGLWYvZdN1K3W3K9+aw==}
+    dependencies:
+      embla-carousel: 6.2.0
+    dev: false
 
   /svelte-hmr@0.15.3(svelte@3.59.2):
     resolution: {integrity: sha512-41snaPswvSf8TJUhlkoJBekRrABDXDMdpNpT2tfHIv4JuhgvHqLMhEPGtaQn0BmbNSTkuz2Ed20DF2eHw0SmBQ==}
