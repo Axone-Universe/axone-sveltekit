@@ -1,23 +1,38 @@
 import type { CampaignProperties } from '$lib/properties/campaign';
 import { Repository } from '$lib/repositories/repository';
-import type { HydratedDocument } from 'mongoose';
+import type { HydratedDocument, PipelineStage } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';
 import type { Session } from '@supabase/supabase-js';
 import type { ReadCampaign } from '$lib/trpc/schemas/campaigns';
 
 export class CampaignsRepository extends Repository {
-	async get(readCampaign: ReadCampaign): Promise<HydratedDocument<CampaignProperties>[]> {
+	async get(
+		session: Session | null,
+		input: ReadCampaign
+	): Promise<HydratedDocument<CampaignProperties>[]> {
+		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
-		if (readCampaign.id) {
-			filter._id = readCampaign.id;
+		if (input.id) {
+			filter._id = input.id;
 		}
 
-		if (readCampaign.cursor) {
-			filter._id = { $gt: readCampaign.cursor };
+		if (input.open) {
+			const filterDate = new Date();
+			filter.endDate = { $gt: filterDate };
 		}
 
-		const query = Campaign.find(filter, null, { limit: readCampaign.limit });
+		if (input.cursor) {
+			filter._id = { $gt: input.cursor };
+		}
+
+		pipeline.push({ $match: filter });
+
+		if (input.limit) pipeline.push({ $limit: input.limit });
+
+		const query = Campaign.aggregate(pipeline, {
+			userID: session?.user.id
+		});
 
 		return await query;
 	}

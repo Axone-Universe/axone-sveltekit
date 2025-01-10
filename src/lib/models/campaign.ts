@@ -1,6 +1,6 @@
 import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
-import mongoose, { Schema, model } from 'mongoose';
+import mongoose, { PipelineStage, Schema, model } from 'mongoose';
 import {
 	addArchivedRestrictionFilter,
 	addOwnerUpdateRestrictionFilter,
@@ -17,6 +17,22 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	book: { type: String, ref: BookLabel, required: true },
 	createdAt: Date,
 	updatedAt: Date
+});
+
+campaignSchema.pre('aggregate', function (next) {
+	const userID = this.options.userID;
+	const pipeline = this.pipeline();
+	// Used for pipelines that must be put after the default populate and permissions
+	// The order is usually important e.g. limit pipeline should be at the end
+	const postPipeline = this.options.postPipeline ?? [];
+
+	populate(pipeline);
+
+	for (const filter of postPipeline) {
+		pipeline.push(filter);
+	}
+
+	next();
 });
 
 campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
@@ -51,6 +67,23 @@ campaignSchema.pre('save', function (next) {
 	next();
 });
 
+/**
+ * Add fields you want to be populated by default here
+ * @param query
+ */
+function populate(pipeline: PipelineStage[]) {
+	pipeline.push(
+		{
+			$lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'book' }
+		},
+		{
+			$unwind: {
+				path: '$book',
+				preserveNullAndEmptyArrays: true
+			}
+		}
+	);
+}
 export const Campaign = mongoose.models[label]
 	? model<CampaignProperties>(label)
 	: model<CampaignProperties>(label, campaignSchema);
