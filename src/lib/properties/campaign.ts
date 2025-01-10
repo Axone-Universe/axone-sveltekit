@@ -1,3 +1,6 @@
+import { HydratedDocument } from 'mongoose';
+import { type BookProperties } from './book';
+
 export const label = 'Campaign';
 
 export interface CampaignProperties {
@@ -8,6 +11,18 @@ export interface CampaignProperties {
 	submissionCriteria?: string;
 	rewards?: string;
 	book?: string;
+	createdAt?: Date;
+	updatedAt?: Date;
+}
+
+export interface HydratedCampaignProperties {
+	_id: string;
+	user: string;
+	startDate?: Date;
+	endDate?: Date;
+	submissionCriteria?: string;
+	rewards?: string;
+	book: HydratedDocument<BookProperties>;
 	createdAt?: Date;
 	updatedAt?: Date;
 }

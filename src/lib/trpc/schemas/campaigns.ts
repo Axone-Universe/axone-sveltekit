@@ -22,7 +22,8 @@ export const update = z.object({
 export const read = z.object({
 	id: z.string().optional(),
 	limit: z.number().optional(),
-	cursor: z.string().optional()
+	cursor: z.string().optional(),
+	open: z.boolean().optional()
 });
 
 export type CreateCampaign = z.infer<typeof create>;
