@@ -12,6 +12,7 @@
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import type { Response } from '$lib/util/types';
+	import { documentURL } from '$lib/util/links';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -93,6 +94,7 @@
 			} else {
 				response = await trpc($page).campaigns.create.mutate({
 					startDate: campaign.startDate!,
+					origin: $page.url.origin,
 					endDate: campaign.endDate!,
 					submissionCriteria: campaign.submissionCriteria!,
 					rewards: campaign.rewards!,

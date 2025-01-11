@@ -32,6 +32,14 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 		};
 	}
 
+	properties() {
+		return this._campaignProperties;
+	}
+
+	bookProperties() {
+		return this._bookProperties;
+	}
+
 	startDate(date: Date): CampaignBuilder {
 		this._campaignProperties.startDate = date;
 		return this;
