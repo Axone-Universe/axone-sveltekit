@@ -22,6 +22,8 @@
 	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { modeOsPrefers, modeUserPrefers, modeCurrent } from '@skeletonlabs/skeleton';
+
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
 	if (data.session) {
@@ -72,16 +74,19 @@
 		<div class="embla__container h-[700px] items-center m-0">
 			<div class="embla__slide h-full">
 				<div
-					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full items-center"
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full items-center relative"
 					style="background-image: url(/background.png)"
 				>
-					<div class="lg:order-2 w-full mx-auto">
-						<div class="aspect-video relative">
+					<div
+						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
+					<div class="lg:order-2 w-full mx-auto relative">
+						<div class="aspect-video">
 							<Components />
 						</div>
 					</div>
 					<div
-						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4"
+						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4 relative"
 					>
 						<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
 						<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
@@ -98,35 +103,42 @@
 			</div>
 			<div class="embla__slide h-full">
 				<div
-					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full"
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full relative"
 					style="background-image: url(/competition.png)"
-				/>
+				>
+					<div
+						class="absolute bg-opacity-20 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
+				</div>
 			</div>
 			{#each campaigns as campaign}
 				<div class="embla__slide h-full">
 					<div
-						class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center p-14 h-full"
+						class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center p-14 h-full relative"
 						style="background-image: url(/competition_background.png)"
 					>
-						<div class="flex flex-col w-full mx-auto items-center">
+						<div
+							class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+						/>
+						<div class="flex flex-col w-full mx-auto items-center relative">
 							<div class="aspect-[2/3] h-[400px]">
 								<ImageWithFallback src={campaign.book.imageURL} alt={campaign.book.title} />
 							</div>
 						</div>
 						<div
-							class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4"
+							class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 relative"
 						>
 							<h3 class="!text-2xl lg:!text-3xl">{campaign.book.title}</h3>
 							<p class="!text-l md:!text-xl line-clamp-3">
 								{campaign.book.description}
 							</p>
-							<div class="flex flex-row gap-12 w-full {selectedIndex > 1 ? '' : 'hidden'}">
+							<div class="flex flex-row gap-12 w-full">
 								<div use:popup={infoPopup('datePopup')}>
 									<button class="btn-icon variant-ghost p-2"
 										><Icon scale={1.5} data={calendar} /></button
 									>
 									<div
-										class="card p-4 flex flex-col md:flex-row justify-between gap-2"
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
 										data-popup="datePopup"
 									>
 										<div class="space-y-4">
@@ -153,7 +165,7 @@
 										><Icon scale={1.5} data={checkCircle} /></button
 									>
 									<div
-										class="card p-4 flex flex-col md:flex-row justify-between gap-2"
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
 										data-popup="criteriaPopup"
 									>
 										<div class="space-y-4 w-72">
@@ -169,7 +181,7 @@
 										><Icon scale={1.5} data={trophy} /></button
 									>
 									<div
-										class="card p-4 flex flex-col md:flex-row justify-between gap-2"
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
 										data-popup="rewardsPopup"
 									>
 										<div class="space-y-4 w-72">

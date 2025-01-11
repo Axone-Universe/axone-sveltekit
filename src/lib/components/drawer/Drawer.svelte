@@ -2,21 +2,9 @@
 	import { AppRail, AppRailTile, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import {
-		leanpub,
-		lineChart,
-		handshakeO,
-		pencil,
-		user,
-		trash,
-		users,
-		info,
-		infoCircle
-	} from 'svelte-awesome/icons';
-	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
+	import { pencil, user, trash, users, infoCircle } from 'svelte-awesome/icons';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 	import { page } from '$app/stores';
-	import Tooltip from '../Tooltip.svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 	const drawerStore = getDrawerStore();
