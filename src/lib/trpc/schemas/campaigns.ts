@@ -7,6 +7,7 @@ export const create = z.object({
 	endDate: z.coerce.date(),
 	submissionCriteria: z.string(),
 	rewards: z.string(),
+	origin: z.string(),
 	book: createBook
 });
 
@@ -22,7 +23,8 @@ export const update = z.object({
 export const read = z.object({
 	id: z.string().optional(),
 	limit: z.number().optional(),
-	cursor: z.string().optional()
+	cursor: z.string().optional(),
+	open: z.boolean().optional()
 });
 
 export type CreateCampaign = z.infer<typeof create>;

@@ -4,11 +4,14 @@ import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/campaigns';
 import { CampaignsRepository } from '$lib/repositories/campaignsRepository';
 import { CampaignBuilder } from '$lib/documents/campaigns/campaign';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendTopicNotification, sendUserNotifications } from '$lib/util/notifications/novu';
 import { BookBuilder } from '$lib/documents/digital-products/book';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
 import type { CampaignProperties } from '$lib/properties/campaign';
+import { documentURL } from '$lib/util/links';
+import { BookProperties } from '$lib/properties/book';
+import { Book } from '$lib/models/book';
 
 const campaignsRepo = new CampaignsRepository();
 
@@ -16,14 +19,14 @@ export const campaigns = t.router({
 	get: t.procedure
 		.use(logger)
 		.input(read)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const response: Response = {
 				success: true,
 				message: 'campaigns successfully retrieved',
 				data: {}
 			};
 			try {
-				const result = await campaignsRepo.get(input);
+				const result = await campaignsRepo.get(ctx.session, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
 			} catch (error) {
@@ -83,6 +86,19 @@ export const campaigns = t.router({
 					sendUserNotifications(ctx.session, input.book.notifications);
 				}
 
+				// send a general notification about new campaign
+				sendTopicNotification({
+					topicKey: 'general',
+					topicName: 'general',
+					subject: 'Writing Competition!',
+					url: documentURL(
+						input.origin,
+						'Book',
+						new Book(campaignBuilder.bookProperties()) as HydratedDocument<BookProperties>
+					),
+					notification: `A new campaign, ${input.book.title}, has been launched. Win your share of the rewards!
+					${input.rewards}.`
+				});
 				response.data = result;
 			} catch (error) {
 				response.success = false;

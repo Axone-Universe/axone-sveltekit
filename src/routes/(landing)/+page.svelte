@@ -1,46 +1,227 @@
 <script lang="ts">
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
+	import emblaCarouselSvelte, { type EmblaCarouselType } from 'embla-carousel-svelte';
+	// import embla from 'svelte-embla';
+	import AutoPlay from 'embla-carousel-autoplay';
 
 	import Author_1 from '$lib/assets/author-1.svelte';
-	import Author_2 from '$lib/assets/author-2.svelte';
 	import Author_3 from '$lib/assets/author-3.svelte';
 	import Author_4 from '$lib/assets/author-4.svelte';
 	import Components from '$lib/components/hero/components.svelte';
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { goto } from '$app/navigation';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
+	import { calendar, checkCircle, dotCircleO, trophy } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { trpc } from '$lib/trpc/client';
+	import { type HydratedCampaignProperties } from '$lib/properties/campaign';
+	import { HydratedDocument } from 'mongoose';
+	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
+	import { formattedDate } from '$lib/util/studio/strings';
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { modeOsPrefers, modeUserPrefers, modeCurrent } from '@skeletonlabs/skeleton';
+
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
 	if (data.session) {
 		goto('/home');
 	}
+
+	const autoplay = AutoPlay({ delay: 5000 });
+	const infoPopup = (target: string): PopupSettings => {
+		return {
+			event: 'click',
+			target: target,
+			placement: 'top'
+		};
+	};
+
+	let emblaApi: EmblaCarouselType;
+	$: selectedIndex = 0;
+
+	let campaigns: HydratedDocument<HydratedCampaignProperties>[];
+	$: campaigns = [];
+
+	onMount(() => {
+		trpc($page)
+			.campaigns.get.query({
+				limit: 3,
+				open: true
+			})
+			.then((response) => {
+				campaigns = response.data as HydratedDocument<HydratedCampaignProperties>[];
+			});
+	});
+
+	function onInit(event: CustomEvent<EmblaCarouselType>) {
+		emblaApi = event.detail;
+		emblaApi.on('scroll', (event: EmblaCarouselType) => {
+			selectedIndex = event.selectedScrollSnap();
+		});
+	}
+
+	function selectSlide(index: number) {
+		emblaApi.scrollTo(index, false);
+		selectedIndex = index;
+	}
 </script>
 
-<Section class="bg-surface-100-800-token flex items-center">
-	<Container>
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center p-14">
-			<div class="lg:order-2 w-full mx-auto">
-				<div class="aspect-video relative">
-					<Components />
+<Section class="bg-surface-100-800-token flex flex-col items-center !w-full">
+	<div class="embla" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
+		<div class="embla__container h-[700px] items-center m-0">
+			<div class="embla__slide h-full">
+				<div
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full items-center relative"
+					style="background-image: url(/background.png)"
+				>
+					<div
+						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
+					<div class="lg:order-2 w-full mx-auto relative">
+						<div class="aspect-video">
+							<Components />
+						</div>
+					</div>
+					<div
+						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4 relative"
+					>
+						<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
+						<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
+						<p class="!text-l md:!text-xl">
+							Collaborate with authors and illustrators to create stories with multiple storylines
+						</p>
+						<div class="flex gap-4">
+							<a href="/login" class="btn variant-filled-primary"
+								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
+							> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
+						</div>
+					</div>
 				</div>
 			</div>
-			<div
-				class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4"
-			>
-				<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
-				<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
-				<p class="!text-l md:!text-xl">
-					Collaborate with authors and illustrators to create stories with multiple storylines
-				</p>
-				<div class="flex gap-4">
-					<a href="/login" class="btn variant-filled-primary"
-						><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
-					> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
+			<div class="embla__slide h-full">
+				<div
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full relative"
+					style="background-image: url(/competition.png)"
+				>
+					<div
+						class="absolute bg-opacity-20 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
 				</div>
+			</div>
+			{#each campaigns as campaign}
+				<div class="embla__slide h-full">
+					<div
+						class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center p-14 h-full relative"
+						style="background-image: url(/competition_background.png)"
+					>
+						<div
+							class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+						/>
+						<div class="flex flex-col w-full mx-auto items-center relative">
+							<div class="aspect-[2/3] h-[400px]">
+								<ImageWithFallback src={campaign.book.imageURL} alt={campaign.book.title} />
+							</div>
+						</div>
+						<div
+							class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 relative"
+						>
+							<h3 class="!text-2xl lg:!text-3xl">{campaign.book.title}</h3>
+							<p class="!text-l md:!text-xl line-clamp-3">
+								{campaign.book.description}
+							</p>
+							<div class="flex flex-row gap-12 w-full">
+								<div use:popup={infoPopup('datePopup')}>
+									<button class="btn-icon variant-ghost p-2"
+										><Icon scale={1.5} data={calendar} /></button
+									>
+									<div
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
+										data-popup="datePopup"
+									>
+										<div class="space-y-4">
+											<div class="flex flex-col items-center">
+												<div class="chip rounded-full variant-filled">
+													{formattedDate(
+														new Date(
+															typeof campaign.startDate === 'string' ? campaign.startDate : ''
+														)
+													)}
+												</div>
+												to
+												<div class="chip rounded-full variant-filled">
+													{formattedDate(
+														new Date(typeof campaign.endDate === 'string' ? campaign.endDate : '')
+													)}
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div use:popup={infoPopup('criteriaPopup')}>
+									<button class="btn-icon variant-ghost p-2"
+										><Icon scale={1.5} data={checkCircle} /></button
+									>
+									<div
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
+										data-popup="criteriaPopup"
+									>
+										<div class="space-y-4 w-72">
+											<div class="flex flex-col items-center">
+												{campaign.submissionCriteria}
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div use:popup={infoPopup('rewardsPopup')}>
+									<button class="btn-icon variant-ghost p-2"
+										><Icon scale={1.5} data={trophy} /></button
+									>
+									<div
+										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
+										data-popup="rewardsPopup"
+									>
+										<div class="space-y-4 w-72">
+											<div class="flex flex-col items-center">
+												{campaign.rewards}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="flex gap-4">
+								<a href="/book/{campaign.book._id}" class="btn variant-filled-primary"
+									><span>Enter Now</span> <i class="fa-solid fa-arrow-right-long" /></a
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+		<div class="embla__controls flex flex-row w-full items-centern justify-center">
+			<div class="embla__dot m-4 flex flex-row w-fit items-center">
+				{#each { length: campaigns.length + 2 } as _, i}
+					<button
+						on:click={() => {
+							selectSlide(i);
+						}}
+						><Icon
+							class="btn-icon top-0 cursor-pointer icon-info  {i === selectedIndex
+								? '!fill-primary-400'
+								: ''}"
+							data={dotCircleO}
+							scale={1.5}
+							style="color:white"
+						/></button
+					>
+				{/each}
 			</div>
 		</div>
-	</Container>
+	</div>
 </Section>
 
 <Section class="flex items-center">
