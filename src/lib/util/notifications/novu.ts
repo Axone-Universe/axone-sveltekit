@@ -87,6 +87,9 @@ export async function createNotificationSubscriber(user: HydratedDocument<UserPr
 		email: user.email
 	};
 	await novu.subscribers.bulkCreate([subscriberPayload]);
+
+	// Add user to the general topic
+	await subscribeToTopic('general', user._id);
 }
 
 /**
@@ -95,18 +98,18 @@ export async function createNotificationSubscriber(user: HydratedDocument<UserPr
  * @param userID
  * @returns
  */
-export async function subscribeToDocument(documentID: string, userID: string) {
+export async function subscribeToTopic(topicKey: string, userID: string) {
 	if (process.env.NODE_ENV === 'test') {
 		return;
 	}
 
 	try {
-		const response = await novu.topics.addSubscribers(documentID, {
+		const response = await novu.topics.addSubscribers(topicKey, {
 			subscribers: [userID]
 		});
 		return response;
 	} catch (e: any) {
-		console.log('novu - subscribe to document error');
+		console.log('novu - subscribe to topic error');
 	}
 }
 
@@ -121,6 +124,7 @@ export async function sendTopicNotification(notification: TopicNotificationPrope
 			payload: {
 				firstName: notification.topicName,
 				notification: notification.notification,
+				subject: notification.subject,
 				url: notification.url
 			}
 		});

@@ -16,7 +16,7 @@ import {
 } from '$lib/trpc/schemas/users';
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
-import { createNotificationSubscriber, subscribeToDocument } from '$lib/util/notifications/novu';
+import { createNotificationSubscriber, subscribeToTopic } from '$lib/util/notifications/novu';
 
 export const users = t.router({
 	getById: t.procedure
@@ -252,7 +252,7 @@ export const users = t.router({
 					.updateReadingLists(input);
 
 				if (input.storylineID) {
-					subscribeToDocument(input.storylineID, ctx.session!.user.id);
+					subscribeToTopic(input.storylineID, ctx.session!.user.id);
 				}
 				response.data = result;
 			} catch (error) {

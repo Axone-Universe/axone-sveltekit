@@ -53,7 +53,8 @@ describe('campaigns', async () => {
 			endDate,
 			submissionCriteria,
 			rewards,
-			book
+			book,
+			origin: ''
 		});
 
 		const campaign = campaignResponse.data;
@@ -84,7 +85,8 @@ describe('campaigns', async () => {
 				endDate,
 				submissionCriteria,
 				rewards,
-				book
+				book,
+				origin: ''
 			})
 		).data;
 
@@ -125,7 +127,8 @@ describe('campaigns', async () => {
 				endDate,
 				submissionCriteria,
 				rewards,
-				book
+				book,
+				origin: ''
 			})
 		).data;
 
@@ -152,7 +155,8 @@ describe('campaigns', async () => {
 			endDate,
 			submissionCriteria,
 			rewards,
-			book
+			book,
+			origin: ''
 		});
 
 		const campaign = campaignResponse.data;
@@ -195,7 +199,8 @@ describe('campaigns', async () => {
 				endDate,
 				submissionCriteria,
 				rewards,
-				book
+				book,
+				origin: ''
 			});
 		}
 
