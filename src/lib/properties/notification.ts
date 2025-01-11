@@ -9,6 +9,7 @@ export interface UserNotificationProperties {
 export interface TopicNotificationProperties {
 	topicKey: string;
 	topicName: string;
+	subject: string;
 	url: string;
 	notification: string;
 }

@@ -148,7 +148,8 @@ export async function createCampaign(testSession: Session) {
 		endDate,
 		submissionCriteria,
 		rewards,
-		book
+		book,
+		origin: ''
 	});
 
 	const createdBook = (await caller.books.getById({ id: campaignResponse.data.book })).data;

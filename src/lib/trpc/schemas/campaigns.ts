@@ -7,6 +7,7 @@ export const create = z.object({
 	endDate: z.coerce.date(),
 	submissionCriteria: z.string(),
 	rewards: z.string(),
+	origin: z.string(),
 	book: createBook
 });
 
