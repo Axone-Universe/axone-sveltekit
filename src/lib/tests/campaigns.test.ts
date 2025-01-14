@@ -223,4 +223,36 @@ describe('campaigns', async () => {
 		expect(campaignsResponse.data[0].rewards).toEqual(rewards);
 		expect(campaignsResponse.data[0].book).toBeTruthy();
 	});
+
+	test('delete a campaign', async () => {
+		const createCampaignResponse = await caller1.campaigns.create({
+			startDate,
+			endDate,
+			submissionCriteria,
+			rewards,
+			book,
+			origin: ''
+		});
+
+		const campaign = createCampaignResponse.data;
+
+		// first delete the storyline
+		const storylineResponse = await caller1.storylines.getByBookID({
+			bookID: campaign.book!
+		});
+
+		await caller1.storylines.delete({
+			id: storylineResponse.data[0]._id
+		});
+
+		// second delete the book
+		const deletBookResponse = await caller1.books.delete({ id: campaign.book! });
+
+		expect(deletBookResponse.success).toEqual(true);
+		expect(deletBookResponse.message).toContain('book successfully deleted');
+
+		// check that campaign has been deleted
+		const campaignResponse = await caller1.campaigns.get({ id: campaign._id });
+		expect(campaignResponse.data.length).toEqual(0);
+	});
 });

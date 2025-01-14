@@ -9,6 +9,7 @@ import mongoose, { startSession } from 'mongoose';
 import { StorylineBuilder } from './storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
+import { Campaign } from '$lib/models/campaign';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
@@ -101,6 +102,12 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			if (storylines && storylines.length !== 0) {
 				throw new Error('Please delete all storylines before deleting the book');
 			}
+
+			// delete any campaign linked to the book
+			await Campaign.deleteOne(
+				{ book: this._bookProperties._id },
+				{ session: session, userID: this._sessionUserID }
+			);
 
 			result = await Book.deleteOne(
 				{ _id: this._bookProperties._id },
