@@ -2,7 +2,6 @@
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
 	import emblaCarouselSvelte, { type EmblaCarouselType } from 'embla-carousel-svelte';
-	// import embla from 'svelte-embla';
 	import AutoPlay from 'embla-carousel-autoplay';
 
 	import Author_1 from '$lib/assets/author-1.svelte';

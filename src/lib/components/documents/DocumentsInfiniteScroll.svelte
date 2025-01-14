@@ -7,9 +7,7 @@
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { trpcWithQuery } from '$lib/trpc/client';
-	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
-	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowDown } from 'svelte-awesome/icons';
 	import type { PermissionedDocument } from '$lib/properties/permission';
@@ -17,6 +15,7 @@
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import IntersectionObserver from 'svelte-intersection-observer';
 
 	let customClass = '';
 	export { customClass as class };
@@ -25,7 +24,9 @@
 	export let documentType: PermissionedDocument;
 	export let parameters: any = {};
 
+	let element: HTMLDivElement;
 	let debouncedSearchValue = '';
+	let intersecting = false;
 
 	let query =
 		documentType === 'Book'
@@ -50,6 +51,8 @@
 		? ($getDocumentsInfinite.data.pages.flatMap((page) => page.data) as HydratedDocument<unknown>[])
 		: [];
 
+	$: loadMore(intersecting, items);
+
 	function bookItem(item: HydratedDocument<unknown>) {
 		return item as unknown as HydratedDocument<BookProperties>;
 	}
@@ -62,8 +65,10 @@
 		return item as unknown as HydratedDocument<ChapterProperties>;
 	}
 
-	function loadMore() {
-		$getDocumentsInfinite.fetchNextPage();
+	function loadMore(intersecting: boolean, newItems: any) {
+		if (intersecting) {
+			$getDocumentsInfinite.fetchNextPage();
+		}
 	}
 
 	function handleTryAgain() {
@@ -108,14 +113,24 @@
 				</div>
 			{/each}
 		</div>
+
 		{#if $getDocumentsInfinite.hasNextPage}
-			<div class="flex justify-center my-12">
-				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
-					<button class="btn-icon variant-filled">
-						<Icon data={arrowDown} />
-					</button>
-				</Tooltip>
-			</div>
+			<IntersectionObserver {element} bind:intersecting>
+				<div bind:this={element} class="flex justify-center my-12">
+					<Tooltip
+						on:click={() => {
+							loadMore(true, []);
+						}}
+						content="Load more"
+						placement="top"
+						target="reading-list"
+					>
+						<button class="btn-icon variant-filled">
+							<Icon data={arrowDown} />
+						</button>
+					</Tooltip>
+				</div>
+			</IntersectionObserver>
 		{/if}
 	</div>
 {/if}
