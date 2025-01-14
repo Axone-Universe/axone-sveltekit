@@ -4,7 +4,6 @@
 	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
-	import type { BookProperties } from '$lib/properties/book';
 	import { GENRES, type Genre } from '$lib/properties/genre';
 	import { HOME_FILTER_TAGS, type HomeFilterTag } from '$lib/util/types';
 	import { onMount } from 'svelte';
@@ -80,8 +79,8 @@
 				}
 			}
 		}
-		window.addEventListener('click', onClickListener);
 
+		window.addEventListener('click', onClickListener);
 		mounted = true;
 
 		setupTour();
@@ -93,6 +92,7 @@
 </script>
 
 <Tutorial />
+
 <Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
 		<input
@@ -171,6 +171,6 @@
 		documentType="Storyline"
 		bind:parameters
 		gridStyle={'grid-cols-2 md:grid-cols-6'}
-		limit={20}
+		limit={18}
 	/>
 </Container>
