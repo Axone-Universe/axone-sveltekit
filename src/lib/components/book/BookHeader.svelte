@@ -5,17 +5,16 @@
 		star,
 		infoCircle,
 		bookmark,
-		plusCircle,
 		plus,
 		pencil,
 		leanpub,
-		info,
 		warning,
 		calendar,
 		tag,
-		check,
 		checkCircle,
-		trophy
+		trophy,
+		share,
+		book
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
@@ -28,7 +27,11 @@
 		getModalStore,
 		type ModalComponent,
 		Accordion,
-		AccordionItem
+		AccordionItem,
+		modeCurrent,
+		Toast,
+		getToastStore,
+		type ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 	import Tooltip from '$lib/components/Tooltip.svelte';
@@ -40,6 +43,8 @@
 	import DocumentCarousel from '../documents/DocumentCarousel.svelte';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import { formattedDate } from '$lib/util/studio/strings';
+	import { documentURL } from '$lib/util/links';
+	import ShareSocialModal from '$lib/components/documents/ShareSocialModal.svelte';
 
 	let customClass = '';
 
@@ -53,6 +58,22 @@
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
+	const modalComponent: ModalComponent = {
+		ref: ShareSocialModal,
+		props: {
+			title: bookData.campaign
+				? 'Join this writing competition on Axone Universe!'
+				: 'Checkout this book on Axone Universe!',
+			url: documentURL($page.url.origin, 'Book', bookData),
+			body: "Are you an avid reader? Join the Axone community and read free books online! If you're an author, join our writing competitions and win every month!"
+		}
+	};
+
+	const modal: ModalSettings = {
+		type: 'component',
+		component: modalComponent
+	};
 
 	onMount(() => {
 		user = $page.data.user;
@@ -114,6 +135,18 @@
 		modalStore.trigger(readingListModal);
 	}
 
+	function copyLink() {
+		const link = documentURL($page.url.origin, 'Book', bookData);
+		navigator.clipboard.writeText(link);
+
+		const t: ToastSettings = {
+			message: `${bookData.campaign ? 'Campaign' : 'Book'} link copied`,
+			background: 'variant-filled-success'
+		};
+		toastStore.trigger(t);
+		modalStore.trigger(modal);
+	}
+
 	function campaignDaysLeft(): [number, string] {
 		if (!bookData.campaign) {
 			return [0, ''];
@@ -163,7 +196,7 @@
 		: bookData.imageURL})"
 >
 	<div
-		class="bg-gradient-to-b from-transparent from-10%
+		class="bg-gradient-to-b {$modeCurrent ? 'from-white/70' : 'from-black/70'} from-10%
         [.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
         [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
@@ -232,25 +265,26 @@
 						<Icon class="p-2" data={leanpub} scale={2.5} />
 						Read
 					</a>
-					{#if session}
-						{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
-							<Tooltip
-								on:click={() => {
-									if (campaignDaysLeft()[0] >= 0)
-										window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
-								}}
-								content="Create new storyline"
-								placement="top"
-								target="create-storyline"
+
+					{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
+						<Tooltip
+							on:click={() => {
+								if (campaignDaysLeft()[0] >= 0)
+									window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+							}}
+							content="Create new storyline"
+							placement="top"
+							target="create-storyline"
+						>
+							<button
+								class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
+								disabled={campaignDaysLeft()[0] < 0}
 							>
-								<button
-									class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
-									disabled={campaignDaysLeft()[0] < 0}
-								>
-									<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
-								</button>
-							</Tooltip>
-						{/if}
+								<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
+							</button>
+						</Tooltip>
+					{/if}
+					{#if session}
 						<Tooltip
 							on:click={openReadingListModal}
 							content="Add to reading list"
@@ -261,24 +295,30 @@
 								<Icon class="p-2" data={bookmark} scale={2.5} />
 							</button>
 						</Tooltip>
-						{#if selectedStoryline?.userPermissions?.collaborate}
-							<Tooltip
-								on:click={() => {
-									window.open(
-										`/editor/${bookData._id}?storylineID=${selectedStoryline?._id}&mode=writer`,
-										'_blank'
-									);
-								}}
-								content="Edit storyline"
-								placement="top"
-								target="edit-storyline"
-							>
-								<button class="btn-icon variant-filled">
-									<Icon class="p-2" data={pencil} scale={2.5} />
-								</button>
-							</Tooltip>
-						{/if}
 					{/if}
+					{#if selectedStoryline?.userPermissions?.collaborate}
+						<Tooltip
+							on:click={() => {
+								window.open(
+									`/editor/${bookData._id}?storylineID=${selectedStoryline?._id}&mode=writer`,
+									'_blank'
+								);
+							}}
+							content="Edit storyline"
+							placement="top"
+							target="edit-storyline"
+						>
+							<button class="btn-icon variant-filled">
+								<Icon class="p-2" data={pencil} scale={2.5} />
+							</button>
+						</Tooltip>
+					{/if}
+					<Tooltip on:click={copyLink} content="Share" placement="top" target="copy-link">
+						<button id="copy-link" class="btn-icon variant-filled-primary">
+							<Icon class="p-2" data={share} scale={2.3} />
+						</button>
+					</Tooltip>
+
 					{#if storylineData.numRatings > 0}
 						<div class="overflow-hidden flex items-center">
 							<Icon class="p-2" data={star} scale={2} />
