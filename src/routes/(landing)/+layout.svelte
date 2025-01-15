@@ -8,7 +8,7 @@
 	export let data: PageData;
 </script>
 
-<div class="flex flex-col min-h-screen">
+<div class="flex flex-col items-center min-h-screen">
 	<Header {data} />
 	<Drawer {data} />
 	<slot {data} />

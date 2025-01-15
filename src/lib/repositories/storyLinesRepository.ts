@@ -54,7 +54,7 @@ export class StorylinesRepository extends Repository {
 			}
 
 			if (input.tags.includes('Past 30 Days')) {
-				let ulid30 = ulid(this.getUnixTimeDaysAgo(30));
+				const ulid30 = ulid(this.getUnixTimeDaysAgo(30));
 				if (!input.cursor || ulid30 > input.cursor) {
 					filter._id = { $gt: ulid30 };
 				}
