@@ -20,8 +20,7 @@
 	import { HydratedDocument } from 'mongoose';
 	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
-	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
-	import { modeOsPrefers, modeUserPrefers, modeCurrent } from '@skeletonlabs/skeleton';
+	import { modeCurrent, popup, type PopupSettings } from '@skeletonlabs/skeleton';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
