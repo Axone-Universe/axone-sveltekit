@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { TableOfContents, tocCrawler } from '@skeletonlabs/skeleton';
-	import { CodeBlock } from '@skeletonlabs/skeleton';
 </script>
 
 <div class="flex min-h-screen relative w-full">
 	<div
-		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
+		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-[25%] min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="fixed flex flex-col gap-2">
 			<div use:tocCrawler={{ mode: 'generate' }} class="hidden">
 				<h2>Introduction</h2>
-				<p>...</p>
 				<h2>Books</h2>
 				<h3>Storylines</h3>
 				<h3>Chapters</h3>
