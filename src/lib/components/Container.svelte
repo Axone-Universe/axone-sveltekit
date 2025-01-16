@@ -3,6 +3,6 @@
 	export { customClass as class };
 </script>
 
-<div class={`max-w-screen-xl mx-auto ${customClass} p-4`}>
+<div class={`max-w-screen-xl mx-auto ${customClass} p-4 w-full`}>
 	<slot />
 </div>
