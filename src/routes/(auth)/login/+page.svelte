@@ -123,7 +123,7 @@
 
 		<button
 			on:click={signInWithGoogle}
-			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150"
+			class="justify-center px-:4 py-2 border flex gap-2 rounded-full transition duration-150 variant-ghost"
 		>
 			<img
 				class="w-6 h-6"
@@ -131,29 +131,29 @@
 				loading="lazy"
 				alt="google logo"
 			/>
-			<span class="text-white">Login with Google</span>
+			<span>Login with Google</span>
 		</button>
 
 		<button
 			on:click={signInWithLinkedIn}
-			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow transition duration-150 variant-ghost"
 		>
-			<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
-			<span class="text-white">Login with LinkedIn</span>
+			<img class="w-6 h-6" src="/brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
+			<span>Login with LinkedIn</span>
 		</button>
 
-		<!-- <button
+		<button
 			on:click={signInWithFacebook}
-			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow transition duration-150 variant-ghost"
 		>
 			<img
 				class="w-6 h-6"
-				src="brand_logo/Facebook_Logo_Primary.png"
+				src="/brand_logo/Facebook_Logo_Primary.png"
 				loading="lazy"
 				alt="linkedin logo"
 			/>
-			<span class="text-white">Login with Facebook</span>
-		</button> -->
+			<span>Login with Facebook</span>
+		</button>
 
 		<!-- <div class="justify-center text-center text-xl">or</div>
 

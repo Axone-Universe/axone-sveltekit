@@ -34,6 +34,6 @@
 	};
 </script>
 
-<Container class="mx-4 md:mx-40 xl:mx-96 mt-8">
+<Container class="mx-4 md:mx-40 xl:mx-96 mt-8 min-w-[50%]">
 	<UserProfileDetails {supabase} {onSubmit} {userProperties} />
 </Container>
