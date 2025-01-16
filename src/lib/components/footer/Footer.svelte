@@ -22,7 +22,7 @@
 			</a>
 		</svelte:fragment>
 		<svelte:fragment slot="trail">
-			<a class="anchor" target="_blank" href="/">Terms</a>
+			<a class="anchor" href="/terms">Terms</a>
 			<a class="anchor" href="/privacy">Privacy</a>
 			<a class="anchor" href="/">Help</a>
 			<a href="/">© 2023 Axone Universe</a>
