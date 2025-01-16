@@ -66,7 +66,7 @@
 </script>
 
 <Tutorial />
-<Container class="mx-2 md:mx-40 xl:mx-[800px] min-h-screen">
+<Container class="mx-2 md:px-20 xl:px-52 min-h-screen">
 	<BookHeader
 		session={data.session}
 		{bookData}
