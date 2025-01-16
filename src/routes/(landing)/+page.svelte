@@ -68,7 +68,7 @@
 </script>
 
 <Section class="bg-surface-100-800-token flex flex-col items-center !w-full">
-	<div class="embla" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
+	<div class="embla w-full" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
 		<div class="embla__container h-[700px] items-center m-0">
 			<div class="embla__slide h-full">
 				<div
@@ -78,7 +78,7 @@
 					<div
 						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
 					/>
-					<div class="lg:order-2 w-full mx-auto relative">
+					<div class="lg:order-2 w-2/3 mx-auto relative">
 						<div class="aspect-video">
 							<Components />
 						</div>

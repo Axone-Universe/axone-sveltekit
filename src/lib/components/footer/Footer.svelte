@@ -5,7 +5,7 @@
 	import { twitter, instagram } from 'svelte-awesome/icons';
 </script>
 
-<div class="z-40 relative">
+<div class="z-40 w-full relative">
 	<AppBar
 		gridColumns="grid-rows-1 md:grid-cols-2"
 		slotDefault="flex space-x-4 justify-center md:justify-start"
@@ -23,7 +23,7 @@
 		</svelte:fragment>
 		<svelte:fragment slot="trail">
 			<a class="anchor" target="_blank" href="/">Terms</a>
-			<a class="anchor" href="/">Privacy</a>
+			<a class="anchor" href="/privacy">Privacy</a>
 			<a class="anchor" href="/">Help</a>
 			<a href="/">© 2023 Axone Universe</a>
 		</svelte:fragment>
