@@ -25,9 +25,8 @@
 	const onSubmit = (userProperties: UserProperties) => {
 		submit(userProperties);
 	};
-
 </script>
 
-<Container class="mx-4  md:mx-40 xl:mx-96">
+<Container class="mx-4  md:mx-40 xl:mx-96 min-w-[50%]">
 	<UserProfileDetails {onSubmit} {userProperties} {supabase} />
 </Container>
