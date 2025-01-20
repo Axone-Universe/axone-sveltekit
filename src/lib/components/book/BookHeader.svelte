@@ -230,7 +230,7 @@
 								</h3>
 							</div>
 						{/if}
-						<div class="card p-4 w-72 shadow-xl" data-popup="infoPopup">
+						<div class="card p-4 w-2/4 shadow-xl" data-popup="infoPopup">
 							<div class="space-y-4">
 								<div>
 									<p class="font-bold">Storylines</p>
@@ -238,8 +238,22 @@
 								</div>
 								<p>
 									Storylines are alternative trajectories of the book or campaign stemming from the
-									main storyline
+									main storyline.
 								</p>
+
+								{#if bookData.campaign}
+									<p>
+										You can participate in a campaign by creating your own storyline that aligns
+										with the campaign objectives and criteria. Click on the '+' button below to do
+										that.
+									</p>
+								{:else}
+									<p>
+										You can create a new storyline by going to the chapters section below and
+										clicking on the green '+' next to a chapter.
+									</p>
+								{/if}
+
 								<a class="btn variant-soft w-full" href="/learn" target="_blank" rel="noreferrer">
 									More
 								</a>
@@ -272,7 +286,7 @@
 								if (campaignDaysLeft()[0] >= 0)
 									window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
 							}}
-							content="Create new storyline"
+							content="Join the campaign by creating a new storyline!"
 							placement="top"
 							target="create-storyline"
 						>
@@ -428,16 +442,3 @@
 		</div>
 	</div>
 </div>
-
-<!-- TODO: fix this file -->
-
-<style>
-	@font-face {
-		font-family: righteous;
-		src: url('/fonts/Righteous-Regular.ttf') format('opentype');
-	}
-
-	.book-title {
-		font-family: righteous;
-	}
-</style>
