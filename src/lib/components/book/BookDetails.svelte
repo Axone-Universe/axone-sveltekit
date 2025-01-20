@@ -117,7 +117,7 @@
 						class="input"
 						type="text"
 						bind:value={book.title}
-						placeholder="Untitled sdf Book"
+						placeholder="Untitled Book"
 						required
 					/>
 					<label for="book-description">* Description </label>

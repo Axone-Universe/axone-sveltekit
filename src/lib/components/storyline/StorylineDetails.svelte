@@ -128,7 +128,7 @@
 				class="input"
 				type="text"
 				bind:value={storyline.title}
-				placeholder="Untitled Book"
+				placeholder="Untitled Storyline"
 				required
 			/>
 
