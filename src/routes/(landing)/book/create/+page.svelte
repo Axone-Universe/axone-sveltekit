@@ -15,7 +15,7 @@
 </script>
 
 <Tutorial />
-<Container>
+<Container class="flex flex-col items-center">
 	<BookDetails
 		class="flex flex-col space-y-4 items-center md:space-y-0 md:items-start md:flex-row"
 		{supabase}
