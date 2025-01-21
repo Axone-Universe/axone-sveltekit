@@ -45,7 +45,15 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		}
 
 		//Add protected pages name in the list
-		const pages = ['home', 'studio', 'profile', 'editor', 'library'];
+		const pages = [
+			'home',
+			'studio',
+			'profile',
+			'editor',
+			'library',
+			'storyline/create',
+			'book/create'
+		];
 
 		for (const page of pages) {
 			if (event.url.pathname.startsWith('/' + page)) {
