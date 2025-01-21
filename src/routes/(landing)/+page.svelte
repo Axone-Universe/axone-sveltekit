@@ -131,13 +131,13 @@
 								{campaign.book.description}
 							</p>
 							<div class="flex flex-row gap-12 w-full">
-								<div use:popup={infoPopup('datePopup')}>
+								<div use:popup={infoPopup('datePopup' + campaign._id)}>
 									<button class="btn-icon variant-ghost p-2"
 										><Icon scale={1.5} data={calendar} /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup="datePopup"
+										data-popup={'datePopup' + campaign._id}
 									>
 										<div class="space-y-4">
 											<div class="flex flex-col items-center">
@@ -158,13 +158,13 @@
 										</div>
 									</div>
 								</div>
-								<div use:popup={infoPopup('criteriaPopup')}>
+								<div use:popup={infoPopup('criteriaPopup' + campaign._id)}>
 									<button class="btn-icon variant-ghost p-2"
 										><Icon scale={1.5} data={checkCircle} /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup="criteriaPopup"
+										data-popup={'criteriaPopup' + campaign._id}
 									>
 										<div class="space-y-4 w-72">
 											<div class="flex flex-col items-center">
@@ -174,13 +174,13 @@
 									</div>
 								</div>
 
-								<div use:popup={infoPopup('rewardsPopup')}>
+								<div use:popup={infoPopup('rewardsPopup' + campaign._id)}>
 									<button class="btn-icon variant-ghost p-2"
 										><Icon scale={1.5} data={trophy} /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup="rewardsPopup"
+										data-popup={'rewardsPopup' + campaign._id}
 									>
 										<div class="space-y-4 w-72">
 											<div class="flex flex-col items-center">
@@ -222,8 +222,8 @@
 	</div>
 </Section>
 
-<Section class="flex items-center">
-	<Container>
+<Section>
+	<Container class="flex flex-col items-center">
 		<div class="text-center max-w-[700px] p-8">
 			<p class="tracking-wide leading-8">
 				<i
