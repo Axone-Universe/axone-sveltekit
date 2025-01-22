@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BookProperties, HydratedBookProperties } from '$lib/properties/book';
+	import type { HydratedBookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import {
 		star,
@@ -196,7 +196,7 @@
 		: bookData.imageURL})"
 >
 	<div
-		class="bg-gradient-to-b {$modeCurrent ? 'from-white/70' : 'from-black/70'} from-10%
+		class="rounded-lg bg-gradient-to-b {$modeCurrent ? 'from-white/70' : 'from-black/70'} from-10%
         [.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
         [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
@@ -272,13 +272,15 @@
 				</div>
 
 				<div class="flex flex-row items-center space-x-2">
-					<a
-						href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
-						class="btn variant-filled py-1"
-					>
-						<Icon class="p-2" data={leanpub} scale={2.5} />
-						Read
-					</a>
+					{#if selectedStoryline.chapters && selectedStoryline.chapters.length > 0}
+						<a
+							href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
+							class="btn variant-filled py-1"
+						>
+							<Icon class="p-2" data={leanpub} scale={2.5} />
+							Read
+						</a>
+					{/if}
 
 					{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 						<Tooltip
