@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
-	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { filter } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { GENRES, type Genre } from '$lib/properties/genre';
@@ -44,6 +41,7 @@
 
 	function handleClear() {
 		genres = [];
+		tags = [];
 	}
 
 	function debounce(timeout = SEARCH_DEBOUNCE_SECONDS * 1000) {
@@ -104,66 +102,58 @@
 			bind:value={searchValue}
 			on:input={onType}
 		/>
-		<Accordion
-			hover="hover:none"
-			regionPanel="absolute accordion"
-			padding="py-1"
-			regionControl="px-4 h-8 accordion"
-			class="fill-accordion"
-		>
-			<AccordionItem id="filter-input" bind:open={accordionOpen}>
-				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
-				<svelte:fragment slot="summary">
-					<p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
-					<div class="card p-4 space-y-2">
-						<p class="font-bold">Tags</p>
-						<div class="flex flex-wrap gap-2">
-							{#each HOME_FILTER_TAGS as tag}
-								<button
-									class="chip {tags.includes(tag) ? 'variant-filled-primary' : 'variant-soft'}"
-									on:click={() => {
-										const index = tags.indexOf(tag);
-										if (index > -1) {
-											tags = tags.filter((v) => v !== tag);
-										} else {
-											tags = [...tags, tag];
-										}
-									}}
-								>
-									<p>{tag}</p>
-								</button>
-							{/each}
-						</div>
-						<hr />
-						<div class="flex justify-between items-center">
-							<p class="font-bold">Genres</p>
-							<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
-								Clear
+		<div>
+			<div class="bg-surface-50 m-2 rounded-lg bg-opacity-90 p-4 space-y-2">
+				<div class="flex justify-between items-center">
+					<p>Filters</p>
+					<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
+						Clear
+					</button>
+				</div>
+
+				<div class="!max-h-[150px] overflow-y-auto space-y-2">
+					<div class="flex flex-wrap gap-2">
+						{#each HOME_FILTER_TAGS as tag}
+							<button
+								class="chip rounded-full {tags.includes(tag)
+									? 'variant-filled-primary'
+									: 'variant-filled'}"
+								on:click={() => {
+									const index = tags.indexOf(tag);
+									if (index > -1) {
+										tags = tags.filter((v) => v !== tag);
+									} else {
+										tags = [...tags, tag];
+									}
+								}}
+							>
+								<p>{tag}</p>
 							</button>
-						</div>
-						<div class="flex flex-wrap gap-2">
-							{#each GENRES as genre}
-								<button
-									class="chip {genres.includes(genre) ? 'variant-filled-primary' : 'variant-soft'}"
-									on:click={() => {
-										const index = genres.indexOf(genre);
-										if (index > -1) {
-											genres = genres.filter((v) => v !== genre);
-										} else {
-											genres = [...genres, genre];
-										}
-									}}
-								>
-									<span class="capitalize">{genre}</span>
-								</button>
-							{/each}
-						</div>
+						{/each}
 					</div>
-				</svelte:fragment>
-			</AccordionItem>
-		</Accordion>
+					<hr />
+					<div class="flex flex-wrap gap-2">
+						{#each GENRES as genre}
+							<button
+								class="chip rounded-full {genres.includes(genre)
+									? 'variant-filled-primary'
+									: 'variant-filled'}"
+								on:click={() => {
+									const index = genres.indexOf(genre);
+									if (index > -1) {
+										genres = genres.filter((v) => v !== genre);
+									} else {
+										genres = [...genres, genre];
+									}
+								}}
+							>
+								<span class="capitalize">{genre}</span>
+							</button>
+						{/each}
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<DocumentsInfiniteScroll
