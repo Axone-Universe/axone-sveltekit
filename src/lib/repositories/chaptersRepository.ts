@@ -19,19 +19,22 @@ export class ChaptersRepository extends Repository {
 	 */
 	async get(
 		session: Session | null,
-		readChapter: ReadChapter
+		input: ReadChapter
 	): Promise<HydratedDocument<ChapterProperties>[]> {
 		const pipeline = [];
 		const filter: any = {};
 
-		if (readChapter.user) filter.user = readChapter.user;
-		if (readChapter.storylineID) filter.storyline = readChapter.storylineID;
-		if (readChapter.cursor) filter._id = { $gt: readChapter.cursor };
-		if (readChapter.archived !== undefined) filter.archived = readChapter.archived;
+		if (input.user) filter.user = input.user;
+		if (input.storylineID) filter.storyline = input.storylineID;
+		if (input.archived !== undefined) filter.archived = input.archived;
 
 		pipeline.push({ $match: filter });
 
-		if (readChapter.limit) pipeline.push({ $limit: readChapter.limit });
+		if (input.cursor) {
+			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
+
+		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Chapter.aggregate(pipeline, {
 			userID: session?.user.id

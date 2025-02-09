@@ -42,6 +42,9 @@ export const create = z.object({
 });
 
 export const read = z.object({
+	limit: z.number().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
 	id: z.string().optional(),
 	bookID: z.string().optional(),
 	storylineID: z.string().optional(),
@@ -50,9 +53,6 @@ export const read = z.object({
 	genres: genreSchema.optional(),
 	tags: tagsSchema.optional(),
 	title: z.string().optional(),
-	limit: z.number().optional(),
-	skip: z.number().optional(),
-	cursor: z.string().optional(),
 	user: z.string().optional(),
 	archived: z.boolean().optional()
 });

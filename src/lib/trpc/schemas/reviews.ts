@@ -15,7 +15,8 @@ export const create = z.object({
 
 export const read = z.object({
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
 	id: z.string().optional(),
 	item: z.string().optional(),
 	user: z.string().optional(),

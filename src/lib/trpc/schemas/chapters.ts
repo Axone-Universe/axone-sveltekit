@@ -24,14 +24,14 @@ export const deleteComment = z.object({
 });
 
 export const read = z.object({
+	limit: z.number().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
 	id: z.string().optional(),
 	storylineChapterIDs: z.array(z.string()).optional(),
 	searchTerm: z.string().optional(),
 	toChapterID: z.string().optional(),
-	limit: z.number().optional(),
-	skip: z.number().optional(),
 	storylineID: z.string().optional(),
-	cursor: z.string().optional(),
 	user: z.string().optional(),
 	archived: z.boolean().optional()
 });
@@ -39,8 +39,7 @@ export const read = z.object({
 export const getById = z.object({
 	id: z.string(),
 	limit: z.number().optional(),
-	skip: z.number().optional(),
-	cursor: z.string().optional()
+	skip: z.number().optional()
 });
 
 export const readFromStoryline = z.object({

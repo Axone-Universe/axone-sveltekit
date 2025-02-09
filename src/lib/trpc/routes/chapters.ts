@@ -12,14 +12,12 @@ import {
 	update
 } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
-import { sendTopicNotification, sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
 import type { HydratedDocument } from 'mongoose';
 import type mongoose from 'mongoose';
-import { documentURL } from '$lib/util/links';
-import { UserNotificationProperties } from '$lib/properties/notification';
 
 export const chapters = t.router({
 	get: t.procedure
@@ -37,7 +35,7 @@ export const chapters = t.router({
 				const result = await chaptersRepo.get(ctx.session, input);
 
 				response.data = result;
-				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
@@ -317,7 +315,7 @@ export const chapters = t.router({
 				const result = await chaptersRepo.getComments(ctx.session, input);
 
 				response.data = result;
-				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+				response.cursor = result.length;
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

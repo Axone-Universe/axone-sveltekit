@@ -21,9 +21,10 @@ export const update = z.object({
 });
 
 export const read = z.object({
-	id: z.string().optional(),
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
+	id: z.string().optional(),
 	open: z.boolean().optional()
 });
 

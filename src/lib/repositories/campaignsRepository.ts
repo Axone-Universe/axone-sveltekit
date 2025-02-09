@@ -22,11 +22,11 @@ export class CampaignsRepository extends Repository {
 			filter.endDate = { $gt: filterDate };
 		}
 
-		if (input.cursor) {
-			filter._id = { $gt: input.cursor };
-		}
-
 		pipeline.push({ $match: filter });
+
+		if (input.cursor) {
+			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
 
 		if (input.limit) pipeline.push({ $limit: input.limit });
 
