@@ -20,7 +20,8 @@ export const create = z.object({
 
 export const read = z.object({
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
 	genres: genreSchema.optional(),
 	tags: tagsSchema.optional(),
 	title: z.string().optional(),
@@ -47,7 +48,7 @@ export const submitToCampaign = z.object({
 
 export const search = z.object({
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	skip: z.number().optional(),
 	genres: genreSchema.optional(),
 	title: z.string().optional(),
 	id: z.string().optional()

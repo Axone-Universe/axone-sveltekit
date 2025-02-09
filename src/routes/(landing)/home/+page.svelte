@@ -18,10 +18,12 @@
 	const GENRES_FILTER_KEY = $page.url + '-genres';
 
 	let genres: Genre[] = [];
-	let tags: HomeFilterTag[] = [];
+	let tags: HomeFilterTag[] = ['Newest'];
 
 	let filterCount = -1;
 	let mounted = false;
+
+	$: tagsSet = false;
 
 	$: if (browser && mounted) {
 		sessionStorage.setItem(TAGS_FILTER_KEY, JSON.stringify(tags));
@@ -68,6 +70,8 @@
 		if (tagFilters && tagFilters !== 'null') {
 			tags = JSON.parse(tagFilters!);
 		}
+
+		tagsSet = true;
 
 		function onClickListener(e: MouseEvent) {
 			if (e.target) {
@@ -156,11 +160,13 @@
 		</div>
 	</div>
 
-	<DocumentsInfiniteScroll
-		class="min-h-screen"
-		documentType="Storyline"
-		bind:parameters
-		gridStyle={'grid-cols-2 md:grid-cols-6'}
-		limit={18}
-	/>
+	{#if tagsSet}
+		<DocumentsInfiniteScroll
+			class="min-h-screen"
+			documentType="Storyline"
+			{parameters}
+			gridStyle={'grid-cols-2 md:grid-cols-6'}
+			limit={18}
+		/>
+	{/if}
 </Container>

@@ -6,9 +6,10 @@ const GenreEnum = z.enum(GENRES);
 export const genreSchema = z.array(GenreEnum);
 
 export const search = z.object({
-	searchTerm: z.string().optional(),
 	limit: z.number().optional(),
-	cursor: z.string().optional(),
+	cursor: z.number().optional(),
+	skip: z.number().optional(),
+	searchTerm: z.string().optional(),
 	genres: genreSchema.optional(),
 	title: z.string().optional()
 });

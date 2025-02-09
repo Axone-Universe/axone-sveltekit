@@ -10,37 +10,34 @@ import type { HomeFilterTag } from '$lib/util/types';
 import { ReadBook } from '$lib/trpc/schemas/books';
 
 export class BooksRepository extends Repository {
-	async get(
-		session: Session | null,
-		readBook: ReadBook
-	): Promise<HydratedDocument<BookProperties>[]> {
+	async get(session: Session | null, input: ReadBook): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
-		if (readBook.title) {
-			filter.$text = { $search: readBook.title };
+		if (input.title) {
+			filter.$text = { $search: input.title };
 		}
 
-		if (readBook.user) {
-			filter.user = readBook.user;
+		if (input.user) {
+			filter.user = input.user;
 		}
 
-		if (readBook.genres) {
-			if (readBook.genres.length > 0) {
-				filter.genres = { $all: readBook.genres };
+		if (input.genres) {
+			if (input.genres.length > 0) {
+				filter.genres = { $all: input.genres };
 			}
 		}
 
-		if (readBook.tags) {
-			if (readBook.tags.includes('Campaigns')) {
+		if (input.tags) {
+			if (input.tags.includes('Campaigns')) {
 				filter.campaign = { $ne: null };
 			}
 
-			if (readBook.tags.includes('Books')) {
+			if (input.tags.includes('Books')) {
 				filter.campaign = { $eq: null };
 			}
 
-			if (readBook.tags.includes('Recommended')) {
+			if (input.tags.includes('Recommended')) {
 				const userRepo = new UsersRepository();
 				const user = await userRepo.getById(session, session?.user.id);
 				if (user && user.genres) {
@@ -49,21 +46,21 @@ export class BooksRepository extends Repository {
 			}
 		}
 
-		if (readBook.archived !== undefined) {
-			filter.archived = readBook.archived;
-		}
-
-		if (readBook.cursor) {
-			filter._id = { $gt: readBook.cursor };
+		if (input.archived !== undefined) {
+			filter.archived = input.archived;
 		}
 
 		pipeline.push({ $match: filter });
 
-		if (readBook.title) {
+		if (input.cursor) {
+			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
+
+		if (input.title) {
 			pipeline.push({ $sort: { score: { $meta: 'textScore' } } });
 		}
 
-		if (readBook.limit) pipeline.push({ $limit: readBook.limit });
+		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Book.aggregate(pipeline, {
 			userID: session?.user.id
