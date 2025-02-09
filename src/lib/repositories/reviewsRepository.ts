@@ -13,18 +13,21 @@ export type CountByRating = {
 };
 
 export class ReviewsRepository extends Repository {
-	async get(readReview: ReadReview): Promise<HydratedDocument<ReviewProperties>[]> {
+	async get(input: ReadReview): Promise<HydratedDocument<ReviewProperties>[]> {
 		const pipeline = [];
 		const filter: any = {};
 
-		if (readReview.item) filter.item = readReview.item;
-		if (readReview.user) filter.user = readReview.user;
-		if (readReview.rating) filter.rating = readReview.rating;
-		if (readReview.cursor) filter._id = { $gt: readReview.cursor };
+		if (input.item) filter.item = input.item;
+		if (input.user) filter.user = input.user;
+		if (input.rating) filter.rating = input.rating;
 
 		pipeline.push({ $match: filter });
 
-		if (readReview.limit) pipeline.push({ $limit: readReview.limit });
+		if (input.cursor) {
+			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
+
+		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Review.aggregate(pipeline);
 

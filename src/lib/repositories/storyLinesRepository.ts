@@ -23,7 +23,6 @@ export class StorylinesRepository extends Repository {
 		if (input.title) filter.$text = { $search: input.title };
 		if (input.user) filter.user = input.user;
 		if (input.bookID) filter.book = input.bookID;
-		if (input.cursor) filter._id = { $gt: input.cursor };
 		if (input.archived !== undefined) filter.archived = input.archived;
 
 		if (input.genres) {
@@ -55,13 +54,16 @@ export class StorylinesRepository extends Repository {
 
 			if (input.tags.includes('Past 30 Days')) {
 				const ulid30 = ulid(this.getUnixTimeDaysAgo(30));
-				if (!input.cursor || ulid30 > input.cursor) {
-					filter._id = { $gt: ulid30 };
-				}
+				filter._id = { $gt: ulid30 };
 			}
 		}
 
 		pipeline.push({ $match: filter });
+
+		if (input.cursor) {
+			postPipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
+
 		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Storyline.aggregate(pipeline, {

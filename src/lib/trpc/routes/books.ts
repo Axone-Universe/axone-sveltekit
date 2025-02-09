@@ -22,7 +22,7 @@ export const books = t.router({
 			try {
 				const result = await booksRepo.get(ctx.session, input);
 				response.data = result;
-				response.cursor = result.length > 0 ? result[result.length - 1]._id : undefined;
+				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

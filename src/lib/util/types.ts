@@ -30,14 +30,14 @@ export type Response = {
 	message: string;
 	success: boolean;
 	data: unknown;
-	cursor?: string | undefined;
+	cursor?: number;
 };
 
 export const HOME_FILTER_TAGS = [
+	'Newest',
 	'Recommended',
 	'Campaigns',
 	'Books',
-	'Newest',
 	'Past 30 Days'
 ] as const;
 export type HomeFilterTag = (typeof HOME_FILTER_TAGS)[number];
