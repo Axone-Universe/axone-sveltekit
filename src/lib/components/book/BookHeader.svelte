@@ -225,7 +225,7 @@
 		modalComponent.props = {
 			documentType: 'Storyline' as PermissionedDocument,
 			documents: Object.values(storylines),
-			parameters: { user: session ? session.user.id : undefined },
+			parameters: { user: session ? session.user.id : ' ' },
 			action: {
 				id: 'create-storyline',
 				label: 'New Storyline',
