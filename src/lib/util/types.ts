@@ -29,8 +29,8 @@ export interface RowAction {
 export type Response = {
 	message: string;
 	success: boolean;
-	data: unknown;
-	cursor?: number;
+	data?: unknown;
+	cursor?: number | undefined;
 };
 
 export const HOME_FILTER_TAGS = [

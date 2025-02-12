@@ -3,6 +3,7 @@ import type { Genre } from './genre';
 import type { UserProperties } from './user';
 import type { PermissionProperties } from './permission';
 import type { CampaignProperties } from './campaign';
+import { type StorylineProperties } from './storyline';
 
 export const label = 'Book';
 
@@ -13,6 +14,7 @@ export interface BookProperties {
 	description: string;
 	imageURL: string;
 	tags?: string[];
+	storylines?: string[] | HydratedDocument<StorylineProperties>[];
 	permissions: Record<string, HydratedDocument<PermissionProperties>>;
 	permissionsUsers?: HydratedDocument<UserProperties>[];
 	userPermissions?: { view: boolean; collaborate: boolean };

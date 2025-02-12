@@ -187,7 +187,10 @@
 										<Icon data={listUl} /><span>Library</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<a class="btn space-x-6 hover:variant-soft-primary" href={`/studio`}>
+									<a
+										class="btn space-x-6 hover:variant-soft-primary"
+										href={`/studio/books?campaigns=true`}
+									>
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>

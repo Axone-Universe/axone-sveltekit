@@ -2,19 +2,19 @@
 	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { star } from 'svelte-awesome/icons';
+	import { check, star } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, tick } from 'svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { lock } from 'svelte-awesome/icons';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let dispatchEvent: boolean = false;
-
+	export let selected: boolean = false;
 	export let addToReadingList:
 		| undefined
 		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
@@ -58,7 +58,7 @@
 	};
 
 	const dispatch = createEventDispatcher();
-	function selected() {
+	function clicked() {
 		dispatch('selectedStoryline', storyline._id);
 	}
 </script>
@@ -66,9 +66,16 @@
 <button
 	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
 		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
-	}`}
-	on:click={dispatchEvent ? selected : () => modalStore.trigger(modal)}
+	} ${selected && 'p-1 !bg-primary-400'}`}
+	on:click={dispatchEvent ? clicked : () => modalStore.trigger(modal)}
 >
+	{#if selected}
+		<button
+			class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled-primary"
+		>
+			<Icon class="w-5 h-5" data={check} />
+		</button>
+	{/if}
 	<ImageWithFallback
 		src={storyline.imageURL === '' ? book.imageURL : storyline.imageURL}
 		alt={storyline.title ?? 'Storyline Title'}

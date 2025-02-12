@@ -16,13 +16,21 @@
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import IntersectionObserver from 'svelte-intersection-observer';
+	import { type RowAction } from '$lib/util/types';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
 	let customClass = '';
 	export { customClass as class };
 	export let gridStyle: string | 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6';
 	export let limit: number | 8;
 	export let documentType: PermissionedDocument;
+	export let selectedDocuments: string[] = [];
 	export let parameters: any = {};
+	export let action: RowAction | undefined = undefined;
+	export let title: string | undefined = undefined;
+	export let dispatchEvent: boolean = false;
+	export let callback: (arg: any, selected: boolean) => void = () => {};
 
 	let element: HTMLDivElement;
 	let debouncedSearchValue = '';
@@ -53,6 +61,11 @@
 
 	$: loadMore(intersecting, items);
 
+	onMount(() => {
+		console.log('** selected docs');
+		console.log(items);
+	});
+
 	function bookItem(item: HydratedDocument<unknown>) {
 		return item as unknown as HydratedDocument<BookProperties>;
 	}
@@ -74,39 +87,59 @@
 	function handleTryAgain() {
 		$getDocumentsInfinite.refetch();
 	}
+
+	const modalStore = getModalStore();
+	function handleSelected(event: { detail: any }) {
+		const storyline = items.find((item) => item._id === event.detail);
+		const selected = !selectedDocuments.includes(event.detail);
+		callback(storyline, selected);
+	}
 </script>
 
-{#if $getDocumentsInfinite.isLoading}
-	<div class="h-screen flex justify-center items-center pb-32">
-		<LoadingSpinner />
-	</div>
-{:else if $getDocumentsInfinite.isError}
-	<div class="text-center min-h-screen flex flex-col justify-center pb-32">
-		<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
-			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
-		</InfoHeader>
-	</div>
-{:else if items.length === 0}
-	<div class="text-center min-h-screen flex flex-col justify-center pb-32">
-		<InfoHeader
-			emoji="🤲"
-			heading="We're empty handed!"
-			description={'Try changing your filters or write your own story!'}
-		>
-			{#if documentType === 'Book' || documentType === 'Storyline'}
-				<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
-			{/if}
-		</InfoHeader>
-	</div>
-{:else}
-	<div class={customClass}>
-		<div class="pt-4 px-2 grid grid-flow-row gap-2 w-full {gridStyle}">
+<div class="rounded-lg {action && 'variant-filled'}">
+	{#if title}
+		<div class="w-full flex flex-col p-2 items-center">
+			<p class="text-lg variant-filled p-3 rounded-full">{title}</p>
+		</div>
+	{/if}
+	{#if $getDocumentsInfinite.isLoading}
+		<div class="flex justify-center items-center pb-32">
+			<LoadingSpinner />
+		</div>
+	{:else if $getDocumentsInfinite.isError}
+		<div class="text-center flex flex-col justify-center pb-32">
+			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
+				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
+			</InfoHeader>
+		</div>
+	{:else if items.length === 0}
+		{#if !action}
+			<div class="text-center flex flex-col items-center p-32">
+				<InfoHeader
+					emoji="🤲"
+					heading="We're empty handed!"
+					description={'Try changing your filters or write your own story!'}
+				>
+					{#if documentType === 'Book' || documentType === 'Storyline'}
+						<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
+					{/if}
+				</InfoHeader>
+			</div>
+		{/if}
+	{:else}
+		<div class="{customClass} pt-4 px-2 grid grid-flow-row gap-2 w-full {gridStyle}">
 			{#each items as item (item._id)}
 				<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
 					{#if documentType === 'Book'}
 						<BookPreview book={bookItem(item)} />
 					{:else if documentType === 'Storyline'}
-						<StorylinePreview user={undefined} storyline={storylineItem(item)} />
+						<StorylinePreview
+							selected={selectedDocuments.includes(item._id.toString())}
+							{dispatchEvent}
+							on:selectedStoryline={handleSelected}
+							user={undefined}
+							storyline={storylineItem(item)}
+						/>
 					{:else}
 						<ChapterPreview chapter={chapterItem(item)} />
 					{/if}
@@ -132,5 +165,13 @@
 				</div>
 			</IntersectionObserver>
 		{/if}
-	</div>
-{/if}
+	{/if}
+	{#if action}
+		<div class="w-full flex flex-col p-2 items-center">
+			<button class="{action.class} btn variant-filled-primary gap-2" on:click={action.callback}>
+				<Icon class="top-0 cursor-pointer" data={action.icon} scale={1} />
+				{action.label}
+			</button>
+		</div>
+	{/if}
+</div>

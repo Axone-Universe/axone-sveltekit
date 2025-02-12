@@ -41,9 +41,9 @@ export const update = z.object({
 	notifications: z.record(z.string(), userNotification).optional()
 });
 
-export const submitToCampaign = z.object({
-	bookID: z.string(),
-	campaignID: z.string()
+export const addStoryline = z.object({
+	storylineID: z.string(),
+	bookID: z.string()
 });
 
 export const search = z.object({

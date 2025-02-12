@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { HydratedBookProperties } from '$lib/properties/book';
+	import type { BookProperties, HydratedBookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import {
 		star,
@@ -13,12 +13,11 @@
 		tag,
 		checkCircle,
 		trophy,
-		share,
-		book
+		share
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
-	import type { StorylineProperties } from '$lib/properties/storyline';
+	import { type StorylineProperties } from '$lib/properties/storyline';
 	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
 	import {
 		type PopupSettings,
@@ -29,7 +28,6 @@
 		Accordion,
 		AccordionItem,
 		modeCurrent,
-		Toast,
 		getToastStore,
 		type ToastSettings
 	} from '@skeletonlabs/skeleton';
@@ -45,6 +43,9 @@
 	import { formattedDate } from '$lib/util/studio/strings';
 	import { documentURL } from '$lib/util/links';
 	import ShareSocialModal from '$lib/components/documents/ShareSocialModal.svelte';
+	import { type PermissionedDocument } from '$lib/properties/permission';
+	import DocumentsInfiniteScroll from '../documents/DocumentsInfiniteScroll.svelte';
+	import { type Response } from '$lib/util/types';
 
 	let customClass = '';
 
@@ -175,6 +176,76 @@
 		return [diffInDays, color];
 	}
 
+	let modalSettings: ModalSettings = {
+		type: 'component',
+		component: modalComponent,
+		response: () => {}
+	};
+
+	async function addStoryline(arg: any, selected: boolean) {
+		let response: Response;
+		let storyline = arg as HydratedDocument<StorylineProperties>;
+
+		if (selected) {
+			response = await trpc($page).books.addStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		} else {
+			response = await trpc($page).books.removeStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		}
+
+		if (response.success) {
+			if (selected) {
+				storylines[storyline._id] = storyline;
+			} else {
+				delete storylines[storyline._id];
+				storylines = storylines;
+			}
+
+			bookData.storylines = (response.data as HydratedDocument<BookProperties>).storylines;
+
+			modalComponent.props!['selectedDocuments'] = bookData.storylines;
+			modalStore.close();
+			modalStore.trigger(modalSettings);
+		}
+
+		const t: ToastSettings = {
+			message: response.message,
+			background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+		};
+		toastStore.trigger(t);
+	}
+
+	let showStorylines = () => {
+		modalComponent.ref = DocumentsInfiniteScroll;
+		modalComponent.props = {
+			documentType: 'Storyline' as PermissionedDocument,
+			documents: Object.values(storylines),
+			parameters: { user: session ? session.user.id : undefined },
+			action: {
+				id: 'create-storyline',
+				label: 'New Storyline',
+				icon: plus,
+				callback: () => {
+					window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+				},
+				mode: 'writer'
+			},
+			class: 'md:!w-modal rounded-lg variant-filled max-h-[600px] overflow-auto p-4',
+			gridStyle: 'grid-cols-2 md:grid-cols-4',
+			limit: 4,
+			title: 'Select or create a storyline',
+			dispatchEvent: true,
+			selectedDocuments: bookData.storylines,
+			callback: addStoryline
+		};
+		modalStore.trigger(modalSettings);
+	};
+
 	async function addToReadingList(names: string[]) {
 		try {
 			user = (
@@ -285,18 +356,20 @@
 					{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 						<Tooltip
 							on:click={() => {
-								if (campaignDaysLeft()[0] >= 0)
-									window.open(`/storyline/create?bookID=${bookData._id}`, '_blank');
+								if (campaignDaysLeft()[0] >= 0) showStorylines();
 							}}
-							content="Join the campaign by creating a new storyline!"
+							content="Submit or create a new storyline!"
 							placement="top"
 							target="create-storyline"
 						>
 							<button
-								class="btn-icon {bookData.campaign ? 'bg-orange-700' : 'variant-filled-primary'}"
+								class="gap-2 text-white font-semibold btn {bookData.campaign
+									? 'bg-orange-700'
+									: 'variant-filled-primary'}"
 								disabled={campaignDaysLeft()[0] < 0}
 							>
-								<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1.5} />
+								<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1} />
+								Join
 							</button>
 						</Tooltip>
 					{/if}

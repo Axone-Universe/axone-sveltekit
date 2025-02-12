@@ -1,7 +1,8 @@
 import { label, type BookProperties } from '$lib/properties/book';
-import mongoose, { Schema, model, type PipelineStage, type UpdateQuery } from 'mongoose';
+import mongoose, { ClientSession, Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as CampaignLabel } from '$lib/properties/campaign';
+import { label as StorylineLabel } from '$lib/properties/storyline';
 import {
 	addUserPermissionPipeline,
 	addOwnerUpdateRestrictionFilter,
@@ -11,7 +12,12 @@ import {
 } from './permission';
 import { GENRES } from '$lib/properties/genre';
 
-export const bookSchema = new Schema<BookProperties>({
+interface ExtendedBookProperties extends BookProperties {
+	addStoryline: (storylineID: string, session?: ClientSession) => Promise<BookProperties>;
+	removeStoryline: (storylineID: string, session?: ClientSession) => Promise<BookProperties>;
+}
+
+export const bookSchema = new Schema<ExtendedBookProperties>({
 	_id: { type: String, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	title: String,
@@ -25,6 +31,7 @@ export const bookSchema = new Schema<BookProperties>({
 			enum: GENRES
 		}
 	],
+	storylines: [{ type: String, ref: StorylineLabel }],
 	rating: { type: Number, default: 0 },
 	archived: { type: Boolean, default: false },
 	campaign: { type: String, ref: CampaignLabel, required: false },
@@ -87,6 +94,26 @@ bookSchema.pre('save', function (next) {
 	next();
 });
 
+// Methods
+bookSchema.methods.addStoryline = async function (storylineID: string, session?: ClientSession) {
+	if (this.storylines.includes(storylineID)) {
+		throw new Error('This book already has this storyline');
+	}
+
+	this.storylines.push(storylineID);
+	return await this.save({ session });
+};
+
+bookSchema.methods.removeStoryline = async function (
+	deleteStorylineID: string,
+	session?: ClientSession
+) {
+	this.storylines = this.storylines.filter(
+		(storylineID: string) => storylineID !== deleteStorylineID
+	);
+	return await this.save({ session });
+};
+
 /**
  * Add fields you want to be populated by default here
  * @param query
@@ -115,5 +142,5 @@ function populate(pipeline: PipelineStage[]) {
 }
 
 export const Book = mongoose.models[label]
-	? model<BookProperties>(label)
-	: model<BookProperties>(label, bookSchema);
+	? model<ExtendedBookProperties>(label)
+	: model<ExtendedBookProperties>(label, bookSchema);

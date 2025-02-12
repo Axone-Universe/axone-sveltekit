@@ -46,6 +46,7 @@ export const read = z.object({
 	cursor: z.number().optional(),
 	skip: z.number().optional(),
 	id: z.string().optional(),
+	ids: z.array(z.string()).optional(),
 	bookID: z.string().optional(),
 	storylineID: z.string().optional(),
 	main: z.boolean().optional(),
