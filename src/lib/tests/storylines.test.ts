@@ -35,7 +35,7 @@ describe('storylines', () => {
 		await createDBUser(testUserOneSession);
 		await createDBUser(testUserTwoSession);
 
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		let bookResponse = await createBook(testUserOneSession, testBookTitle);
 
 		let caller = router.createCaller({ session: testUserOneSession });
 		const storylines = (
@@ -60,7 +60,7 @@ describe('storylines', () => {
 			prevChapterID: chapter1Response.data._id
 		});
 
-		const chapter3_1Response = await caller.chapters.create({
+		await caller.chapters.create({
 			title: chapter3_1Title,
 			description: 'My chapter 3',
 			storylineID: storylines[0]._id,
@@ -91,7 +91,7 @@ describe('storylines', () => {
 
 		// let user one create chapter on user one storyline
 		caller = router.createCaller({ session: testUserOneSession });
-		const chapter2_2Response = await caller.chapters.create({
+		await caller.chapters.create({
 			title: chapter2_2Title,
 			description: 'My chapter 2',
 			storylineID: storyline2.data._id,
@@ -124,6 +124,10 @@ describe('storylines', () => {
 		// bookResponses.map((a) => a._id).sort()
 		expect(storyline_2Chapters.map((a) => a.title).sort()[0]).toEqual(chapter1Title);
 		expect(storyline_2Chapters.map((a) => a.title).sort()[1]).toEqual(chapter2_2Title);
+
+		// book should now include storyline2 in its array
+		bookResponse = await caller.books.getById({ id: bookResponse.data._id });
+		expect(bookResponse.data.storylines?.length).toEqual(2);
 	});
 
 	test('get storylines by genres', async () => {
@@ -144,6 +148,35 @@ describe('storylines', () => {
 
 		const caller = router.createCaller({ session: null });
 		const storylineResponses = await caller.storylines.get({ genres: ['Action', 'Adventure'] });
+
+		expect(
+			storylineResponses.data.map((a) => (typeof a.book === 'string' ? a.book : a.book!._id)).sort()
+		).toEqual([bookResponse1.data._id, bookResponse2.data._id].sort());
+	});
+
+	test('get storylines by ids', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(testUserThree));
+
+		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
+			'Action',
+			'Adventure'
+		]);
+		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+			'Action',
+			'Adventure',
+			'Fantasy'
+		]);
+		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+
+		const caller = router.createCaller({ session: null });
+		const storylineResponses = await caller.storylines.getByIds({
+			ids: [
+				...(bookResponse1.data.storylines as string[]),
+				...(bookResponse2.data.storylines as string[])
+			]
+		});
 
 		expect(
 			storylineResponses.data.map((a) => (typeof a.book === 'string' ? a.book : a.book!._id)).sort()

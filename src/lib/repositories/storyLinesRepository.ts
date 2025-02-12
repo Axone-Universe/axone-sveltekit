@@ -35,7 +35,8 @@ export class StorylinesRepository extends Repository {
 			if (input.tags.includes('Campaigns')) {
 				postPipeline.push({
 					$match: {
-						'book.campaign': { $exists: true }
+						'book.campaign': { $exists: true },
+						main: true
 					}
 				});
 			}
@@ -105,6 +106,19 @@ export class StorylinesRepository extends Repository {
 		});
 	}
 
+	async getByIds(
+		session: Session | null,
+		ids: string[]
+	): Promise<HydratedDocument<StorylineProperties>[]> {
+		const storylines = await Storyline.aggregate([{ $match: { _id: { $in: ids } } }], {
+			userID: session?.user.id
+		});
+
+		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
+			resolve(storylines);
+		});
+	}
+
 	async getByBookID(
 		session: Session | null,
 		bookID: string,
@@ -114,12 +128,12 @@ export class StorylinesRepository extends Repository {
 
 		pipeline.push(main ? { $match: { book: bookID, main: true } } : { $match: { book: bookID } });
 
-		const storyline = await Storyline.aggregate(pipeline, {
+		const storylines = await Storyline.aggregate(pipeline, {
 			userID: session?.user.id
 		});
 
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
-			resolve(storyline);
+			resolve(storylines);
 		});
 	}
 

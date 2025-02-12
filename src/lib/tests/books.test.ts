@@ -35,6 +35,7 @@ describe('books', () => {
 		});
 
 		expect(bookResponse.data.title).toEqual(testBookTitle);
+		expect(bookResponse.data.storylines?.length).toEqual(1);
 		expect(bookResponse.data.createdAt).greaterThan(new Date(Date.now() - 1_000));
 
 		bookResponse = await caller.books.update({
