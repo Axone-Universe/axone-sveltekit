@@ -7,6 +7,8 @@ import { Storyline } from '$lib/models/storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
 import type { Genre } from '$lib/properties/genre';
+import { Book } from '$lib/models/book';
+import { BookProperties } from '$lib/properties/book';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -127,6 +129,28 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 				throw new Error('Please delete all chapters before deleting the storyline');
 			}
 
+			const books = (await Book.aggregate(
+				[
+					{
+						$match: {
+							storylines: this._storylineProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)) as HydratedDocument<BookProperties>[];
+
+			await Promise.all(
+				books.map((bookDocument) => {
+					const book = new Book(bookDocument);
+					book.isNew = false;
+					book.removeStoryline(this._storylineProperties._id, session);
+				})
+			);
+
 			result = await Storyline.deleteOne(
 				{ _id: this._storylineProperties._id },
 				{ session: session, userID: this._sessionUserID }
@@ -235,7 +259,36 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			}
 		}
 
-		await storyline.save();
+		const session = await mongoose.startSession();
+
+		try {
+			await session.withTransaction(async () => {
+				// add storyline to the book storyline array
+				const book = new Book(
+					await Book.aggregate(
+						[
+							{
+								$match: {
+									_id: this._bookID
+								}
+							}
+						],
+						{
+							userID: this._storylineProperties.user
+						}
+					)
+						.session(session)
+						.cursor()
+						.next()
+				);
+				book.isNew = false;
+
+				await book.addStoryline(this._storylineProperties._id, session);
+				await storyline.save({ session });
+			});
+		} finally {
+			session.endSession();
+		}
 
 		return storyline;
 	}

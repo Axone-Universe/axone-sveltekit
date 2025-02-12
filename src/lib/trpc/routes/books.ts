@@ -3,13 +3,15 @@ import { BooksRepository } from '$lib/repositories/booksRepository';
 import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
-import { create, read, submitToCampaign, update } from '$lib/trpc/schemas/books';
+import { addStoryline, create, read, update } from '$lib/trpc/schemas/books';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type mongoose from 'mongoose';
+import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
+import { StorylineProperties } from '$lib/properties/storyline';
 
 export const books = t.router({
 	get: t.procedure
@@ -155,15 +157,48 @@ export const books = t.router({
 
 			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
-
-	submitToCampaign: t.procedure
+	addStoryline: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(submitToCampaign)
-		.mutation(async () => {
-			throw new Error('not Implemented');
-		}),
+		.input(addStoryline)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.bookID).sessionUserID(ctx.session!.user.id);
 
+			const response: Response = {
+				success: true,
+				message: 'storyline successfully added',
+				data: {}
+			};
+			try {
+				const result = await bookBuilder.addStoryline(input.storylineID);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data } };
+		}),
+	removeStoryline: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(addStoryline)
+		.mutation(async ({ input, ctx }) => {
+			const bookBuilder = new BookBuilder(input.bookID).sessionUserID(ctx.session!.user.id);
+
+			const response: Response = {
+				success: true,
+				message: 'storyline successfully removed',
+				data: {}
+			};
+			try {
+				const result = await bookBuilder.removeStoryline(input.storylineID);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return { ...response, ...{ data: response.data } };
+		}),
 	delete: t.procedure
 		.use(logger)
 		.use(auth)

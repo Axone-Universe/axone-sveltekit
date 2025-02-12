@@ -1,14 +1,8 @@
 import { label, type StorylineProperties } from '$lib/properties/storyline';
-import mongoose, {
-	Schema,
-	model,
-	type PipelineStage,
-	type ClientSession,
-	type HydratedDocument
-} from 'mongoose';
+import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as UserLabel } from '$lib/properties/user';
-import { label as ChapterLabel, type ChapterProperties } from '$lib/properties/chapter';
+import { label as ChapterLabel } from '$lib/properties/chapter';
 import {
 	addUserPermissionPipeline,
 	addViewRestrictionPipeline,

@@ -19,8 +19,8 @@ export const load = (async (event) => {
 	}
 
 	const storylineResponses = (
-		await trpc(event).storylines.getByBookID.query({
-			bookID: event.params.id
+		await trpc(event).storylines.getByIds.query({
+			ids: bookData.storylines as string[]
 		})
 	).data as HydratedDocument<StorylineProperties>[];
 

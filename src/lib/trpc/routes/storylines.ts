@@ -57,6 +57,28 @@ export const storylines = t.router({
 			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties> } };
 		}),
 
+	getByIds: t.procedure
+		.use(logger)
+		.input(read)
+		.query(async ({ input, ctx }) => {
+			const storylinesRepo = new StorylinesRepository();
+
+			const response: Response = {
+				success: true,
+				message: 'storylines successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await storylinesRepo.getByIds(ctx.session, input.ids!);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties>[] } };
+		}),
+
 	getByBookID: t.procedure
 		.use(logger)
 		.input(read)
@@ -199,7 +221,6 @@ export const storylines = t.router({
 
 			return { ...response, ...{ data: response.data as HydratedDocument<StorylineProperties> } };
 		}),
-
 	delete: t.procedure
 		.use(logger)
 		.use(auth)

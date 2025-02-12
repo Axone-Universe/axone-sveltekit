@@ -80,6 +80,52 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
+	async addStoryline(storylineID: string) {
+		const book = new Book(
+			await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)
+				.cursor()
+				.next()
+		);
+
+		book.isNew = false;
+		return await book.addStoryline(storylineID);
+	}
+
+	async removeStoryline(storylineID: string) {
+		const book = new Book(
+			await Book.aggregate(
+				[
+					{
+						$match: {
+							_id: this._bookProperties._id
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)
+				.cursor()
+				.next()
+		);
+
+		book.isNew = false;
+		return await book.removeStoryline(storylineID);
+	}
+
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		const session = await mongoose.startSession();
 
@@ -250,8 +296,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 }
 
 export async function saveBook(book: HydratedDocument<BookProperties>, session: ClientSession) {
-	await book.save({ session });
-
 	const hydratedBook = book as HydratedDocument<BookProperties>;
 
 	const permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
@@ -274,4 +318,8 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 
 	const storyline = new Storyline(storylineBuilder.properties());
 	await storyline.save({ session });
+
+	// save book
+	book.storylines = [storyline.id];
+	await book.save({ session });
 }
