@@ -65,7 +65,7 @@ export const campaigns = t.router({
 			if (input.book.permissions) bookBuilder.permissions(input.book.permissions as any);
 			if (input.book.genres) bookBuilder.genres(input.book.genres);
 
-			const campaignBuilder = await new CampaignBuilder()
+			const campaignBuilder = new CampaignBuilder()
 				.userID(ctx.session!.user.id)
 				.startDate(input.startDate)
 				.endDate(input.endDate)

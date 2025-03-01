@@ -122,6 +122,28 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 				.next()
 		);
 
+		const storyline = new Storyline(
+			await Storyline.aggregate(
+				[
+					{
+						$match: {
+							_id: storylineID
+						}
+					}
+				],
+				{
+					userID: this._sessionUserID,
+					comments: true
+				}
+			)
+				.cursor()
+				.next()
+		);
+
+		if (storyline.book === book._id) {
+			throw new Error('You cannot remove a storyline from its main book/campaign');
+		}
+
 		book.isNew = false;
 		return await book.removeStoryline(storylineID);
 	}

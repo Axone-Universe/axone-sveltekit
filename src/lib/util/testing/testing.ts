@@ -119,7 +119,7 @@ export async function createBook(testSession: Session, title?: string, genres: G
  * @param session
  * @returns
  */
-export async function createCampaign(testSession: Session) {
+export async function createCampaign(testSession: Session, title?: string) {
 	const caller = router.createCaller({ session: testSession });
 
 	const publicPermission =
@@ -134,7 +134,7 @@ export async function createCampaign(testSession: Session) {
 	const rewards = 'Book publishing deal with Penguin!';
 
 	const book: CreateBook = {
-		title: faker.commerce.productName() + ' But a Book',
+		title: title ?? faker.commerce.productName() + ' But a Book',
 		description: faker.commerce.productDescription(),
 		imageURL: `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`,
 		genres: genres.length > 0 ? genres : new GenresBuilder().random(0.3).build(),

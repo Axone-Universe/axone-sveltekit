@@ -9,7 +9,8 @@ import {
 	testUserOne,
 	testUserTwo,
 	testUserThree,
-	createChapter
+	createChapter,
+	createCampaign
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
 
@@ -305,5 +306,56 @@ describe('storylines', () => {
 
 		expect(deleteStorylineResponse.success).toEqual(true);
 		expect(deleteStorylineResponse.message).toContain('storyline successfully deleted');
+	});
+
+	test('remove storyline', async () => {
+		await createDBUser(createTestSession(testUserOne));
+		const testBookTitle1 = 'My Book 1';
+		const testUserOneSession = createTestSession(testUserOne);
+		const createBookResponse = await createBook(testUserOneSession, testBookTitle1);
+
+		const caller = router.createCaller({ session: testUserOneSession });
+
+		const storylines = (
+			await caller.storylines.get({
+				bookID: createBookResponse.data._id
+			})
+		).data;
+
+		let removeStorylineResponse = await caller.books.removeStoryline({
+			bookID: createBookResponse.data._id,
+			storylineID: storylines[0]._id
+		});
+
+		expect(removeStorylineResponse.message).toContain(
+			'You cannot remove a storyline from its main book/campaign'
+		);
+		expect(removeStorylineResponse.success).toEqual(false);
+
+		// create campaign and add storyline from book
+		const createCampaignResponse = await createCampaign(testUserOneSession);
+		await caller.books.addStoryline({
+			bookID: createCampaignResponse._id,
+			storylineID: storylines[0]._id
+		});
+
+		const campaignBook = await caller.books.getById({
+			id: createCampaignResponse._id
+		});
+
+		const campaignStorylines = (
+			await caller.storylines.getByIds({
+				ids: (campaignBook.data.storylines as string[]) ?? []
+			})
+		).data;
+		expect(campaignStorylines[0].title).toEqual('My Book 1');
+
+		// remove storyline from the campaign
+		removeStorylineResponse = await caller.books.removeStoryline({
+			bookID: createCampaignResponse._id,
+			storylineID: storylines[0]._id
+		});
+
+		expect(removeStorylineResponse.message).toContain('Storyline successfully removed');
 	});
 });
