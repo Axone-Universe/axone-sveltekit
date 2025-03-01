@@ -42,7 +42,7 @@ export const load = (async (event) => {
 		storylines[storylineResponse._id] = storylineResponse;
 	});
 
-	if (storylineID) activeStoryline = storylines[storylineID];
+	if (storylineID && storylines[storylineID]) activeStoryline = storylines[storylineID];
 
 	return { bookData, storylines, activeStoryline };
 }) satisfies PageServerLoad;

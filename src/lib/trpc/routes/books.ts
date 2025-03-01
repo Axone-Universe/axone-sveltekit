@@ -187,7 +187,7 @@ export const books = t.router({
 
 			const response: Response = {
 				success: true,
-				message: 'storyline successfully removed',
+				message: 'Storyline successfully removed',
 				data: {}
 			};
 			try {
