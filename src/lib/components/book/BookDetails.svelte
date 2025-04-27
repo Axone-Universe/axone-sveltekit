@@ -113,7 +113,7 @@
 				<div class="flex flex-col w-full gap-2">
 					<label for="book-title"> * Book Title </label>
 					<input
-						id="book-title"
+						id="title"
 						class="input"
 						type="text"
 						bind:value={book.title}
@@ -122,7 +122,7 @@
 					/>
 					<label for="book-description">* Description </label>
 					<textarea
-						id="book-description"
+						id="description"
 						class="textarea w-full h-full overflow-hidden"
 						bind:value={book.description}
 						required
@@ -154,7 +154,7 @@
 					{/each}
 				</div>
 			</div>
-			<div>
+			<div id="tags-div">
 				Tags
 				<InputChip
 					bind:value={tags}
