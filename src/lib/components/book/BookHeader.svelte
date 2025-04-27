@@ -272,7 +272,7 @@
         [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
 	>
-		<div class="px-4 md:px-10 pt-60 overflow-hidden space-y-4 relative">
+		<div class="px-2 md:px-10 pt-32 md:pt-60 overflow-hidden space-y-4 relative">
 			{#if bookData.campaign}
 				<div
 					class="absolute top-4 right-4 flex h-fit items-center bg-orange-700 py-1 px-2 rounded-full"
@@ -282,7 +282,7 @@
 			{/if}
 			<div class="p-2 space-y-4">
 				<div class="flex flex-col items-center p-2">
-					<p class="book-title text-4xl font-bold relative">
+					<p class="book-title text-2xl md:text-4xl font-bold relative text-center">
 						{storylineData.title}
 						<button
 							use:popup={infoPopup}
@@ -292,13 +292,12 @@
 					</p>
 				</div>
 				<div class="flex flex-col p-2 space-x-4 w-full items-center">
-					<div class="flex flex-row !justify-start items-center w-3/5 gap-4">
+					<div class="flex flex-row items-center w-full gap-4">
 						{#if Object.values(storylines).length > 1}
-							<div class="relative">
-								<h3 class="book-title">
-									{bookData.campaign ? 'Campaign Titled: ' : 'Book Titled: '}
+							<div class="flex flex-col w-full items-center">
+								<p class="book-title text-l md:text-xl text-center">
 									{bookData.title}
-								</h3>
+								</p>
 							</div>
 						{/if}
 						<div class="card p-4 w-2/4 shadow-xl" data-popup="infoPopup">
@@ -342,9 +341,20 @@
 					{/if}
 				</div>
 
+				<div class="space-x-2 line-clamp-1">
+					{#if bookGenres}
+						{#each bookGenres as genre}
+							<div class="chip variant-filled">{genre}</div>
+						{/each}
+					{/if}
+				</div>
+
+				<hr class="opacity-50" />
+
 				<div class="flex flex-row items-center space-x-2">
 					{#if selectedStoryline.chapters && selectedStoryline.chapters.length > 0}
 						<a
+							id="read-btn"
 							href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
 							class="btn variant-filled py-1"
 						>
@@ -363,6 +373,7 @@
 							target="create-storyline"
 						>
 							<button
+								id="join-btn"
 								class="gap-2 text-white font-semibold btn {bookData.campaign
 									? 'bg-orange-700'
 									: 'variant-filled-primary'}"
@@ -397,13 +408,13 @@
 							placement="top"
 							target="edit-storyline"
 						>
-							<button class="btn-icon variant-filled">
+							<button id="edit-storyline-btn" class="btn-icon variant-filled">
 								<Icon class="p-2" data={pencil} scale={2.5} />
 							</button>
 						</Tooltip>
 					{/if}
-					<Tooltip on:click={copyLink} content="Share" placement="top" target="copy-link">
-						<button id="copy-link" class="btn-icon variant-filled-primary">
+					<Tooltip on:click={copyLink} content="Share" placement="top" target="share-btn">
+						<button id="share-btn" class="btn-icon variant-filled-primary">
 							<Icon class="p-2" data={share} scale={2.3} />
 						</button>
 					</Tooltip>
@@ -428,13 +439,6 @@
 								</p>
 							</div>
 						</div>
-					{/if}
-				</div>
-				<div class="space-x-2 line-clamp-1">
-					{#if bookGenres}
-						{#each bookGenres as genre}
-							<div class="chip variant-filled">{genre}</div>
-						{/each}
 					{/if}
 				</div>
 			</div>

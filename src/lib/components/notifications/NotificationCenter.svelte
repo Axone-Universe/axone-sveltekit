@@ -104,7 +104,7 @@
 </script>
 
 <div class="flex w-fit justify-end">
-	<div>
+	<div id="notifications-btn">
 		<button use:popup={popupSettings('notifications')} type="button" class="btn-icon relative">
 			<Icon data={bell} scale={1.2} />
 			{#if unreadNotifications.length > 0}

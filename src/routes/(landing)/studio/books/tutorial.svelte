@@ -6,12 +6,14 @@
 		back,
 		complete,
 		next,
-		tour,
+		getTour,
 		getShepherdStep,
 		autoStartTour,
 		getBaseURL
 	} from '$lib/util/tour/tour';
 	import { page } from '$app/stores';
+
+	const tour = getTour();
 
 	onMount(() => {
 		setupTour();
@@ -19,34 +21,27 @@
 
 	afterUpdate(() => {
 		const baseURL = getBaseURL($page);
-		autoStartTour(baseURL + '-tour');
+		autoStartTour(tour, baseURL + '-tour');
 	});
 
 	export function setupTour() {
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'archive-toggle',
 				'bottom',
-				'Filter books by archived. Selecting this filter will return only archived books in the table.',
-				[next]
+				'Filter books/campaigns by archived. Selecting this filter will return only archived books/campaigns in the table.',
+				[next(tour)]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
-				'campaigns-toggle',
-				'bottom',
-				'Filter books by campaigns. Selecting this filter will return books created as campaigns.',
-				[back, next]
-			)
-		);
-
-		tour.addStep(
-			getShepherdStep(
+				tour,
 				'archive-btn',
 				'bottom',
-				'Archive the selected books. This becomes active only after selecting one or more books.',
-				[back, next]
+				'After selecting books/campaigns, archive the selected books/campaigns.',
+				[back(tour), next(tour)]
 			)
 		);
 
@@ -54,99 +49,152 @@
 		 * Create book tour
 		 */
 		let stepOptions: Shepherd.Step.StepOptions = getShepherdStep(
-			'create-book-btn',
+			tour,
+			'create-btn',
 			'bottom',
-			'Create a new book. Give a title, description and genres of the book. Also set individual and public permissions for the book.',
-			[back, next]
+			'Create a new book/campaign. Give a title, description and genres of the book/campaign. Also set individual and public permissions for the book/campaign.',
+			[back(tour), next(tour)]
 		);
 		stepOptions.when = {
 			show: () => {
 				setupBookTour();
-				document.getElementById('create-book-btn')?.click();
+				document.getElementById('create-btn')?.click();
 			}
 		};
 		tour.addStep(stepOptions);
 	}
 
 	function setupBookTour() {
-		tour.addStep(getShepherdStep('book-title', 'bottom', 'Insert book title', [back, next]));
-
 		tour.addStep(
-			getShepherdStep('book-description', 'bottom', 'Insert book description', [back, next])
+			getShepherdStep(tour, 'title', 'bottom', 'Insert book title', [back(tour), next(tour)])
 		);
 
 		tour.addStep(
-			getShepherdStep('image-uploader-div', 'bottom', 'Upload the book cover', [back, next])
+			getShepherdStep(tour, 'description', 'bottom', 'Insert book description', [
+				back(tour),
+				next(tour)
+			])
 		);
 
 		tour.addStep(
-			getShepherdStep('genres-div', 'bottom', 'Select book genres for readers to find your book', [
-				back,
-				next
+			getShepherdStep(tour, 'image-uploader-div', 'bottom', 'Upload the book/campaign cover', [
+				back(tour),
+				next(tour)
 			])
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
+				'genres-div',
+				'bottom',
+				'Select genres for readers to find your book/campaign',
+				[back(tour), next(tour)]
+			)
+		);
+
+		tour.addStep(
+			getShepherdStep(tour, 'tags-div', 'bottom', 'Insert tags for you book/campaign', [
+				back(tour),
+				next(tour)
+			])
+		);
+
+		/**--------------------------------------*/
+		// for campaigns
+		tour.addStep(
+			getShepherdStep(tour, 'start-date-input', 'bottom', 'Set the campaign start date', [
+				back(tour),
+				next(tour)
+			])
+		);
+
+		tour.addStep(
+			getShepherdStep(tour, 'end-date-input', 'bottom', 'Set the campaign end date', [
+				back(tour),
+				next(tour)
+			])
+		);
+
+		tour.addStep(
+			getShepherdStep(
+				tour,
+				'criteria-textarea',
+				'bottom',
+				'Set the eligibility criteria for your campaign',
+				[back(tour), next(tour)]
+			)
+		);
+
+		tour.addStep(
+			getShepherdStep(tour, 'rewards-textarea', 'bottom', 'Set campaign rewards if any', [
+				back(tour),
+				complete(tour)
+			])
+		);
+
+		/*------------------------------------*/
+
+		tour.addStep(
+			getShepherdStep(
+				tour,
 				'permission-users-input',
 				'bottom',
 				'Search for users to give permissions to your book',
-				[back, next]
+				[back(tour), next(tour)]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'public-permissions-btn',
 				'bottom',
-				'Set permissions for the public. <br>&#8226; View allows public viewing for your book. <br>&#8226; Collaborate allows the public to create new storylines for your book.',
-				[back, next]
+				'Set permissions for the public.  <br>&#8226; View allows public viewing for your book. <br>&#8226; Collaborate allows the public to create new storylines for your book.',
+				[back(tour), complete(tour)]
 			)
 		);
-		let stepOptions: Shepherd.Step.StepOptions = getShepherdStep(
-			'create-campaign-btn',
-			'bottom',
-			'Create a new campaign. A campaign allows authors to write different stories based on the premise of that campaign.',
-			[back, next]
-		);
-		stepOptions.when = {
-			show: () => {
-				setupCampaignTour();
-				document.getElementById('cancel-btn')?.click();
-				document.getElementById('create-campaign-btn')?.click();
-			}
-		};
-		tour.addStep(stepOptions);
 	}
 
 	function setupCampaignTour() {
 		tour.addStep(
-			getShepherdStep('start-date-input', 'bottom', 'Set the campaign start date', [back, next])
+			getShepherdStep(tour, 'start-date-input', 'bottom', 'Set the campaign start date', [
+				back(tour),
+				next(tour)
+			])
 		);
 
 		tour.addStep(
-			getShepherdStep('end-date-input', 'bottom', 'Set the campaign end date', [back, next])
+			getShepherdStep(tour, 'end-date-input', 'bottom', 'Set the campaign end date', [
+				back(tour),
+				next(tour)
+			])
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'criteria-textarea',
 				'bottom',
 				'Set the eligibility criteria for your campaign',
-				[back, next]
+				[back(tour), next(tour)]
 			)
 		);
 
 		tour.addStep(
-			getShepherdStep('rewards-textarea', 'bottom', 'Set campaign rewards if any', [back, next])
+			getShepherdStep(tour, 'rewards-textarea', 'bottom', 'Set campaign rewards if any', [
+				back(tour),
+				next(tour)
+			])
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'permission-users-input',
 				'bottom',
 				'Search for users to give permissions to your book',
-				[back, complete]
+				[back(tour), complete(tour)]
 			)
 		);
 	}

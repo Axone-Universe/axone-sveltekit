@@ -320,11 +320,7 @@
 										placement="top"
 										target="create-campaign-btn"
 									>
-										<button
-											id="create-campaign-btn"
-											type="button"
-											class="btn btn-sm variant-filled-primary"
-										>
+										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
 											<span class="-mr-1"><Icon data={edit} /></span>
 											<span>
 												<Icon data={plus} />
@@ -338,11 +334,7 @@
 										placement="top"
 										target="create-book-btn"
 									>
-										<button
-											id="create-book-btn"
-											type="button"
-											class="btn btn-sm variant-filled-primary"
-										>
+										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
 											<span class="-mr-1"><Icon data={book} /></span>
 											<span>
 												<Icon data={plus} />

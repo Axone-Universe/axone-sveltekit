@@ -85,8 +85,6 @@
 		window.addEventListener('click', onClickListener);
 		mounted = true;
 
-		setupTour();
-
 		return () => {
 			window.removeEventListener('click', onClickListener);
 		};
@@ -107,7 +105,10 @@
 			on:input={onType}
 		/>
 		<div>
-			<div class="m-2 bg-surface-200-700-token rounded-lg bg-opacity-90 p-4 space-y-2">
+			<div
+				id="filters-container"
+				class="m-2 bg-surface-200-700-token rounded-lg bg-opacity-90 p-4 space-y-2"
+			>
 				<div class="flex justify-between items-center">
 					<p>Filters</p>
 					<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
@@ -115,7 +116,7 @@
 					</button>
 				</div>
 
-				<div class="!max-h-[150px] overflow-y-auto space-y-2">
+				<div id="filters" class="!max-h-[150px] overflow-y-auto space-y-2">
 					<div class="flex flex-wrap gap-2">
 						{#each HOME_FILTER_TAGS as tag}
 							<button

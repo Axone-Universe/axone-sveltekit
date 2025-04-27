@@ -30,10 +30,11 @@
 						<AppRailTile bind:group={selectedTile} name="collaborate" title="Collaborate" value={2}>
 							<Icon data={pencil} scale={1.5} />
 						</AppRailTile>
+						<hr class="mx-2" />
+						<AppRailTile bind:group={selectedTile} name="profile" title="Profile" value={4}>
+							<Icon data={user} scale={1.5} />
+						</AppRailTile>
 					</div>
-					<AppRailTile bind:group={selectedTile} name="profile" title="Profile" value={4}>
-						<Icon data={user} scale={1.5} />
-					</AppRailTile>
 				</div>
 			</AppRail>
 			<section hidden={selectedTile != 0} class="m-4 col-span-2">

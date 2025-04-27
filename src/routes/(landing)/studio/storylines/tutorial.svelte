@@ -6,12 +6,14 @@
 		back,
 		complete,
 		next,
-		tour,
+		getTour,
 		getShepherdStep,
 		autoStartTour,
 		getBaseURL
 	} from '$lib/util/tour/tour';
 	import { page } from '$app/stores';
+
+	const tour = getTour();
 
 	onMount(() => {
 		setupTour();
@@ -19,34 +21,37 @@
 
 	afterUpdate(() => {
 		const baseURL = getBaseURL($page);
-		autoStartTour(baseURL + '-tour');
+		autoStartTour(tour, baseURL + '-tour');
 	});
 
 	export function setupTour() {
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'archive-toggle',
 				'bottom',
 				'Filter storylines by archived. Selecting this filter will return only archived storylines in the list.',
-				[next]
+				[next(tour)]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'archive-btn',
 				'bottom',
 				'Archive the selected storylines. This becomes active only after selecting one or more storylines.',
-				[back, next]
+				[back(tour), next(tour)]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
 				'row-actions-btn',
 				'bottom',
 				'Manage the storyline details or delete the storyline.',
-				[back, complete]
+				[back(tour), complete(tour)]
 			)
 		);
 	}
