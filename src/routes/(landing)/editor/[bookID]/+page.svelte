@@ -21,7 +21,7 @@
 	import { savingDeltaWritable, QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
-	import { setupTour, startTour } from './tutorial';
+	import { setupTour, startTour, tour } from './tutorial';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		check,
@@ -97,7 +97,7 @@
 	let selectedChapterID = $page.url.searchParams.get('chapterID');
 
 	onMount(() => {
-		setupTour();
+		setupTour(tour);
 
 		loadChapters();
 		drawerStore.open(drawerSettings);
@@ -122,7 +122,7 @@
 		if (!quill) setupEditor();
 
 		const baseURL = getBaseURL($page);
-		autoStartTour(baseURL + '-tour');
+		autoStartTour(tour, baseURL + '-tour');
 	});
 
 	/**
@@ -1246,7 +1246,7 @@
 									label: 'Information',
 									icon: infoCircle,
 									callback: () => {
-										startTour();
+										startTour(tour);
 									}
 								}
 							]}

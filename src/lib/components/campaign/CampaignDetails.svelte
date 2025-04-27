@@ -12,7 +12,6 @@
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import type { Response } from '$lib/util/types';
-	import { documentURL } from '$lib/util/links';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -132,7 +131,7 @@
 				<div class="flex flex-col w-full gap-2">
 					<label for="campaign-title">* Campaign Title</label>
 					<input
-						id="campaign-title"
+						id="title"
 						class="input"
 						type="text"
 						bind:value={book.title}
@@ -141,7 +140,7 @@
 					/>
 					<label for="campaign-description">* Description</label>
 					<textarea
-						id="campaign-description"
+						id="description"
 						class="textarea w-full h-full overflow-hidden"
 						bind:value={book.description}
 						required
@@ -155,7 +154,7 @@
 			</div>
 			<div class="flex flex-col gap-2">
 				Genres
-				<div class="flex flex-wrap gap-1">
+				<div id="genres-div" class="flex flex-wrap gap-1">
 					{#each GENRES as genre}
 						<button
 							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
@@ -174,11 +173,11 @@
 					{/each}
 				</div>
 			</div>
-			<div class="flex flex-col gap-2">
+			<div id="tags-div" class="flex flex-col gap-2">
 				Tags
 				<InputChip bind:value={tags} name="tags" placeholder="Enter any value..." />
 			</div>
-			<div class="flex flex-col sm:flex-row w-full gap-2">
+			<div id="dates-div" class="flex flex-col sm:flex-row w-full gap-2">
 				<div class="grow flex flex-col gap-2">
 					* Start date
 					<input
@@ -200,7 +199,7 @@
 					/>
 				</div>
 			</div>
-			<div class="flex flex-col gap-2">
+			<div id="criteria-div" class="flex flex-col gap-2">
 				* Submission Criteria
 				<textarea
 					id="criteria-textarea"
@@ -209,7 +208,7 @@
 					required
 				/>
 			</div>
-			<div class="flex flex-col gap-2">
+			<div id="rewards-div" class="flex flex-col gap-2">
 				* Rewards
 				<textarea
 					id="rewards-textarea"

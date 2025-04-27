@@ -152,6 +152,7 @@
 				<div class="lg:flex gap-2 hidden">
 					{#if data.session && data.session.user}
 						<a
+							id="write-btn"
 							href="/book/create"
 							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 						>
@@ -211,7 +212,7 @@
 					{/if}
 				</div>
 
-				<LightSwitch />
+				<LightSwitch id="light-switch" />
 			</div>
 		</svelte:fragment>
 	</AppBar>

@@ -2,7 +2,12 @@
 	import Section from '$lib/components/Section.svelte';
 
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { arrowCircleRight, arrowCircleLeft } from 'svelte-awesome/icons';
+	import {
+		arrowCircleRight,
+		arrowCircleLeft,
+		chevronRight,
+		chevronLeft
+	} from 'svelte-awesome/icons';
 	import type { PermissionedDocument } from '$lib/properties/permission';
 	import type { HydratedDocument } from 'mongoose';
 	import type { BookProperties } from '$lib/properties/book';
@@ -70,11 +75,11 @@
 	const modalStore = getModalStore();
 </script>
 
-<Section id="document-carousel" class="{customClass} flex items-center w-full p-4">
+<Section id="document-carousel" class="{customClass} flex items-center w-full md:p-4">
 	<div class="grid grid-cols-[auto_1fr_auto] gap-4 items-center">
 		<!-- Button: Left -->
-		<button type="button" class="btn-icon variant-filled" on:click={multiColumnLeft}>
-			<Icon data={arrowCircleLeft} />
+		<button type="button" on:click={multiColumnLeft}>
+			<Icon data={chevronLeft} scale={1.3} />
 		</button>
 		<!-- Carousel -->
 		<div
@@ -101,8 +106,8 @@
 			{/each}
 		</div>
 		<!-- Button-Right -->
-		<button type="button" class="btn-icon variant-filled" on:click={multiColumnRight}>
-			<Icon data={arrowCircleRight} />
+		<button type="button" class="h-full" on:click={multiColumnRight}>
+			<Icon data={chevronRight} scale={1.3} />
 		</button>
 	</div>
 </Section>

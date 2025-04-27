@@ -5,12 +5,14 @@
 		back,
 		complete,
 		next,
-		tour,
+		getTour,
 		getShepherdStep,
 		autoStartTour,
 		getBaseURL
 	} from '$lib/util/tour/tour';
 	import { page } from '$app/stores';
+
+	const tour = getTour();
 
 	onMount(() => {
 		setupTour();
@@ -18,42 +20,59 @@
 
 	afterUpdate(() => {
 		const baseURL = getBaseURL($page);
-		autoStartTour(baseURL + '-tour');
+		autoStartTour(tour, baseURL + '-tour');
 	});
 
 	export function setupTour() {
-		tour.addStep(getShepherdStep('book-title', 'bottom', 'Insert book title', [back, next]));
-
 		tour.addStep(
-			getShepherdStep('book-description', 'bottom', 'Insert book description', [back, next])
+			getShepherdStep(tour, 'title', 'bottom', 'Insert book title', [back(tour), next(tour)])
 		);
 
 		tour.addStep(
-			getShepherdStep('image-uploader-div', 'bottom', 'Upload the book cover', [back, next])
+			getShepherdStep(tour, 'description', 'bottom', 'Insert book description', [
+				back(tour),
+				next(tour)
+			])
 		);
 
 		tour.addStep(
-			getShepherdStep('genres-div', 'bottom', 'Select book genres for readers to find your book', [
-				back,
-				next
+			getShepherdStep(tour, 'image-uploader-div', 'bottom', 'Upload the book cover', [
+				back(tour),
+				next(tour)
 			])
 		);
 
 		tour.addStep(
 			getShepherdStep(
-				'permission-users-input',
+				tour,
+				'genres-div',
 				'bottom',
-				'Search for users to give permissions to your book',
-				[back, next]
+				'Select book genres for readers to find your book',
+				[back(tour), next(tour)]
 			)
 		);
 
 		tour.addStep(
 			getShepherdStep(
+				tour,
+				'permission-users-input',
+				'bottom',
+				'Search for users to give permissions to your book',
+				[back(tour), next(tour)]
+			)
+		);
+
+		tour.addStep(
+			getShepherdStep(
+				tour,
 				'public-permissions-btn',
 				'bottom',
-				'Set permissions for the public. <br>&#8226; View allows public viewing for your book. <br>&#8226; Collaborate allows the public to create new storylines for your book.',
-				[back, complete]
+				`Set permissions for the public. 
+				<ul class="list-disc">
+					<li>View allows public viewing for your book.</li> 
+					<li>Collaborate allows the public to create new storylines for your book.</li> 
+				</ul>`,
+				[back(tour), complete(tour)]
 			)
 		);
 	}
