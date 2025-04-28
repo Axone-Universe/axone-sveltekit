@@ -515,7 +515,7 @@
 		modalComponent.props = {
 			storylineNode: selectedStoryline,
 			chapter: selectedChapter,
-			disabled: !isSelectedChapterOwner || selectedChapter?.archived
+			disabled: !selectedChapter?.userPermissions?.collaborate || selectedChapter?.archived
 		};
 
 		modalSettings.response = (chapterNotes) => {
