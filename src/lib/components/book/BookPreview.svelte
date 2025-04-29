@@ -27,7 +27,7 @@
 </script>
 
 <button
-	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
+	class={`card card-hover group rounded-md overflow-hidden w-full aspect-2/3 relative cursor-pointer text-left text-white ${
 		didError || !book.imageURL ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
 	}`}
 >

@@ -4,7 +4,7 @@ export const getTour = () => {
 	return new Shepherd.Tour({
 		useModalOverlay: true,
 		defaultStepOptions: {
-			classes: 'card shadow-md !bg-surface-300-600-token',
+			classes: 'card shadow-md bg-surface-300-600-token!',
 			scrollTo: { block: 'end' }
 		}
 	});
@@ -39,7 +39,7 @@ export const close = (tour: Shepherd.Tour) => {
 		text: '❌',
 		action: tour.complete,
 		classes:
-			'!btn-icon !btn-icon-sm absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 emoji-cross !bg-surface-900'
+			'!btn-icon !btn-icon-sm absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 emoji-cross bg-surface-900!'
 	};
 };
 
@@ -60,7 +60,7 @@ export function getShepherdStep(
 		showOn: () => {
 			return elementID ? (document.getElementById(elementID) ? true : false) : true;
 		},
-		classes: 'p-2 m-2 md:m-0 [&>.shepherd-arrow:before]:!rounded-t-sm',
+		classes: 'p-2 m-2 md:m-0 [&>.shepherd-arrow:before]:rounded-t-sm!',
 		buttons: buttons
 	};
 }

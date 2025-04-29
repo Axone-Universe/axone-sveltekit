@@ -67,7 +67,7 @@
 	}
 </script>
 
-<Section class="bg-surface-100-800-token flex flex-col items-center !w-full">
+<Section class="bg-surface-100-800-token flex flex-col items-center w-full!">
 	<div class="embla w-full" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
 		<div class="embla__container h-[700px] items-center m-0">
 			<div class="embla__slide h-full">
@@ -86,9 +86,9 @@
 					<div
 						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4 relative"
 					>
-						<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
-						<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
-						<p class="!text-l md:!text-xl">
+						<h1 class="text-3xl! lg:text-5xl!">Enter The Axone Universe</h1>
+						<h3 class="text-2xl! lg:text-3xl!">A collaborative way of storytelling</h3>
+						<p class="text-l! md:text-xl!">
 							Collaborate with authors and illustrators to create stories with multiple storylines
 						</p>
 						<div class="flex gap-4">
@@ -119,15 +119,15 @@
 							class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
 						></div>
 						<div class="flex flex-col w-full mx-auto items-center relative">
-							<div class="aspect-[2/3] h-[400px]">
+							<div class="aspect-2/3 h-[400px]">
 								<ImageWithFallback src={campaign.book.imageURL} alt={campaign.book.title} />
 							</div>
 						</div>
 						<div
 							class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 relative"
 						>
-							<h3 class="!text-2xl lg:!text-3xl">{campaign.book.title}</h3>
-							<p class="!text-l md:!text-xl line-clamp-3">
+							<h3 class="text-2xl! lg:text-3xl!">{campaign.book.title}</h3>
+							<p class="text-l! md:text-xl! line-clamp-3">
 								{campaign.book.description}
 							</p>
 							<div class="flex flex-row gap-12 w-full">
@@ -209,7 +209,7 @@
 						}}
 						><Icon
 							class="btn-icon top-0 cursor-pointer icon-info  {i === selectedIndex
-								? '!fill-primary-400'
+								? 'fill-primary-400!'
 								: ''}"
 							data={dotCircleO}
 							scale={1.5}
@@ -250,7 +250,7 @@
 				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
 			>
 				<div class="mx-auto space-y-4">
-					<h3 class="!text-3xl lg:!text-3xl">Publish Your Story</h3>
+					<h3 class="text-3xl! lg:text-3xl!">Publish Your Story</h3>
 					<p>
 						Write and publish your story using our online platform. Keep track of your characters,
 						places, notes and more. Get editorial services and constant feedback from our readers.
@@ -275,7 +275,7 @@
 				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
 			>
 				<div class="mx-auto space-y-4">
-					<h3 class="!text-3xl md:!text-3xl">Overcome The Writer's Block</h3>
+					<h3 class="text-3xl! md:text-3xl!">Overcome The Writer's Block</h3>
 					<p>
 						Collaborate with the <i><b>universe</b></i>. Let other authors continue your story using
 						alternate storylines. You'll be a co-owner of each storyline and receive royalties from
@@ -301,7 +301,7 @@
 				class="flex flex-col items-center text-center lg:text-start lg:items-start space-y-4 lg:space-y-10 max-w-[640px]"
 			>
 				<div class="mx-auto space-y-4">
-					<h3 class="!text-3xl md:!text-3xl">Bring Your Story To Life</h3>
+					<h3 class="text-3xl! md:text-3xl!">Bring Your Story To Life</h3>
 					<p>
 						Create a call for collaboration with Editors, Illustrators and other Authors to bring
 						your story to life.

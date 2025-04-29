@@ -235,7 +235,7 @@
 				},
 				mode: 'writer'
 			},
-			class: 'md:!w-modal rounded-lg variant-filled max-h-[600px] overflow-auto p-4',
+			class: 'md:w-modal! rounded-lg variant-filled max-h-[600px] overflow-auto p-4',
 			gridStyle: 'grid-cols-2 md:grid-cols-4',
 			limit: 4,
 			title: 'Select or create a storyline',
@@ -267,9 +267,9 @@
 		: bookData.imageURL})"
 >
 	<div
-		class="rounded-lg bg-gradient-to-b {$modeCurrent ? 'from-white/70' : 'from-black/70'} from-10%
-        [.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
-        [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
+		class="rounded-lg bg-linear-to-b {$modeCurrent ? 'from-white/70' : 'from-black/70'} from-10%
+        in-[.dark]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
+        in-[.dark]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
 	>
 		<div class="px-2 md:px-10 pt-32 md:pt-60 overflow-hidden space-y-4 relative">
@@ -379,7 +379,7 @@
 									: 'variant-filled-primary'}"
 								disabled={campaignDaysLeft()[0] < 0}
 							>
-								<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1} />
+								<Icon class="top-0 cursor-pointer fill-white!" data={plus} scale={1} />
 								Join
 							</button>
 						</Tooltip>
@@ -428,12 +428,12 @@
 					{#if bookData.campaign}
 						<div class="flex items-center w-full justify-end gap-x-2">
 							<div class="flex h-fit items-center {campaignDaysLeft()[1]} py-1 px-2 rounded-full">
-								<p class="flex items-center !py-0 text-sm md:text-md font-bold text-white">
+								<p class="flex items-center py-0! text-sm md:text-md font-bold text-white">
 									{#if campaignDaysLeft()[0] > 0}
-										<Icon class="p-2  !hidden md:!block" data={calendar} scale={2} />
+										<Icon class="p-2  hidden! md:block!" data={calendar} scale={2} />
 										{campaignDaysLeft()[0]} days left
 									{:else}
-										<Icon class="p-2 !hidden md:!block" data={warning} scale={2} />
+										<Icon class="p-2 hidden! md:block!" data={warning} scale={2} />
 										closed
 									{/if}
 								</p>

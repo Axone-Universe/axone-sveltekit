@@ -208,14 +208,14 @@
 				autocomplete="off"
 			/>
 			<div
-				class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 !z-10 !bg-surface-100-800-token"
+				class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 z-10! bg-surface-100-800-token!"
 				id={autoCompleteDiv}
 				data-popup="popupAutocomplete"
 			>
 				<Autocomplete
 					{emptyState}
 					{regionEmpty}
-					regionButton="btn-sm !rounded-md w-full"
+					regionButton="btn-sm rounded-md! w-full"
 					duration={0}
 					bind:input={selectedUser}
 					bind:options={autocompleteUsers}
@@ -259,12 +259,12 @@
 									<span class="capitalize text-xs">{permission.permission}</span>
 									<Icon class="border-none" data={caretDown} scale={1} />
 								</button>
-								<button on:click={() => removePermission(id)} class="!py-2 !px-3" type="button">
+								<button on:click={() => removePermission(id)} class="py-2! px-3!" type="button">
 									<Icon data={trash} scale={1} />
 								</button>
 							</div>
 
-							<div class="card shadow-xl py-2 !bg-surface-100-800-token z-10" data-popup={id}>
+							<div class="card shadow-xl py-2 bg-surface-100-800-token! z-10" data-popup={id}>
 								<ListBox class="p-2 w-40 ">
 									{#each PermissionsEnum as permissionType}
 										<ListBoxItem
@@ -283,7 +283,7 @@
 				{/each}
 			</div>
 		</div>
-		<hr class="!my-2 variant-fill-primary" />
+		<hr class="my-2! variant-fill-primary" />
 		<div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
 			<div class="flex-col w-full flex justify-between">
 				<h6>Public access</h6>
@@ -302,7 +302,7 @@
 						<Icon class="border-none" data={caretDown} scale={1} />
 					</button>
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<span on:click={() => onPublicAccessChange()} class="!py-1 !px-3">
+					<span on:click={() => onPublicAccessChange()} class="py-1! px-3!">
 						<input
 							class="radio"
 							type="radio"
@@ -314,7 +314,7 @@
 				</div>
 
 				<div
-					class="card shadow-xl py-2 !bg-surface-100-800-token z-10"
+					class="card shadow-xl py-2 bg-surface-100-800-token! z-10"
 					data-popup={'permissionsPopup'}
 				>
 					<ListBox class="p-2 w-40 ">

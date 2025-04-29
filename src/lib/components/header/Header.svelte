@@ -111,7 +111,7 @@
 			<div>
 				<a
 					href="/community"
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+					class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
 				>
 					<span class="capitalize">Community</span>
 				</a>
@@ -135,7 +135,7 @@
 			<div>
 				<a
 					href="/learn"
-					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+					class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
 				>
 					<span class="capitalize">Learn More</span>
 				</a>
@@ -154,7 +154,7 @@
 						<a
 							id="write-btn"
 							href="/book/create"
-							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
+							class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
 						>
 							<Icon data={pencil} />
 							<span class="hidden md:inline-block">Write</span>
@@ -163,7 +163,7 @@
 						<div>
 							<button
 								id="email-btn"
-								class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none variant-soft-secondary"
+								class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none variant-soft-secondary"
 								use:popup={profilePopupBox}
 							>
 								<Icon data={user} />
@@ -183,11 +183,11 @@
 										<Icon data={user} />
 										<span>Profile</span>
 									</a>
-									<hr class="!my-2 variant-fill-primary" />
+									<hr class="my-2! variant-fill-primary" />
 									<a class="btn space-x-6 hover:variant-soft-primary" href={`/library`}>
 										<Icon data={listUl} /><span>Library</span>
 									</a>
-									<hr class="!my-2 variant-fill-primary" />
+									<hr class="my-2! variant-fill-primary" />
 									<a
 										class="btn space-x-6 hover:variant-soft-primary"
 										href={`/studio/books?campaigns=true`}
@@ -195,7 +195,7 @@
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>
-									<hr class="!my-2 variant-fill-primary" />
+									<hr class="my-2! variant-fill-primary" />
 									<button
 										class="btn space-x-6 hover:variant-soft-primary"
 										on:click={onLogoutButtonClick}

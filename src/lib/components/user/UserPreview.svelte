@@ -14,12 +14,12 @@
 </script>
 
 <div
-	class={`card p-2 card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${customClass}`}
+	class={`card p-2 card-hover group rounded-md overflow-hidden w-full aspect-2/3 relative cursor-pointer text-left text-white ${customClass}`}
 >
 	<header class="h-2/6 flex flex-col items-center">
 		<a href={'/profile/' + user._id}>
 			{#if user.imageURL !== undefined}
-				<Avatar src={user.imageURL} width="w-20 md:w-32" rounded="rounded-full" />
+				<Avatar src={user.imageURL} width="w-20 md:w-32" rounded-sm="rounded-full" />
 			{:else}
 				<button class="btn-icon bg-surface-900 w-20 md:w-32">
 					<Icon data={userIcon} scale={3} />

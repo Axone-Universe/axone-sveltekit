@@ -94,7 +94,7 @@
 <Tutorial />
 
 <Container class="w-full min-h-screen">
-	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
+	<div class="sticky top-[4.7rem] z-2 flex flex-col gap-1">
 		<input
 			id="search-input"
 			class="input text-sm h-8 p-2"
@@ -116,7 +116,7 @@
 					</button>
 				</div>
 
-				<div id="filters" class="!max-h-[150px] overflow-y-auto space-y-2">
+				<div id="filters" class="max-h-[150px]! overflow-y-auto space-y-2">
 					<div class="flex flex-wrap gap-2">
 						{#each HOME_FILTER_TAGS as tag}
 							<button

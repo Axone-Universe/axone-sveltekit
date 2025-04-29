@@ -83,12 +83,12 @@
 </script>
 
 <Container class="flex h-screen justify-center items-center">
-	<div class="w-full max-w-screen-md flex flex-col gap-8">
+	<div class="w-full max-w-(--breakpoint-md) flex flex-col gap-8">
 		<h1 class="text-center">Sign Up</h1>
 
 		<button
 			on:click={signUpWithGoogle}
-			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150"
+			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow-sm transition duration-150"
 		>
 			<img
 				class="w-6 h-6"
@@ -100,7 +100,7 @@
 		</button>
 		<button
 			on:click={signUpWithLinkedIn}
-			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:text-slate-900 hover:shadow transition duration-150"
+			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:text-slate-900 hover:shadow-sm transition duration-150"
 		>
 			<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
 			<span class="text-white">Sign Up with linkedin</span>

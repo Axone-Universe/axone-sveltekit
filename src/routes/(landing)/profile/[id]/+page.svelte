@@ -30,9 +30,9 @@
 		style="background-image: url({userData.imageURL})"
 	>
 		<div
-			class="bg-gradient-to-b from-transparent from-10%
-			[.dark_&]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
-			[.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
+			class="bg-linear-to-b from-transparent from-10%
+			in-[.dark]:via-[rgba(var(--color-surface-900))] via-[rgba(var(--color-surface-50))] via-70%
+			in-[.dark]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
 			w-full space-x-4 h-full"
 		>
 			<div class="flex flex-col items-center w-full gap-4 px-16">

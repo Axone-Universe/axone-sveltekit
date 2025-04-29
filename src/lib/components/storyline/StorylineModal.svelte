@@ -33,7 +33,7 @@
 	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
-	<div class="aspect-square sm:aspect-[2/3] w-full md:h-full rounded-md overflow-hidden relative">
+	<div class="aspect-square sm:aspect-2/3 w-full md:h-full rounded-md overflow-hidden relative">
 		<ImageWithFallback
 			src={storylineData.imageURL ?? ''}
 			alt={storylineData.title ?? 'Storyline Title'}
@@ -59,7 +59,7 @@
 			{/if}
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
-					<Avatar src={bookUser.imageURL} width="w-10" rounded="rounded-full" />
+					<Avatar src={bookUser.imageURL} width="w-10" rounded-sm="rounded-full" />
 				{:else}
 					<div class="overflow-hidden rounded-full">
 						<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />

@@ -117,8 +117,8 @@
 
 	<div
 		class="{notifications.length === 0
-			? '!hidden'
-			: ''} card w-8/12 md:w-5/12 lg:w-3/12 shadow-xl p-2 space-y-2 !bg-surface-100-800-token z-10"
+			? 'hidden!'
+			: ''} card w-8/12 md:w-5/12 lg:w-3/12 shadow-xl p-2 space-y-2 bg-surface-100-800-token! z-10"
 		data-popup="notifications"
 	>
 		{#each notifications as notification}

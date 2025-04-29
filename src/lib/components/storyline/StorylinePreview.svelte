@@ -64,9 +64,9 @@
 </script>
 
 <button
-	class={`card card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${
+	class={`card card-hover group rounded-md overflow-hidden w-full aspect-2/3 relative cursor-pointer text-left text-white ${
 		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
-	} ${selected && 'p-1 !bg-primary-400'}`}
+	} ${selected && 'p-1 bg-primary-400!'}`}
 	on:click={dispatchEvent ? clicked : () => modalStore.trigger(modal)}
 >
 	{#if selected}
@@ -95,7 +95,7 @@
 	</div>
 	{#if !storyline.userPermissions?.view}
 		<div class="absolute items-center top-1/3 right-1/3">
-			<Icon class="border-none !fill-[rgba(255,255,255,0.6)]" data={lock} scale={5} />
+			<Icon class="border-none fill-[rgba(255,255,255,0.6)]!" data={lock} scale={5} />
 		</div>
 	{/if}
 	{#if storyline.numRatings > 0}

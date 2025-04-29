@@ -290,7 +290,7 @@
 		modalComponent.props = {
 			documentType: 'Storyline' as PermissionedDocument,
 			documents: Object.values(storylines),
-			class: 'md:!w-7/12'
+			class: 'md:w-7/12!'
 		};
 
 		modalSettings.response = (storylineId) => {
@@ -965,10 +965,10 @@
 <AppShell class="editor-shell min-h-screen">
 	<svelte:fragment slot="sidebarLeft">
 		<Drawer
-			regionBackdrop="w-2/4 md:w-full !bg-transparent"
+			regionBackdrop="w-2/4 md:w-full bg-transparent!"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full pt-24 md:pt-1"
+			class="md:relative! h-full pt-24 md:pt-1"
 		>
 			<BookNav
 				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
@@ -982,10 +982,10 @@
 	<svelte:fragment slot="sidebarRight">
 		<Drawer
 			id="drawer-actions"
-			regionBackdrop="w-2/4 md:w-full !bg-transparent"
+			regionBackdrop="w-2/4 md:w-full bg-transparent!"
 			width="max-w-[80px]"
 			position="right"
-			class="md:!relative h-full !left-auto pt-24 md:pt-1"
+			class="md:relative! h-full left-auto! pt-24 md:pt-1"
 		>
 			<div class="flex h-full">
 				{#if showAuthorComments && numComments !== 0}
@@ -1155,7 +1155,7 @@
 									id: 'view-storylines',
 									label: 'View more storylines',
 									icon: ellipsisH,
-									class: '!bg-primary-300-600-token',
+									class: 'bg-primary-300-600-token!',
 									callback: showStorylines,
 									hidden: Object.keys(storylines).length <= 1
 								},
@@ -1163,7 +1163,7 @@
 									id: 'toggle-mode',
 									label: mode === 'writer' ? 'Reader Mode' : 'Writer Mode',
 									icon: mode === 'writer' ? book : pencil,
-									class: '!bg-warning-300-600-token',
+									class: 'bg-warning-300-600-token!',
 									callback: () => {
 										mode = mode === 'writer' ? 'reader' : 'writer';
 										setupEditor();
@@ -1236,7 +1236,7 @@
 									id: 'view-permissions',
 									label: 'View chapter permissions',
 									icon: canEditSelectedChapter ? unlock : lock,
-									class: canEditSelectedChapter ? '' : '!bg-error-300-600-token',
+									class: canEditSelectedChapter ? '' : 'bg-error-300-600-token!',
 									callback: showChapterPermissions,
 									mode: 'writer',
 									hidden: !isChapterSelected
@@ -1286,7 +1286,7 @@
 									icon: savingDelta ? spinner : check,
 									pulse: savingDelta ? true : false,
 									callback: () => {},
-									class: savingDelta ? '' : '!bg-success-300-600-token',
+									class: savingDelta ? '' : 'bg-success-300-600-token!',
 									mode: 'writer'
 								}
 							]}
@@ -1332,7 +1332,7 @@
 					</div>
 
 					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
-					<div class="w-10/12 !h-fit" id="editor" style={cssVarStyles}></div>
+					<div class="w-10/12 h-fit!" id="editor" style={cssVarStyles}></div>
 				</div>
 			{:else if !selectedStoryline.userPermissions?.view}
 				<div class="flex h-full w-full justify-center items-center">

@@ -40,7 +40,7 @@
 </script>
 
 <Container class="flex h-full justify-center items-center">
-	<div class="w-full max-w-screen-md flex flex-col gap-8">
+	<div class="w-full max-w-(--breakpoint-md) flex flex-col gap-8">
 		<h1 class="text-center">Forgot Password</h1>
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">

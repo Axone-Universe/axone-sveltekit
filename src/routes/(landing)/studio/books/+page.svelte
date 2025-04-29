@@ -399,7 +399,7 @@
 									/>
 								</td>
 								<td>{book.title}</td>
-								<td class="max-w-sm !min-w-[16rem] !whitespace-normal break-words">
+								<td class="max-w-sm min-w-[16rem]! whitespace-normal! break-words">
 									{book.description}
 								</td>
 								<td>

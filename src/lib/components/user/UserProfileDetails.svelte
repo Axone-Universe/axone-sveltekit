@@ -97,7 +97,7 @@
 					>
 						<Icon data={pencilIcon} />
 					</FileButton>
-					<Avatar src={userProperties.imageURL} width="w-24" rounded="rounded-full" />
+					<Avatar src={userProperties.imageURL} width="w-24" rounded-sm="rounded-full" />
 				</div>
 			</div>
 			<label>

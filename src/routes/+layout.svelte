@@ -60,5 +60,5 @@
 <QueryClientProvider client={data.queryClient}>
 	<slot />
 	<Modal components={modalComponentRegistry} />
-	<Toast zIndex="z-[1000]" />
+	<Toast zIndex="z-1000" />
 </QueryClientProvider>

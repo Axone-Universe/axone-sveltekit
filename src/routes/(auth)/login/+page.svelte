@@ -118,7 +118,7 @@
 </script>
 
 <Container class="flex h-screen justify-center items-center">
-	<div class="w-full max-w-screen-md flex flex-col gap-8">
+	<div class="w-full max-w-(--breakpoint-md) flex flex-col gap-8">
 		<h1 class="text-center">Login</h1>
 
 		<button
@@ -136,7 +136,7 @@
 
 		<button
 			on:click={signInWithLinkedIn}
-			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow transition duration-150 variant-ghost"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 variant-ghost"
 		>
 			<img class="w-6 h-6" src="/brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
 			<span>Login with LinkedIn</span>
@@ -144,7 +144,7 @@
 
 		<button
 			on:click={signInWithFacebook}
-			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow transition duration-150 variant-ghost"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 variant-ghost"
 		>
 			<img
 				class="w-6 h-6"

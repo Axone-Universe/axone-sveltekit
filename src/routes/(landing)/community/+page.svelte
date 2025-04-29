@@ -114,7 +114,7 @@
 <svelte:window on:scroll={loadMore} />
 
 <Container class="w-full min-h-screen">
-	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
+	<div class="sticky top-[4.7rem] z-2 flex flex-col gap-1">
 		<input
 			class="input text-sm h-8 p-2"
 			title="Search for users"

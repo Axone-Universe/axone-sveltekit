@@ -94,7 +94,7 @@
 								<p class="text-xl font-bold">{chapter.title}</p>
 								<div class="flex justify-start items-center space-x-2">
 									{#if typeof chapter.user !== 'string'}
-										<Avatar src={chapter.user?.imageURL} width="w-8" rounded="rounded-full" />
+										<Avatar src={chapter.user?.imageURL} width="w-8" rounded-sm="rounded-full" />
 									{/if}
 									<div class="flex-auto flex justify-between items-center">
 										{#if typeof chapter.user !== 'string'}

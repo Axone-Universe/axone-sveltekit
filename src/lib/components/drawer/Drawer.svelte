@@ -16,7 +16,7 @@
 </script>
 
 {#if $drawerStore.id === 'landing'}
-	<Drawer zIndex="z-[1000]">
+	<Drawer zIndex="z-1000">
 		<div class="grid grid-cols-3 h-full z-50">
 			<AppRail class="col-span-1 w-full border-r border-surface-500/30">
 				<div class="h-full flex flex-col justify-between">
@@ -139,7 +139,7 @@
 		</div>
 	</Drawer>
 {:else if $drawerStore.id === 'library'}
-	<Drawer zIndex="z-[1000]">
+	<Drawer zIndex="z-1000">
 		<div
 			class="h-full sticky flex flex-col justify-between bg-surface-100-800-token pt-4 p-2 gap-2"
 		>
@@ -195,7 +195,7 @@
 		</div>
 	</Drawer>
 {:else if $drawerStore.id === 'studio'}
-	<Drawer zIndex="z-[1000]">
+	<Drawer zIndex="z-1000">
 		<div
 			class="h-screen sticky top-16 flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-2 gap-2"
 		>
