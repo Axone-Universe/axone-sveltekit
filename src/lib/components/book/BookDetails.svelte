@@ -126,7 +126,7 @@
 						class="textarea w-full h-full overflow-hidden"
 						bind:value={book.description}
 						required
-					/>
+					></textarea>
 				</div>
 				<ImageUploader
 					bind:imageURL={book.imageURL}

@@ -1002,7 +1002,7 @@
 									class="textarea text-sm h-20 resize-none overflow-hidden"
 									bind:value={quill.comments[id].comment}
 									required
-								/>
+								></textarea>
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
 										<button on:click={() => removeComment(id)} class="chip variant-ghost-surface">
@@ -1320,7 +1320,7 @@
 							placeholder="Storyline Title"
 							bind:value={selectedStoryline.title}
 							disabled
-						/>
+						></textarea>
 						<textarea
 							id="message"
 							rows="1"
@@ -1328,11 +1328,11 @@
 							placeholder="Chapter Title"
 							bind:value={selectedChapter.title}
 							disabled
-						/>
+						></textarea>
 					</div>
 
 					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
-					<div class="w-10/12 !h-fit" id="editor" style={cssVarStyles} />
+					<div class="w-10/12 !h-fit" id="editor" style={cssVarStyles}></div>
 				</div>
 			{:else if !selectedStoryline.userPermissions?.view}
 				<div class="flex h-full w-full justify-center items-center">

@@ -36,6 +36,6 @@
 				participants to branch off of.
 			</p>
 		</div>
-		<div class="arrow bg-surface-100-800-token" />
+		<div class="arrow bg-surface-100-800-token"></div>
 	</div>
 </div>

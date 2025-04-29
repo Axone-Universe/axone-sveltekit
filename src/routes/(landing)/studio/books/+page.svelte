@@ -294,12 +294,12 @@
 			<table class="table table-hover table-compact relative">
 				<thead>
 					<tr>
-						<th />
+						<th></th>
 						<th>Cover</th>
 						<th>Title</th>
 						<th>Description</th>
 						<th>Date Created</th>
-						<th />
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -343,7 +343,7 @@
 									</Tooltip>
 								{/if}
 
-								<span class="divider-vertical h-6 mx-0" />
+								<span class="divider-vertical h-6 mx-0"></span>
 								<ArchiveSelectedButton
 									selected={selectedBooks}
 									{archiveMode}

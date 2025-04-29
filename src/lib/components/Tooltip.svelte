@@ -19,6 +19,6 @@
 	<slot />
 	<div class="{fixed ? 'fixed' : ''} card p-2 variant-filled-primary" data-popup={target}>
 		<p class="text-secondary-900-50-token">{content}</p>
-		<div class="arrow bg-surface-100-800-token" />
+		<div class="arrow bg-surface-100-800-token"></div>
 	</div>
 </div>

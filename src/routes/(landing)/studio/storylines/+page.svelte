@@ -225,12 +225,12 @@
 			<table class="table table-hover table-compact">
 				<thead>
 					<tr>
-						<th />
+						<th></th>
 						<th>Cover</th>
 						<th>Title</th>
 						<th>Book</th>
 						<th>Date Created</th>
-						<th />
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>

@@ -99,7 +99,7 @@
 		<button type="button" class="ql-comments-add">
 			<QLComments />
 		</button>
-		<button type="button" class="ql-comments-toggle" />
+		<button type="button" class="ql-comments-toggle"></button>
 		<button type="button" class="ql-illustrations-add">
 			<QLIllustrations />
 		</button>

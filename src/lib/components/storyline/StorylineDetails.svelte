@@ -138,7 +138,7 @@
 				class="textarea w-full h-full overflow-hidden"
 				bind:value={storyline.description}
 				required
-			/>
+			></textarea>
 		</div>
 		<ImageUploader
 			bind:imageURL={storyline.imageURL}

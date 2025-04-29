@@ -77,7 +77,7 @@
 				>
 					<div
 						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
-					/>
+					></div>
 					<div class="lg:order-2 w-2/3 mx-auto relative">
 						<div class="aspect-video">
 							<Components />
@@ -93,7 +93,7 @@
 						</p>
 						<div class="flex gap-4">
 							<a href="/login" class="btn variant-filled-primary"
-								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
+								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long"></i></a
 							> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
 						</div>
 					</div>
@@ -106,7 +106,7 @@
 				>
 					<div
 						class="absolute bg-opacity-20 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
-					/>
+					></div>
 				</div>
 			</div>
 			{#each campaigns as campaign}
@@ -117,7 +117,7 @@
 					>
 						<div
 							class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
-						/>
+						></div>
 						<div class="flex flex-col w-full mx-auto items-center relative">
 							<div class="aspect-[2/3] h-[400px]">
 								<ImageWithFallback src={campaign.book.imageURL} alt={campaign.book.title} />
@@ -192,7 +192,7 @@
 							</div>
 							<div class="flex gap-4">
 								<a href="/book/{campaign.book._id}" class="btn variant-filled-primary"
-									><span>Enter Now</span> <i class="fa-solid fa-arrow-right-long" /></a
+									><span>Enter Now</span> <i class="fa-solid fa-arrow-right-long"></i></a
 								>
 							</div>
 						</div>

@@ -35,7 +35,7 @@
 	<div class="hidden sm:block anim-float-search anim-delay-200 absolute z-[1] top-[5%] left-[70%]">
 		<button class="btn variant-soft-primary">
 			<span>Inspiring</span>
-			<i class="fa-solid fa-spa" />
+			<i class="fa-solid fa-spa"></i>
 		</button>
 	</div>
 	<div class="hidden sm:block anim-float-card absolute z-[1] top-[-12%] left-[60%]">
@@ -45,7 +45,7 @@
 	<div class="hidden sm:block anim-float-radio absolute z-[1] top-[70%] left-[75%]">
 		<button class="btn variant-soft-primary">
 			<span>Engaging</span>
-			<i class="fa-solid fa-spa" />
+			<i class="fa-solid fa-spa"></i>
 		</button>
 	</div>
 	<div class="hidden sm:block anim-float-card absolute z-[1] top-[60%] left-[65%]">
@@ -81,7 +81,7 @@
 		>
 			<div
 				class="w-[240px] aspect-square border-2 border-black/5 dark:border-white/5 rounded-full flex justify-center items-center"
-			/>
+			></div>
 		</div>
 	</div>
 </div>

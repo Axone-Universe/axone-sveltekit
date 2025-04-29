@@ -130,7 +130,7 @@
 						class="textarea h-44 overflow-hidden"
 						bind:value={chapter.description}
 						required
-					/>
+					></textarea>
 				</label>
 
 				<div>

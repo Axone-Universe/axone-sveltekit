@@ -87,7 +87,7 @@
 							{/each}
 						</ul>
 					</nav>
-					<div class="arrow bg-surface-100-800-token" />
+					<div class="arrow bg-surface-100-800-token"></div>
 				</div>
 			</div>
 
@@ -104,7 +104,7 @@
 							</ul>
 						</nav>
 					</div>
-					<div class="arrow bg-surface-100-800-token" />
+					<div class="arrow bg-surface-100-800-token"></div>
 				</div>
 			</div>
 
@@ -128,7 +128,7 @@
 							</ul>
 						</nav>
 					</div>
-					<div class="arrow bg-surface-100-800-token" />
+					<div class="arrow bg-surface-100-800-token"></div>
 				</div>
 			</div>
 
@@ -203,7 +203,7 @@
 										<span>Logout</span>
 									</button>
 								</div>
-								<div class="arrow bg-surface-100-800-token" />
+								<div class="arrow bg-surface-100-800-token"></div>
 							</div>
 						</div>
 						<NotificationCenter />

@@ -328,7 +328,7 @@
 									More
 								</a>
 							</div>
-							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;" />
+							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;"></div>
 						</div>
 					</div>
 

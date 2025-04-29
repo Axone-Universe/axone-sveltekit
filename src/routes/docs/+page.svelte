@@ -18,7 +18,7 @@
 
 <Section class="w-full min-h-screen flex bg-surface-100">
 	<Container class="w-full">
-		<div id="api" />
+		<div id="api"></div>
 	</Container>
 </Section>
 

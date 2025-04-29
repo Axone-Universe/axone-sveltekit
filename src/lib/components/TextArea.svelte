@@ -38,7 +38,7 @@
 		maxlength={maxLength}
 		{required}
 		{placeholder}
-	/>
+	></textarea>
 	<div class="text-sm flex flex-row items-center gap-2 m-1 justify-between">
 		<div class="flex flex-row items-center gap-2">
 			<button use:popup={emojiPopup} type="button" class="btn-icon variant-soft w-fit p-1"
@@ -57,6 +57,6 @@
 		{/if}
 	</div>
 	<div class="card p-4 w-fit shadow-xl" data-popup="emojiPopup">
-		<emoji-picker />
+		<emoji-picker></emoji-picker>
 	</div>
 </div>

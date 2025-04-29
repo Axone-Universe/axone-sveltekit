@@ -144,7 +144,7 @@
 						class="textarea w-full h-full overflow-hidden"
 						bind:value={book.description}
 						required
-					/>
+					></textarea>
 				</div>
 				<ImageUploader
 					bind:imageURL={book.imageURL}
@@ -206,7 +206,7 @@
 					class="textarea w-full h-full overflow-hidden"
 					bind:value={campaign.submissionCriteria}
 					required
-				/>
+				></textarea>
 			</div>
 			<div id="rewards-div" class="flex flex-col gap-2">
 				* Rewards
@@ -215,7 +215,7 @@
 					class="textarea w-full h-full overflow-hidden"
 					bind:value={campaign.rewards}
 					required
-				/>
+				></textarea>
 			</div>
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 mt-4">
