@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
@@ -7,7 +8,7 @@ export default defineConfig({
 		include: ['lodash.get', 'lodash.isequal', 'lodash.clonedeep']
 	},
 	server: { https: true, proxy: {} },
-	plugins: [sveltekit(), mkcert()],
+	plugins: [tailwindcss(), sveltekit(), mkcert()],
 	test: {
 		environment: 'happy-dom',
 		globals: true,
