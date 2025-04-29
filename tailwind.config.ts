@@ -18,22 +18,7 @@ const config = {
 	theme: {
 		extend: {}
 	},
-	plugins: [
-		forms,
-		typography,
-		animated,
-		skeleton({
-			themes: {
-				// Register each theme within this array:
-				preset: [
-					{ name: 'skeleton', enhancements: true },
-					{ name: 'modern', enhancements: true },
-					{ name: 'crimson', enhancements: true }
-				],
-				custom: [themeOne]
-			}
-		})
-	]
+	plugins: [forms, typography, animated]
 } satisfies Config;
 
 export default config;
