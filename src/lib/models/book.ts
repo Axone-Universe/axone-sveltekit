@@ -1,5 +1,5 @@
 import { label, type BookProperties } from '$lib/properties/book';
-import mongoose, { ClientSession, Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { type ClientSession, Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as CampaignLabel } from '$lib/properties/campaign';
 import { label as StorylineLabel } from '$lib/properties/storyline';

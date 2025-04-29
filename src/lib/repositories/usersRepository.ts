@@ -1,9 +1,8 @@
 import { User } from '$lib/models/user';
 import { Repository } from '$lib/repositories/repository';
-import { label as StorylineLabel } from '$lib/properties/storyline';
 import type { UserLabel, UserProperties } from '$lib/properties/user';
 import type { Session } from '@supabase/supabase-js';
-import type { HydratedDocument, PipelineStage } from 'mongoose';
+import type { HydratedDocument } from 'mongoose';
 import type { Genre } from '$lib/properties/genre';
 
 export class UsersRepository extends Repository {

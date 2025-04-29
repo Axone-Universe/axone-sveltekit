@@ -1,6 +1,6 @@
 import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
-import mongoose, { PipelineStage, Schema, model } from 'mongoose';
+import mongoose, { type PipelineStage, Schema, model } from 'mongoose';
 import {
 	addArchivedRestrictionFilter,
 	addOwnerUpdateRestrictionFilter,

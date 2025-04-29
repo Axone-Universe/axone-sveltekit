@@ -1,4 +1,4 @@
-import { SupabaseClient, Session } from '@supabase/supabase-js';
+import { SupabaseClient, type Session } from '@supabase/supabase-js';
 import { Database } from './DatabaseDefinitions';
 import type { UserProperties } from '$lib/properties/user';
 
