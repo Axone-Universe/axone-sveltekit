@@ -145,7 +145,8 @@
 		>
 			<div class="flex flex-col gap-2">
 				{#each $drawerStore.meta.readingLists as list}
-					<button
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<div
 						class="flex justify-between items-center btn btn-sm {$drawerStore.meta.selectedList ===
 						list
 							? 'variant-filled-primary'
@@ -179,7 +180,7 @@
 								<Icon data={trash} scale={1.2} />
 							</button>
 						</div>
-					</button>
+					</div>
 				{/each}
 			</div>
 			<button
