@@ -434,7 +434,7 @@
 										{campaignDaysLeft()[0]} days left
 									{:else}
 										<Icon class="p-2 !hidden md:!block" data={warning} scale={2} />
-										closed
+										Closed
 									{/if}
 								</p>
 							</div>

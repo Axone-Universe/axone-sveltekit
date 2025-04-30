@@ -76,7 +76,7 @@ export function getBaseURL(page: any) {
 }
 
 export function autoStartTour(tour: Shepherd.Tour, key: string) {
-	const toured = false; // localStorage.getItem(key) ?? undefined;
+	const toured = localStorage.getItem(key) ?? undefined;
 	if (!toured) {
 		localStorage.setItem(key, 'true');
 		tour.start();
