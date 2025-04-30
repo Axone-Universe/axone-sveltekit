@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Avatar, Step, Stepper, FileButton, getToastStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
+	import { Avatar, FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import defaultUserImage from '$lib/assets/default-user.png';
 	import { USER_LABELS, type UserProperties } from '$lib/properties/user';
 	import TextArea from '$lib/components/TextArea.svelte';
@@ -10,6 +9,7 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 	import { uploadImage } from '$lib/util/bucket/bucket';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
@@ -18,8 +18,6 @@
 	let genres = userProperties.genres ?? [];
 	let labels = userProperties.labels ?? [];
 
-	const toastStore = getToastStore();
-
 	const aboutMaxLength = 500;
 	/**
 	 * Toast settings
@@ -27,18 +25,18 @@
 	const successUploadToast: ToastSettings = {
 		message: 'Profile picture has been uploaded successfully',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-success'
+		background: 'preset-filled-success-500'
 	};
 	const progressUploadToast: ToastSettings = {
 		message: 'Uploading profile picture...',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-secondary',
+		background: 'preset-filled-secondary-500',
 		autohide: false
 	};
 	const errorUploadToast: ToastSettings = {
 		message: 'There was an issue uploading the profile picture',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-error'
+		background: 'preset-filled-error-500'
 	};
 
 	let profileImage = defaultUserImage;
@@ -61,14 +59,20 @@
 
 		const bucketName = `profiles/${userProperties._id}`;
 
-		const response = await uploadImage(supabase, bucketName, newAvatarImage, toastStore);
+		const response = await uploadImage(supabase, bucketName, newAvatarImage);
 
 		if (response.error) {
 			errorUploadToast.message = errorUploadToast.message + '. Reason: ' + response.error.message;
-			toastStore.trigger(errorUploadToast);
+			toaster.error({
+				title: errorUploadToast.message,
+				type: 'error'
+			});
 		} else {
 			userProperties.imageURL = response.url!;
-			toastStore.trigger(successUploadToast);
+			toaster.error({
+				title: successUploadToast.message,
+				type: 'success'
+			});
 		}
 	}
 
@@ -83,32 +87,32 @@
 	}
 </script>
 
-<Stepper on:complete={submit}>
+<Stepper on:complete="{submit}">
 	<Step>
 		<svelte:fragment slot="header">Basic Information</svelte:fragment>
 		<div class="min-h-[calc(60vh)] space-y-4">
 			<div class="flex flex-col items-center w-full">
 				<div class="relative inline-block w-24 h-24">
-					<FileButton
-						on:change={avatarFileSelected}
+					<FileUpload
+						on:change="{avatarFileSelected}"
 						name="avatarFileButton"
 						button=""
-						class="badge-icon variant-filled-primary w-6 h-6 absolute -bottom-0 -right-0 z-10"
+						class="badge-icon preset-filled-primary-500 w-6 h-6 absolute -bottom-0 -right-0 z-10"
 					>
-						<Icon data={pencilIcon} />
-					</FileButton>
-					<Avatar src={userProperties.imageURL} width="w-24" rounded-sm="rounded-full" />
+						<Icon data="{pencilIcon}" />
+					</FileUpload>
+					<Avatar src="{userProperties.imageURL}" width="w-24" rounded-sm="rounded-full" />
 				</div>
 			</div>
 			<label>
 				*First name
-				<input class="input" type="text" bind:value={userProperties.firstName} />
+				<input class="input" type="text" bind:value="{userProperties.firstName}" />
 				<!-- {#if firstNameError}<p class="text-error-500">First name is required.</p>{/if} -->
 			</label>
 
 			<label>
 				*Last name
-				<input class="input" type="text" bind:value={userProperties.lastName} />
+				<input class="input" type="text" bind:value="{userProperties.lastName}" />
 				<!-- {#if lastNameError}<p class="text-error-500">Last name is required.</p>{/if} -->
 			</label>
 
@@ -118,14 +122,14 @@
 					name="firstName"
 					class="input"
 					type="text"
-					bind:value={userProperties.email}
+					bind:value="{userProperties.email}"
 					disabled
 				/>
 			</label>
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label>
 				About
-				<TextArea maxLength={500} bind:textContent={userProperties.about} />
+				<TextArea maxLength="{500}" bind:textContent="{userProperties.about}" />
 			</label>
 		</div>
 		<!-- svelte-ignore a11y-label-has-associated-control -->
@@ -137,15 +141,15 @@
 			<div class="flex flex-wrap gap-2">
 				{#each GENRES as genre}
 					<button
-						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
+						class="chip {genres.includes(genre) ? 'preset-filled' : 'preset-tonal'}"
+						onclick="{() => {
 							const index = genres.indexOf(genre);
 							if (index > -1) {
 								genres = genres.filter((v) => v !== genre);
 							} else {
 								genres = [...genres, genre];
 							}
-						}}
+						}}"
 					>
 						{genre}
 					</button>
@@ -163,18 +167,18 @@
 				collaborate on the platform.
 			</div>
 			<div class="flex justify-center">
-				<div class="btn-group variant-filled w-fit">
+				<div class=" preset-filled w-fit">
 					{#each USER_LABELS as userLabel}
 						<button
-							class={labels.includes(userLabel) ? 'variant-filled-primary' : 'variant-soft'}
-							on:click={() => {
+							class="{labels.includes(userLabel) ? 'preset-filled-primary-500' : 'preset-tonal'}"
+							onclick="{() => {
 								const index = labels.indexOf(userLabel);
 								if (index > -1) {
 									labels = labels.filter((v) => v !== userLabel);
 								} else {
 									labels = [...labels, userLabel];
 								}
-							}}
+							}}"
 							on:keypress
 						>
 							{userLabel}
@@ -189,15 +193,15 @@
 		<div class="min-h-[calc(60vh)]">
 			<label>
 				Facebook profile link
-				<input class="input" type="text" bind:value={userProperties.facebook} />
+				<input class="input" type="text" bind:value="{userProperties.facebook}" />
 			</label>
 			<label>
 				Instagram handle
-				<input class="input" type="text" bind:value={userProperties.instagram} />
+				<input class="input" type="text" bind:value="{userProperties.instagram}" />
 			</label>
 			<label>
 				Twitter handle
-				<input class="input" type="text" bind:value={userProperties.twitter} />
+				<input class="input" type="text" bind:value="{userProperties.twitter}" />
 			</label>
 		</div>
 	</Step>

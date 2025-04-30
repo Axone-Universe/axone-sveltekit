@@ -10,10 +10,8 @@
 	import {
 		type ModalSettings,
 		type ModalComponent,
-		type ToastSettings,
-		getToastStore,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+		type ToastSettings
+	} from '@skeletonlabs/skeleton-svelte';
 	import BookDetails from '$lib/components/book/BookDetails.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -32,6 +30,7 @@
 	import Tutorial from './tutorial.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { deleteBucket } from '$lib/util/bucket/bucket';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -269,11 +268,11 @@
 								});
 								books = books.filter((book) => book._id !== bookToDelete._id);
 							}
-							const deleteFail: ToastSettings = {
-								message: response.message,
-								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
-							};
-							toastStore.trigger(deleteFail);
+
+							toaster.info({
+								title: response.message,
+								type: response.success ? 'success' : 'error'
+							});
 						})
 						.catch((error) => {
 							console.log(error);
@@ -291,7 +290,7 @@
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
-			<table class="table table-hover table-compact relative">
+			<table class="table table-compact relative">
 				<thead>
 					<tr>
 						<th></th>
@@ -307,7 +306,7 @@
 						<td colspan="3">
 							<div class="flex sm:justify-start">
 								<ViewFilters>
-									<ArchiveToggle bind:archiveMode />
+									<ArchiveToggle bind:archiveMode="{archiveMode}" />
 								</ViewFilters>
 							</div>
 						</td>
@@ -315,29 +314,37 @@
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								{#if isCampaigns}
 									<Tooltip
-										on:click={openCreateCampaignModal}
+										onclick="{openCreateCampaignModal}"
 										content="Create new campaign"
 										placement="top"
 										target="create-campaign-btn"
 									>
-										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
-											<span class="-mr-1"><Icon data={edit} /></span>
+										<button
+											id="create-btn"
+											type="button"
+											class="btn btn-sm preset-filled-primary-500"
+										>
+											<span class="-mr-1"><Icon data="{edit}" /></span>
 											<span>
-												<Icon data={plus} />
+												<Icon data="{plus}" />
 											</span>
 										</button>
 									</Tooltip>
 								{:else}
 									<Tooltip
-										on:click={openCreateBookModal}
+										onclick="{openCreateBookModal}"
 										content="Create new book"
 										placement="top"
 										target="create-book-btn"
 									>
-										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
-											<span class="-mr-1"><Icon data={book} /></span>
+										<button
+											id="create-btn"
+											type="button"
+											class="btn btn-sm preset-filled-primary-500"
+										>
+											<span class="-mr-1"><Icon data="{book}" /></span>
 											<span>
-												<Icon data={plus} />
+												<Icon data="{plus}" />
 											</span>
 										</button>
 									</Tooltip>
@@ -345,10 +352,10 @@
 
 								<span class="divider-vertical h-6 mx-0"></span>
 								<ArchiveSelectedButton
-									selected={selectedBooks}
-									{archiveMode}
-									{openArchiveModal}
-									{openUnarchiveModal}
+									selected="{selectedBooks}"
+									archiveMode="{archiveMode}"
+									openArchiveModal="{openArchiveModal}"
+									openUnarchiveModal="{openUnarchiveModal}"
 								/>
 							</div>
 						</td>
@@ -388,14 +395,14 @@
 									<input
 										class="checkbox"
 										type="checkbox"
-										on:change={(e) => handleBookSelect(e, book)}
+										on:change="{(e) => handleBookSelect(e, book)}"
 									/>
 								</td>
 								<td>
 									<StudioImage
-										src={book.imageURL}
-										alt={book.title}
-										buttonCallback={() => openBookModal(book)}
+										src="{book.imageURL}"
+										alt="{book.title}"
+										buttonCallback="{() => openBookModal(book)}"
 									/>
 								</td>
 								<td>{book.title}</td>
@@ -407,8 +414,8 @@
 								</td>
 								<td>
 									<RowActions
-										document={book}
-										rowActions={[
+										document="{book}"
+										rowActions="{[
 											{
 												label: 'Edit',
 												icon: edit,
@@ -419,7 +426,7 @@
 												icon: trash,
 												callback: deleteBook
 											}
-										]}
+										]}"
 									/>
 								</td>
 							</tr>
@@ -430,9 +437,9 @@
 		</div>
 		{#if $getBooksInfinite.hasNextPage}
 			<div class="flex justify-center my-2">
-				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
-					<button class="btn-icon variant-filled">
-						<Icon data={arrowDown} />
+				<Tooltip onclick="{loadMore}" content="Load more" placement="top" target="reading-list">
+					<button class="btn-icon preset-filled">
+						<Icon data="{arrowDown}" />
 					</button>
 				</Tooltip>
 			</div>

@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { type ToastSettings } from '@skeletonlabs/skeleton-svelte';
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
 	import Container from '$lib/components/Container.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -14,21 +15,16 @@
 		confirmPassword: ''
 	};
 
-	const toastStore = getToastStore();
-
 	async function signUpWithLinkedIn() {
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: 'linkedin'
 		});
 
-		let t: ToastSettings = {
-			message: `Something wrong happened. Please try logging in later.`,
-			background: 'variant-filled-error',
-			autohide: true
-		};
-
-		if (await error) {
-			toastStore.trigger(t);
+		if (error) {
+			toaster.info({
+				title: `Something wrong happened. Please try logging in later.`,
+				type: 'error'
+			});
 		}
 	}
 
@@ -37,14 +33,11 @@
 			provider: 'google'
 		});
 
-		let t: ToastSettings = {
-			message: `Something wrong happened. Please try logging in later.`,
-			background: 'variant-filled-error',
-			autohide: true
-		};
-
-		if (await error) {
-			toastStore.trigger(t);
+		if (error) {
+			toaster.info({
+				title: `Something wrong happened. Please try logging in later.`,
+				type: 'error'
+			});
 		}
 	}
 
@@ -59,24 +52,19 @@
 			password: formData.password
 		});
 
-		let t: ToastSettings = {
-			message: `Please check your inbox, confirm your email address, and then login.`,
-			background: 'variant-filled-primary',
-			autohide: false
-		};
-
 		if (resp.error) {
-			t = {
-				message: `Something wrong happened. Please try signing up later.`,
-				background: 'variant-filled-error',
-				autohide: true
-			};
+			toaster.info({
+				title: `Something wrong happened. Please try signing up later.`,
+				type: 'error'
+			});
 			console.log(resp.error);
-			toastStore.trigger(t);
 		} else {
 			// TODO: handle if user already signed up
 			console.log(resp.data);
-			toastStore.trigger(t);
+			toaster.info({
+				title: `Please check your inbox, confirm your email address, and then login.`,
+				type: 'success'
+			});
 			goto('/login');
 		}
 	};
@@ -87,7 +75,7 @@
 		<h1 class="text-center">Sign Up</h1>
 
 		<button
-			on:click={signUpWithGoogle}
+			onclick="{signUpWithGoogle}"
 			class="justify-center px-:4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow-sm transition duration-150"
 		>
 			<img
@@ -99,7 +87,7 @@
 			<span class="text-white">Sign Up with Google</span>
 		</button>
 		<button
-			on:click={signUpWithLinkedIn}
+			onclick="{signUpWithLinkedIn}"
 			class="justify-center px-4 py-2 border flex gap-2 border-slate-200 rounded-full text-slate-700 hover:text-slate-900 hover:shadow-sm transition duration-150"
 		>
 			<img class="w-6 h-6" src="brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
@@ -111,15 +99,15 @@
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
 				<span>Email</span>
-				<input class="input" type="email" bind:value={formData.email} />
+				<input class="input" type="email" bind:value="{formData.email}" />
 			</label>
 			<label class="label w-full">
 				<span>Password</span>
-				<input class="input" type="password" bind:value={formData.password} />
+				<input class="input" type="password" bind:value="{formData.password}" />
 			</label>
 			<label class="label w-full">
 				<span>Confirm password</span>
-				<input class="input" type="password" bind:value={formData.confirmPassword} />
+				<input class="input" type="password" bind:value="{formData.confirmPassword}" />
 			</label>
 			<div class="w-full text-center">
 				<a class="underline text-xs" href="/login">Already have an account?</a>
@@ -129,7 +117,7 @@
 
 		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
-			<button class="btn variant-filled-primary" on:click={onSubmit}>Sign up</button>
+			<button class="btn preset-filled-primary-500" onclick="{onSubmit}">Sign up</button>
 		</footer>
 	</div>
 </Container>

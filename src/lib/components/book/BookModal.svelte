@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { BookProperties } from '$lib/properties/book';
-	import { getModalStore, Avatar } from '@skeletonlabs/skeleton';
+	import { Avatar, Modal } from '@skeletonlabs/skeleton-svelte';
 
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
@@ -9,25 +9,43 @@
 	import type { Session } from '@supabase/supabase-js';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 
-	export let book: HydratedDocument<BookProperties>;
-	export let session: Session | null = null;
-	let customClass = '';
-	export { customClass as class };
+	/** props */
+	let {
+		book = $bindable(),
+		session = $bindable(),
+		openLabel,
+		class: customClass
+	}: {
+		book: HydratedDocument<BookProperties>;
+		session: Session | null;
+		openLabel: string;
+		class: string;
+	} = $props();
+
+	session = session ?? null;
+
+	/** variables */
+	let openState = $state(false);
 
 	const bookUser = book.user as HydratedDocument<UserProperties>;
 
-	const modalStore = getModalStore();
 	let closeModal = () => {
-		modalStore.close();
+		openState = false;
 	};
 </script>
 
-<div
-	class={`card w-modal grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}
->
+<Modal
+	open={openState}
+	onOpenChange={(e) => (openState = e.open)}
+	triggerBase="btn preset-tonal"
+	contentBase="card grid grid-cols-1 md:grid-cols-2 p-4 bg-surface-100-900 {customClass}"
+	backdropClasses="backdrop-blur-sm"
+>	
+	{#snippet trigger()}{openLabel}{/snippet}
+	{#snippet content()}
 	<button
-		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled"
-		on:click={closeModal}
+		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm preset-filled"
+		onclick="{closeModal}"
 	>
 		<Icon class="w-5 h-5" data={close} />
 	</button>
@@ -50,10 +68,10 @@
 			<p class="text-lg font-bold line-clamp-2">{book.title}</p>
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
-					<Avatar src={bookUser.imageURL} width="w-10" rounded-sm="rounded-full" />
+					<Avatar name="{bookUser._id}" src="{bookUser.imageURL}" size="md" />
 				{:else}
 					<div class="overflow-hidden rounded-full">
-						<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />
+						<Icon class="bg-primary-500 p-2 w-10 h-10" data="{user}" />
 					</div>
 				{/if}
 				<div class="overflow-hidden flex-auto flex items-center">
@@ -64,7 +82,7 @@
 				</div>
 				{#if book.rating > 0}
 					<div class="overflow-hidden flex items-center">
-						<Icon class="p-2" data={star} scale={2} />
+						<Icon class="p-2" data="{star}" scale="{2}" />
 						<p class="text-sm font-bold line-clamp-1">{book.rating.toFixed(1)}</p>
 					</div>
 				{/if}
@@ -72,7 +90,7 @@
 			<div class="flex flex-wrap gap-2">
 				{#if book.genres}
 					{#each book.genres as genre}
-						<div class="chip variant-filled py-0.5 px-1">{genre}</div>
+						<div class="chip preset-filled py-0.5 px-1">{genre}</div>
 					{/each}
 				{/if}
 			</div>
@@ -85,13 +103,14 @@
 		</div>
 		<div class="w-full flex flex-col gap-4 items-center">
 			<hr class="opacity-50 min-w-full" />
-			<footer class="btn-group variant-filled py-1 max-w-fit">
-				<a on:click={closeModal} class="button" href="/book/{book._id}">View</a>
-				<a on:click={closeModal} class="button" href="/editor/{book._id}?mode=reader">Read</a>
+			<footer class=" preset-filled py-1 max-w-fit">
+				<a onclick="{closeModal}" class="button" href="/book/{book._id}">View</a>
+				<a onclick="{closeModal}" class="button" href="/editor/{book._id}?mode=reader">Read</a>
 				{#if session && session.user.id === bookUser._id}
-					<a on:click={closeModal} class="button" href="/editor/{book._id}?mode=writer">Write</a>
+					<a onclick="{closeModal}" class="button" href="/editor/{book._id}?mode=writer">Write</a>
 				{/if}
 			</footer>
 		</div>
 	</div>
-</div>
+	{/snippet}
+</Modal>

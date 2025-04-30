@@ -20,7 +20,7 @@
 	import { type HydratedDocument } from 'mongoose';
 	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
-	import { modeCurrent, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { type PopupSettings } from '@skeletonlabs/skeleton-svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -67,8 +67,12 @@
 	}
 </script>
 
-<Section class="bg-surface-100-800-token flex flex-col items-center w-full!">
-	<div class="embla w-full" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
+<Section class="bg-surface-100-900 flex flex-col items-center w-full!">
+	<div
+		class="embla w-full"
+		on:emblaInit="{onInit}"
+		use:emblaCarouselSvelte="{{ plugins: [autoplay] }}"
+	>
 		<div class="embla__container h-[700px] items-center m-0">
 			<div class="embla__slide h-full">
 				<div
@@ -92,9 +96,9 @@
 							Collaborate with authors and illustrators to create stories with multiple storylines
 						</p>
 						<div class="flex gap-4">
-							<a href="/login" class="btn variant-filled-primary"
+							<a href="/login" class="btn preset-filled-primary-500"
 								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long"></i></a
-							> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
+							> <a href="/learn" class="btn preset-tonal-primary">Learn More</a>
 						</div>
 					</div>
 				</div>
@@ -120,7 +124,7 @@
 						></div>
 						<div class="flex flex-col w-full mx-auto items-center relative">
 							<div class="aspect-2/3 h-[400px]">
-								<ImageWithFallback src={campaign.book.imageURL} alt={campaign.book.title} />
+								<ImageWithFallback src="{campaign.book.imageURL}" alt="{campaign.book.title}" />
 							</div>
 						</div>
 						<div
@@ -131,17 +135,17 @@
 								{campaign.book.description}
 							</p>
 							<div class="flex flex-row gap-12 w-full">
-								<div use:popup={infoPopup('datePopup' + campaign._id)}>
-									<button class="btn-icon variant-ghost p-2"
-										><Icon scale={1.5} data={calendar} /></button
+								<div use:popup="{infoPopup('datePopup' + campaign._id)}">
+									<button class="btn-icon preset-tonal border border-surface-500 p-2"
+										><Icon scale="{1.5}" data="{calendar}" /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup={'datePopup' + campaign._id}
+										data-popup="{'datePopup' + campaign._id}"
 									>
 										<div class="space-y-4">
 											<div class="flex flex-col items-center">
-												<div class="chip rounded-full variant-filled">
+												<div class="chip rounded-full preset-filled">
 													{formattedDate(
 														new Date(
 															typeof campaign.startDate === 'string' ? campaign.startDate : ''
@@ -149,7 +153,7 @@
 													)}
 												</div>
 												to
-												<div class="chip rounded-full variant-filled">
+												<div class="chip rounded-full preset-filled">
 													{formattedDate(
 														new Date(typeof campaign.endDate === 'string' ? campaign.endDate : '')
 													)}
@@ -158,13 +162,13 @@
 										</div>
 									</div>
 								</div>
-								<div use:popup={infoPopup('criteriaPopup' + campaign._id)}>
-									<button class="btn-icon variant-ghost p-2"
-										><Icon scale={1.5} data={checkCircle} /></button
+								<div use:popup="{infoPopup('criteriaPopup' + campaign._id)}">
+									<button class="btn-icon preset-tonal border border-surface-500 p-2"
+										><Icon scale="{1.5}" data="{checkCircle}" /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup={'criteriaPopup' + campaign._id}
+										data-popup="{'criteriaPopup' + campaign._id}"
 									>
 										<div class="space-y-4 w-72">
 											<div class="flex flex-col items-center">
@@ -174,13 +178,13 @@
 									</div>
 								</div>
 
-								<div use:popup={infoPopup('rewardsPopup' + campaign._id)}>
-									<button class="btn-icon variant-ghost p-2"
-										><Icon scale={1.5} data={trophy} /></button
+								<div use:popup="{infoPopup('rewardsPopup' + campaign._id)}">
+									<button class="btn-icon preset-tonal border border-surface-500 p-2"
+										><Icon scale="{1.5}" data="{trophy}" /></button
 									>
 									<div
 										class="card p-4 flex-col md:flex-row justify-between gap-2 hidden"
-										data-popup={'rewardsPopup' + campaign._id}
+										data-popup="{'rewardsPopup' + campaign._id}"
 									>
 										<div class="space-y-4 w-72">
 											<div class="flex flex-col items-center">
@@ -191,7 +195,7 @@
 								</div>
 							</div>
 							<div class="flex gap-4">
-								<a href="/book/{campaign.book._id}" class="btn variant-filled-primary"
+								<a href="/book/{campaign.book._id}" class="btn preset-filled-primary-500"
 									><span>Enter Now</span> <i class="fa-solid fa-arrow-right-long"></i></a
 								>
 							</div>
@@ -204,15 +208,15 @@
 			<div class="embla__dot m-4 flex flex-row w-fit items-center">
 				{#each { length: campaigns.length + 2 } as _, i}
 					<button
-						on:click={() => {
+						onclick="{() => {
 							selectSlide(i);
-						}}
+						}}"
 						><Icon
 							class="btn-icon top-0 cursor-pointer icon-info  {i === selectedIndex
 								? 'fill-primary-400!'
 								: ''}"
-							data={dotCircleO}
-							scale={1.5}
+							data="{dotCircleO}"
+							scale="{1.5}"
 							style="color:white"
 						/></button
 					>
@@ -238,7 +242,7 @@
 	</Container>
 </Section>
 
-<Section class="bg-surface-100-800-token flex items-center">
+<Section class="bg-surface-100-900 flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
 			<div class="w-full max-w-[400px] mx-auto">
@@ -257,13 +261,13 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="learn" class="btn variant-soft-primary">Learn More</a>
+					<a href="learn" class="btn preset-tonal-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
 	</Container>
 </Section>
-<Section class="bg-surface-50-900-token flex items-center">
+<Section class="bg-surface-50-950 flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 items-center">
 			<div class="lg:order-2 w-full max-w-[400px] mx-auto">
@@ -283,13 +287,13 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="/learn" class="btn variant-soft-primary">Learn More</a>
+					<a href="/learn" class="btn preset-tonal-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
 	</Container>
 </Section>
-<Section class="bg-surface-100-800-token flex items-center">
+<Section class="bg-surface-100-900 flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 md:gap-10 items-center">
 			<div class="md:inline-block w-full max-w-[400px] mx-auto">
@@ -308,20 +312,20 @@
 					</p>
 				</div>
 				<div class="tab-group space-y-4 max-w-[640px] mx-auto" data-testid="tab-group">
-					<a href="/learn" class="btn variant-soft-primary">Learn More</a>
+					<a href="/learn" class="btn preset-tonal-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
 	</Container>
 </Section>
 
-<Section class="bg-surface-50-900-token">
+<Section class="bg-surface-50-950">
 	<Container>
 		<DocumentCarousel
-			on:selectedStoryline={() => {}}
+			on:selectedStoryline="{() => {}}"
 			documentType="User"
 			viewPort="w-[90%] md:w-[25%]"
-			documents={[
+			documents="{[
 				{
 					_id: '',
 					firstName: 'Laeeq',
@@ -360,7 +364,7 @@
 					about:
 						'"I stumbled upon the Axone Universe Collaborative Writing Competition by chance and was thrilled to participate, grateful that I can share my writing with a broader audience. Although winning was an unexpected honor, I am ecstatic with the success. This experience has reinforced my love for storytelling."'
 				}
-			]}
+			]}"
 		/>
 	</Container>
 </Section>

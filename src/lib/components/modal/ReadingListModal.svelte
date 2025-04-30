@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
@@ -47,9 +46,9 @@
 					<input
 						class="checkbox"
 						type="checkbox"
-						value={name}
-						checked={user.readingLists[name].includes($modalStore[0].meta.storylineID)}
-						on:change={(e) => onSelectReadingList(e, index)}
+						value="{name}"
+						checked="{user.readingLists[name].includes($modalStore[0].meta.storylineID)}"
+						on:change="{(e) => onSelectReadingList(e, index)}"
 					/>
 					<p>{name}</p>
 				</label>
@@ -58,14 +57,14 @@
 				It looks like you don't have any reading lists! You can create one in your library.
 			{/if}
 		</div>
-		<footer class={parent.regionFooter}>
-			<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}>
+		<footer class="{parent.regionFooter}">
+			<button class="btn {parent.buttonNeutral}" onclick="{parent.onClose}">
 				{parent.buttonTextCancel}
 			</button>
 			{#if readingLists.length === 0}
-				<button class="btn variant-filled" on:click={onCreateReadingList}> Go to library</button>
+				<button class="btn preset-filled" onclick="{onCreateReadingList}"> Go to library</button>
 			{:else}
-				<button class="btn {parent.buttonPositive}" on:click={onFormSubmit}>Submit</button>
+				<button class="btn {parent.buttonPositive}" onclick="{onFormSubmit}">Submit</button>
 			{/if}
 		</footer>
 	</div>

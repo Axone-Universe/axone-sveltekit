@@ -101,17 +101,17 @@
 			title="Search for stoylines"
 			type="search"
 			placeholder="Search storylines by title or #tag"
-			bind:value={searchValue}
-			on:input={onType}
+			bind:value="{searchValue}"
+			on:input="{onType}"
 		/>
 		<div>
 			<div
 				id="filters-container"
-				class="m-2 bg-surface-200-700-token rounded-lg bg-opacity-90 p-4 space-y-2"
+				class="m-2 bg-surface-200-800 rounded-lg bg-opacity-90 p-4 space-y-2"
 			>
 				<div class="flex justify-between items-center">
 					<p>Filters</p>
-					<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
+					<button class="btn btn-sm preset-filled-surface-500 h-fit" onclick="{handleClear}">
 						Clear
 					</button>
 				</div>
@@ -121,16 +121,16 @@
 						{#each HOME_FILTER_TAGS as tag}
 							<button
 								class="chip rounded-full {tags.includes(tag)
-									? 'variant-filled-primary'
-									: 'variant-filled'}"
-								on:click={() => {
+									? 'preset-filled-primary-500'
+									: 'preset-filled'}"
+								onclick="{() => {
 									const index = tags.indexOf(tag);
 									if (index > -1) {
 										tags = tags.filter((v) => v !== tag);
 									} else {
 										tags = [...tags, tag];
 									}
-								}}
+								}}"
 							>
 								<p>{tag}</p>
 							</button>
@@ -141,16 +141,16 @@
 						{#each GENRES as genre}
 							<button
 								class="chip rounded-full {genres.includes(genre)
-									? 'variant-filled-primary'
-									: 'variant-filled'}"
-								on:click={() => {
+									? 'preset-filled-primary-500'
+									: 'preset-filled'}"
+								onclick="{() => {
 									const index = genres.indexOf(genre);
 									if (index > -1) {
 										genres = genres.filter((v) => v !== genre);
 									} else {
 										genres = [...genres, genre];
 									}
-								}}
+								}}"
 							>
 								<span class="capitalize">{genre}</span>
 							</button>
@@ -164,9 +164,9 @@
 	{#if tagsSet}
 		<DocumentsInfiniteScroll
 			documentType="Storyline"
-			{parameters}
-			gridStyle={'grid-cols-2 md:grid-cols-6'}
-			limit={18}
+			parameters="{parameters}"
+			gridStyle="{'grid-cols-2 md:grid-cols-6'}"
+			limit="{18}"
 		/>
 	{/if}
 </Container>

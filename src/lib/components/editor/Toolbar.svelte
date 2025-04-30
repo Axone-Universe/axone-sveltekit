@@ -8,7 +8,7 @@
 
 <div
 	id="ql-toolbar"
-	class="{customClass} flex rounded-full bg-surface-300-600-token ql-toolbar ql-snow"
+	class="{customClass} flex rounded-full bg-surface-300-700 ql-toolbar ql-snow"
 >
 	<span class="ql-formats">
 		<button type="button" class="ql-bold"

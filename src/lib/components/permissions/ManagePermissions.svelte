@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Avatar, ListBox, ListBoxItem, Autocomplete, popup } from '@skeletonlabs/skeleton';
-	import type { PopupSettings, AutocompleteOption } from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
+	import type { PopupSettings, AutocompleteOption } from '@skeletonlabs/skeleton-svelte';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
@@ -191,8 +191,8 @@
 	}
 </script>
 
-<div class={`card w-full ${customClass}`}>
-	<div class="space-y-4 rounded-container-token p-2">
+<div class="{`card w-full ${customClass}`}">
+	<div class="space-y-4 rounded-container p-2">
 		<label>
 			Share {permissionedDocument.title}
 
@@ -201,25 +201,25 @@
 				class="input autocomplete"
 				type="search"
 				name="autocomplete-search"
-				bind:value={selectedUser}
+				bind:value="{selectedUser}"
 				placeholder="Add people"
-				use:popup={autocompletePopupSettings}
-				on:keyup={onKeyup}
+				use:popup="{autocompletePopupSettings}"
+				on:keyup="{onKeyup}"
 				autocomplete="off"
 			/>
 			<div
-				class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 z-10! bg-surface-100-800-token!"
-				id={autoCompleteDiv}
+				class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 z-10! bg-surface-100-900!"
+				id="{autoCompleteDiv}"
 				data-popup="popupAutocomplete"
 			>
 				<Autocomplete
-					{emptyState}
-					{regionEmpty}
+					emptyState="{emptyState}"
+					regionEmpty="{regionEmpty}"
 					regionButton="btn-sm rounded-md! w-full"
-					duration={0}
-					bind:input={selectedUser}
-					bind:options={autocompleteUsers}
-					on:selection={onUserSelect}
+					duration="{0}"
+					bind:input="{selectedUser}"
+					bind:options="{autocompleteUsers}"
+					on:selection="{onUserSelect}"
 				/>
 			</div>
 		</label>
@@ -238,7 +238,7 @@
 							<small class="text-[10px] sm:text-sm">{documentOwner.email}</small>
 						</div>
 					</div>
-					<button class="btn btn-sm variant-filled bg-surface-400-500-token">Owner</button>
+					<button class="btn btn-sm preset-filled bg-surface-500">Owner</button>
 				</div>
 				{#each Object.entries(permissions) as [id, permission]}
 					{#if permission.user && typeof permission.user !== 'string'}
@@ -254,24 +254,24 @@
 									<small class="text-[10px] sm:text-sm">{permission.user.email}</small>
 								</div>
 							</div>
-							<div class="flex-row btn-group variant-filled">
-								<button use:popup={permissionsPopupSettings(id)} type="button">
+							<div class="flex-row preset-filled">
+								<button use:popup="{permissionsPopupSettings(id)}" type="button">
 									<span class="capitalize text-xs">{permission.permission}</span>
-									<Icon class="border-none" data={caretDown} scale={1} />
+									<Icon class="border-none" data="{caretDown}" scale="{1}" />
 								</button>
-								<button on:click={() => removePermission(id)} class="py-2! px-3!" type="button">
-									<Icon data={trash} scale={1} />
+								<button onclick="{() => removePermission(id)}" class="py-2! px-3!" type="button">
+									<Icon data="{trash}" scale="{1}" />
 								</button>
 							</div>
 
-							<div class="card shadow-xl py-2 bg-surface-100-800-token! z-10" data-popup={id}>
+							<div class="card shadow-xl py-2 bg-surface-100-900! z-10" data-popup="{id}">
 								<ListBox class="p-2 w-40 ">
 									{#each PermissionsEnum as permissionType}
 										<ListBoxItem
-											bind:group={permission.permission}
-											name={id}
-											value={permissionType}
-											on:change={onPermissionChanged}
+											bind:group="{permission.permission}"
+											name="{id}"
+											value="{permissionType}"
+											on:change="{onPermissionChanged}"
 										>
 											{permissionType}
 										</ListBoxItem>
@@ -291,39 +291,36 @@
 			</div>
 
 			<div>
-				<div class="flex-row btn-group variant-filled">
+				<div class="flex-row preset-filled">
 					<button
 						id="public-permissions-btn"
-						use:popup={permissionsPopupSettings('permissionsPopup')}
-						disabled={!('public' in permissions)}
+						use:popup="{permissionsPopupSettings('permissionsPopup')}"
+						disabled="{!('public' in permissions)}"
 						type="button"
 					>
 						<span class="capitalize text-xs">{publicPermission.permission}</span>
-						<Icon class="border-none" data={caretDown} scale={1} />
+						<Icon class="border-none" data="{caretDown}" scale="{1}" />
 					</button>
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<span on:click={() => onPublicAccessChange()} class="py-1! px-3!">
+					<span onclick="{() => onPublicAccessChange()}" class="py-1! px-3!">
 						<input
 							class="radio"
 							type="radio"
-							checked={'public' in permissions}
+							checked="{'public' in permissions}"
 							name="radio-direct"
 							value="1"
 						/>
 					</span>
 				</div>
 
-				<div
-					class="card shadow-xl py-2 bg-surface-100-800-token! z-10"
-					data-popup={'permissionsPopup'}
-				>
+				<div class="card shadow-xl py-2 bg-surface-100-900! z-10" data-popup="{'permissionsPopup'}">
 					<ListBox class="p-2 w-40 ">
 						{#each PermissionsEnum as permissionType}
 							<ListBoxItem
-								bind:group={publicPermission.permission}
-								name={'public'}
-								value={permissionType}
-								on:change={onPermissionChanged}
+								bind:group="{publicPermission.permission}"
+								name="{'public'}"
+								value="{permissionType}"
+								on:change="{onPermissionChanged}"
 							>
 								{permissionType}
 							</ListBoxItem>

@@ -1,5 +1,4 @@
-import { popup as super_pop } from '@skeletonlabs/skeleton';
-import type { PopupSettings as SuperPopupSettings } from '@skeletonlabs/skeleton';
+import type { PopupSettings as SuperPopupSettings } from '@skeletonlabs/skeleton-svelte';
 import type { PopupSettings } from './types';
 
 export function popup(node: HTMLElement, args: PopupSettings) {

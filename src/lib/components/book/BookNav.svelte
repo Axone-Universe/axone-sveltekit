@@ -2,7 +2,7 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import { Accordion, AccordionItem, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { lock, eyeSlash, archive } from 'svelte-awesome/icons';
@@ -28,7 +28,7 @@
 <div class={`${customClass}`}>
 	<Accordion>
 		{#if storylines.length > 0}
-			<AccordionItem open>
+			<Accordion.Item open>
 				<svelte:fragment slot="summary">
 					<p id="storylines-list" class="text-lg font-bold">Storylines</p>
 				</svelte:fragment>
@@ -63,9 +63,9 @@
 						{/each}
 					</ListBox>
 				</svelte:fragment>
-			</AccordionItem>
+			</Accordion.Item>
 		{/if}
-		<AccordionItem open>
+		<Accordion.Item open>
 			<svelte:fragment slot="summary">
 				<p id="chapters-list" class="text-lg font-bold">Chapters</p>
 			</svelte:fragment>
@@ -98,7 +98,7 @@
 					</ListBox>
 				{/if}
 			</svelte:fragment>
-		</AccordionItem>
+		</Accordion.Item>
 
 		<!-- ... -->
 	</Accordion>

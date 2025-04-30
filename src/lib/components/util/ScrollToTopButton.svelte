@@ -8,7 +8,7 @@
 </script>
 
 <div class="flex justify-center my-12 italic font-bold">
-	<button class="btn-icon variant-filled" on:click={handleScrollToTop}>
-		<Icon data={arrowUp} />
+	<button class="btn-icon preset-filled" onclick="{handleScrollToTop}">
+		<Icon data="{arrowUp}" />
 	</button>
 </div>

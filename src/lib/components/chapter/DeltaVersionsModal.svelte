@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		type ToastSettings,
-		ListBox,
-		ListBoxItem,
-		getToastStore,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+	import { type ToastSettings } from '@skeletonlabs/skeleton-svelte';
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
@@ -18,6 +12,7 @@
 		type DeltaProperties,
 		type VersionProperties
 	} from '$lib/properties/delta';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let delta: HydratedDocument<DeltaProperties>;
 	export let selectedVersionID: string | undefined;
@@ -47,7 +42,7 @@
 
 	async function createVersion() {
 		let toastMessage = 'Version creation failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'warning';
 
 		trpc($page)
 			.deltas.createVersion.mutate({
@@ -57,7 +52,7 @@
 			})
 			.then((response) => {
 				toastMessage = 'Creation Successful';
-				toastBackground = 'bg-success-500';
+				type = 'success';
 
 				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
@@ -70,12 +65,10 @@
 				toastMessage = response.message;
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 				modalStore.close();
 			});
 	}
@@ -111,7 +104,7 @@
 
 	function restoreVersion() {
 		let toastMessage = 'Restore Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'warning';
 
 		trpc($page)
 			.deltas.restoreVersion.mutate({
@@ -121,7 +114,7 @@
 			})
 			.then((response) => {
 				toastMessage = 'Restoration Successful';
-				toastBackground = 'bg-success-500';
+				type = 'success';
 
 				delta = response.data as HydratedDocument<DeltaProperties>;
 				versions = createVersionCopy(delta.versions!).reverse();
@@ -131,12 +124,10 @@
 				}
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 			});
 	}
 
@@ -150,10 +141,10 @@
 	}
 </script>
 
-<div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
-	<form on:submit|preventDefault={createVersion}>
-		<fieldset {disabled}>
-			<div class="modal-form p-4 space-y-4 rounded-container-token">
+<div class="{`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}">
+	<form on:submit|preventDefault="{createVersion}">
+		<fieldset disabled="{disabled}">
+			<div class="modal-form p-4 space-y-4 rounded-container">
 				<label>
 					Title
 
@@ -161,26 +152,29 @@
 						class="input"
 						type="text"
 						placeholder="e.g. Version 1"
-						bind:value={version.title}
-						disabled={!!selectedVersionID}
+						bind:value="{version.title}"
+						disabled="{!!selectedVersionID}"
 					/>
 				</label>
 				<label>
 					Date
 
-					<input class="input" type="text" bind:value={version.date} disabled />
+					<input class="input" type="text" bind:value="{version.date}" disabled />
 				</label>
 			</div>
 
 			<footer class="modal-footer flex justify-end space-x-2">
-				<button on:click={closeModal} class="btn variant-ghost-surface" type="button">Cancel</button
+				<button
+					onclick="{closeModal}"
+					class="btn preset-tonal-surface border border-surface-500"
+					type="button">Cancel</button
 				>
 				{#if !selectedVersionID}
-					<button class="btn variant-filled" type="submit">Create</button>
+					<button class="btn preset-filled" type="submit">Create</button>
 				{:else}
-					<button on:click={previewVersion} class="btn variant-filled" type="button">Preview</button
+					<button onclick="{previewVersion}" class="btn preset-filled" type="button">Preview</button
 					>
-					<button on:click={restoreVersion} class="btn variant-filled" type="button">Restore</button
+					<button onclick="{restoreVersion}" class="btn preset-filled" type="button">Restore</button
 					>
 				{/if}
 			</footer>
@@ -192,27 +186,27 @@
 	<div class="p-4">
 		<ListBox class="space-y-2 p-4">
 			<ListBoxItem
-				on:change={() => versionSelected()}
-				bind:group={selectedVersionID}
+				on:change="{() => versionSelected()}"
+				bind:group="{selectedVersionID}"
 				name="chapter"
 				class="soft-listbox"
-				value={undefined}
+				value="{undefined}"
 			>
 				<div class="flex justify-between items-center">
 					<p class="line-clamp-1">New Version</p>
 					<div class="space-x-4">
-						<Icon data={plus} scale={1.2} />
+						<Icon data="{plus}" scale="{1.2}" />
 					</div>
 				</div>
 			</ListBoxItem>
 			<div class="max-h-48 space-y-2 overflow-y-auto">
 				{#each versions as version}
 					<ListBoxItem
-						on:change={() => versionSelected(version)}
-						bind:group={selectedVersionID}
+						on:change="{() => versionSelected(version)}"
+						bind:group="{selectedVersionID}"
 						name="chapter"
 						class="soft-listbox"
-						value={version._id}
+						value="{version._id}"
 					>
 						<div class="flex justify-between items-center">
 							<p class="line-clamp-1">{version.title ?? version.date}</p>

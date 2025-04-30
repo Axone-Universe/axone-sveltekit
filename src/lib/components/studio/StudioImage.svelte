@@ -10,11 +10,11 @@
 </script>
 
 <button
-	class={`card rounded-md overflow-hidden aspect-2/3 h-20 ${additionalClasses} ${
+	class="{`card rounded-md overflow-hidden aspect-2/3 h-20 ${additionalClasses} ${
 		didError || !src ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
-	}`}
-	on:click={buttonCallback}
+	}`}"
+	onclick="{buttonCallback}"
 >
-	<ImageWithFallback {src} {alt} bind:didError />
+	<ImageWithFallback src="{src}" alt="{alt}" bind:didError="{didError}" />
 	<slot />
 </button>

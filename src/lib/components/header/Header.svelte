@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { AppBar, getDrawerStore } from '@skeletonlabs/skeleton';
-	import { LightSwitch } from '@skeletonlabs/skeleton';
-	import type { DrawerSettings } from '@skeletonlabs/skeleton';
+	import { AppBar } from '@skeletonlabs/skeleton-svelte';
+	import type { DrawerSettings } from '@skeletonlabs/skeleton-svelte';
 
 	import { onMount } from 'svelte';
 
@@ -37,7 +36,7 @@
 
 	const drawerSettings: DrawerSettings = {
 		id: 'landing',
-		bgDrawer: 'bg-surface-100-800-token',
+		bgDrawer: 'bg-surface-100-900',
 		width: 'w-4/6 md:w-1/4',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
@@ -68,10 +67,13 @@
 		padding="px-4"
 	>
 		<svelte:fragment slot="lead">
-			<button class="lg:hidden" on:click={openDrawer}>
-				<Icon data={navicon} scale={1.5} />
+			<button class="lg:hidden" onclick="{openDrawer}">
+				<Icon data="{navicon}" scale="{1.5}" />
 			</button>
-			<a class="hidden lg:flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
+			<a
+				class="hidden lg:flex text-l"
+				href="{data.session && data.session.user.id ? '/home' : '/'}"
+			>
 				<span class="flex flex-row h-20 items-center logo-name"><Logo />XONE</span>
 			</a>
 		</svelte:fragment>
@@ -82,12 +84,12 @@
 						<ul class="grid grid-cols-2 gap-2 list">
 							{#each readMenuList as menuItem}
 								<li>
-									<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+									<a href="{menuItem.url}" class="w-full">{menuItem.label}</a>
 								</li>
 							{/each}
 						</ul>
 					</nav>
-					<div class="arrow bg-surface-100-800-token"></div>
+					<div class="arrow bg-surface-100-900"></div>
 				</div>
 			</div>
 
@@ -98,20 +100,20 @@
 							<ul class="grid grid-cols-1 gap-2 list">
 								{#each collaborateMenuList as menuItem}
 									<li>
-										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+										<a href="{menuItem.url}" class="w-full">{menuItem.label}</a>
 									</li>
 								{/each}
 							</ul>
 						</nav>
 					</div>
-					<div class="arrow bg-surface-100-800-token"></div>
+					<div class="arrow bg-surface-100-900"></div>
 				</div>
 			</div>
 
 			<div>
 				<a
 					href="/community"
-					class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
+					class="btn outline-hidden hover:preset-tonal-primary *:pointer-events-none"
 				>
 					<span class="capitalize">Community</span>
 				</a>
@@ -122,20 +124,20 @@
 							<ul class="grid grid-cols-1 gap-2 list">
 								{#each creatorsMenuList as menuItem}
 									<li>
-										<a href={menuItem.url} class="w-full">{menuItem.label}</a>
+										<a href="{menuItem.url}" class="w-full">{menuItem.label}</a>
 									</li>
 								{/each}
 							</ul>
 						</nav>
 					</div>
-					<div class="arrow bg-surface-100-800-token"></div>
+					<div class="arrow bg-surface-100-900"></div>
 				</div>
 			</div>
 
 			<div>
 				<a
 					href="/learn"
-					class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
+					class="btn outline-hidden hover:preset-tonal-primary *:pointer-events-none"
 				>
 					<span class="capitalize">Learn More</span>
 				</a>
@@ -143,7 +145,7 @@
 		</div>
 		<a
 			class="lg:hidden flex items-center text-l"
-			href={data.session && data.session.user.id ? '/home' : '/'}
+			href="{data.session && data.session.user.id ? '/home' : '/'}"
 		>
 			<span class="flex flex-row h-20 items-center logo-name"><Logo />XONE</span>
 		</a>
@@ -154,61 +156,61 @@
 						<a
 							id="write-btn"
 							href="/book/create"
-							class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none"
+							class="btn outline-hidden hover:preset-tonal-primary *:pointer-events-none"
 						>
-							<Icon data={pencil} />
+							<Icon data="{pencil}" />
 							<span class="hidden md:inline-block">Write</span>
 						</a>
 
 						<div>
 							<button
 								id="email-btn"
-								class="btn outline-hidden hover:variant-soft-primary *:pointer-events-none variant-soft-secondary"
-								use:popup={profilePopupBox}
+								class="btn outline-hidden hover:preset-tonal-primary *:pointer-events-none preset-tonal-secondary"
+								use:popup="{profilePopupBox}"
 							>
-								<Icon data={user} />
+								<Icon data="{user}" />
 								<p class="w-[100px] text-ellipsis line-clamp-1 md:inline-block">
 									{data.session.user.email}
 								</p>
-								<Icon data={caretDown} />
+								<Icon data="{caretDown}" />
 							</button>
 
 							<div class="card p-2 shadow-xl" data-popup="profilePopupBox">
 								<div class="grid grid-cols-1">
 									<a
 										id="profile-btn"
-										class="btn space-x-6 hover:variant-soft-primary"
-										href={`/profile/${data.session.user.id}`}
+										class="btn space-x-6 hover:preset-tonal-primary"
+										href="{`/profile/${data.session.user.id}`}"
 									>
-										<Icon data={user} />
+										<Icon data="{user}" />
 										<span>Profile</span>
 									</a>
 									<hr class="my-2! variant-fill-primary" />
-									<a class="btn space-x-6 hover:variant-soft-primary" href={`/library`}>
-										<Icon data={listUl} /><span>Library</span>
+									<a class="btn space-x-6 hover:preset-tonal-primary" href="{`/library`}">
+										<Icon data="{listUl}" /><span>Library</span>
 									</a>
 									<hr class="my-2! variant-fill-primary" />
 									<a
-										class="btn space-x-6 hover:variant-soft-primary"
-										href={`/studio/books?campaigns=true`}
+										class="btn space-x-6 hover:preset-tonal-primary"
+										href="{`/studio/books?campaigns=true`}"
 									>
-										<Icon data={pencil} />
+										<Icon data="{pencil}" />
 										<span>Studio</span>
 									</a>
 									<hr class="my-2! variant-fill-primary" />
 									<button
-										class="btn space-x-6 hover:variant-soft-primary"
-										on:click={onLogoutButtonClick}
-										><Icon data={powerOff} />
+										class="btn space-x-6 hover:preset-tonal-primary"
+										onclick="{onLogoutButtonClick}"
+										><Icon data="{powerOff}" />
 										<span>Logout</span>
 									</button>
 								</div>
-								<div class="arrow bg-surface-100-800-token"></div>
+								<div class="arrow bg-surface-100-900"></div>
 							</div>
 						</div>
 						<NotificationCenter />
 					{:else}
-						<a class="btn variant-filled-primary" href="/login"> Login </a>
+						<a class="btn preset-filled-primary-500" href="/login"> Login </a>
 					{/if}
 				</div>
 

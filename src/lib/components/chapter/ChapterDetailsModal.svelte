@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { ChapterProperties } from '$lib/properties/chapter';
-	import { getModalStore, getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { type ToastSettings } from '@skeletonlabs/skeleton-svelte';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let chapter: HydratedDocument<ChapterProperties>;
 	export let bookID: string;
@@ -34,7 +35,7 @@
 
 	async function createChapter() {
 		let toastMessage = 'Creation Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'error';
 
 		let createDetails = {
 			title: chapter.title!,
@@ -59,7 +60,8 @@
 			.then((response) => {
 				chapter = response.data as HydratedDocument<ChapterProperties>;
 				toastMessage = response.message;
-				toastBackground = 'bg-success-500';
+				type = 'success';
+
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
@@ -67,19 +69,17 @@
 				console.log(response.message);
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 				modalStore.close();
 			});
 	}
 
 	async function updateChapter() {
 		let toastMessage = 'Saving Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'error';
 
 		trpc($page)
 			.chapters.update.mutate({
@@ -92,34 +92,32 @@
 			.then((response) => {
 				chapter = response.data as HydratedDocument<ChapterProperties>;
 				toastMessage = response.message;
-				toastBackground = 'bg-success-500';
+				type = 'success';
 
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 				modalStore.close();
 			});
 	}
 </script>
 
-<div class={`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} w-modal`}>
-	<form on:submit|preventDefault={submit}>
-		<fieldset {disabled}>
-			<div class="space-y-4 rounded-container-token">
+<div class="{`card p-4 shadow-xl space-y-4 overflow-y-auto ${customClass} w-modal`}">
+	<form on:submit|preventDefault="{submit}">
+		<fieldset disabled="{disabled}">
+			<div class="space-y-4 rounded-container">
 				<label>
 					* Chapter Title
 					<input
 						class="input"
 						type="text"
-						bind:value={chapter.title}
+						bind:value="{chapter.title}"
 						placeholder="Chapter Title"
 						required
 					/>
@@ -128,26 +126,27 @@
 					* Chapter Description
 					<textarea
 						class="textarea h-44 overflow-hidden"
-						bind:value={chapter.description}
-						required
-					></textarea>
+						bind:value="{chapter.description}"
+						required></textarea>
 				</label>
 
 				<div>
 					Permissions
 					<ManagePermissions
-						bind:permissionedDocument={chapter}
-						{notifications}
+						bind:permissionedDocument="{chapter}"
+						notifications="{notifications}"
 						permissionedDocumentType="Chapter"
 					/>
 				</div>
 			</div>
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-					<button on:click={modalStore.close} class="btn variant-ghost-surface" type="button"
-						>Cancel</button
+					<button
+						onclick="{modalStore.close}"
+						class="btn preset-tonal-surface border border-surface-500"
+						type="button">Cancel</button
 					>
-					<button class="btn variant-filled">
+					<button class="btn preset-filled">
 						{chapter._id ? 'Update' : 'Create'}
 					</button>
 				</div>

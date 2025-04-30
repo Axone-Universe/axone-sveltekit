@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { type ToastSettings } from '@skeletonlabs/skeleton-svelte';
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
 	import Container from '$lib/components/Container.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -26,21 +27,22 @@
 
 		let t: ToastSettings = {
 			message: `Password updated!`,
-			background: 'variant-filled-primary',
+			background: 'preset-filled-primary-500',
 			autohide: true
 		};
 
 		if (resp.error) {
-			t = {
-				message: `Something wrong happened. Please try changing your password later.`,
-				background: 'variant-filled-error',
-				autohide: true
-			};
+			toaster.info({
+				title: `Something wrong happened. Please try changing your password later.`,
+				type: 'error'
+			});
 			console.log(resp.error);
-			toastStore.trigger(t);
 		} else {
+			toaster.info({
+				title: `Password updated!`,
+				type: 'success'
+			});
 			console.log(resp.data);
-			toastStore.trigger(t);
 			goto('/');
 		}
 	};
@@ -52,16 +54,16 @@
 		<form class="flex flex-col items-end gap-4">
 			<label class="label w-full">
 				<span>Password</span>
-				<input class="input" type="password" bind:value={formData.password} />
+				<input class="input" type="password" bind:value="{formData.password}" />
 			</label>
 			<label class="label w-full">
 				<span>Confirm password</span>
-				<input class="input" type="password" bind:value={formData.confirmPassword} />
+				<input class="input" type="password" bind:value="{formData.confirmPassword}" />
 			</label>
 		</form>
 
 		<footer class="flex justify-end">
-			<button class="btn variant-filled-primary" on:click={onSubmit}>Update</button>
+			<button class="btn preset-filled-primary-500" onclick="{onSubmit}">Update</button>
 		</footer>
 	</div>
 </Container>

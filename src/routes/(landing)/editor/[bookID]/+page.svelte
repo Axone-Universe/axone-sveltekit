@@ -1,19 +1,12 @@
 <script lang="ts">
-	import type {
-		DrawerSettings,
-		ModalComponent,
-		ModalSettings,
-		ToastSettings
-	} from '@skeletonlabs/skeleton';
 	import {
-		AppShell,
+		type DrawerSettings,
+		type ModalComponent,
+		type ModalSettings,
+		type ToastSettings,
 		Avatar,
-		Drawer,
-		FileDropzone,
-		getDrawerStore,
-		getModalStore,
-		getToastStore
-	} from '@skeletonlabs/skeleton';
+		FileUpload
+	} from '@skeletonlabs/skeleton-svelte';
 	import { afterUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
 	import type { Illustration } from '$lib/util/editor/quill';
@@ -78,6 +71,9 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { type UserNotificationProperties } from '$lib/properties/notification';
 	import { documentURL } from '$lib/util/links';
+	import Container from '$lib/components/Container.svelte';
+	import Drawer from '$lib/components/drawer/Drawer.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -147,18 +143,18 @@
 	const successUploadToast: ToastSettings = {
 		message: 'Illustration has been uploaded successfully',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-success'
+		background: 'preset-filled-success-500'
 	};
 	const progressUploadToast: ToastSettings = {
 		message: 'Uploading illustration...',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-secondary',
+		background: 'preset-filled-secondary-500',
 		autohide: false
 	};
 	const errorUploadToast: ToastSettings = {
 		message: 'There was an issue uploading the illustration',
 		// Provide any utility or variant background style:
-		background: 'variant-filled-error'
+		background: 'preset-filled-error-500'
 	};
 
 	function toggleDrawer() {
@@ -391,12 +387,10 @@
 							if (response.error) {
 								console.log(response.error);
 								// show toast error
-								const errorUploadToast: ToastSettings = {
-									message: 'There was an issue deleting the illustrations',
-									// Provide any utility or variant background style:
-									background: 'variant-filled-error'
-								};
-								toastStore.trigger(errorUploadToast);
+								toaster.info({
+									title: 'There was an issue deleting the illustrations',
+									type: 'error'
+								});
 							}
 						});
 				}
@@ -493,12 +487,10 @@
 								setupEditor();
 							} else {
 								// show toast error
-								const deleteFail: ToastSettings = {
-									message: response.message,
-									// Provide any utility or variant background style:
-									background: 'variant-filled-error'
-								};
-								toastStore.trigger(deleteFail);
+								toaster.info({
+									title: response.message,
+									type: 'error'
+								});
 							}
 						})
 						.catch((error) => {
@@ -703,20 +695,16 @@
 			.then((response: any) => {
 				if (response.error) {
 					//error
-					const errorUploadToast: ToastSettings = {
-						message: 'There was an issue deleting the illustration',
-						// Provide any utility or variant background style:
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(errorUploadToast);
+					toaster.info({
+						title: 'There was an issue deleting the illustration',
+						type: 'error'
+					});
 				} else {
 					//success
-					const successUploadToast: ToastSettings = {
-						message: 'Illustration has been deleted successfully',
-						// Provide any utility or variant background style:
-						background: 'variant-filled-success'
-					};
-					toastStore.trigger(successUploadToast);
+					toaster.info({
+						title: 'Illustration has been deleted successfully',
+						type: 'success'
+					});
 				}
 			});
 
@@ -840,18 +828,16 @@
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
 
-		const response = await uploadImage(
-			supabase,
-			bucketName,
-			newIllustrationFile as File,
-			toastStore
-		);
+		const response = await uploadImage(supabase, bucketName, newIllustrationFile as File);
 
 		if (response.url && response.url !== null) {
 			illustration.illustration.src = response.url;
 			submitIllustration(illustration.id, illustration.illustration);
 		} else {
-			toastStore.trigger(errorUploadToast);
+			toaster.info({
+				title: errorUploadToast.message,
+				type: 'error'
+			});
 		}
 	}
 
@@ -962,8 +948,8 @@
 </svelte:head>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<AppShell class="editor-shell min-h-screen">
-	<svelte:fragment slot="sidebarLeft">
+<div class="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] min-h-screen">
+	<aside class="p-4">
 		<Drawer
 			regionBackdrop="w-2/4 md:w-full bg-transparent!"
 			width="w-[180px] md:w-[280px]"
@@ -971,15 +957,69 @@
 			class="md:relative! h-full pt-24 md:pt-1"
 		>
 			<BookNav
-				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
-				bind:chapters={navChapters}
-				selectedStoryline={selectedStoryline._id}
-				selectedChapter={selectedChapter?._id}
-				on:navItemClicked={navItemClicked}
+				class="p-4 flex flex-col items-center bg-surface-50-950 h-full"
+				bind:chapters="{navChapters}"
+				selectedStoryline="{selectedStoryline._id}"
+				selectedChapter="{selectedChapter?._id}"
+				on:navItemClicked="{navItemClicked}"
 			/>
 		</Drawer>
-	</svelte:fragment>
-	<svelte:fragment slot="sidebarRight">
+	</aside>
+
+	<main>
+		<div class="flex justify-between h-screen w-full overflow-y-clip">
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div onclick="{toggleDrawer}" class="flex h-full items-center hover:preset-tonal">
+				{#if $drawerStore.open}
+					<Icon class="flex p-2 justify-start" data="{chevronLeft}" scale="{3}" />
+				{:else}
+					<Icon class="flex p-2 justify-start" data="{chevronRight}" scale="{3}" />
+				{/if}
+			</div>
+			{#if selectedChapter}
+				<div class="editor-container flex flex-col h-full w-full items-center overflow-scroll">
+					{#if versionPreview}
+						<button class="btn fixed preset-filled-primary-500 font-sans top-28 w-1/6">
+							<span>Version Preview</span>
+						</button>
+					{/if}
+					<div class="w-full h-[15%]">
+						<textarea
+							id="message"
+							rows="1"
+							class="block text-primary-800-200 resize-none h-fit p-2.5 w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							placeholder="Storyline Title"
+							bind:value="{selectedStoryline.title}"
+							disabled></textarea>
+						<textarea
+							id="message"
+							rows="1"
+							class="block resize-none h-fit p-2.5 w-full text-center text-xl md:text-2xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							placeholder="Chapter Title"
+							bind:value="{selectedChapter.title}"
+							disabled></textarea>
+					</div>
+
+					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
+					<div class="w-10/12 h-fit!" id="editor" style="{cssVarStyles}"></div>
+				</div>
+			{:else if !selectedStoryline.userPermissions?.view}
+				<div class="flex h-full w-full justify-center items-center">
+					<RequestPermissionModal class="mt-4" document="{selectedStoryline}" />
+				</div>
+			{/if}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div onclick="{toggleDrawer}" class="flex h-full items-center hover:preset-tonal">
+				{#if $drawerStore.open}
+					<Icon class="flex p-2 justify-start" data="{chevronRight}" scale="{3}" />
+				{:else}
+					<Icon class="flex p-2 justify-start" data="{chevronLeft}" scale="{3}" />
+				{/if}
+			</div>
+		</div>
+	</main>
+
+	<aside>
 		<Drawer
 			id="drawer-actions"
 			regionBackdrop="w-2/4 md:w-full bg-transparent!"
@@ -998,19 +1038,21 @@
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								<textarea
-									id={comment.id}
+									id="{comment.id}"
 									class="textarea text-sm h-20 resize-none overflow-hidden"
-									bind:value={quill.comments[id].comment}
-									required
-								></textarea>
+									bind:value="{quill.comments[id].comment}"
+									required></textarea>
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
-										<button on:click={() => removeComment(id)} class="chip variant-ghost-surface">
+										<button
+											onclick="{() => removeComment(id)}"
+											class="chip preset-tonal-surface border border-surface-500"
+										>
 											Resolve
 										</button>
 										<button
-											on:click={() => submitComment(id)}
-											class="chip variant-filled"
+											onclick="{() => submitComment(id)}"
+											class="chip preset-filled"
 											type="submit"
 										>
 											Save
@@ -1029,11 +1071,11 @@
 					>
 						<div class="card z-50 w-full p-2 scale-95 focus-within:scale-100 hover:scale-100">
 							<TextArea
-								submitButton={true}
-								submit={submitReaderComment}
+								submitButton="{true}"
+								submit="{submitReaderComment}"
 								placeholder="Add a comment"
-								maxLength={100}
-								bind:textContent={readerComment}
+								maxLength="{100}"
+								bind:textContent="{readerComment}"
 							/>
 						</div>
 						{#each selectedChapter.comments ?? [] as comment}
@@ -1042,17 +1084,17 @@
 							>
 								<div class="card grid grid-cols-[auto_1fr] gap-2 p-2">
 									<div class="w-12 flex flex-col items-center gap-2 justify-between">
-										<Avatar width="w-10" src={comment.imageURL} />
+										<Avatar width="w-10" src="{comment.imageURL}" />
 										{#if comment.userId === session?.user.id}
 											<button
-												on:click={() => deleteReaderComment(comment._id)}
+												onclick="{() => deleteReaderComment(comment._id)}"
 												type="button"
-												class="btn-icon variant-filled w-fit p-2"
-												><Icon scale={1} class="w-fit" data={trash} /></button
+												class="btn-icon preset-filled w-fit p-2"
+												><Icon scale="{1}" class="w-fit" data="{trash}" /></button
 											>
 										{/if}
 									</div>
-									<div class="p-4 variant-soft-surface rounded-tl-none space-y-2">
+									<div class="p-4 preset-tonal-surface rounded-tl-none space-y-2">
 										<header class="flex justify-between items-center">
 											<p class="font-bold">{comment.firstName}</p>
 											<small class="opacity-50">{timeAgo(comment.date)}</small>
@@ -1065,13 +1107,13 @@
 						{#if selectedChapter.comments && selectedChapter.comments.length < (selectedChapter.commentsCount ?? 0)}
 							<div class="flex justify-center my-12">
 								<Tooltip
-									on:click={loadMoreReaderComments}
+									onclick="{loadMoreReaderComments}"
 									content="Load more"
 									placement="top"
 									target="reading-list"
 								>
-									<button class="btn-icon variant-filled">
-										<Icon data={arrowDown} />
+									<button class="btn-icon preset-filled">
+										<Icon data="{arrowDown}" />
 									</button>
 								</Tooltip>
 							</div>
@@ -1089,51 +1131,52 @@
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								{#if quill.illustrations[id].illustration.src.length > 0}
+									<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 									<img
-										id={`src-${illustration.id}`}
+										id="{`src-${illustration.id}`}"
 										class="h-40 resize-none rounded-md mb-2"
-										alt={quill.illustrations[id].illustration.alt ||
-											quill.illustrations[id].illustration.caption}
-										src={quill.illustrations[id].illustration.src}
-										on:click={() => showIllustrationModal(illustration)}
+										alt="{quill.illustrations[id].illustration.alt ||
+											quill.illustrations[id].illustration.caption}"
+										src="{quill.illustrations[id].illustration.src}"
+										onclick="{() => showIllustrationModal(illustration)}"
 									/>
 								{:else}
-									<FileDropzone
+									<FileUpload
 										name="illustrationDropZone"
-										on:change={(event) => uploadIllustration(event, illustration)}
+										on:change="{(event) => uploadIllustration(event, illustration)}"
 									>
 										<svelte:fragment slot="message"
 											><strong>Upload an image</strong> or drag and drop</svelte:fragment
 										>
 										<svelte:fragment slot="meta">PNG, JPG, SVG, and GIF allowed.</svelte:fragment>
-									</FileDropzone>
+									</FileUpload>
 								{/if}
 								<input
 									type="file"
-									id={`file-${illustration.id}`}
+									id="{`file-${illustration.id}`}"
 									class="hidden"
 									accept="image/png, image/jpeg, image/gif, image/svg"
-									on:change={replaceIllustrationSrc}
+									on:change="{replaceIllustrationSrc}"
 								/>
 								<input
-									id={`caption-${illustration.id}`}
+									id="{`caption-${illustration.id}`}"
 									type="text"
 									class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
 									placeholder="Caption"
-									bind:value={quill.illustrations[id].illustration.caption}
+									bind:value="{quill.illustrations[id].illustration.caption}"
 								/>
 
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
 										<button
-											on:click={() => removeIllustration(id)}
-											class="chip variant-ghost-surface"
+											onclick="{() => removeIllustration(id)}"
+											class="chip preset-tonal-surface border border-surface-500"
 										>
 											Remove
 										</button>
 										<button
-											on:click={() => submitIllustration(id, undefined)}
-											class="chip variant-filled"
+											onclick="{() => submitIllustration(id, undefined)}"
+											class="chip preset-filled"
 											type="submit"
 										>
 											Save
@@ -1145,17 +1188,17 @@
 					</div>
 				{/if}
 
-				<div class="flex flex-col p-2 bg-surface-50-900-token mb-14">
+				<div class="flex flex-col p-2 bg-surface-50-950 mb-14">
 					<div class="h-3/4 flex flex-col items-center">
 						<!-- {#if selectedChapter} -->
 						<EditorNav
-							{mode}
-							menuItems={[
+							mode="{mode}"
+							menuItems="{[
 								{
 									id: 'view-storylines',
 									label: 'View more storylines',
 									icon: ellipsisH,
-									class: 'bg-primary-300-600-token!',
+									class: 'bg-primary-300-700!',
 									callback: showStorylines,
 									hidden: Object.keys(storylines).length <= 1
 								},
@@ -1163,7 +1206,7 @@
 									id: 'toggle-mode',
 									label: mode === 'writer' ? 'Reader Mode' : 'Writer Mode',
 									icon: mode === 'writer' ? book : pencil,
-									class: 'bg-warning-300-600-token!',
+									class: 'bg-warning-300-700!',
 									callback: () => {
 										mode = mode === 'writer' ? 'reader' : 'writer';
 										setupEditor();
@@ -1236,7 +1279,7 @@
 									id: 'view-permissions',
 									label: 'View chapter permissions',
 									icon: canEditSelectedChapter ? unlock : lock,
-									class: canEditSelectedChapter ? '' : 'bg-error-300-600-token!',
+									class: canEditSelectedChapter ? '' : 'bg-error-300-700!',
 									callback: showChapterPermissions,
 									mode: 'writer',
 									hidden: !isChapterSelected
@@ -1249,14 +1292,14 @@
 										startTour(tour);
 									}
 								}
-							]}
+							]}"
 						/>
 						<!-- {/if} -->
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						<EditorNav
-							{mode}
-							menuItems={[
+							mode="{mode}"
+							menuItems="{[
 								{
 									id: 'create-chapter',
 									label: 'Create new chapter',
@@ -1286,66 +1329,14 @@
 									icon: savingDelta ? spinner : check,
 									pulse: savingDelta ? true : false,
 									callback: () => {},
-									class: savingDelta ? '' : 'bg-success-300-600-token!',
+									class: savingDelta ? '' : 'bg-success-300-700!',
 									mode: 'writer'
 								}
-							]}
+							]}"
 						/>
 					</div>
 				</div>
 			</div>
 		</Drawer>
-	</svelte:fragment>
-	<svelte:fragment slot="default">
-		<div class="flex justify-between h-screen w-full overflow-y-clip">
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{/if}
-			</div>
-			{#if selectedChapter}
-				<div class="editor-container flex flex-col h-full w-full items-center overflow-scroll">
-					{#if versionPreview}
-						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
-							<span>Version Preview</span>
-						</button>
-					{/if}
-					<div class="w-full h-[15%]">
-						<textarea
-							id="message"
-							rows="1"
-							class="block text-primary-700-200-token resize-none h-fit p-2.5 w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
-							placeholder="Storyline Title"
-							bind:value={selectedStoryline.title}
-							disabled
-						></textarea>
-						<textarea
-							id="message"
-							rows="1"
-							class="block resize-none h-fit p-2.5 w-full text-center text-xl md:text-2xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
-							placeholder="Chapter Title"
-							bind:value={selectedChapter.title}
-							disabled
-						></textarea>
-					</div>
-
-					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
-					<div class="w-10/12 h-fit!" id="editor" style={cssVarStyles}></div>
-				</div>
-			{:else if !selectedStoryline.userPermissions?.view}
-				<div class="flex h-full w-full justify-center items-center">
-					<RequestPermissionModal class="mt-4" document={selectedStoryline} />
-				</div>
-			{/if}
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{/if}
-			</div>
-		</div>
-	</svelte:fragment>
-</AppShell>
+	</aside>
+</div>

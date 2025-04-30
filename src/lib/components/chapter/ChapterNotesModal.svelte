@@ -1,15 +1,6 @@
 <script lang="ts">
 	import { NotePropertyBuilder, type NoteProperties, TAGS, type Tag } from '$lib/properties/note';
-	import {
-		type ToastSettings,
-		ListBox,
-		ListBoxItem,
-		type ModalSettings,
-		getToastStore,
-		getModalStore,
-		TabGroup,
-		Tab
-	} from '@skeletonlabs/skeleton';
+	import { type ToastSettings, type ModalSettings, Tab, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import TextArea from '../TextArea.svelte';
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
@@ -18,6 +9,7 @@
 	import { edit, lock, plus, trash, search } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import type { ChapterProperties } from '$lib/properties/chapter';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let chapter: HydratedDocument<ChapterProperties>;
 	export let disabled: false;
@@ -90,7 +82,7 @@
 
 	async function createNote() {
 		let toastMessage = 'Creation Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'warning';
 
 		trpc($page)
 			.notes.create.mutate({
@@ -101,7 +93,7 @@
 			})
 			.then((response) => {
 				toastMessage = 'Creation Successful';
-				toastBackground = 'bg-success-500';
+				type = 'success';
 
 				chapterNotes.push(response.data as HydratedDocument<NoteProperties>);
 				if ($modalStore[0]) {
@@ -110,18 +102,16 @@
 				searchNotes();
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 			});
 	}
 
 	async function updateNote() {
 		let toastMessage = 'Saving Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'warning';
 
 		trpc($page)
 			.notes.update.mutate({
@@ -132,21 +122,19 @@
 			})
 			.then((noteResponse) => {
 				toastMessage = 'Saving Successful';
-				toastBackground = 'bg-success-500';
+				type = 'success';
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 			});
 	}
 
 	async function deleteNote(note: HydratedDocument<NoteProperties>) {
 		let toastMessage = 'Deleting Failed';
-		let toastBackground = 'bg-warning-500';
+		let type = 'warning';
 
 		trpc($page)
 			.notes.delete.mutate({
@@ -154,7 +142,7 @@
 			})
 			.then((noteResponse) => {
 				toastMessage = 'Deleting Successful';
-				toastBackground = 'bg-success-500';
+				type = 'success';
 
 				chapterNotes.splice(
 					chapterNotes.findIndex((e) => e._id === note._id),
@@ -166,12 +154,10 @@
 				searchNotes();
 			})
 			.finally(() => {
-				let t: ToastSettings = {
-					message: toastMessage,
-					background: toastBackground,
-					autohide: true
-				};
-				toastStore.trigger(t);
+				toaster.info({
+					title: toastMessage,
+					type: type
+				});
 			});
 	}
 
@@ -185,10 +171,11 @@
 	}
 </script>
 
-<div class={`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}>
-	<TabGroup>
-		<Tab bind:group={tabSet} name="tab1" value={0}>Select Note</Tab>
-		<Tab bind:group={tabSet} name="tab2" value={1}>{note.title != '' ? note.title : 'New Note'}</Tab
+<div class="{`modal-example-form card p-4 w-modal shadow-xl space-y-4 ${customClass}`}">
+	<Tabs>
+		<Tab bind:group="{tabSet}" name="tab1" value="{0}">Select Note</Tab>
+		<Tab bind:group="{tabSet}" name="tab2" value="{1}"
+			>{note.title != '' ? note.title : 'New Note'}</Tab
 		>
 		<!-- Tab Panels --->
 		<svelte:fragment slot="panel">
@@ -196,20 +183,20 @@
 				<div class="p-8">
 					<div>
 						<div class="flex input px-4 my-4 items-center">
-							<Icon data={search} scale={1.2} />
+							<Icon data="{search}" scale="{1.2}" />
 							<input
 								class="input border-0 hover:bg-transparent"
 								type="text"
 								placeholder="e.g. Harry Potter"
-								bind:value={searchTerm}
-								on:input={() => searchNotes()}
+								bind:value="{searchTerm}"
+								on:input="{() => searchNotes()}"
 							/>
 						</div>
 						<div class="space-x-2 my-4">
 							{#each TAGS as tag}
 								<button
-									class="chip {tag === filterTag ? 'variant-filled' : 'variant-soft'}"
-									on:click={() => searchNotes(tag)}
+									class="chip {tag === filterTag ? 'preset-filled' : 'preset-tonal'}"
+									onclick="{() => searchNotes(tag)}"
 									type="button"
 								>
 									{tag}
@@ -220,8 +207,8 @@
 					<div class="max-h-48 overflow-y-auto">
 						<ListBox class="space-y-2">
 							<ListBoxItem
-								on:click={() => chapterNoteSelected()}
-								bind:group={chapterNotesList}
+								onclick="{() => chapterNoteSelected()}"
+								bind:group="{chapterNotesList}"
 								name="chapter"
 								class="soft-listbox"
 								value=""
@@ -229,23 +216,23 @@
 								<div class="flex justify-between items-center">
 									<p class="line-clamp-1">New Note</p>
 									<div class="space-x-4">
-										<Icon data={plus} scale={1.2} />
+										<Icon data="{plus}" scale="{1.2}" />
 									</div>
 								</div>
 							</ListBoxItem>
 							{#each filteredChapterNotes as chapterNote}
 								<ListBoxItem
-									on:click={() => chapterNoteSelected(chapterNote)}
-									bind:group={chapterNotesList}
+									onclick="{() => chapterNoteSelected(chapterNote)}"
+									bind:group="{chapterNotesList}"
 									name="chapter"
 									class="soft-listbox"
-									value={chapterNote._id}
+									value="{chapterNote._id}"
 								>
 									<div class="flex justify-between items-center">
 										<p class="line-clamp-1">{chapterNote.title}</p>
 										<div class="flex space-x-4">
-											<button on:click|stopPropagation={() => deleteNote(chapterNote)}>
-												<Icon data={trash} scale={1.2} />
+											<button onclick|stopPropagation="{() => deleteNote(chapterNote)}">
+												<Icon data="{trash}" scale="{1.2}" />
 											</button>
 										</div>
 									</div>
@@ -255,9 +242,9 @@
 					</div>
 				</div>
 			{:else if tabSet === 1}
-				<form on:submit|preventDefault={submit}>
-					<fieldset {disabled}>
-						<div class="modal-form p-4 space-y-4 rounded-container-token">
+				<form on:submit|preventDefault="{submit}">
+					<fieldset disabled="{disabled}">
+						<div class="modal-form p-4 space-y-4 rounded-container">
 							<!-- svelte-ignore a11y-label-has-associated-control -->
 							<label>
 								Select Tags
@@ -266,9 +253,9 @@
 									{#each TAGS as tag}
 										<button
 											class="chip {note.tags && note.tags.includes(tag)
-												? 'variant-filled'
-												: 'variant-soft'}"
-											on:click={() => tagSelected(tag)}
+												? 'preset-filled'
+												: 'preset-tonal'}"
+											onclick="{() => tagSelected(tag)}"
 											type="button"
 										>
 											{tag}
@@ -283,7 +270,7 @@
 									class="input"
 									type="text"
 									placeholder="e.g. Harry Potter"
-									bind:value={note.title}
+									bind:value="{note.title}"
 									required
 								/>
 							</label>
@@ -292,19 +279,21 @@
 							<label>
 								* Note
 								<TextArea
-									maxLength={500}
-									bind:textContent={note.note}
-									required={true}
+									maxLength="{500}"
+									bind:textContent="{note.note}"
+									required="{true}"
 									placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
 								/>
 							</label>
 						</div>
 						{#if !disabled}
 							<footer class="modal-footer flex justify-end space-x-2">
-								<button on:click={closeModal} class="btn variant-ghost-surface" type="button"
-									>Cancel</button
+								<button
+									onclick="{closeModal}"
+									class="btn preset-tonal-surface border border-surface-500"
+									type="button">Cancel</button
 								>
-								<button class="btn variant-filled" type="submit"
+								<button class="btn preset-filled" type="submit"
 									>{note._id ? 'Update' : 'Create'}</button
 								>
 							</footer>
@@ -313,5 +302,5 @@
 				</form>
 			{/if}
 		</svelte:fragment>
-	</TabGroup>
+	</Tabs>
 </div>

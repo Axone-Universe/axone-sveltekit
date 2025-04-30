@@ -1,4 +1,4 @@
-import type { ModalSettings } from '@skeletonlabs/skeleton';
+import type { ModalSettings } from '@skeletonlabs/skeleton-svelte';
 
 export function getArchiveModal(): ModalSettings {
 	return {

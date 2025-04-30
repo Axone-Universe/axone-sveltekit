@@ -21,16 +21,13 @@
 	import CampaignDetails from '$lib/components/campaign/CampaignDetails.svelte';
 	import {
 		type PopupSettings,
-		popup,
 		type ModalSettings,
-		getModalStore,
 		type ModalComponent,
-		Accordion,
-		AccordionItem,
-		modeCurrent,
-		getToastStore,
-		type ToastSettings
-	} from '@skeletonlabs/skeleton';
+		Accordion
+	} from '@skeletonlabs/skeleton-svelte';
+
+	import { Modal } from '@skeletonlabs/skeleton-svelte';
+
 	import type { Genre } from '$lib/properties/genre';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 
@@ -46,6 +43,7 @@
 	import { type PermissionedDocument } from '$lib/properties/permission';
 	import DocumentsInfiniteScroll from '../documents/DocumentsInfiniteScroll.svelte';
 	import { type Response } from '$lib/util/types';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	let customClass = '';
 
@@ -58,8 +56,8 @@
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
 
-	const modalStore = getModalStore();
-	const toastStore = getToastStore();
+	let openState = $state(false);
+
 	const modalComponent: ModalComponent = {
 		ref: ShareSocialModal,
 		props: {
@@ -140,11 +138,9 @@
 		const link = documentURL($page.url.origin, 'Book', bookData);
 		navigator.clipboard.writeText(link);
 
-		const t: ToastSettings = {
-			message: `${bookData.campaign ? 'Campaign' : 'Book'} link copied`,
-			background: 'variant-filled-success'
-		};
-		toastStore.trigger(t);
+		toaster.success({
+			title: `${bookData.campaign ? 'Campaign' : 'Book'} link copied`
+		});
 		modalStore.trigger(modal);
 	}
 
@@ -166,11 +162,11 @@
 		// Calculating the no. of days between two dates
 		const diffInDays = Math.round(diffInTime / oneDay);
 
-		let color = 'variant-filled-success';
+		let color = 'preset-filled-success-500';
 		if (diffInDays >= 0 && diffInDays <= 2) {
-			color = 'variant-filled-warning';
+			color = 'preset-filled-warning-500';
 		} else if (diffInDays < 0) {
-			color = 'variant-filled-error';
+			color = 'preset-filled-error-500';
 		}
 
 		return [diffInDays, color];
@@ -213,11 +209,9 @@
 			modalStore.trigger(modalSettings);
 		}
 
-		const t: ToastSettings = {
-			message: response.message,
-			background: response.success ? 'variant-filled-success' : 'variant-filled-error'
-		};
-		toastStore.trigger(t);
+		toaster.success({
+			title: response.message
+		});
 	}
 
 	let showStorylines = () => {
@@ -235,7 +229,7 @@
 				},
 				mode: 'writer'
 			},
-			class: 'md:w-modal! rounded-lg variant-filled max-h-[600px] overflow-auto p-4',
+			class: 'md:w-modal! rounded-lg preset-filled max-h-[600px] overflow-auto p-4',
 			gridStyle: 'grid-cols-2 md:grid-cols-4',
 			limit: 4,
 			title: 'Select or create a storyline',
@@ -261,7 +255,7 @@
 </script>
 
 <div
-	class={`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}
+	class="{`bg-center bg-no-repeat bg-cover rounded-lg ${customClass}`}"
 	style="background-image: url({storylineData.imageURL !== ''
 		? storylineData.imageURL
 		: bookData.imageURL})"
@@ -285,9 +279,9 @@
 					<p class="book-title text-2xl md:text-4xl font-bold relative text-center">
 						{storylineData.title}
 						<button
-							use:popup={infoPopup}
-							class="badge-icon z-10 variant-filled absolute -top-3 -right-5"
-							><Icon class="top-0 cursor-pointer icon-info" data={infoCircle} scale={1.5} />
+							use:popup="{infoPopup}"
+							class="badge-icon z-10 preset-filled absolute -top-3 -right-5"
+							><Icon class="top-0 cursor-pointer icon-info" data="{infoCircle}" scale="{1.5}" />
 						</button>
 					</p>
 				</div>
@@ -324,19 +318,19 @@
 									</p>
 								{/if}
 
-								<a class="btn variant-soft w-full" href="/learn" target="_blank" rel="noreferrer">
+								<a class="btn preset-tonal w-full" href="/learn" target="_blank" rel="noreferrer">
 									More
 								</a>
 							</div>
-							<div class="arrow bg-surface-100-800-token" style="left: 140px; bottom: -4px;"></div>
+							<div class="arrow bg-surface-100-900" style="left: 140px; bottom: -4px;"></div>
 						</div>
 					</div>
 
 					{#if Object.values(storylines).length > 1}
 						<DocumentCarousel
-							on:selectedStoryline={handleSelected}
+							on:selectedStoryline="{handleSelected}"
 							documentType="Storyline"
-							documents={Object.values(storylines)}
+							documents="{Object.values(storylines)}"
 						/>
 					{/if}
 				</div>
@@ -344,7 +338,7 @@
 				<div class="space-x-2 line-clamp-1">
 					{#if bookGenres}
 						{#each bookGenres as genre}
-							<div class="chip variant-filled">{genre}</div>
+							<div class="chip preset-filled">{genre}</div>
 						{/each}
 					{/if}
 				</div>
@@ -356,18 +350,18 @@
 						<a
 							id="read-btn"
 							href="/editor/{bookData._id}?mode=reader&storylineID={selectedStoryline._id}"
-							class="btn variant-filled py-1"
+							class="btn preset-filled py-1"
 						>
-							<Icon class="p-2" data={leanpub} scale={2.5} />
+							<Icon class="p-2" data="{leanpub}" scale="{2.5}" />
 							Read
 						</a>
 					{/if}
 
 					{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 						<Tooltip
-							on:click={() => {
+							onclick="{() => {
 								if (campaignDaysLeft()[0] >= 0) showStorylines();
-							}}
+							}}"
 							content="Submit or create a new storyline!"
 							placement="top"
 							target="create-storyline"
@@ -376,52 +370,52 @@
 								id="join-btn"
 								class="gap-2 text-white font-semibold btn {bookData.campaign
 									? 'bg-orange-700'
-									: 'variant-filled-primary'}"
-								disabled={campaignDaysLeft()[0] < 0}
+									: 'preset-filled-primary-500'}"
+								disabled="{campaignDaysLeft()[0] < 0}"
 							>
-								<Icon class="top-0 cursor-pointer fill-white!" data={plus} scale={1} />
+								<Icon class="top-0 cursor-pointer fill-white!" data="{plus}" scale="{1}" />
 								Join
 							</button>
 						</Tooltip>
 					{/if}
 					{#if session}
 						<Tooltip
-							on:click={openReadingListModal}
+							onclick="{openReadingListModal}"
 							content="Add to reading list"
 							placement="top"
 							target="reading-list"
 						>
-							<button id="reading-list-btn" class="btn-icon variant-filled">
-								<Icon class="p-2" data={bookmark} scale={2.5} />
+							<button id="reading-list-btn" class="btn-icon preset-filled">
+								<Icon class="p-2" data="{bookmark}" scale="{2.5}" />
 							</button>
 						</Tooltip>
 					{/if}
 					{#if selectedStoryline?.userPermissions?.collaborate}
 						<Tooltip
-							on:click={() => {
+							onclick="{() => {
 								window.open(
 									`/editor/${bookData._id}?storylineID=${selectedStoryline?._id}&mode=writer`,
 									'_blank'
 								);
-							}}
+							}}"
 							content="Edit storyline"
 							placement="top"
 							target="edit-storyline"
 						>
-							<button id="edit-storyline-btn" class="btn-icon variant-filled">
-								<Icon class="p-2" data={pencil} scale={2.5} />
+							<button id="edit-storyline-btn" class="btn-icon preset-filled">
+								<Icon class="p-2" data="{pencil}" scale="{2.5}" />
 							</button>
 						</Tooltip>
 					{/if}
-					<Tooltip on:click={copyLink} content="Share" placement="top" target="share-btn">
-						<button id="share-btn" class="btn-icon variant-filled-primary">
-							<Icon class="p-2" data={share} scale={2.3} />
+					<Tooltip onclick="{copyLink}" content="Share" placement="top" target="share-btn">
+						<button id="share-btn" class="btn-icon preset-filled-primary-500">
+							<Icon class="p-2" data="{share}" scale="{2.3}" />
 						</button>
 					</Tooltip>
 
 					{#if storylineData.numRatings > 0}
 						<div class="overflow-hidden flex items-center">
-							<Icon class="p-2" data={star} scale={2} />
+							<Icon class="p-2" data="{star}" scale="{2}" />
 							<p class="text-lg font-bold">{storylineData.numRatings}</p>
 						</div>
 					{/if}
@@ -430,10 +424,10 @@
 							<div class="flex h-fit items-center {campaignDaysLeft()[1]} py-1 px-2 rounded-full">
 								<p class="flex items-center py-0! text-sm md:text-md font-bold text-white">
 									{#if campaignDaysLeft()[0] > 0}
-										<Icon class="p-2  hidden! md:block!" data={calendar} scale={2} />
+										<Icon class="p-2  hidden! md:block!" data="{calendar}" scale="{2}" />
 										{campaignDaysLeft()[0]} days left
 									{:else}
-										<Icon class="p-2 hidden! md:block!" data={warning} scale={2} />
+										<Icon class="p-2 hidden! md:block!" data="{warning}" scale="{2}" />
 										closed
 									{/if}
 								</p>
@@ -444,31 +438,31 @@
 			</div>
 			<hr class="opacity-50" />
 			<Accordion>
-				<AccordionItem open>
-					<svelte:fragment slot="lead"><Icon scale={1.5} data={infoCircle} /></svelte:fragment>
+				<Accordion.Item open>
+					<svelte:fragment slot="lead"><Icon scale="{1.5}" data="{infoCircle}" /></svelte:fragment>
 					<svelte:fragment slot="summary">Description</svelte:fragment>
 					<svelte:fragment slot="content">
 						<p class="text-lg font-thin">
 							{storylineData.description}
 						</p>
 					</svelte:fragment>
-				</AccordionItem>
+				</Accordion.Item>
 				{#if storylineData.tags && storylineData.tags.length > 0}
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.5} data={tag} /></svelte:fragment>
+					<Accordion.Item>
+						<svelte:fragment slot="lead"><Icon scale="{1.5}" data="{tag}" /></svelte:fragment>
 						<svelte:fragment slot="summary">Tags</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div class="gap-2">
 								{#each storylineData.tags as tag}
-									<div class="chip variant-filled">{tag}</div>
+									<div class="chip preset-filled">{tag}</div>
 								{/each}
 							</div>
 						</svelte:fragment>
-					</AccordionItem>
+					</Accordion.Item>
 				{/if}
 				{#if bookData.campaign}
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.1} data={calendar} /></svelte:fragment>
+					<Accordion.Item>
+						<svelte:fragment slot="lead"><Icon scale="{1.1}" data="{calendar}" /></svelte:fragment>
 						<svelte:fragment slot="summary">
 							{formattedDate(
 								new Date(
@@ -478,7 +472,7 @@
 						</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div class="flex flex-col md:flex-row justify-between gap-2">
-								<div class="chip variant-filled">
+								<div class="chip preset-filled">
 									Start Date - {formattedDate(
 										new Date(
 											typeof bookData.campaign.startDate === 'string'
@@ -487,7 +481,7 @@
 										)
 									)}
 								</div>
-								<div class="chip variant-filled">
+								<div class="chip preset-filled">
 									End Date - {formattedDate(
 										new Date(
 											typeof bookData.campaign.endDate === 'string' ? bookData.campaign.endDate : ''
@@ -496,25 +490,27 @@
 								</div>
 							</div>
 						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.5} data={checkCircle} /></svelte:fragment>
+					</Accordion.Item>
+					<Accordion.Item>
+						<svelte:fragment slot="lead"
+							><Icon scale="{1.5}" data="{checkCircle}" /></svelte:fragment
+						>
 						<svelte:fragment slot="summary">Criteria</svelte:fragment>
 						<svelte:fragment slot="content">
 							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
 								{bookData.campaign.submissionCriteria}
 							</pre>
 						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.4} data={trophy} /></svelte:fragment>
+					</Accordion.Item>
+					<Accordion.Item>
+						<svelte:fragment slot="lead"><Icon scale="{1.4}" data="{trophy}" /></svelte:fragment>
 						<svelte:fragment slot="summary">Rewards</svelte:fragment>
 						<svelte:fragment slot="content">
 							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
 								{bookData.campaign.rewards}
 							</pre>
 						</svelte:fragment>
-					</AccordionItem>
+					</Accordion.Item>
 				{/if}
 			</Accordion>
 			<hr class="opacity-50" />

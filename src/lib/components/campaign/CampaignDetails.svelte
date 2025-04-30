@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
+	import { type ToastSettings, TagsInput } from '@skeletonlabs/skeleton-svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -12,6 +12,7 @@
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import type { Response } from '$lib/util/types';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -52,18 +53,16 @@
 			return;
 		}
 
-		const response = await uploadImage(supabase, `books/${book._id}`, imageFile, toastStore);
+		const response = await uploadImage(supabase, `books/${book._id}`, imageFile);
 
 		if (response.url) {
 			createCampaignData(response.url);
 			return;
 		}
 
-		const t: ToastSettings = {
-			message: 'Error uploading book cover',
-			background: 'variant-filled-error'
-		};
-		toastStore.trigger(t);
+		toaster.error({
+			title: 'Error uploading book cover'
+		});
 	}
 
 	async function createCampaignData(imageURL?: string) {
@@ -107,13 +106,12 @@
 				});
 			}
 
-			const t: ToastSettings = {
-				message: response.success
+			toaster.info({
+				title: response.success
 					? 'Campaign updated successfully'
 					: 'Campaign update unsuccessful. ' + response.message,
-				background: response.success ? 'variant-filled-primary' : 'variant-filled-error'
-			};
-			toastStore.trigger(t);
+				type: response.success ? 'success' : 'error'
+			});
 
 			if (createCallback !== undefined) {
 				createCallback();
@@ -125,8 +123,8 @@
 </script>
 
 <div class="{customClass} w-modal">
-	<form on:submit|preventDefault={submit} class="card p-2 sm:p-4 space-y-4">
-		<fieldset {disabled}>
+	<form on:submit|preventDefault="{submit}" class="card p-2 sm:p-4 space-y-4">
+		<fieldset disabled="{disabled}">
 			<div class="flex justify-between gap-2">
 				<div class="flex flex-col w-full gap-2">
 					<label for="campaign-title">* Campaign Title</label>
@@ -134,7 +132,7 @@
 						id="title"
 						class="input"
 						type="text"
-						bind:value={book.title}
+						bind:value="{book.title}"
 						placeholder="Untitled Campaign"
 						required
 					/>
@@ -142,13 +140,12 @@
 					<textarea
 						id="description"
 						class="textarea w-full h-full overflow-hidden"
-						bind:value={book.description}
-						required
-					></textarea>
+						bind:value="{book.description}"
+						required></textarea>
 				</div>
 				<ImageUploader
-					bind:imageURL={book.imageURL}
-					bind:imageFile
+					bind:imageURL="{book.imageURL}"
+					bind:imageFile="{imageFile}"
 					class="card w-5/6 md:w-1/3 aspect-2/3 h-fit overflow-hidden relative"
 				/>
 			</div>
@@ -157,16 +154,16 @@
 				<div id="genres-div" class="flex flex-wrap gap-1">
 					{#each GENRES as genre}
 						<button
-							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+							class="chip {genres.includes(genre) ? 'preset-filled' : 'preset-tonal'}"
 							type="button"
-							on:click={() => {
+							onclick="{() => {
 								const index = genres.indexOf(genre);
 								if (index > -1) {
 									genres = genres.filter((v) => v !== genre);
 								} else {
 									genres = [...genres, genre];
 								}
-							}}
+							}}"
 						>
 							<span class="capitalize">{genre}</span>
 						</button>
@@ -175,7 +172,7 @@
 			</div>
 			<div id="tags-div" class="flex flex-col gap-2">
 				Tags
-				<InputChip bind:value={tags} name="tags" placeholder="Enter any value..." />
+				<TagsInput bind:value="{tags}" name="tags" placeholder="Enter any value..." />
 			</div>
 			<div id="dates-div" class="flex flex-col sm:flex-row w-full gap-2">
 				<div class="grow flex flex-col gap-2">
@@ -184,8 +181,8 @@
 						id="start-date-input"
 						class="input"
 						type="date"
-						max={tempEndDate}
-						bind:value={tempStartDate}
+						max="{tempEndDate}"
+						bind:value="{tempStartDate}"
 					/>
 				</div>
 				<div class="grow flex flex-col gap-2">
@@ -194,8 +191,8 @@
 						id="end-date-input"
 						class="input"
 						type="date"
-						min={tempStartDate}
-						bind:value={tempEndDate}
+						min="{tempStartDate}"
+						bind:value="{tempEndDate}"
 					/>
 				</div>
 			</div>
@@ -204,25 +201,25 @@
 				<textarea
 					id="criteria-textarea"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.submissionCriteria}
-					required
-				></textarea>
+					bind:value="{campaign.submissionCriteria}"
+					required></textarea>
 			</div>
 			<div id="rewards-div" class="flex flex-col gap-2">
 				* Rewards
 				<textarea
 					id="rewards-textarea"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.rewards}
-					required
-				></textarea>
+					bind:value="{campaign.rewards}"
+					required></textarea>
 			</div>
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 mt-4">
-					<button class="btn variant-ghost-surface" on:click={cancelCallback} type="button"
-						>Cancel</button
+					<button
+						class="btn preset-tonal-surface border border-surface-500"
+						onclick="{cancelCallback}"
+						type="button">Cancel</button
 					>
-					<button class="btn variant-filled" type="submit">
+					<button class="btn preset-filled" type="submit">
 						{book._id ? 'Update' : 'Create'}
 					</button>
 				</div>

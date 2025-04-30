@@ -1,4 +1,4 @@
-import type { PopupSettings as SuperPopupSettings } from '@skeletonlabs/skeleton';
+import type { PopupSettings as SuperPopupSettings } from '@skeletonlabs/skeleton-svelte';
 
 export interface PopupSettings extends Omit<SuperPopupSettings, 'event'> {
 	event: 'click' | 'hover' | 'focus-blur' | 'focus-click' | 'hover-popup';

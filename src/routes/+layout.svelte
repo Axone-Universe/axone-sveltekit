@@ -2,27 +2,22 @@
 	import { QueryClientProvider } from '@tanstack/svelte-query';
 	import '../app.postcss';
 
+	import { Toaster } from '@skeletonlabs/skeleton-svelte';
+
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import {
-		initializeStores,
-		storePopup,
-		Toast,
-		Modal,
-		type ModalComponent
-	} from '@skeletonlabs/skeleton';
+	import { Modal, type ModalComponent } from '@skeletonlabs/skeleton-svelte';
 	import { onMount } from 'svelte';
 
 	import ReadingListModal from '$lib/components/modal/ReadingListModal.svelte';
 
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let data: LayoutData;
 
 	let Tawk_API = {};
 	let Tawk_LoadStart = new Date();
-
-	initializeStores();
 
 	$: ({ supabase, session, user } = data);
 
@@ -57,8 +52,8 @@
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
-<QueryClientProvider client={data.queryClient}>
+<QueryClientProvider client="{data.queryClient}">
 	<slot />
-	<Modal components={modalComponentRegistry} />
-	<Toast zIndex="z-1000" />
+	<Modal components="{modalComponentRegistry}" />
+	<Toaster toaster="{toaster}" />
 </QueryClientProvider>

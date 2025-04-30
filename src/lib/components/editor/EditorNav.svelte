@@ -9,24 +9,24 @@
 	export { customClass as class };
 </script>
 
-<div class={`${customClass}`}>
+<div class="{`${customClass}`}">
 	{#each menuItems as menuItem}
 		{#if !menuItem.hidden && (!menuItem.mode || menuItem.mode === mode)}
 			<Tooltip
-				on:click={menuItem.callback}
-				fixed={true}
-				content={menuItem.label}
-				target={menuItem.id}
+				onclick="{menuItem.callback}"
+				fixed="{true}"
+				content="{menuItem.label}"
+				target="{menuItem.id}"
 				placement="left"
 			>
 				<button
-					id={menuItem.id}
+					id="{menuItem.id}"
 					type="button"
-					class={`m-2 btn-icon bg-surface-200-700-token ${menuItem.class}`}
+					class="{`m-2 btn-icon bg-surface-200-700-token ${menuItem.class}`}"
 				>
-					<Icon class="p-2" data={menuItem.icon} scale={2.5} pulse={menuItem.pulse} />
+					<Icon class="p-2" data="{menuItem.icon}" scale="{2.5}" pulse="{menuItem.pulse}" />
 					{#if menuItem.notification}
-						<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
+						<span class="badge-icon z-10 preset-filled absolute -top-1 -right-1"
 							>{menuItem.notification}</span
 						>
 					{/if}

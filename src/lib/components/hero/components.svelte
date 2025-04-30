@@ -1,11 +1,6 @@
 <script lang="ts">
 	import {
-		Avatar,
-		ProgressRadial,
-		RadioGroup,
-		RadioItem,
-		SlideToggle
-	} from '@skeletonlabs/skeleton';
+		Avatar, ProgressRing, Segment, Switch } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { pencil } from 'svelte-awesome/icons';
 
@@ -24,7 +19,7 @@
 	<div
 		class="hidden sm:block anim-float-progress anim-delay-200 absolute z-1 top-[15%] left-[25%]"
 	>
-		<button class="btn variant-soft-primary">
+		<button class="btn preset-tonal-primary">
 			<span>Editing</span>
 		</button>
 	</div>
@@ -33,7 +28,7 @@
 	</div>
 	<!-- Inspiring  -->
 	<div class="hidden sm:block anim-float-search anim-delay-200 absolute z-1 top-[5%] left-[70%]">
-		<button class="btn variant-soft-primary">
+		<button class="btn preset-tonal-primary">
 			<span>Inspiring</span>
 			<i class="fa-solid fa-spa"></i>
 		</button>
@@ -43,7 +38,7 @@
 	</div>
 	<!-- Engaging -->
 	<div class="hidden sm:block anim-float-radio absolute z-1 top-[70%] left-[75%]">
-		<button class="btn variant-soft-primary">
+		<button class="btn preset-tonal-primary">
 			<span>Engaging</span>
 			<i class="fa-solid fa-spa"></i>
 		</button>
@@ -54,7 +49,7 @@
 
 	<!-- Collaborate -->
 	<div class="hidden sm:block anim-float-button absolute z-1 top-[120%] left-[55%]">
-		<button class="btn variant-soft-primary">
+		<button class="btn preset-tonal-primary">
 			<span>Collaborative</span>
 		</button>
 	</div>
@@ -66,7 +61,7 @@
 
 	<!-- Illustrate -->
 	<div class="hidden sm:block anim-float-button absolute z-1 top-[78%] left-[15%]">
-		<button class="btn variant-soft-primary">
+		<button class="btn preset-tonal-primary">
 			<span>Illustrative</span>
 		</button>
 	</div>

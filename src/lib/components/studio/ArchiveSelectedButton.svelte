@@ -11,14 +11,14 @@
 
 <button
 	id="archive-btn"
-	class="btn btn-sm variant-filled"
-	disabled={selected.length === 0}
-	on:click={() => (archiveMode ? openUnarchiveModal(selected) : openArchiveModal(selected))}
+	class="btn btn-sm preset-filled"
+	disabled="{selected.length === 0}"
+	onclick="{() => (archiveMode ? openUnarchiveModal(selected) : openArchiveModal(selected))}"
 >
-	<span class="-mr-1"><Icon data={archive} /></span>
+	<span class="-mr-1"><Icon data="{archive}" /></span>
 	<span>
 		<Icon
-			data={arrowLeft}
+			data="{arrowLeft}"
 			class="transition-all duration-300 {archiveMode ? 'rotate-180' : 'rotate-0'}"
 		/>
 	</span>

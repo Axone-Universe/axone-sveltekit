@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, getModalStore } from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { close, user, star } from 'svelte-awesome/icons';
 	import type { HydratedDocument } from 'mongoose';
@@ -25,18 +25,18 @@
 </script>
 
 <div
-	class={`card w-modal grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}
+	class="{`card w-modal grid grid-cols-1 md:grid-cols-2 p-4 gap-2 sm:gap-4 relative items-center ${customClass}`}"
 >
 	<button
-		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled"
-		on:click={() => closeModal(false)}
+		class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm preset-filled"
+		onclick="{() => closeModal(false)}"
 	>
-		<Icon class="w-5 h-5" data={close} />
+		<Icon class="w-5 h-5" data="{close}" />
 	</button>
 	<div class="aspect-square sm:aspect-2/3 w-full md:h-full rounded-md overflow-hidden relative">
 		<ImageWithFallback
-			src={storylineData.imageURL ?? ''}
-			alt={storylineData.title ?? 'Storyline Title'}
+			src="{storylineData.imageURL ?? ''}"
+			alt="{storylineData.title ?? 'Storyline Title'}"
 		/>
 		{#if book.campaign && storylineData.main}
 			<div
@@ -59,10 +59,10 @@
 			{/if}
 			<div class="flex space-x-2 items-center">
 				{#if bookUser.imageURL !== undefined}
-					<Avatar src={bookUser.imageURL} width="w-10" rounded-sm="rounded-full" />
+					<Avatar src="{bookUser.imageURL}" width="w-10" rounded-sm="rounded-full" />
 				{:else}
 					<div class="overflow-hidden rounded-full">
-						<Icon class="bg-primary-500 p-2 w-10 h-10" data={user} />
+						<Icon class="bg-primary-500 p-2 w-10 h-10" data="{user}" />
 					</div>
 				{/if}
 				<div class="overflow-hidden flex-auto flex items-center">
@@ -73,7 +73,7 @@
 				</div>
 				{#if storylineData.numRatings > 0}
 					<div class="overflow-hidden flex items-center">
-						<Icon class="p-2" data={star} scale={2} />
+						<Icon class="p-2" data="{star}" scale="{2}" />
 						<p class="text-sm font-bold line-clamp-1">
 							{(storylineData.cumulativeRating / storylineData.numRatings).toFixed(1)}
 						</p>
@@ -83,7 +83,7 @@
 			<div class="flex flex-wrap gap-2">
 				{#if storylineData.genres}
 					{#each storylineData.genres as genre}
-						<div class="chip variant-filled py-0.5 px-1">{genre}</div>
+						<div class="chip preset-filled py-0.5 px-1">{genre}</div>
 					{/each}
 				{/if}
 			</div>
@@ -96,14 +96,14 @@
 		</div>
 		<div class="w-full flex flex-col gap-4 items-center px-4">
 			<hr class="opacity-50 min-w-full" />
-			<footer class="btn-group variant-filled py-1 max-w-fit">
+			<footer class=" preset-filled py-1 max-w-fit">
 				<a
-					on:click={() => closeModal(false)}
+					onclick="{() => closeModal(false)}"
 					href="/book/{book._id}?storylineID={storylineData._id}">View</a
 				>
 				{#if storylineData.chapters && storylineData.chapters.length > 0}
 					<a
-						on:click={() => closeModal(false)}
+						onclick="{() => closeModal(false)}"
 						href="/editor/{book._id}?mode=reader&storylineID={storylineData._id}"
 					>
 						Read
@@ -111,7 +111,7 @@
 				{/if}
 				{#if showEdit}
 					<a
-						on:click={() => closeModal(false)}
+						onclick="{() => closeModal(false)}"
 						href="/editor/{book._id}?mode=writer&storylineID={storylineData._id}"
 					>
 						Edit

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Illustration } from '$lib/util/editor/quill';
-	import { FileButton, getModalStore } from '@skeletonlabs/skeleton';
+	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 
 	export let illustration: Illustration;
 	export let uploadClick: (file: File, illustration: Illustration) => void;
@@ -37,23 +37,23 @@
 		<img
 			id="modal-image"
 			class="rounded-lg max-w-[100%] max-h-[100%]"
-			src={illustration?.illustration?.src || ''}
-			alt={illustration?.illustration?.alt || illustration?.illustration?.src || ''}
+			src="{illustration?.illustration?.src || ''}"
+			alt="{illustration?.illustration?.alt || illustration?.illustration?.src || ''}"
 		/>
 	</main>
 	<footer class="flex flex-row-reverse">
-		<button class="btn btn-sm variant-filled ml-3" on:click={() => modalStore.close()}>
+		<button class="btn btn-sm preset-filled ml-3" onclick="{() => modalStore.close()}">
 			close
 		</button>
-		<FileButton
+		<FileUpload
 			type="file"
-			name={illustration.id}
+			name="{illustration.id}"
 			accept="image/png, image/jpeg, image/gif, image/svg"
-			button="btn-icon btn-sm variant-ringed-primary"
-			on:change={changeImage}
+			button="btn-icon btn-sm preset-outlined-primary-500"
+			on:change="{changeImage}"
 		>
 			<img class="w-16 h-8 mb-2" src="/upload.svg" alt="upload" />
-		</FileButton>
+		</FileUpload>
 	</footer>
 </div>
 <slot />

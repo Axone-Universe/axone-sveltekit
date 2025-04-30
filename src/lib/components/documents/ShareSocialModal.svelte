@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getModalStore, Avatar } from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { whatsapp } from 'svelte-awesome/icons';
 

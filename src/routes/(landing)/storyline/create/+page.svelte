@@ -8,8 +8,6 @@
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import Tutorial from './tutorial.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import { modeCurrent } from '@skeletonlabs/skeleton';
-
 	const storylinePropertyBuilder = new StorylinePropertyBuilder();
 	const storyline =
 		storylinePropertyBuilder.getProperties() as HydratedDocument<StorylineProperties>;

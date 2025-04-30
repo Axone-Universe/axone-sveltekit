@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { type PopupSettings } from '@skeletonlabs/skeleton-svelte';
 	import 'emoji-picker-element';
 	// @ts-ignore Import module
 	import insertText from 'https://cdn.jsdelivr.net/npm/insert-text-at-cursor@0.3.0/index.js';
@@ -34,25 +34,24 @@
 <div>
 	<textarea
 		class="textarea resize-none"
-		bind:value={textContent}
-		maxlength={maxLength}
-		{required}
-		{placeholder}
-	></textarea>
+		bind:value="{textContent}"
+		maxlength="{maxLength}"
+		required="{required}"
+		placeholder="{placeholder}"></textarea>
 	<div class="text-sm flex flex-row items-center gap-2 m-1 justify-between">
 		<div class="flex flex-row items-center gap-2">
-			<button use:popup={emojiPopup} type="button" class="btn-icon variant-soft w-fit p-1"
-				><Icon scale={1.5} class="w-fit" data={smileO} /></button
+			<button use:popup="{emojiPopup}" type="button" class="btn-icon preset-tonal w-fit p-1"
+				><Icon scale="{1.5}" class="w-fit" data="{smileO}" /></button
 			>
 			<p>Characters left: {remaining}</p>
 		</div>
 		{#if submitButton}
 			<button
-				on:click={() => {
+				onclick="{() => {
 					submit(textContent);
-				}}
+				}}"
 				type="button"
-				class="btn variant-filled w-fit text-xs p-1">Submit</button
+				class="btn preset-filled w-fit text-xs p-1">Submit</button
 			>
 		{/if}
 	</div>

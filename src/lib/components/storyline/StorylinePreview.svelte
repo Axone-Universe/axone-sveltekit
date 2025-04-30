@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
+	import { type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton-svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { check, star } from 'svelte-awesome/icons';
@@ -64,22 +64,22 @@
 </script>
 
 <button
-	class={`card card-hover group rounded-md overflow-hidden w-full aspect-2/3 relative cursor-pointer text-left text-white ${
+	class="{`card card-hover group rounded-md overflow-hidden w-full aspect-2/3 relative cursor-pointer text-left text-white ${
 		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
-	} ${selected && 'p-1 bg-primary-400!'}`}
-	on:click={dispatchEvent ? clicked : () => modalStore.trigger(modal)}
+	} ${selected && 'p-1 bg-primary-400!'}`}"
+	onclick="{dispatchEvent ? clicked : () => modalStore.trigger(modal)}"
 >
 	{#if selected}
 		<button
-			class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm variant-filled-primary"
+			class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 btn-icon btn-icon-sm preset-filled-primary-500"
 		>
-			<Icon class="w-5 h-5" data={check} />
+			<Icon class="w-5 h-5" data="{check}" />
 		</button>
 	{/if}
 	<ImageWithFallback
-		src={storyline.imageURL === '' ? book.imageURL : storyline.imageURL}
-		alt={storyline.title ?? 'Storyline Title'}
-		bind:didError
+		src="{storyline.imageURL === '' ? book.imageURL : storyline.imageURL}"
+		alt="{storyline.title ?? 'Storyline Title'}"
+		bind:didError="{didError}"
 	/>
 	<div
 		class="bg-black/40 absolute top-0 w-full h-full md:bg-black/0 md:hover:bg-black/40 duration-300"
@@ -95,7 +95,7 @@
 	</div>
 	{#if !storyline.userPermissions?.view}
 		<div class="absolute items-center top-1/3 right-1/3">
-			<Icon class="border-none fill-[rgba(255,255,255,0.6)]!" data={lock} scale={5} />
+			<Icon class="border-none fill-[rgba(255,255,255,0.6)]!" data="{lock}" scale="{5}" />
 		</div>
 	{/if}
 	{#if storyline.numRatings > 0}
@@ -104,7 +104,7 @@
 		>
 			<Icon
 				class="w-3 h-3 text-black md:text-white group-hover:text-black duration-300"
-				data={star}
+				data="{star}"
 			/>
 			<p
 				class="text-xs font-bold line-clamp-1 text-black md:text-white group-hover:text-black duration-300"

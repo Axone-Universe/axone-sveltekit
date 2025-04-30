@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { UserProperties } from '$lib/properties/user';
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { user as userIcon, book, edit, pencil } from 'svelte-awesome/icons';
@@ -40,7 +40,7 @@
 		<div class="flex justify-center space-x-2">
 			{#if user.labels}
 				{#each user.labels as label}
-					<div class="chip variant-filled">{label}</div>
+					<div class="chip preset-filled">{label}</div>
 				{/each}
 			{/if}
 		</div>

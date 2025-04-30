@@ -4,8 +4,8 @@
 
 <button
 	id="archive-toggle"
-	class="chip {archiveMode ? 'variant-filled' : 'variant-soft'}"
-	on:click={() => (archiveMode = !archiveMode)}
+	class="chip {archiveMode ? 'preset-filled' : 'preset-tonal'}"
+	onclick="{() => (archiveMode = !archiveMode)}"
 >
 	<span>Archived</span>
 </button>

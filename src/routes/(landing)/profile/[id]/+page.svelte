@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, Tab, TabGroup } from '@skeletonlabs/skeleton';
+	import { Avatar, Tab, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		facebook as facebookIcon,
@@ -39,7 +39,7 @@
 				<div class="relative inline-block mt-10">
 					<Avatar src={userData.imageURL} rounded="rounded-full" class="w-24 sm:w-32" />
 					{#if viewerIsUser}
-						<span class="p-4 badge-icon z-10 bg-surface-100-800-token absolute -bottom-1 right-4">
+						<span class="p-4 badge-icon z-10 bg-surface-100-900 absolute -bottom-1 right-4">
 							<a href="/profile/edit"><Icon data={pencilIcon} /></a>
 						</span>
 					{/if}
@@ -54,27 +54,27 @@
 					<a
 						href={userData.facebook}
 						target="_blank"
-						class="btn-icon variant-filled {userData.facebook
-							? 'bg-surface-800-100-token'
-							: 'bg-surface-300-600-token'}"
+						class="btn-icon preset-filled {userData.facebook
+							? 'bg-surface-900-100'
+							: 'bg-surface-300-700'}"
 					>
 						<Icon data={facebookIcon} scale={1} />
 					</a>
 					<a
 						href={userData.instagram}
 						target="_blank"
-						class="btn-icon variant-filled {userData.instagram
-							? 'bg-surface-800-100-token'
-							: 'bg-surface-300-600-token'}"
+						class="btn-icon preset-filled {userData.instagram
+							? 'bg-surface-900-100'
+							: 'bg-surface-300-700'}"
 					>
 						<Icon data={instagramIcon} scale={1} />
 					</a>
 					<a
 						href={userData.twitter}
 						target="_blank"
-						class="btn-icon variant-filled {userData.twitter
-							? 'bg-surface-800-100-token'
-							: 'bg-surface-300-600-token'}"
+						class="btn-icon preset-filled {userData.twitter
+							? 'bg-surface-900-100'
+							: 'bg-surface-300-700'}"
 					>
 						<Icon data={twitterIcon} scale={1} />
 					</a>
@@ -90,7 +90,7 @@
 				<div class="flex gap-2 flex-wrap">
 					{#if userData.labels}
 						{#each userLabels ?? [] as label}
-							<div class="chip variant-filled">{label}</div>
+							<div class="chip preset-filled">{label}</div>
 						{/each}
 					{/if}
 				</div>
@@ -104,7 +104,7 @@
 					<div class=" w-full">
 						<div class="flex gap-2 flex-wrap">
 							{#each userGenres as genre}
-								<div class="chip variant-filled">{genre}</div>
+								<div class="chip preset-filled">{genre}</div>
 							{/each}
 						</div>
 					</div>
@@ -113,9 +113,9 @@
 		</div>
 	</div>
 
-	<div class="h-1/4 px-4 md:px-16 overflow-auto space-y-4 bg-surface-50-900-token">
+	<div class="h-1/4 px-4 md:px-16 overflow-auto space-y-4 bg-surface-50-950">
 		<div class="flex flex-col w-full gap-4 mt-5">
-			<TabGroup>
+			<Tabs>
 				<Tab bind:group={tabSet} name="bookTab" value={0}>Books</Tab>
 				<Tab bind:group={tabSet} name="storylinesTab" value={1}>Storylines</Tab>
 				<Tab bind:group={tabSet} name="chaptersTab" value={2}>Chapters</Tab>
@@ -147,7 +147,7 @@
 						/>
 					{/if}
 				</svelte:fragment>
-			</TabGroup>
+			</Tabs>
 		</div>
 	</div>
 </Container>

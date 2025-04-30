@@ -9,10 +9,8 @@
 	import {
 		type ModalSettings,
 		type ModalComponent,
-		type ToastSettings,
-		getToastStore,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+		type ToastSettings
+	} from '@skeletonlabs/skeleton-svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import ChapterDetailsModal from '$lib/components/chapter/ChapterDetailsModal.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -32,6 +30,7 @@
 	import { deleteBucket } from '$lib/util/bucket/bucket';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -208,11 +207,11 @@
 								});
 								chapters = chapters.filter((chapter) => chapter._id !== chapterToDelete._id);
 							}
-							const deleteFail: ToastSettings = {
-								message: response.message,
-								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
-							};
-							toastStore.trigger(deleteFail);
+
+							toaster.info({
+								title: response.message,
+								type: response.success ? 'success' : 'error'
+							});
 						})
 						.catch((error) => {
 							console.log(error);
@@ -230,7 +229,7 @@
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
-			<table class="table table-hover table-compact">
+			<table class="table table-compact">
 				<thead>
 					<tr>
 						<th></th>
@@ -246,17 +245,17 @@
 						<td colspan="3">
 							<div class="flex sm:justify-start">
 								<ViewFilters>
-									<ArchiveToggle bind:archiveMode />
+									<ArchiveToggle bind:archiveMode="{archiveMode}" />
 								</ViewFilters>
 							</div>
 						</td>
 						<td colspan="3">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveSelectedButton
-									selected={selectedChapters}
-									{archiveMode}
-									{openArchiveModal}
-									{openUnarchiveModal}
+									selected="{selectedChapters}"
+									archiveMode="{archiveMode}"
+									openArchiveModal="{openArchiveModal}"
+									openUnarchiveModal="{openUnarchiveModal}"
 								/>
 							</div>
 						</td>
@@ -296,14 +295,14 @@
 									<input
 										class="checkbox"
 										type="checkbox"
-										on:change={(e) => handleChapterSelect(e, chapter)}
+										on:change="{(e) => handleChapterSelect(e, chapter)}"
 									/>
 								</td>
 								<td>
 									<StudioImage
-										src={getImageURL(chapter) ?? ''}
-										alt={chapter.title ?? ''}
-										buttonCallback={() => openEditChapterModal(chapter)}
+										src="{getImageURL(chapter) ?? ''}"
+										alt="{chapter.title ?? ''}"
+										buttonCallback="{() => openEditChapterModal(chapter)}"
 									/>
 								</td>
 								<td>{chapter.title}</td>
@@ -315,8 +314,8 @@
 								<td>{formattedDate(new Date(decodeTime(chapter._id)))}</td>
 								<td>
 									<RowActions
-										document={chapter}
-										rowActions={[
+										document="{chapter}"
+										rowActions="{[
 											{
 												label: 'Edit',
 												icon: edit,
@@ -332,7 +331,7 @@
 												icon: trash,
 												callback: deleteChapter
 											}
-										]}
+										]}"
 									/>
 								</td>
 							</tr>
@@ -343,9 +342,9 @@
 		</div>
 		{#if $getChaptersInfinite.hasNextPage}
 			<div class="flex justify-center my-2">
-				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
-					<button class="btn-icon variant-filled">
-						<Icon data={arrowDown} />
+				<Tooltip onclick="{loadMore}" content="Load more" placement="top" target="reading-list">
+					<button class="btn-icon preset-filled">
+						<Icon data="{arrowDown}" />
 					</button>
 				</Tooltip>
 			</div>

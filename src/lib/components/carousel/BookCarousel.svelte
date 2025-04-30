@@ -25,19 +25,19 @@
 </script>
 
 <Section class="flex items-center w-full p-4">
-	<button class="embla__button embla__next" on:click={scrollPrev}>
-		<Icon class="p-2" data={arrowCircleLeft} scale={3} />
+	<button class="embla__button embla__next" onclick="{scrollPrev}">
+		<Icon class="p-2" data="{arrowCircleLeft}" scale="{3}" />
 	</button>
 	<div
 		class="embla overflow-hidden w-full m-4"
-		use:emblaCarouselSvelte={{ options, plugins }}
-		on:emblaInit={onInit}
+		use:emblaCarouselSvelte="{{ options, plugins }}"
+		on:emblaInit="{onInit}"
 	>
 		<div class="flex gap-4 p-2">
 			<slot />
 		</div>
 	</div>
-	<button class="embla__button embla__prev" on:click={scrollNext}>
-		<Icon class="p-2" data={arrowCircleRight} scale={3} />
+	<button class="embla__button embla__prev" onclick="{scrollNext}">
+		<Icon class="p-2" data="{arrowCircleRight}" scale="{3}" />
 	</button>
 </Section>

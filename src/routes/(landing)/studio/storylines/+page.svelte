@@ -8,10 +8,8 @@
 	import {
 		type ModalSettings,
 		type ModalComponent,
-		type ToastSettings,
-		getToastStore,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+		type ToastSettings
+	} from '@skeletonlabs/skeleton-svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
 	import StudioImage from '$lib/components/studio/StudioImage.svelte';
@@ -31,6 +29,7 @@
 	import { deleteBucket } from '$lib/util/bucket/bucket';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -198,11 +197,11 @@
 									(storyline) => storyline._id !== storylineToDelete._id
 								);
 							}
-							const deleteFail: ToastSettings = {
-								message: response.message,
-								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
-							};
-							toastStore.trigger(deleteFail);
+
+							toaster.info({
+								title: response.message,
+								type: response.success ? 'success' : 'error'
+							});
 						})
 						.catch((error) => {
 							console.log(error);
@@ -214,7 +213,7 @@
 	}
 </script>
 
-<svelte:window on:scroll={loadMore} />
+<svelte:window on:scroll="{loadMore}" />
 
 <Tutorial />
 <div class="min-h-screen w-full overflow-hidden">
@@ -222,7 +221,7 @@
 		<DrawerButton />
 
 		<div class="table-container min-w-full">
-			<table class="table table-hover table-compact">
+			<table class="table table-compact">
 				<thead>
 					<tr>
 						<th></th>
@@ -238,17 +237,17 @@
 						<td colspan="3">
 							<div class="flex sm:justify-start">
 								<ViewFilters>
-									<ArchiveToggle bind:archiveMode />
+									<ArchiveToggle bind:archiveMode="{archiveMode}" />
 								</ViewFilters>
 							</div>
 						</td>
 						<td colspan="3">
 							<div class="flex sm:justify-start sm:flex-row-reverse items-center gap-2 sm:gap-4">
 								<ArchiveSelectedButton
-									selected={selectedStorylines}
-									{archiveMode}
-									{openArchiveModal}
-									{openUnarchiveModal}
+									selected="{selectedStorylines}"
+									archiveMode="{archiveMode}"
+									openArchiveModal="{openArchiveModal}"
+									openUnarchiveModal="{openUnarchiveModal}"
 								/>
 							</div>
 						</td>
@@ -288,14 +287,14 @@
 									<input
 										class="checkbox"
 										type="checkbox"
-										on:change={(e) => handleStorylineSelect(e, storyline)}
+										on:change="{(e) => handleStorylineSelect(e, storyline)}"
 									/>
 								</td>
 								<td>
 									<StudioImage
-										src={storyline.imageURL ?? ''}
-										alt={storyline.title ?? ''}
-										buttonCallback={() => openStorylineModal(storyline)}
+										src="{storyline.imageURL ?? ''}"
+										alt="{storyline.title ?? ''}"
+										buttonCallback="{() => openStorylineModal(storyline)}"
 									/>
 								</td>
 								<td>{storyline.title}</td>
@@ -307,8 +306,8 @@
 								<td>{formattedDate(new Date(decodeTime(storyline._id)))}</td>
 								<td>
 									<RowActions
-										document={storyline}
-										rowActions={[
+										document="{storyline}"
+										rowActions="{[
 											{
 												label: 'Edit',
 												icon: edit,
@@ -319,7 +318,7 @@
 												icon: trash,
 												callback: deleteStoryline
 											}
-										]}
+										]}"
 									/>
 								</td>
 							</tr>
@@ -330,9 +329,9 @@
 		</div>
 		{#if $getStorylinesInfinite.hasNextPage}
 			<div class="flex justify-center my-2">
-				<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
-					<button class="btn-icon variant-filled">
-						<Icon data={arrowDown} />
+				<Tooltip onclick="{loadMore}" content="Load more" placement="top" target="reading-list">
+					<button class="btn-icon preset-filled">
+						<Icon data="{arrowDown}" />
 					</button>
 				</Tooltip>
 			</div>

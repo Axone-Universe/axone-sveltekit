@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { type ToastSettings, getToastStore, InputChip } from '@skeletonlabs/skeleton';
+	import { TagsInput } from '@skeletonlabs/skeleton-svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { HydratedDocument } from 'mongoose';
@@ -12,6 +12,7 @@
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { GENRES } from '$lib/properties/genre';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let storyline: HydratedDocument<StorylineProperties>;
@@ -28,7 +29,6 @@
 	let notifications = {};
 
 	$: title = storyline.title;
-	const toastStore = getToastStore();
 
 	async function createStorylineData() {
 		let response;
@@ -37,11 +37,10 @@
 		if (storyline._id) newStoryline = false;
 
 		if (!imageFile && newStoryline) {
-			const t: ToastSettings = {
-				message: 'Please create and upload the storyline image cover',
-				background: 'variant-filled-error'
-			};
-			toastStore.trigger(t);
+			toaster.info({
+				title: 'Please create and upload the storyline image cover',
+				type: 'error'
+			});
 			return;
 		}
 
@@ -78,17 +77,15 @@
 			const imageResponse = await uploadImage(
 				supabase,
 				`books/${book._id}/storylines/${storyline._id}`,
-				imageFile,
-				toastStore
+				imageFile
 			);
 			if (imageResponse.url && imageResponse.url !== null) {
 				await saveStorylineImage(imageResponse.url);
 			} else if (imageResponse.error) {
-				const t: ToastSettings = {
-					message: imageResponse.error.message ?? 'Error uploading storyline cover',
-					background: 'variant-filled-error'
-				};
-				toastStore.trigger(t);
+				toaster.error({
+					title: imageResponse.error.message ?? 'Error uploading storyline cover',
+					type: 'error'
+				});
 			}
 
 			if (newStoryline)
@@ -99,11 +96,10 @@
 				);
 		}
 
-		const t: ToastSettings = {
-			message: response.message,
-			background: 'variant-filled-primary'
-		};
-		toastStore.trigger(t);
+		toaster.error({
+			title: response.message,
+			type: 'success'
+		});
 	}
 
 	async function saveStorylineImage(imageURL?: string) {
@@ -119,7 +115,7 @@
 	}
 </script>
 
-<div class={`card p-2 sm:p-4 space-y-4 w-modal ${customClass}`}>
+<div class="{`card p-2 sm:p-4 space-y-4 w-modal ${customClass}`}">
 	<div class="flex justify-between gap-2">
 		<div class="flex flex-col w-full">
 			<label for="storyline-title"> * Storyline Title </label>
@@ -127,7 +123,7 @@
 				id="storyline-title"
 				class="input"
 				type="text"
-				bind:value={storyline.title}
+				bind:value="{storyline.title}"
 				placeholder="Untitled Storyline"
 				required
 			/>
@@ -136,13 +132,12 @@
 			<textarea
 				id="storyline-description"
 				class="textarea w-full h-full overflow-hidden"
-				bind:value={storyline.description}
-				required
-			></textarea>
+				bind:value="{storyline.description}"
+				required></textarea>
 		</div>
 		<ImageUploader
-			bind:imageURL={storyline.imageURL}
-			bind:imageFile
+			bind:imageURL="{storyline.imageURL}"
+			bind:imageFile="{imageFile}"
 			class="card w-5/6 md:w-1/3 aspect-2/3 h-fit overflow-hidden relative"
 		/>
 	</div>
@@ -151,15 +146,15 @@
 		<div id="genres-div" class="flex flex-wrap gap-1">
 			{#each GENRES as genre}
 				<button
-					class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
-					on:click={() => {
+					class="chip {genres.includes(genre) ? 'preset-filled' : 'preset-tonal'}"
+					onclick="{() => {
 						const index = genres.indexOf(genre);
 						if (index > -1) {
 							genres = genres.filter((v) => v !== genre);
 						} else {
 							genres = [...genres, genre];
 						}
-					}}
+					}}"
 				>
 					<span class="capitalize">{genre}</span>
 				</button>
@@ -168,27 +163,29 @@
 	</div>
 	<div>
 		Tags
-		<InputChip
-			bind:value={tags}
+		<TagsInput
+			bind:value="{tags}"
 			name="tags"
 			placeholder="e.g. #zombies"
-			validation={(tag) => {
+			validation="{(tag) => {
 				return tag.startsWith('#');
-			}}
+			}}"
 		/>
 	</div>
 	<div>
 		Permissions
 		<ManagePermissions
-			bind:permissionedDocument={storyline}
-			{notifications}
+			bind:permissionedDocument="{storyline}"
+			notifications="{notifications}"
 			permissionedDocumentType="Storyline"
 		/>
 	</div>
 
 	<div class="flex flex-col justify-end sm:flex-row gap-2">
-		<button class="btn variant-ghost-surface" on:click={cancelCallback}>Cancel</button>
-		<button class="btn variant-filled" on:click={createStorylineData}>
+		<button class="btn preset-tonal-surface border border-surface-500" onclick="{cancelCallback}"
+			>Cancel</button
+		>
+		<button class="btn preset-filled" onclick="{createStorylineData}">
 			{storyline._id ? 'Update' : 'Create'}
 		</button>
 	</div>

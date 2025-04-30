@@ -2,13 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError } from '../types';
 import type { StorageError } from '@supabase/storage-js';
 import imageCompression from 'browser-image-compression';
-import type { ToastSettings } from '@skeletonlabs/skeleton';
+import { toaster } from '../toaster/toaster-svelte';
 
 export async function uploadImage(
 	client: SupabaseClient,
 	bucket: string,
-	imageFile: File,
-	toastStore: any
+	imageFile: File | undefined
 ): Promise<{
 	url: string | null;
 	error: null | StorageError;
@@ -19,11 +18,9 @@ export async function uploadImage(
 		});
 	}
 
-	const t: ToastSettings = {
-		message: 'Saving Image...',
-		autohide: false
-	};
-	const toastId = toastStore.trigger(t);
+	toaster.success({
+		title: 'Saving Image...'
+	});
 
 	const compressedImage = await compressImage(imageFile);
 	imageFile = compressedImage ?? imageFile;
@@ -49,8 +46,6 @@ export async function uploadImage(
 		const urlData = client.storage.from(bucket).getPublicUrl(imageFile.name);
 		result.url = urlData.data.publicUrl;
 	}
-
-	toastStore.close(toastId);
 
 	result.error = response.error;
 	return result;

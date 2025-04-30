@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { HeadlessService, type IMessage } from '@novu/headless';
-	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { type PopupSettings } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { bell } from 'svelte-awesome/icons';
 	import { PUBLIC_NOVU_APP_ID } from '$env/static/public';
@@ -105,10 +105,10 @@
 
 <div class="flex w-fit justify-end">
 	<div id="notifications-btn">
-		<button use:popup={popupSettings('notifications')} type="button" class="btn-icon relative">
-			<Icon data={bell} scale={1.2} />
+		<button use:popup="{popupSettings('notifications')}" type="button" class="btn-icon relative">
+			<Icon data="{bell}" scale="{1.2}" />
 			{#if unreadNotifications.length > 0}
-				<span class="badge-icon z-10 variant-filled absolute -top-1 -right-1"
+				<span class="badge-icon z-10 preset-filled absolute -top-1 -right-1"
 					>{unreadNotifications.length}
 				</span>
 			{/if}
@@ -118,24 +118,25 @@
 	<div
 		class="{notifications.length === 0
 			? 'hidden!'
-			: ''} card w-8/12 md:w-5/12 lg:w-3/12 shadow-xl p-2 space-y-2 bg-surface-100-800-token! z-10"
+			: ''} card w-8/12 md:w-5/12 lg:w-3/12 shadow-xl p-2 space-y-2 bg-surface-100-900! z-10"
 		data-popup="notifications"
 	>
 		{#each notifications as notification}
-			<aside class="flex alert flex-col variant-soft-surface space-y-2">
-				<a class="w-full" href={notification.payload.url} target="_blank">
+			<aside class="flex alert flex-col preset-tonal-surface space-y-2">
+				<a class="w-full" href="{notification.payload.url}" target="_blank">
 					<div class="alert-message">
 						<h6>{notification.content}</h6>
 						<p class="text-sm">{timeAgo.format(Date.parse(notification.createdAt))}</p>
 					</div></a
 				>
-				<footer class="btn-group variant-filled">
+				<footer class=" preset-filled">
 					<button
-						on:click={() => markNotificationAsRead(notification.id)}
+						onclick="{() => markNotificationAsRead(notification.id)}"
 						class="button"
-						disabled={notification.read}>Read</button
+						disabled="{notification.read}">Read</button
 					>
-					<button on:click={() => deleteNotification(notification.id)} class="button">Delete</button
+					<button onclick="{() => deleteNotification(notification.id)}" class="button"
+						>Delete</button
 					>
 				</footer>
 			</aside>

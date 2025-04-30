@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { type PopupSettings } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { questionCircle } from 'svelte-awesome/icons';
 
@@ -19,14 +19,14 @@
 	<h3>Confirm Creation</h3>
 	<p>
 		You are about to create a book. Should this book be created as part of a new campaign?
-		<button use:popup={campaignPopup}>
-			<Icon data={questionCircle} />
+		<button use:popup="{campaignPopup}">
+			<Icon data="{questionCircle}" />
 		</button>
 	</p>
 	<div class="flex justify-end gap-2">
-		<button class="btn variant-outline" on:click={() => modalStore.close()}>Cancel</button>
-		<button class="btn variant-filled-surface" on:click={bookCallback}>No</button>
-		<button class="btn variant-filled" on:click={campaignCallback}>Yes</button>
+		<button class="btn variant-outline" onclick="{() => modalStore.close()}">Cancel</button>
+		<button class="btn preset-filled-surface-500" onclick="{bookCallback}">No</button>
+		<button class="btn preset-filled" onclick="{campaignCallback}">Yes</button>
 	</div>
 	<div class="card p-4 w-72 shadow-xl z-50" data-popup="campaignPopup">
 		<div class="flex flex-col gap-4">
@@ -36,6 +36,6 @@
 				participants to branch off of.
 			</p>
 		</div>
-		<div class="arrow bg-surface-100-800-token"></div>
+		<div class="arrow bg-surface-100-900"></div>
 	</div>
 </div>

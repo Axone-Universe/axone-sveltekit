@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { TableOfContents, tocCrawler } from '@skeletonlabs/skeleton';
-</script>
+	</script>
 
 <div class="flex min-h-screen relative w-full">
 	<div
-		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-[25%] min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
+		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-[25%] min-w-[16rem] bg-surface-100-900 pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="fixed flex flex-col gap-2">
 			<div use:tocCrawler={{ mode: 'generate' }} class="hidden">
@@ -44,11 +43,11 @@
 
 			<ol class="list">
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">1</span>
+					<span class="badge-icon p-4 preset-tonal-primary">1</span>
 					<span class="flex-auto"> Navigate to the header of the page </span>
 				</li>
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">2</span>
+					<span class="badge-icon p-4 preset-tonal-primary">2</span>
 					<span class="flex-auto"> Click on the write button. </span>
 				</li>
 			</ol>
@@ -56,17 +55,17 @@
 			<p>You can also create a book by:</p>
 			<ol class="list">
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">1</span>
+					<span class="badge-icon p-4 preset-tonal-primary">1</span>
 					<span class="flex-auto"
 						>Navigating to your <a target="_blank" class="anchor" href="/studio">studio</a>
 					</span>
 				</li>
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">2</span>
+					<span class="badge-icon p-4 preset-tonal-primary">2</span>
 					<span class="flex-auto"> Selecting books in the left navigation</span>
 				</li>
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">3</span>
+					<span class="badge-icon p-4 preset-tonal-primary">3</span>
 					<span class="flex-auto"> Click on the left green button to create a book.</span>
 				</li>
 			</ol>
@@ -86,11 +85,11 @@
 				</p>
 				<ol class="list">
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">1</span>
+						<span class="badge-icon p-4 preset-tonal-primary">1</span>
 						<span class="flex-auto">Navigate to the book's details view page </span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">2</span>
+						<span class="badge-icon p-4 preset-tonal-primary">2</span>
 						<span class="flex-auto">
 							Click on the green button next to a chapter you want to branch from
 						</span>
@@ -110,15 +109,15 @@
 				</p>
 				<ol class="list">
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">1</span>
+						<span class="badge-icon p-4 preset-tonal-primary">1</span>
 						<span class="flex-auto">Navigate to the book's details view page </span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">2</span>
+						<span class="badge-icon p-4 preset-tonal-primary">2</span>
 						<span class="flex-auto"> Select the storyline from the top scrolling list </span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">3</span>
+						<span class="badge-icon p-4 preset-tonal-primary">3</span>
 						<span class="flex-auto">
 							Scroll down to the chapters section and click on edit for the desired chapter</span
 						>
@@ -154,17 +153,17 @@
 
 			<ol class="list">
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">1</span>
+					<span class="badge-icon p-4 preset-tonal-primary">1</span>
 					<span class="flex-auto"
 						>Navigate to your <a target="_blank" class="anchor" href="/studio">studio</a>
 					</span>
 				</li>
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">2</span>
+					<span class="badge-icon p-4 preset-tonal-primary">2</span>
 					<span class="flex-auto"> Select books in the left navigation</span>
 				</li>
 				<li>
-					<span class="badge-icon p-4 variant-soft-primary">3</span>
+					<span class="badge-icon p-4 preset-tonal-primary">3</span>
 					<span class="flex-auto"> Click on the right green button to create a book campaign</span>
 				</li>
 			</ol>
@@ -184,14 +183,14 @@
 				<h3 class="h3">Books</h3>
 				<ol class="list">
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">1</span>
+						<span class="badge-icon p-4 preset-tonal-primary">1</span>
 						<span class="flex-auto">
 							View: Allows a user to view the details of the book such as description and
 							storylines.
 						</span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">2</span>
+						<span class="badge-icon p-4 preset-tonal-primary">2</span>
 						<span class="flex-auto">
 							Collaborate: Allows a user to create storylines for the book.
 						</span>
@@ -203,14 +202,14 @@
 				<h3 class="h3">Storylines</h3>
 				<ol class="list">
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">1</span>
+						<span class="badge-icon p-4 preset-tonal-primary">1</span>
 						<span class="flex-auto">
 							View: Allows a user to view the details of the storyline such as description and the
 							chapters it has.
 						</span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">2</span>
+						<span class="badge-icon p-4 preset-tonal-primary">2</span>
 						<span class="flex-auto">
 							Collaborate: Allows a user to add chapters to the storyline.
 						</span>
@@ -222,11 +221,11 @@
 				<h3 class="h3">Chapters</h3>
 				<ol class="list">
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">1</span>
+						<span class="badge-icon p-4 preset-tonal-primary">1</span>
 						<span class="flex-auto"> View: Allows users to read the chapter.</span>
 					</li>
 					<li>
-						<span class="badge-icon p-4 variant-soft-primary">2</span>
+						<span class="badge-icon p-4 preset-tonal-primary">2</span>
 						<span class="flex-auto">
 							Collaborate: Allows users to co-write the chapter and edit it's contents. Usually used
 							by editors when editing your chapter.

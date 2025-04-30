@@ -4,7 +4,7 @@ export const getTour = () => {
 	return new Shepherd.Tour({
 		useModalOverlay: true,
 		defaultStepOptions: {
-			classes: 'card shadow-md bg-surface-300-600-token!',
+			classes: 'card shadow-md bg-surface-300-700!',
 			scrollTo: { block: 'end' }
 		}
 	});
@@ -14,7 +14,7 @@ export const next = (tour: Shepherd.Tour) => {
 	return {
 		text: 'Next',
 		action: tour.next,
-		classes: '!btn !variant-filled'
+		classes: '!btn !preset-filled'
 	};
 };
 
@@ -22,7 +22,7 @@ export const back = (tour: Shepherd.Tour) => {
 	return {
 		text: 'Back',
 		action: tour.back,
-		classes: '!btn !variant-filled'
+		classes: '!btn !preset-filled'
 	};
 };
 
@@ -30,7 +30,7 @@ export const complete = (tour: Shepherd.Tour) => {
 	return {
 		text: 'Done',
 		action: tour.complete,
-		classes: '!btn !variant-filled'
+		classes: '!btn !preset-filled'
 	};
 };
 

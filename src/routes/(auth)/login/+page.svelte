@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+	import { type ToastSettings } from '@skeletonlabs/skeleton-svelte';
 
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
@@ -8,6 +8,7 @@
 	import { trpc } from '$lib/trpc/client';
 	import type { HydratedDocument } from 'mongoose';
 	import type { UserProperties } from '$lib/properties/user';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -17,21 +18,16 @@
 		password: ''
 	};
 
-	const toastStore = getToastStore();
-
 	async function signInWithLinkedIn() {
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: 'linkedin'
 		});
 
-		let t: ToastSettings = {
-			message: `Something wrong happened. Please try logging in later.`,
-			background: 'variant-filled-error',
-			autohide: true
-		};
-
-		if (await error) {
-			toastStore.trigger(t);
+		if (error) {
+			toaster.error({
+				title: `Something wrong happened. Please try logging in later.`,
+				type: 'error'
+			});
 		}
 	}
 
@@ -40,14 +36,11 @@
 			provider: 'facebook'
 		});
 
-		let t: ToastSettings = {
-			message: `Something wrong happened. Please try logging in later.`,
-			background: 'variant-filled-error',
-			autohide: true
-		};
-
-		if (await error) {
-			toastStore.trigger(t);
+		if (error) {
+			toaster.error({
+				title: `Something wrong happened. Please try logging in later.`,
+				type: 'error'
+			});
 		}
 	}
 
@@ -58,12 +51,15 @@
 
 		let t: ToastSettings = {
 			message: `Something wrong happened. Please try logging in later.`,
-			background: 'variant-filled-error',
+			background: 'preset-filled-error-500',
 			autohide: true
 		};
 
-		if (await error) {
-			toastStore.trigger(t);
+		if (error) {
+			toaster.error({
+				title: `Something wrong happened. Please try logging in later.`,
+				type: 'error'
+			});
 		}
 	}
 
@@ -73,33 +69,26 @@
 			password: formData.password
 		});
 
-		let t: ToastSettings = {
-			message: `Successfully logged in. Welcome!`,
-			background: 'variant-filled-primary',
-			autohide: true
-		};
-
 		if (supabaseResponse.error) {
 			// TODO: move to event listener for authState change?
 			if (supabaseResponse.error.message === 'Email not confirmed') {
-				t = {
-					message: `Please confirm your email address before logging in.`,
-					background: 'variant-filled-error',
-					autohide: true
-				};
+				toaster.info({
+					title: `Please confirm your email address before logging in.`,
+					type: 'error'
+				});
 			} else {
-				t = {
-					message: `Something wrong happened. Please try logging in later.`,
-					background: 'variant-filled-error',
-					autohide: true
-				};
+				toaster.info({
+					title: `Something wrong happened. Please try logging in later.`,
+					type: 'error'
+				});
 			}
-
-			console.log(supabaseResponse.error);
-			toastStore.trigger(t);
 		} else {
 			console.log(supabaseResponse.data);
-			toastStore.trigger(t);
+			toaster.info({
+				title: `Successfully logged in. Welcome!`,
+				type: 'success'
+			});
+
 			if (supabaseResponse.data.user) {
 				const usersResponse = await trpc($page).users.get.query({
 					id: supabaseResponse.data.user.id
@@ -122,8 +111,8 @@
 		<h1 class="text-center">Login</h1>
 
 		<button
-			on:click={signInWithGoogle}
-			class="justify-center px-:4 py-2 border flex gap-2 rounded-full transition duration-150 variant-ghost"
+			onclick="{signInWithGoogle}"
+			class="justify-center px-:4 py-2 border flex gap-2 rounded-full transition duration-150 preset-tonal border border-surface-500"
 		>
 			<img
 				class="w-6 h-6"
@@ -135,16 +124,16 @@
 		</button>
 
 		<button
-			on:click={signInWithLinkedIn}
-			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 variant-ghost"
+			onclick="{signInWithLinkedIn}"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 preset-tonal border border-surface-500"
 		>
 			<img class="w-6 h-6" src="/brand_logo/LI-In-Bug.png" loading="lazy" alt="linkedin logo" />
 			<span>Login with LinkedIn</span>
 		</button>
 
 		<button
-			on:click={signInWithFacebook}
-			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 variant-ghost"
+			onclick="{signInWithFacebook}"
+			class="justify-center px-4 py-2 border flex gap-2 rounded-full hover:shadow-sm transition duration-150 preset-tonal border border-surface-500"
 		>
 			<img
 				class="w-6 h-6"
@@ -174,7 +163,7 @@
 
 		<footer class="flex justify-center">
 			<a class="btn" href="/">Cancel</a>
-			<button class="btn variant-filled-primary" on:click={onSubmit}>Login</button>
+			<button class="btn variant-filled-primary" onclick={onSubmit}>Login</button>
 		</footer> -->
 	</div>
 </Container>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppBar } from '@skeletonlabs/skeleton';
+	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { twitter, instagram } from 'svelte-awesome/icons';
@@ -12,11 +12,11 @@
 		slotTrail="place-content-center md:place-content-end"
 	>
 		<svelte:fragment slot="default">
-			<a href="https://www.instagram.com/axoneuniverse/" target="_blank" class="btn variant-soft">
+			<a href="https://www.instagram.com/axoneuniverse/" target="_blank" class="btn preset-tonal">
 				<span><Icon data={instagram} scale={1.5} /></span>
 				<span>Instagram</span>
 			</a>
-			<a href="https://twitter.com/" target="_blank" class="btn variant-soft">
+			<a href="https://twitter.com/" target="_blank" class="btn preset-tonal">
 				<span><Icon data={twitter} scale={1.5} /></span>
 				<span>Twitter</span>
 			</a>

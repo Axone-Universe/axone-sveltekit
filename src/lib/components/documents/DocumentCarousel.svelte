@@ -19,8 +19,6 @@
 	import { createEventDispatcher } from 'svelte';
 	import UserPreview from '../user/UserPreview.svelte';
 	import type { UserProperties } from '$lib/properties/user';
-	import { getModalStore } from '@skeletonlabs/skeleton';
-
 	export let documentType: PermissionedDocument | 'User';
 	export let documents: HydratedDocument<any>[];
 	export let selectedID: string = documents.at(0)._id;
@@ -78,36 +76,36 @@
 <Section id="document-carousel" class="{customClass} flex items-center w-full md:p-4">
 	<div class="grid grid-cols-[auto_1fr_auto] gap-4 items-center">
 		<!-- Button: Left -->
-		<button type="button" on:click={multiColumnLeft}>
-			<Icon data={chevronLeft} scale={1.3} />
+		<button type="button" onclick="{multiColumnLeft}">
+			<Icon data="{chevronLeft}" scale="{1.3}" />
 		</button>
 		<!-- Carousel -->
 		<div
-			bind:this={elemDocuments}
+			bind:this="{elemDocuments}"
 			class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto"
 		>
 			{#each documents as document}
 				<div class="shrink-0 {viewPort} snap-start">
 					{#if documentType === 'Book'}
-						<BookPreview book={bookItem(document)} />
+						<BookPreview book="{bookItem(document)}" />
 					{:else if documentType === 'Storyline'}
 						<StorylinePreview
-							dispatchEvent={true}
-							on:selectedStoryline={handleSelected}
-							user={undefined}
-							storyline={storylineItem(document)}
+							dispatchEvent="{true}"
+							on:selectedStoryline="{handleSelected}"
+							user="{undefined}"
+							storyline="{storylineItem(document)}"
 						/>
 					{:else if documentType === 'Chapter'}
-						<ChapterPreview chapter={chapterItem(document)} />
+						<ChapterPreview chapter="{chapterItem(document)}" />
 					{:else}
-						<UserPreview user={userItem(document)} />
+						<UserPreview user="{userItem(document)}" />
 					{/if}
 				</div>
 			{/each}
 		</div>
 		<!-- Button-Right -->
-		<button type="button" class="h-full" on:click={multiColumnRight}>
-			<Icon data={chevronRight} scale={1.3} />
+		<button type="button" class="h-full" onclick="{multiColumnRight}">
+			<Icon data="{chevronRight}" scale="{1.3}" />
 		</button>
 	</div>
 </Section>

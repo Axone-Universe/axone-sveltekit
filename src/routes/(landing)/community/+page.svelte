@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowDown, filter } from 'svelte-awesome/icons';
@@ -111,7 +111,7 @@
 	});
 </script>
 
-<svelte:window on:scroll={loadMore} />
+<svelte:window on:scroll="{loadMore}" />
 
 <Container class="w-full min-h-screen">
 	<div class="sticky top-[4.7rem] z-2 flex flex-col gap-1">
@@ -120,8 +120,8 @@
 			title="Search for users"
 			type="search"
 			placeholder="Search for a user name"
-			bind:value={searchValue}
-			on:input={onType}
+			bind:value="{searchValue}"
+			on:input="{onType}"
 		/>
 		<Accordion
 			hover="hover:none"
@@ -130,8 +130,8 @@
 			regionControl="px-4 h-8 accordion"
 			class="fill-accordion"
 		>
-			<AccordionItem bind:open={accordionOpen}>
-				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
+			<Accordion.Item bind:open="{accordionOpen}">
+				<svelte:fragment slot="lead"><Icon data="{filter}" class="mb-1" /></svelte:fragment>
 				<svelte:fragment slot="summary"
 					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment
 				>
@@ -141,19 +141,19 @@
 						<div class="flex flex-wrap gap-2">
 							{#each USER_LABELS as userLabel}
 								<button
-									class={`chip ${
+									class="{`chip ${
 										userLabels && userLabels.includes(userLabel)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
-									on:click={() => {
+											? 'preset-filled-primary-500'
+											: 'preset-tonal'
+									}`}"
+									onclick="{() => {
 										const index = userLabels.indexOf(userLabel);
 										if (index > -1) {
 											userLabels = userLabels.filter((v) => v !== userLabel);
 										} else {
 											userLabels = [...userLabels, userLabel];
 										}
-									}}
+									}}"
 								>
 									<p>{userLabel}</p>
 								</button>
@@ -162,22 +162,22 @@
 						<hr />
 						<div class="flex justify-between items-center">
 							<p class="font-bold">Genres</p>
-							<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
+							<button class="btn btn-sm preset-filled-surface-500 h-fit" onclick="{handleClear}">
 								Clear
 							</button>
 						</div>
 						<div class="flex flex-wrap gap-2">
 							{#each GENRES as genre}
 								<button
-									class={`chip ${
+									class="{`chip ${
 										genresBuilder.build().includes(genre)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
-									on:click={() => {
+											? 'preset-filled-primary-500'
+											: 'preset-tonal'
+									}`}"
+									onclick="{() => {
 										genresBuilder = genresBuilder.toggle(genre);
 										// selectedTag = null;
-									}}
+									}}"
 								>
 									<p>{genre}</p>
 								</button>
@@ -185,7 +185,7 @@
 						</div>
 					</div>
 				</svelte:fragment>
-			</AccordionItem>
+			</Accordion.Item>
 		</Accordion>
 	</div>
 
@@ -196,7 +196,7 @@
 	{:else if $getUsersInfinite.isError}
 		<div class="text-center min-h-screen flex flex-col justify-center pb-32">
 			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
-				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
+				<button class="btn preset-filled-primary-500" onclick="{handleTryAgain}">Reload</button>
 			</InfoHeader>
 		</div>
 	{:else if items.length === 0}
@@ -204,7 +204,7 @@
 			<InfoHeader
 				emoji="🤲"
 				heading="We're empty handed!"
-				description={'Try changing your filters'}
+				description="{'Try changing your filters'}"
 			/>
 		</div>
 	{:else}
@@ -212,15 +212,15 @@
 			<div class="pt-4 px-2 grid grid-cols-2 md:grid-cols-4 grid-flow-row gap-2 w-full">
 				{#each items as item (item._id)}
 					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-						<UserPreview user={item} />
+						<UserPreview user="{item}" />
 					</div>
 				{/each}
 			</div>
 			{#if $getUsersInfinite.hasNextPage}
 				<div class="flex justify-center my-12">
-					<Tooltip on:click={loadMore} content="Load more" placement="top" target="reading-list">
-						<button class="btn-icon variant-filled">
-							<Icon data={arrowDown} />
+					<Tooltip onclick="{loadMore}" content="Load more" placement="top" target="reading-list">
+						<button class="btn-icon preset-filled">
+							<Icon data="{arrowDown}" />
 						</button>
 					</Tooltip>
 				</div>

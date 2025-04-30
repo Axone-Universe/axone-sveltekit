@@ -2,19 +2,17 @@
 </script>
 
 <script lang="ts">
-	import type { PopupSettings, ToastSettings } from '@skeletonlabs/skeleton';
+	import type { PopupSettings } from '@skeletonlabs/skeleton-svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { paintBrush, pencil, remove, upload } from 'svelte-awesome/icons';
-	import { getToastStore, popup } from '@skeletonlabs/skeleton';
 	import type { RowAction } from '$lib/util/types';
 	import { onMount } from 'svelte';
+	import { toaster } from '$lib/util/toaster/toaster-svelte';
 
 	export let imageURL: string | undefined;
-	export let imageFile: File;
+	export let imageFile: File | undefined;
 	let additionalClasses = '';
 	export { additionalClasses as class };
-
-	const toastStore = getToastStore();
 
 	interface CustomWindow extends Window {
 		CCEverywhere: any;
@@ -110,13 +108,9 @@
 				console.log(localData);
 			},
 			onError: (err: any) => {
-				let t: ToastSettings = {
-					message: `Something wrong happened. Please try Again.`,
-					background: 'variant-filled-error',
-					autohide: true
-				};
-
-				toastStore.trigger(t);
+				toaster.error({
+					title: `Something wrong happened. Please try Again.`
+				});
 				console.error('Error received is', err.toString());
 			}
 		};
@@ -165,31 +159,31 @@
 	const dropdownEditOptions: PopupSettings = popupSettings('dropdownEditOptions');
 </script>
 
-<div id="image-uploader-div" class={additionalClasses}>
-	<img class="object-cover w-full" src={currentImagePath} alt="" />
+<div id="image-uploader-div" class="{additionalClasses}">
+	<img class="object-cover w-full" src="{currentImagePath}" alt="" />
 	<div class="flex justify-center items-center gap-2 absolute inset-x-0 bottom-2">
 		<button
-			use:popup={dropdownEditOptions}
+			use:popup="{dropdownEditOptions}"
 			type="button"
-			class="btn-icon btn-icon-sm sm:btn-icon-base bg-surface-200-700-token"
+			class="btn-icon btn-icon-sm sm:btn-icon-base bg-surface-200-800"
 		>
-			<Icon class="p-2" data={pencil} scale={2.5} />
+			<Icon class="p-2" data="{pencil}" scale="{2.5}" />
 		</button>
 		<button
-			on:click={removeImage}
+			onclick="{removeImage}"
 			type="button"
-			class="btn-icon btn-icon-sm sm:btn-icon-base bg-surface-200-700-token"
+			class="btn-icon btn-icon-sm sm:btn-icon-base bg-surface-200-800"
 		>
-			<Icon class="p-2" data={remove} scale={2.5} />
+			<Icon class="p-2" data="{remove}" scale="{2.5}" />
 		</button>
-		<input on:change={onImageChange} bind:this={input} type="file" hidden />
+		<input on:change="{onImageChange}" bind:this="{input}" type="file" hidden />
 	</div>
 	<div data-popup="dropdownEditOptions" class="card p-4 w-fit">
 		<ul class="flex flex-col list justify-start">
 			{#each creatorsMenuList as menuItem}
 				<li>
-					<button on:click={menuItem.callback} class="w-full" type="button">
-						<Icon class="p-2" data={menuItem.icon} scale={2.3} />
+					<button onclick="{menuItem.callback}" class="w-full" type="button">
+						<Icon class="p-2" data="{menuItem.icon}" scale="{2.3}" />
 						{menuItem.label}
 					</button>
 				</li>

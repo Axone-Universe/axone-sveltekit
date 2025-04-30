@@ -17,7 +17,6 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import IntersectionObserver from 'svelte-intersection-observer';
 	import { type RowAction } from '$lib/util/types';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	let customClass = '';
@@ -88,7 +87,6 @@
 		$getDocumentsInfinite.refetch();
 	}
 
-	const modalStore = getModalStore();
 	function handleSelected(event: { detail: any }) {
 		const storyline = items.find((item) => item._id === event.detail);
 		const selected = !selectedDocuments.includes(event.detail);
@@ -96,10 +94,10 @@
 	}
 </script>
 
-<div class="rounded-lg {action && 'variant-filled'}">
+<div class="rounded-lg {action && 'preset-filled'}">
 	{#if title}
 		<div class="w-full flex flex-col p-2 items-center">
-			<p class="text-lg variant-filled p-3 rounded-full">{title}</p>
+			<p class="text-lg preset-filled p-3 rounded-full">{title}</p>
 		</div>
 	{/if}
 	{#if $getDocumentsInfinite.isLoading}
@@ -109,7 +107,7 @@
 	{:else if $getDocumentsInfinite.isError}
 		<div class="text-center flex flex-col justify-center pb-32">
 			<InfoHeader emoji="🤕" heading="Something went wrong!" description="How about trying again?">
-				<button class="btn variant-filled-primary" on:click={handleTryAgain}>Reload</button>
+				<button class="btn preset-filled-primary-500" onclick="{handleTryAgain}">Reload</button>
 			</InfoHeader>
 		</div>
 	{:else if items.length === 0}
@@ -118,10 +116,10 @@
 				<InfoHeader
 					emoji="🤲"
 					heading="We're empty handed!"
-					description={'Try changing your filters or write your own story!'}
+					description="{'Try changing your filters or write your own story!'}"
 				>
 					{#if documentType === 'Book' || documentType === 'Storyline'}
-						<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
+						<a href="/book/create" class="btn preset-filled-primary-500">Start writing</a>
 					{/if}
 				</InfoHeader>
 			</div>
@@ -131,35 +129,35 @@
 			{#each items as item (item._id)}
 				<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
 					{#if documentType === 'Book'}
-						<BookPreview book={bookItem(item)} />
+						<BookPreview book="{bookItem(item)}" />
 					{:else if documentType === 'Storyline'}
 						<StorylinePreview
-							selected={selectedDocuments.includes(item._id.toString())}
-							{dispatchEvent}
-							on:selectedStoryline={handleSelected}
-							user={undefined}
-							storyline={storylineItem(item)}
+							selected="{selectedDocuments.includes(item._id.toString())}"
+							dispatchEvent="{dispatchEvent}"
+							on:selectedStoryline="{handleSelected}"
+							user="{undefined}"
+							storyline="{storylineItem(item)}"
 						/>
 					{:else}
-						<ChapterPreview chapter={chapterItem(item)} />
+						<ChapterPreview chapter="{chapterItem(item)}" />
 					{/if}
 				</div>
 			{/each}
 		</div>
 
 		{#if $getDocumentsInfinite.hasNextPage}
-			<IntersectionObserver {element} bind:intersecting>
-				<div bind:this={element} class="flex justify-center my-12">
+			<IntersectionObserver element="{element}" bind:intersecting="{intersecting}">
+				<div bind:this="{element}" class="flex justify-center my-12">
 					<Tooltip
-						on:click={() => {
+						onclick="{() => {
 							loadMore(true, []);
-						}}
+						}}"
 						content="Load more"
 						placement="top"
 						target="reading-list"
 					>
-						<button class="btn-icon variant-filled">
-							<Icon data={arrowDown} />
+						<button class="btn-icon preset-filled">
+							<Icon data="{arrowDown}" />
 						</button>
 					</Tooltip>
 				</div>
@@ -168,8 +166,11 @@
 	{/if}
 	{#if action}
 		<div class="w-full flex flex-col p-2 items-center">
-			<button class="{action.class} btn variant-filled-primary gap-2" on:click={action.callback}>
-				<Icon class="top-0 cursor-pointer" data={action.icon} scale={1} />
+			<button
+				class="{action.class} btn preset-filled-primary-500 gap-2"
+				onclick="{action.callback}"
+			>
+				<Icon class="top-0 cursor-pointer" data="{action.icon}" scale="{1}" />
 				{action.label}
 			</button>
 		</div>

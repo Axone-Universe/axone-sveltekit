@@ -6,12 +6,7 @@
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import {
-		type ModalSettings,
-		type DrawerSettings,
-		getDrawerStore,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+	import { type ModalSettings, type DrawerSettings } from '@skeletonlabs/skeleton-svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import { onMount } from 'svelte';
 	import StorylinePreview from '$lib/components/storyline/StorylinePreview.svelte';
@@ -123,7 +118,7 @@
 				handleDeleteReadingList,
 				selectList
 			},
-			bgDrawer: 'bg-surface-100-800-token',
+			bgDrawer: 'bg-surface-100-900',
 			width: 'w-4/6',
 			padding: 'p-4',
 			rounded: 'rounded-xl'
@@ -181,26 +176,26 @@
 <Tutorial />
 <div class="flex min-h-screen relative w-full">
 	<div
-		class="min-h-screen rounded-lg m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
+		class="min-h-screen rounded-lg m-2 sticky top-16 hidden sm:flex flex-col justify-between w-64 min-w-[16rem] bg-surface-100-900 pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="flex flex-col gap-2">
 			{#each readingLists as list}
 				<button
 					id="reading-list-select"
 					class="flex justify-between items-center btn btn-sm {selectedList === list
-						? 'variant-filled-primary'
-						: 'variant-filled'} py-1"
-					on:click={() => (selectedList = list)}
+						? 'preset-filled-primary-500'
+						: 'preset-filled'} py-1"
+					onclick="{() => (selectedList = list)}"
 				>
 					<p class="truncate w-full text-left">
 						{list}
 					</p>
 					<div class="flex">
-						<button class="btn-icon btn-icon-sm" on:click={() => handleRenameReadingList(list)}>
-							<Icon data={pencil} scale={1.2} />
+						<button class="btn-icon btn-icon-sm" onclick="{() => handleRenameReadingList(list)}">
+							<Icon data="{pencil}" scale="{1.2}" />
 						</button>
-						<button class="btn-icon btn-icon-sm" on:click={() => handleDeleteReadingList(list)}>
-							<Icon data={trash} scale={1.2} />
+						<button class="btn-icon btn-icon-sm" onclick="{() => handleDeleteReadingList(list)}">
+							<Icon data="{trash}" scale="{1.2}" />
 						</button>
 					</div>
 				</button>
@@ -208,15 +203,15 @@
 		</div>
 		<button
 			id="create-reading-list"
-			class="btn variant-filled-secondary"
-			on:click={handleCreateReadingList}
+			class="btn preset-filled-secondary-500"
+			onclick="{handleCreateReadingList}"
 		>
 			+
 		</button>
 	</div>
 	<div class="fixed top-20 left-4 flex sm:hidden items-center gap-2 z-100">
-		<button class="btn-icon btn-icon-sm variant-filled" on:click={handleDrawerButton}>
-			<Icon data={arrowRight} />
+		<button class="btn-icon btn-icon-sm preset-filled" onclick="{handleDrawerButton}">
+			<Icon data="{arrowRight}" />
 		</button>
 		<p class="text-sm">{selectedList}</p>
 	</div>
@@ -230,7 +225,7 @@
 		<LoadingSpinner />
 	{:else if $getStorylines.isError}
 		<InfoHeader emoji="🤕" heading="Something went wrong..." description="How about trying again?">
-			<button class="btn variant-filled-primary" on:click={handleTryAgain}>Try again</button>
+			<button class="btn preset-filled-primary-500" onclick="{handleTryAgain}">Try again</button>
 		</InfoHeader>
 	{:else if items.length === 0}
 		<InfoHeader
@@ -238,7 +233,7 @@
 			heading="We're empty handed!"
 			description="This reading list is empty. Why not add some storylines to it?"
 		>
-			<a href="/home" class="btn variant-filled-primary">Browse books</a>
+			<a href="/home" class="btn preset-filled-primary-500">Browse books</a>
 		</InfoHeader>
 	{:else}
 		<div
@@ -246,7 +241,11 @@
 		>
 			{#each items as item (item._id)}
 				<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-					<StorylinePreview {addToReadingList} storyline={item} {user} />
+					<StorylinePreview
+						addToReadingList="{addToReadingList}"
+						storyline="{item}"
+						user="{user}"
+					/>
 				</div>
 			{/each}
 		</div>
