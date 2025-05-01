@@ -9,7 +9,10 @@ export interface CampaignProperties {
 	startDate?: Date;
 	endDate?: Date;
 	submissionCriteria?: string;
-	rewards?: string;
+	resources?: { value: string; link: string }[];
+	criteria?: { value: string; link: string }[];
+	rewards?: { value: string; link: string }[];
+	winners?: { value: string; link: string }[];
 	book?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
@@ -21,7 +24,10 @@ export interface HydratedCampaignProperties {
 	startDate?: Date;
 	endDate?: Date;
 	submissionCriteria?: string;
-	rewards?: string;
+	resources?: string[];
+	criteria?: string[];
+	rewards?: string[];
+	winners?: string[];
 	book: HydratedDocument<BookProperties>;
 	createdAt?: Date;
 	updatedAt?: Date;
@@ -37,7 +43,10 @@ export class CampaignPropertyBuilder {
 			startDate: new Date(),
 			endDate: new Date(),
 			submissionCriteria: '',
-			rewards: '',
+			resources: [],
+			criteria: [],
+			rewards: [],
+			winners: [],
 			book: ''
 		};
 	}

@@ -12,6 +12,8 @@
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import type { Response } from '$lib/util/types';
+	import CampaignFeaturesList from './CampaignFeaturesList.svelte';
+	import { campaignDaysLeft } from '$lib/util/constants';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -29,6 +31,11 @@
 
 	let tempStartDate = campaign.startDate ? (campaign.startDate as unknown as string) : '';
 	let tempEndDate = campaign.endDate ? (campaign.endDate as unknown as string) : '';
+
+	let resources = campaign.resources ?? [];
+	let criteria = campaign.criteria ?? [];
+	let rewards = campaign.rewards ?? [];
+	let winners = campaign.winners ?? [];
 
 	$: campaign.startDate = new Date(tempStartDate);
 	$: campaign.endDate = new Date(tempEndDate);
@@ -79,8 +86,9 @@
 					id: campaign._id,
 					startDate: campaign.startDate!,
 					endDate: campaign.endDate!,
-					submissionCriteria: campaign.submissionCriteria!,
-					rewards: campaign.rewards!,
+					criteria: criteria,
+					rewards: rewards,
+					resources: resources,
 					book: {
 						id: book._id,
 						title: book.title,
@@ -95,8 +103,9 @@
 					startDate: campaign.startDate!,
 					origin: $page.url.origin,
 					endDate: campaign.endDate!,
-					submissionCriteria: campaign.submissionCriteria!,
-					rewards: campaign.rewards!,
+					criteria: criteria,
+					rewards: rewards,
+					resources: resources,
 					book: {
 						title: book.title,
 						description: book.description,
@@ -200,23 +209,33 @@
 				</div>
 			</div>
 			<div id="criteria-div" class="flex flex-col gap-2">
-				* Submission Criteria
-				<textarea
-					id="criteria-textarea"
+				Submission Criteria
+				<CampaignFeaturesList
+					bind:features={criteria}
+					placeholder="e.g. All entries must be original work"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.submissionCriteria}
-					required
 				/>
 			</div>
 			<div id="rewards-div" class="flex flex-col gap-2">
-				* Rewards
-				<textarea
-					id="rewards-textarea"
+				Rewards
+				<CampaignFeaturesList
+					bind:features={rewards}
+					placeholder="e.g. Publishing deal with Penguin!"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.rewards}
-					required
 				/>
 			</div>
+			<div id="resources-div" class="flex flex-col gap-2">
+				Resources
+				<CampaignFeaturesList
+					bind:features={resources}
+					insertLink={true}
+					placeholder="e.g. All entries must be original work"
+					class="textarea w-full h-full overflow-hidden"
+				/>
+			</div>
+			{#if book._id && campaignDaysLeft(campaign)[0] < 0}
+				<div id="resources-div" class="flex flex-col gap-2">Winners</div>
+			{/if}
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 mt-4">
 					<button class="btn variant-ghost-surface" on:click={cancelCallback} type="button"

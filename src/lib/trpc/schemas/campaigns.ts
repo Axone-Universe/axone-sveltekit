@@ -5,8 +5,30 @@ import { create as createBook, update as updateBook } from '$lib/trpc/schemas/bo
 export const create = z.object({
 	startDate: z.coerce.date(),
 	endDate: z.coerce.date(),
-	submissionCriteria: z.string(),
-	rewards: z.string(),
+	resources: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
+	criteria: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
+	rewards: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
 	origin: z.string(),
 	book: createBook
 });
@@ -15,8 +37,38 @@ export const update = z.object({
 	id: z.string(),
 	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
-	submissionCriteria: z.string().optional(),
-	rewards: z.string().optional(),
+	resources: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
+	criteria: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
+	rewards: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
+	winners: z
+		.array(
+			z.object({
+				value: z.string(),
+				link: z.string()
+			})
+		)
+		.optional(),
 	book: updateBook.optional()
 });
 

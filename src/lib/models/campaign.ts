@@ -12,8 +12,9 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	user: { type: String, required: true },
 	startDate: Date,
 	endDate: Date,
-	submissionCriteria: String,
-	rewards: String,
+	criteria: [{ type: Object }],
+	rewards: [{ type: Object }],
+	resources: [{ type: Object }],
 	book: { type: String, ref: BookLabel, required: true },
 	createdAt: Date,
 	updatedAt: Date

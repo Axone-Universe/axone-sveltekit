@@ -69,9 +69,11 @@ export const campaigns = t.router({
 				.userID(ctx.session!.user.id)
 				.startDate(input.startDate)
 				.endDate(input.endDate)
-				.submissionCriteria(input.submissionCriteria)
-				.rewards(input.rewards)
 				.book(bookBuilder.properties());
+
+			if (input.criteria) campaignBuilder.criteria(input.criteria);
+			if (input.rewards) campaignBuilder.rewards(input.rewards);
+			if (input.resources) campaignBuilder.resources(input.resources);
 
 			const response: Response = {
 				success: true,
@@ -131,8 +133,12 @@ export const campaigns = t.router({
 
 			if (input.startDate) campaignBuilder.startDate(input.startDate);
 			if (input.endDate) campaignBuilder.endDate(input.endDate);
-			if (input.submissionCriteria) campaignBuilder.submissionCriteria(input.submissionCriteria);
+			if (input.criteria) campaignBuilder.criteria(input.criteria);
 			if (input.rewards) campaignBuilder.rewards(input.rewards);
+			if (input.resources) campaignBuilder.resources(input.resources);
+
+			console.log('** create');
+			console.log(input.resources);
 
 			const response: Response = {
 				success: true,
