@@ -21,7 +21,6 @@ export const campaignSchema = new Schema<CampaignProperties>({
 });
 
 campaignSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 	// Used for pipelines that must be put after the default populate and permissions
 	// The order is usually important e.g. limit pipeline should be at the end

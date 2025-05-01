@@ -137,9 +137,6 @@ export const campaigns = t.router({
 			if (input.rewards) campaignBuilder.rewards(input.rewards);
 			if (input.resources) campaignBuilder.resources(input.resources);
 
-			console.log('** create');
-			console.log(input.resources);
-
 			const response: Response = {
 				success: true,
 				message: 'campaign successfully updated',

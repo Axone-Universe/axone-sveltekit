@@ -1,4 +1,4 @@
-import { CampaignProperties } from '$lib/properties/campaign';
+import { type CampaignProperties } from '$lib/properties/campaign';
 import { HydratedDocument } from 'mongoose';
 
 export const formatDate = (date: Date) => {

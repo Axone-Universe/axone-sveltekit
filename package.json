@@ -15,7 +15,7 @@
 	},
 	"devDependencies": {
 		"@faker-js/faker": "^8.3.1",
-		"@skeletonlabs/skeleton": "^2.7.0",
+		"@skeletonlabs/skeleton": "^2.11.0",
 		"@skeletonlabs/tw-plugin": "^0.3.1",
 		"@sveltejs/adapter-auto": "^2.1.1",
 		"@sveltejs/adapter-vercel": "^2.4.3",

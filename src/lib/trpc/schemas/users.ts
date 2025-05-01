@@ -66,3 +66,4 @@ export type CreateDeleteReadingList = z.infer<typeof createDeleteReadingList>;
 export type RenameReadingList = z.infer<typeof renameReadingList>;
 export type GetReadingList = z.infer<typeof getReadingList>;
 export type UpdateReadingList = z.infer<typeof updateReadingLists>;
+export type GetUsers = z.infer<typeof read>;
