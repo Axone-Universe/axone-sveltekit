@@ -15,6 +15,7 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	criteria: [{ type: Object }],
 	rewards: [{ type: Object }],
 	resources: [{ type: Object }],
+	winners: [{ type: String }],
 	book: { type: String, ref: BookLabel, required: true },
 	createdAt: Date,
 	updatedAt: Date
@@ -83,6 +84,19 @@ function populate(pipeline: PipelineStage[]) {
 			}
 		}
 	);
+
+	// console.log('** pops campaign');
+	// pipeline.push(
+	// 	{
+	// 		$lookup: { from: 'users', localField: 'winners', foreignField: '_id', as: 'winners' }
+	// 	},
+	// 	{
+	// 		$unwind: {
+	// 			path: '$winners',
+	// 			preserveNullAndEmptyArrays: true
+	// 		}
+	// 	}
+	// );
 }
 export const Campaign = mongoose.models[label]
 	? model<CampaignProperties>(label)

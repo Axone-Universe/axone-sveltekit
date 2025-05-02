@@ -65,6 +65,11 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 		return this;
 	}
 
+	winners(winners: string[]): CampaignBuilder {
+		this._campaignProperties.winners = winners;
+		return this;
+	}
+
 	book(book: BookProperties): CampaignBuilder {
 		book.campaign = this._campaignProperties._id;
 		this._bookProperties = book;

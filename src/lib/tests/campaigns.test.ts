@@ -90,6 +90,8 @@ describe('campaigns', async () => {
 				link: ''
 			}
 		];
+		const winners = [testUserThreeSession.user.id];
+
 		const newTitle = 'Repelling Evil';
 
 		const campaign = (
@@ -103,24 +105,27 @@ describe('campaigns', async () => {
 			})
 		).data;
 
-		await caller1.campaigns.update({
-			id: campaign._id,
-			criteria: newSubmissionCriteria,
-			book: {
-				...book,
-				id: campaign.book!,
-				title: newTitle
-			}
-		});
+		const returnedCampaign = (
+			await caller1.campaigns.update({
+				id: campaign._id,
+				criteria: newSubmissionCriteria,
+				winners,
+				book: {
+					...book,
+					id: campaign.book!,
+					title: newTitle
+				}
+			})
+		).data;
 
 		const returnedBook = (await caller1.books.getById({ id: campaign.book })).data;
-		const returnedCampaign = returnedBook.campaign as HydratedDocument<CampaignProperties>;
 
 		expect(returnedCampaign.criteria).toEqual(newSubmissionCriteria);
 		expect(returnedCampaign.startDate).toEqual(startDate);
 		expect(returnedCampaign.endDate).toEqual(endDate);
 		expect(returnedCampaign.updatedAt).greaterThan(returnedCampaign.createdAt!);
 		expect(returnedCampaign.rewards).toEqual(rewards);
+		expect(returnedCampaign.winners![0]).toEqual(testUserThreeSession.user.id);
 
 		expect(returnedBook.title).toEqual(newTitle);
 		expect(returnedBook.description).toEqual(book.description);

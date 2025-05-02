@@ -34,7 +34,7 @@
 			  ]
 			: [])
 	];
-	let emptyState = 'Loading...';
+	let emptyState = 'Search by name or email...';
 	let regionEmpty = 'empty-autocomplete-list flex flex-col items-center'; // styling when autocomplete has no results
 	let autoCompleteEmptyID = 'empty-autocomplete-list'; // use for checking if autocomplete has no results
 	let autoCompleteDiv = 'auto-complete-div';

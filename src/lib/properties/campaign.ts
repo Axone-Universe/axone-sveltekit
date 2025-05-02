@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { type BookProperties } from './book';
+import { type UserProperties } from './user';
 
 export const label = 'Campaign';
 
@@ -12,7 +13,7 @@ export interface CampaignProperties {
 	resources?: { value: string; link: string }[];
 	criteria?: { value: string; link: string }[];
 	rewards?: { value: string; link: string }[];
-	winners?: { value: string; link: string }[];
+	winners?: string[] | HydratedDocument<UserProperties>[];
 	book?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
@@ -24,10 +25,10 @@ export interface HydratedCampaignProperties {
 	startDate?: Date;
 	endDate?: Date;
 	submissionCriteria?: string;
-	resources?: string[];
-	criteria?: string[];
-	rewards?: string[];
-	winners?: string[];
+	resources?: { value: string; link: string }[];
+	criteria?: { value: string; link: string }[];
+	rewards?: { value: string; link: string }[];
+	winners?: HydratedDocument<UserProperties>[];
 	book: HydratedDocument<BookProperties>;
 	createdAt?: Date;
 	updatedAt?: Date;

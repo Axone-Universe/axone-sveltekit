@@ -17,6 +17,14 @@ export class UsersRepository extends Repository {
 		return await query;
 	}
 
+	async getByIds(
+		session: Session | null,
+		ids?: string[]
+	): Promise<HydratedDocument<UserProperties>[] | null> {
+		const query = User.find({ _id: { $in: ids } });
+		return await query;
+	}
+
 	async getReadingList(id: string, name?: string) {
 		const query = await User.aggregate([
 			{
@@ -112,7 +120,7 @@ export class UsersRepository extends Repository {
 		let query = User.find(filter);
 
 		if (input.skip) {
-			query = query.skip(input.skip);
+			query = query.skip((input.cursor ?? 0) + (input.skip ?? 0));
 		}
 
 		if (input.limit) {

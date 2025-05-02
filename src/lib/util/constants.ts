@@ -1,4 +1,4 @@
-import { type CampaignProperties } from '$lib/properties/campaign';
+import { type HydratedCampaignProperties, type CampaignProperties } from '$lib/properties/campaign';
 import { HydratedDocument } from 'mongoose';
 
 export const formatDate = (date: Date) => {
@@ -45,7 +45,7 @@ const calculateTimeDifference = (time: number) => {
 };
 
 export const campaignDaysLeft = (
-	campaign: HydratedDocument<CampaignProperties> | undefined
+	campaign: HydratedDocument<CampaignProperties | HydratedCampaignProperties> | undefined
 ): [number, string] => {
 	if (!campaign) {
 		return [0, ''];

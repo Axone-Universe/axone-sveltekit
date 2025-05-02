@@ -136,6 +136,7 @@ export const campaigns = t.router({
 			if (input.criteria) campaignBuilder.criteria(input.criteria);
 			if (input.rewards) campaignBuilder.rewards(input.rewards);
 			if (input.resources) campaignBuilder.resources(input.resources);
+			if (input.winners) campaignBuilder.winners(input.winners);
 
 			const response: Response = {
 				success: true,
@@ -145,8 +146,8 @@ export const campaigns = t.router({
 			try {
 				const result = await campaignBuilder.update();
 
-				if (input.book?.notifications) {
-					sendUserNotifications(ctx.session, input.book.notifications);
+				if (input.notifications) {
+					sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = result;
 			} catch (error) {

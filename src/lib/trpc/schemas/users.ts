@@ -57,6 +57,7 @@ export const read = z.object({
 	cursor: z.number().optional(),
 	skip: z.number().optional(),
 	id: z.string().optional(),
+	ids: z.array(z.string()).optional(),
 	detail: z.string().optional(),
 	genres: genreSchema.optional(),
 	labels: userSchema.optional()

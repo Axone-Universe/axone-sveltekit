@@ -23,7 +23,6 @@
 	}
 
 	async function deleteNote(index: number) {
-		console.log('deleting note ' + index);
 		features.splice(index, 1);
 		features = features;
 	}

@@ -39,7 +39,29 @@ export const users = t.router({
 			}
 			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
 		}),
+	getByIds: t.procedure
+		.use(logger)
+		.input(read)
+		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
 
+			const response: Response = {
+				success: true,
+				message: 'user successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.getByIds(ctx.session, input.ids);
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<UserProperties>[] | null }
+			};
+		}),
 	get: t.procedure
 		.use(logger)
 		.input(read)
