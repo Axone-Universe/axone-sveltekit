@@ -34,7 +34,7 @@
 				invalidate('supabase:auth');
 			}
 		});
-		setupTawkto();
+		// setupTawkto();
 		return () => subscription.unsubscribe();
 	});
 

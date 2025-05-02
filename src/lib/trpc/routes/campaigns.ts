@@ -149,6 +149,7 @@ export const campaigns = t.router({
 				if (input.notifications) {
 					sendUserNotifications(ctx.session, input.notifications);
 				}
+
 				response.data = result;
 			} catch (error) {
 				response.success = false;
