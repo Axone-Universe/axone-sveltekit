@@ -1,3 +1,6 @@
+import { type HydratedCampaignProperties, type CampaignProperties } from '$lib/properties/campaign';
+import { HydratedDocument } from 'mongoose';
+
 export const formatDate = (date: Date) => {
 	return date.toLocaleDateString(undefined, {
 		year: 'numeric',
@@ -39,4 +42,32 @@ const calculateTimeDifference = (time: number) => {
 		interval: 0,
 		unit: ''
 	};
+};
+
+export const campaignDaysLeft = (
+	campaign: HydratedDocument<CampaignProperties | HydratedCampaignProperties> | undefined
+): [number, string] => {
+	if (!campaign) {
+		return [0, ''];
+	}
+
+	// One day in milliseconds
+	const oneDay = 1000 * 60 * 60 * 24;
+
+	const campaignEndDate = new Date(campaign.endDate as unknown as string);
+
+	// Calculating the time difference between two dates
+	const diffInTime = campaignEndDate.getTime() - new Date().getTime();
+
+	// Calculating the no. of days between two dates
+	const diffInDays = Math.round(diffInTime / oneDay);
+
+	let color = 'variant-filled-success';
+	if (diffInDays >= 0 && diffInDays <= 2) {
+		color = 'variant-filled-warning';
+	} else if (diffInDays < 0) {
+		color = 'variant-filled-error';
+	}
+
+	return [diffInDays, color];
 };

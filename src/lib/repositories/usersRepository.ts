@@ -5,6 +5,7 @@ import type { UserLabel, UserProperties } from '$lib/properties/user';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument, PipelineStage } from 'mongoose';
 import type { Genre } from '$lib/properties/genre';
+import { GetUsers } from '$lib/trpc/schemas/users';
 
 export class UsersRepository extends Repository {
 	async getById(
@@ -13,6 +14,14 @@ export class UsersRepository extends Repository {
 	): Promise<HydratedDocument<UserProperties> | null> {
 		const query = User.findById(id);
 
+		return await query;
+	}
+
+	async getByIds(
+		session: Session | null,
+		ids?: string[]
+	): Promise<HydratedDocument<UserProperties>[] | null> {
+		const query = User.find({ _id: { $in: ids } });
 		return await query;
 	}
 
@@ -82,45 +91,40 @@ export class UsersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async get(
-		session: Session | null,
-		searchTerm: string,
-		limit?: number,
-		cursor?: string,
-		genres?: Genre[],
-		labels?: UserLabel[],
-		skip?: number
-	): Promise<HydratedDocument<UserProperties>[]> {
+	async get(session: Session | null, input: GetUsers): Promise<HydratedDocument<UserProperties>[]> {
 		const filterQueries = [];
-		filterQueries.push({
-			$or: [
-				{ email: { $regex: '^' + searchTerm, $options: 'i' } },
-				{ firstName: { $regex: '^' + searchTerm, $options: 'i' } },
-				{ lastName: { $regex: '^' + searchTerm, $options: 'i' } }
-			]
-		});
 
-		if (cursor) {
-			filterQueries.push({ _id: { $gt: cursor } });
+		if (input.detail) {
+			filterQueries.push({
+				$or: [
+					{ email: { $regex: '^' + input.detail, $options: 'i' } },
+					{ firstName: { $regex: '^' + input.detail, $options: 'i' } },
+					{ lastName: { $regex: '^' + input.detail, $options: 'i' } }
+				]
+			});
 		}
 
-		if (genres && genres.length > 0) {
-			filterQueries.push({ genres: { $all: genres } });
+		if (input.cursor) {
+			filterQueries.push({ _id: { $gt: input.cursor } });
 		}
 
-		if (labels && labels.length > 0) {
-			filterQueries.push({ labels: { $all: labels } });
+		if (input.genres && input.genres.length > 0) {
+			filterQueries.push({ genres: { $all: input.genres } });
 		}
 
-		const filter = { $and: filterQueries };
+		if (input.labels && input.labels.length > 0) {
+			filterQueries.push({ labels: { $all: input.labels } });
+		}
+
+		const filter = { ...(filterQueries.length > 0 ? { $and: filterQueries } : {}) };
 		let query = User.find(filter);
 
-		if (skip) {
-			query = query.skip(skip);
+		if (input.cursor) {
+			query = query.skip((input.cursor ?? 0) + (input.skip ?? 0));
 		}
 
-		if (limit) {
-			query = query.limit(limit);
+		if (input.limit) {
+			query = query.limit(input.limit);
 		}
 
 		query.sort({ _id: 1 });

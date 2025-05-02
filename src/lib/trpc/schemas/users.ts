@@ -57,6 +57,7 @@ export const read = z.object({
 	cursor: z.number().optional(),
 	skip: z.number().optional(),
 	id: z.string().optional(),
+	ids: z.array(z.string()).optional(),
 	detail: z.string().optional(),
 	genres: genreSchema.optional(),
 	labels: userSchema.optional()
@@ -66,3 +67,4 @@ export type CreateDeleteReadingList = z.infer<typeof createDeleteReadingList>;
 export type RenameReadingList = z.infer<typeof renameReadingList>;
 export type GetReadingList = z.infer<typeof getReadingList>;
 export type UpdateReadingList = z.infer<typeof updateReadingLists>;
+export type GetUsers = z.infer<typeof read>;

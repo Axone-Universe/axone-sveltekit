@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
+	import { Avatar, InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -12,6 +12,14 @@
 	import type { PermissionProperties } from '$lib/properties/permission';
 	import type { CampaignProperties } from '$lib/properties/campaign';
 	import type { Response } from '$lib/util/types';
+	import CampaignFeaturesList from './CampaignFeaturesList.svelte';
+	import { campaignDaysLeft } from '$lib/util/constants';
+	import UserFilter from '../user/UserFilter.svelte';
+	import { type UserProperties } from '$lib/properties/user';
+	import { type UserNotificationProperties } from '$lib/properties/notification';
+	import { documentURL } from '$lib/util/links';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { trash } from 'svelte-awesome/icons';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let campaign: HydratedDocument<CampaignProperties>;
@@ -30,6 +38,16 @@
 	let tempStartDate = campaign.startDate ? (campaign.startDate as unknown as string) : '';
 	let tempEndDate = campaign.endDate ? (campaign.endDate as unknown as string) : '';
 
+	let resources = campaign.resources ?? [];
+	let criteria = campaign.criteria ?? [];
+	let rewards = campaign.rewards ?? [];
+	let winners: HydratedDocument<UserProperties>[] = [];
+
+	// Used for the users filter
+	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
+	// Used to send notifications to winners
+	let notifications: { [key: string]: UserNotificationProperties } = {};
+
 	$: campaign.startDate = new Date(tempStartDate);
 	$: campaign.endDate = new Date(tempEndDate);
 
@@ -44,6 +62,9 @@
 			_id: 'public',
 			permission: 'collaborate'
 		} as HydratedDocument<PermissionProperties>;
+
+		// fetch winners
+		fetchWinners();
 	});
 
 	async function submit() {
@@ -66,6 +87,47 @@
 		toastStore.trigger(t);
 	}
 
+	/** Called when permission user is selected */
+	function onUserSelect(event: any) {
+		let userID = event.detail.value;
+
+		if (winners.find((user) => user._id === userID)) return;
+
+		winners.push(users[userID]);
+		winners = winners;
+
+		notifications[userID] = {
+			senderID: campaign.user,
+			receiverID: userID,
+			subject: 'You have won!!',
+			url: documentURL($page.url.origin, 'Book', book),
+			notification: `🎉🎉 Congratulations!
+
+			You are one of the winners for the campaign '${book.title}'.
+			
+			Please reach out to us at admin@axone.network to claim your prize 🏆`
+		};
+	}
+
+	async function fetchWinners() {
+		if (campaign.winners && campaign.winners.length > 0) {
+			const users = (
+				await trpc($page).users.getByIds.query({
+					ids: campaign.winners as string[]
+				})
+			).data;
+
+			if (users) {
+				winners = users as HydratedDocument<UserProperties>[];
+			}
+		}
+	}
+
+	function deleteWinner(index: number) {
+		winners.splice(index, 1);
+		winners = winners;
+	}
+
 	async function createCampaignData(imageURL?: string) {
 		try {
 			let response: Response = {
@@ -79,8 +141,11 @@
 					id: campaign._id,
 					startDate: campaign.startDate!,
 					endDate: campaign.endDate!,
-					submissionCriteria: campaign.submissionCriteria!,
-					rewards: campaign.rewards!,
+					criteria: criteria,
+					rewards: rewards,
+					resources: resources,
+					winners: winners.map((user) => user._id),
+					notifications,
 					book: {
 						id: book._id,
 						title: book.title,
@@ -95,8 +160,9 @@
 					startDate: campaign.startDate!,
 					origin: $page.url.origin,
 					endDate: campaign.endDate!,
-					submissionCriteria: campaign.submissionCriteria!,
-					rewards: campaign.rewards!,
+					criteria: criteria,
+					rewards: rewards,
+					resources: resources,
 					book: {
 						title: book.title,
 						description: book.description,
@@ -200,23 +266,57 @@
 				</div>
 			</div>
 			<div id="criteria-div" class="flex flex-col gap-2">
-				* Submission Criteria
-				<textarea
-					id="criteria-textarea"
+				Submission Criteria
+				<CampaignFeaturesList
+					bind:features={criteria}
+					placeholder="e.g. All entries must be original work"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.submissionCriteria}
-					required
 				/>
 			</div>
 			<div id="rewards-div" class="flex flex-col gap-2">
-				* Rewards
-				<textarea
-					id="rewards-textarea"
+				Rewards
+				<CampaignFeaturesList
+					bind:features={rewards}
+					placeholder="e.g. Publishing deal with Penguin!"
 					class="textarea w-full h-full overflow-hidden"
-					bind:value={campaign.rewards}
-					required
 				/>
 			</div>
+			<div id="resources-div" class="flex flex-col gap-2">
+				Resources
+				<CampaignFeaturesList
+					bind:features={resources}
+					insertLink={true}
+					placeholder="e.g. All entries must be original work"
+					class="textarea w-full h-full overflow-hidden"
+				/>
+			</div>
+			{#if book._id && campaignDaysLeft(campaign)[0] < 0}
+				<div id="resources-div" class="flex flex-col gap-2">
+					Winners
+					<div class="card p-2 w-full shadow-sm space-y-2">
+						<UserFilter bind:users {onUserSelect} />
+						{#each winners as user, index}
+							<div class="flex justify-between items-center">
+								<div class="flex items-center gap-2">
+									<div class="flex space-x-4">
+										<button
+											class="btn-icon variant-filled-primary"
+											on:click|stopPropagation={() => deleteWinner(index)}
+											type="button"
+										>
+											<Icon data={trash} scale={1.2} />
+										</button>
+									</div>
+									<div class="flex flex-col">
+										<h6 class="font-bold">{user.firstName}</h6>
+										<small class="text-[10px] sm:text-sm">{user.email}</small>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 			{#if !disabled}
 				<div class="flex flex-col justify-end sm:flex-row gap-2 mt-4">
 					<button class="btn variant-ghost-surface" on:click={cancelCallback} type="button"

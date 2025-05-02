@@ -69,9 +69,11 @@ export const campaigns = t.router({
 				.userID(ctx.session!.user.id)
 				.startDate(input.startDate)
 				.endDate(input.endDate)
-				.submissionCriteria(input.submissionCriteria)
-				.rewards(input.rewards)
 				.book(bookBuilder.properties());
+
+			if (input.criteria) campaignBuilder.criteria(input.criteria);
+			if (input.rewards) campaignBuilder.rewards(input.rewards);
+			if (input.resources) campaignBuilder.resources(input.resources);
 
 			const response: Response = {
 				success: true,
@@ -131,8 +133,10 @@ export const campaigns = t.router({
 
 			if (input.startDate) campaignBuilder.startDate(input.startDate);
 			if (input.endDate) campaignBuilder.endDate(input.endDate);
-			if (input.submissionCriteria) campaignBuilder.submissionCriteria(input.submissionCriteria);
+			if (input.criteria) campaignBuilder.criteria(input.criteria);
 			if (input.rewards) campaignBuilder.rewards(input.rewards);
+			if (input.resources) campaignBuilder.resources(input.resources);
+			if (input.winners) campaignBuilder.winners(input.winners);
 
 			const response: Response = {
 				success: true,
@@ -142,8 +146,8 @@ export const campaigns = t.router({
 			try {
 				const result = await campaignBuilder.update();
 
-				if (input.book?.notifications) {
-					sendUserNotifications(ctx.session, input.book.notifications);
+				if (input.notifications) {
+					sendUserNotifications(ctx.session, input.notifications);
 				}
 				response.data = result;
 			} catch (error) {
