@@ -129,9 +129,14 @@ export async function createCampaign(testSession: Session, title?: string) {
 	const genres: Genre[] = [];
 	const startDate = new Date();
 	const endDate = new Date();
-	const submissionCriteria =
-		'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.';
-	const rewards = 'Book publishing deal with Penguin!';
+	const criteria = [
+		{
+			value:
+				'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.',
+			link: ''
+		}
+	];
+	const rewards = [{ value: 'Book publishing deal with Penguin!', link: '' }];
 
 	const book: CreateBook = {
 		title: title ?? faker.commerce.productName() + ' But a Book',
@@ -146,7 +151,7 @@ export async function createCampaign(testSession: Session, title?: string) {
 	const campaignResponse = await caller.campaigns.create({
 		startDate,
 		endDate,
-		submissionCriteria,
+		criteria,
 		rewards,
 		book,
 		origin: ''

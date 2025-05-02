@@ -13,7 +13,8 @@
 		tag,
 		checkCircle,
 		trophy,
-		share
+		share,
+		gear
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { afterUpdate, createEventDispatcher, onMount } from 'svelte';
@@ -29,23 +30,25 @@
 		AccordionItem,
 		modeCurrent,
 		getToastStore,
-		type ToastSettings
+		type ToastSettings,
+		Avatar
 	} from '@skeletonlabs/skeleton';
 	import type { Genre } from '$lib/properties/genre';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import { Confetti } from 'svelte-confetti';
 
 	import { page } from '$app/stores';
 	import type { UserProperties } from '$lib/properties/user';
 	import { trpc } from '$lib/trpc/client';
 	import type { Session } from '@supabase/supabase-js';
 	import DocumentCarousel from '../documents/DocumentCarousel.svelte';
-	import type { CampaignProperties } from '$lib/properties/campaign';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import { documentURL } from '$lib/util/links';
 	import ShareSocialModal from '$lib/components/documents/ShareSocialModal.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
 	import DocumentsInfiniteScroll from '../documents/DocumentsInfiniteScroll.svelte';
 	import { type Response } from '$lib/util/types';
+	import { campaignDaysLeft } from '$lib/util/constants';
 
 	let customClass = '';
 
@@ -57,6 +60,7 @@
 
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
+	let winners: HydratedDocument<UserProperties>[] = [];
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
@@ -78,6 +82,7 @@
 
 	onMount(() => {
 		user = $page.data.user;
+		fetchWinners();
 	});
 
 	afterUpdate(() => {
@@ -127,6 +132,23 @@
 		}
 	}
 
+	/**
+	 * Only called for campaigns
+	 */
+	async function fetchWinners() {
+		if (bookData.campaign && bookData.campaign.winners) {
+			const users = (
+				await trpc($page).users.getByIds.query({
+					ids: bookData.campaign.winners as string[]
+				})
+			).data;
+
+			if (users) {
+				winners = users as HydratedDocument<UserProperties>[];
+			}
+		}
+	}
+
 	function openReadingListModal() {
 		readingListModal.meta = {
 			user,
@@ -146,34 +168,6 @@
 		};
 		toastStore.trigger(t);
 		modalStore.trigger(modal);
-	}
-
-	function campaignDaysLeft(): [number, string] {
-		if (!bookData.campaign) {
-			return [0, ''];
-		}
-
-		// One day in milliseconds
-		const oneDay = 1000 * 60 * 60 * 24;
-
-		const campaignEndDate = new Date(
-			(bookData.campaign as HydratedDocument<CampaignProperties>).endDate as unknown as string
-		);
-
-		// Calculating the time difference between two dates
-		const diffInTime = campaignEndDate.getTime() - new Date().getTime();
-
-		// Calculating the no. of days between two dates
-		const diffInDays = Math.round(diffInTime / oneDay);
-
-		let color = 'variant-filled-success';
-		if (diffInDays >= 0 && diffInDays <= 2) {
-			color = 'variant-filled-warning';
-		} else if (diffInDays < 0) {
-			color = 'variant-filled-error';
-		}
-
-		return [diffInDays, color];
 	}
 
 	let modalSettings: ModalSettings = {
@@ -366,7 +360,7 @@
 					{#if !storylineData._id || (bookData.userPermissions?.collaborate && bookData.campaign)}
 						<Tooltip
 							on:click={() => {
-								if (campaignDaysLeft()[0] >= 0) showStorylines();
+								if (campaignDaysLeft(bookData.campaign)[0] >= 0) showStorylines();
 							}}
 							content="Submit or create a new storyline!"
 							placement="top"
@@ -377,7 +371,7 @@
 								class="gap-2 text-white font-semibold btn {bookData.campaign
 									? 'bg-orange-700'
 									: 'variant-filled-primary'}"
-								disabled={campaignDaysLeft()[0] < 0}
+								disabled={campaignDaysLeft(bookData.campaign)[0] < 0}
 							>
 								<Icon class="top-0 cursor-pointer !fill-white" data={plus} scale={1} />
 								Join
@@ -427,14 +421,18 @@
 					{/if}
 					{#if bookData.campaign}
 						<div class="flex items-center w-full justify-end gap-x-2">
-							<div class="flex h-fit items-center {campaignDaysLeft()[1]} py-1 px-2 rounded-full">
+							<div
+								class="flex h-fit items-center {campaignDaysLeft(
+									bookData.campaign
+								)[1]} py-1 px-2 rounded-full"
+							>
 								<p class="flex items-center !py-0 text-sm md:text-md font-bold text-white">
-									{#if campaignDaysLeft()[0] > 0}
+									{#if campaignDaysLeft(bookData.campaign)[0] > 0}
 										<Icon class="p-2  !hidden md:!block" data={calendar} scale={2} />
-										{campaignDaysLeft()[0]} days left
+										{campaignDaysLeft(bookData.campaign)[0]} days left
 									{:else}
 										<Icon class="p-2 !hidden md:!block" data={warning} scale={2} />
-										closed
+										Closed
 									{/if}
 								</p>
 							</div>
@@ -444,11 +442,49 @@
 			</div>
 			<hr class="opacity-50" />
 			<Accordion>
+				{#if winners.length > 0}
+					<div
+						style="position: fixed; top: -50px; left: 0; height: 100vh; width: 100vw; display: flex; justify-content: center; overflow: hidden; z-index:-1;"
+					>
+						<Confetti
+							x={[-5, 5]}
+							y={[0, 0.1]}
+							infinite
+							duration={5000}
+							amount={200}
+							fallDistance="100vh"
+						/>
+					</div>
+					<AccordionItem open>
+						<svelte:fragment slot="lead"><div class="text-xl">🥇</div></svelte:fragment>
+						<svelte:fragment slot="summary">Winners</svelte:fragment>
+						<svelte:fragment slot="content">
+							<ol class="text-md font-normal list">
+								{#each winners as winner, index}
+									<li>
+										<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
+										<div class="flex items-center gap-2">
+											<Avatar
+												src={winner.imageURL}
+												width="w-8 sm:w-10 aspect-square"
+												rounded="rounded-full"
+											/>
+											<div class="flex flex-col">
+												<h6 class="font-bold">{winner.firstName}</h6>
+												<small class="text-[10px] sm:text-sm">{winner.email}</small>
+											</div>
+										</div>
+									</li>
+								{/each}
+							</ol>
+						</svelte:fragment>
+					</AccordionItem>
+				{/if}
 				<AccordionItem open>
 					<svelte:fragment slot="lead"><Icon scale={1.5} data={infoCircle} /></svelte:fragment>
 					<svelte:fragment slot="summary">Description</svelte:fragment>
 					<svelte:fragment slot="content">
-						<p class="text-lg font-thin">
+						<p class="text-md font-thin">
 							{storylineData.description}
 						</p>
 					</svelte:fragment>
@@ -469,13 +505,7 @@
 				{#if bookData.campaign}
 					<AccordionItem>
 						<svelte:fragment slot="lead"><Icon scale={1.1} data={calendar} /></svelte:fragment>
-						<svelte:fragment slot="summary">
-							{formattedDate(
-								new Date(
-									typeof bookData.campaign.endDate === 'string' ? bookData.campaign.endDate : ''
-								)
-							)}
-						</svelte:fragment>
+						<svelte:fragment slot="summary">Dates</svelte:fragment>
 						<svelte:fragment slot="content">
 							<div class="flex flex-col md:flex-row justify-between gap-2">
 								<div class="chip variant-filled">
@@ -497,24 +527,63 @@
 							</div>
 						</svelte:fragment>
 					</AccordionItem>
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.5} data={checkCircle} /></svelte:fragment>
-						<svelte:fragment slot="summary">Criteria</svelte:fragment>
-						<svelte:fragment slot="content">
-							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
-								{bookData.campaign.submissionCriteria}
-							</pre>
-						</svelte:fragment>
-					</AccordionItem>
-					<AccordionItem>
-						<svelte:fragment slot="lead"><Icon scale={1.4} data={trophy} /></svelte:fragment>
-						<svelte:fragment slot="summary">Rewards</svelte:fragment>
-						<svelte:fragment slot="content">
-							<pre class="text-lg w-72 md:w-full font-thin overflow-scroll">
-								{bookData.campaign.rewards}
-							</pre>
-						</svelte:fragment>
-					</AccordionItem>
+					{#if bookData.campaign.criteria}
+						<AccordionItem>
+							<svelte:fragment slot="lead"><Icon scale={1.5} data={checkCircle} /></svelte:fragment>
+							<svelte:fragment slot="summary">Criteria</svelte:fragment>
+							<svelte:fragment slot="content">
+								<ol class="text-md font-thin list">
+									{#each bookData.campaign.criteria as criterion, index}
+										<li>
+											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
+											<span class="flex-auto">{criterion.value}</span>
+										</li>
+									{/each}
+								</ol>
+							</svelte:fragment>
+						</AccordionItem>
+					{/if}
+					{#if bookData.campaign.rewards}
+						<AccordionItem>
+							<svelte:fragment slot="lead"><Icon scale={1.4} data={trophy} /></svelte:fragment>
+							<svelte:fragment slot="summary">Rewards</svelte:fragment>
+							<svelte:fragment slot="content">
+								<ol class="text-md font-thin list">
+									{#each bookData.campaign.rewards as reward, index}
+										<li>
+											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
+											<span class="flex-auto">{reward.value}</span>
+										</li>
+									{/each}
+								</ol>
+							</svelte:fragment>
+						</AccordionItem>
+					{/if}
+					{#if bookData.campaign.resources}
+						<AccordionItem>
+							<svelte:fragment slot="lead"><Icon scale={1.5} data={gear} /></svelte:fragment>
+							<svelte:fragment slot="summary">Resources</svelte:fragment>
+							<svelte:fragment slot="content">
+								<ol class="text-md font-normal list">
+									{#each bookData.campaign.resources as resource, index}
+										<li>
+											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
+											{#if resource.link}
+												<a
+													target="_blank"
+													href={resource.link}
+													class="text-blue-600 dark:text-blue-500 hover:underline"
+													>{resource.value}</a
+												>
+											{:else}
+												<span class="flex-auto">{resource.value}</span>
+											{/if}
+										</li>
+									{/each}
+								</ol>
+							</svelte:fragment>
+						</AccordionItem>
+					{/if}
 				{/if}
 			</Accordion>
 			<hr class="opacity-50" />

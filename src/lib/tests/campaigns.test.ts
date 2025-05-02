@@ -23,9 +23,15 @@ describe('campaigns', async () => {
 
 	const startDate = new Date();
 	const endDate = new Date();
-	const submissionCriteria =
-		'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.';
-	const rewards = 'R1 000 000 in cold, hard cash.';
+	const criteria = [
+		{
+			value:
+				'Submit a 10 chapter storyline revolving around a prophesized hero in an unfamiliar world.',
+			link: ''
+		}
+	];
+	const rewards = [{ value: 'R1 000 000 in cold, hard cash.', link: '' }];
+	const resources = [{ value: 'Link 1', link: 'https://example.com' }];
 	const book: CreateBook = {
 		title: 'Fantasy Fanatics 2023',
 		description:
@@ -51,8 +57,9 @@ describe('campaigns', async () => {
 		const campaignResponse = await caller1.campaigns.create({
 			startDate,
 			endDate,
-			submissionCriteria,
+			criteria,
 			rewards,
+			resources,
 			book,
 			origin: ''
 		});
@@ -63,8 +70,9 @@ describe('campaigns', async () => {
 
 		expect(campaign.startDate).toEqual(startDate);
 		expect(campaign.endDate).toEqual(endDate);
-		expect(campaign.submissionCriteria).toEqual(submissionCriteria);
+		expect(campaign.criteria).toEqual(criteria);
 		expect(campaign.rewards).toEqual(rewards);
+		expect(campaign.resources).toEqual(resources);
 		expect(campaign.book).toEqual(createdBook._id);
 
 		expect(createdBook.title).toEqual(book.title);
@@ -75,39 +83,49 @@ describe('campaigns', async () => {
 	});
 
 	test('update a campaign as creator', async () => {
-		const newSubmissionCriteria =
-			'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.';
+		const newSubmissionCriteria = [
+			{
+				value:
+					'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.',
+				link: ''
+			}
+		];
+		const winners = [testUserThreeSession.user.id];
+
 		const newTitle = 'Repelling Evil';
 
 		const campaign = (
 			await caller1.campaigns.create({
 				startDate,
 				endDate,
-				submissionCriteria,
+				criteria: criteria,
 				rewards,
 				book,
 				origin: ''
 			})
 		).data;
 
-		await caller1.campaigns.update({
-			id: campaign._id,
-			submissionCriteria: newSubmissionCriteria,
-			book: {
-				...book,
-				id: campaign.book!,
-				title: newTitle
-			}
-		});
+		const returnedCampaign = (
+			await caller1.campaigns.update({
+				id: campaign._id,
+				criteria: newSubmissionCriteria,
+				winners,
+				book: {
+					...book,
+					id: campaign.book!,
+					title: newTitle
+				}
+			})
+		).data;
 
 		const returnedBook = (await caller1.books.getById({ id: campaign.book })).data;
-		const returnedCampaign = returnedBook.campaign as HydratedDocument<CampaignProperties>;
 
-		expect(returnedCampaign.submissionCriteria).toEqual(newSubmissionCriteria);
+		expect(returnedCampaign.criteria).toEqual(newSubmissionCriteria);
 		expect(returnedCampaign.startDate).toEqual(startDate);
 		expect(returnedCampaign.endDate).toEqual(endDate);
 		expect(returnedCampaign.updatedAt).greaterThan(returnedCampaign.createdAt!);
 		expect(returnedCampaign.rewards).toEqual(rewards);
+		expect(returnedCampaign.winners![0]).toEqual(testUserThreeSession.user.id);
 
 		expect(returnedBook.title).toEqual(newTitle);
 		expect(returnedBook.description).toEqual(book.description);
@@ -117,15 +135,20 @@ describe('campaigns', async () => {
 	});
 
 	test('throws on updating campaign without being its creator', async () => {
-		const newSubmissionCriteria =
-			'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.';
+		const newSubmissionCriteria = [
+			{
+				value:
+					'Submit a 5 chapter storyline revolving around a kingdom under siege from dark forces.',
+				link: ''
+			}
+		];
 		const newTitle = 'Repelling Evil';
 
 		const campaign = (
 			await caller1.campaigns.create({
 				startDate,
 				endDate,
-				submissionCriteria,
+				criteria: criteria,
 				rewards,
 				book,
 				origin: ''
@@ -134,7 +157,7 @@ describe('campaigns', async () => {
 
 		const updateResponse = await caller2.campaigns.update({
 			id: campaign._id,
-			submissionCriteria: newSubmissionCriteria,
+			criteria: newSubmissionCriteria,
 			book: {
 				...book,
 				id: campaign.book!,
@@ -153,7 +176,7 @@ describe('campaigns', async () => {
 		const campaignResponse = await caller1.campaigns.create({
 			startDate,
 			endDate,
-			submissionCriteria,
+			criteria: criteria,
 			rewards,
 			book,
 			origin: ''
@@ -197,7 +220,7 @@ describe('campaigns', async () => {
 			await caller1.campaigns.create({
 				startDate,
 				endDate,
-				submissionCriteria,
+				criteria: criteria,
 				rewards,
 				book,
 				origin: ''
@@ -219,7 +242,7 @@ describe('campaigns', async () => {
 
 		expect(campaignsResponse.data[0].startDate).toEqual(startDate);
 		expect(campaignsResponse.data[0].endDate).toEqual(endDate);
-		expect(campaignsResponse.data[0].submissionCriteria).toEqual(submissionCriteria);
+		expect(campaignsResponse.data[0].criteria).toEqual(criteria);
 		expect(campaignsResponse.data[0].rewards).toEqual(rewards);
 		expect(campaignsResponse.data[0].book).toBeTruthy();
 	});
@@ -228,7 +251,7 @@ describe('campaigns', async () => {
 		const createCampaignResponse = await caller1.campaigns.create({
 			startDate,
 			endDate,
-			submissionCriteria,
+			criteria: criteria,
 			rewards,
 			book,
 			origin: ''

@@ -12,15 +12,16 @@ export const campaignSchema = new Schema<CampaignProperties>({
 	user: { type: String, required: true },
 	startDate: Date,
 	endDate: Date,
-	submissionCriteria: String,
-	rewards: String,
+	criteria: [{ type: Object }],
+	rewards: [{ type: Object }],
+	resources: [{ type: Object }],
+	winners: [{ type: String }],
 	book: { type: String, ref: BookLabel, required: true },
 	createdAt: Date,
 	updatedAt: Date
 });
 
 campaignSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
 	const pipeline = this.pipeline();
 	// Used for pipelines that must be put after the default populate and permissions
 	// The order is usually important e.g. limit pipeline should be at the end
@@ -83,6 +84,19 @@ function populate(pipeline: PipelineStage[]) {
 			}
 		}
 	);
+
+	// console.log('** pops campaign');
+	// pipeline.push(
+	// 	{
+	// 		$lookup: { from: 'users', localField: 'winners', foreignField: '_id', as: 'winners' }
+	// 	},
+	// 	{
+	// 		$unwind: {
+	// 			path: '$winners',
+	// 			preserveNullAndEmptyArrays: true
+	// 		}
+	// 	}
+	// );
 }
 export const Campaign = mongoose.models[label]
 	? model<CampaignProperties>(label)

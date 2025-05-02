@@ -50,13 +50,23 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 		return this;
 	}
 
-	submissionCriteria(submissionCriteria: string): CampaignBuilder {
-		this._campaignProperties.submissionCriteria = submissionCriteria;
+	criteria(criteria: { value: string; link: string }[]): CampaignBuilder {
+		this._campaignProperties.criteria = criteria;
 		return this;
 	}
 
-	rewards(rewards: string): CampaignBuilder {
+	rewards(rewards: { value: string; link: string }[]): CampaignBuilder {
 		this._campaignProperties.rewards = rewards;
+		return this;
+	}
+
+	resources(resources: { value: string; link: string }[]): CampaignBuilder {
+		this._campaignProperties.resources = resources;
+		return this;
+	}
+
+	winners(winners: string[]): CampaignBuilder {
+		this._campaignProperties.winners = winners;
 		return this;
 	}
 

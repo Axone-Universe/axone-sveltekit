@@ -80,10 +80,9 @@ test(
 			for (let j = 0; j < NUM_BOOKS_PER_USER; j++) {
 				const campaign = Math.random() < 0.2;
 
-				let newBook: any = undefined;
-
+				let newBook = undefined;
 				if (campaign) {
-					newBook = createCampaign(sessions[i]);
+					newBook = createCampaign(sessions[0]);
 				}
 
 				newBook = await createBook(sessions[i]);
