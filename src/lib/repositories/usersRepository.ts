@@ -119,7 +119,7 @@ export class UsersRepository extends Repository {
 		const filter = { ...(filterQueries.length > 0 ? { $and: filterQueries } : {}) };
 		let query = User.find(filter);
 
-		if (input.skip) {
+		if (input.cursor) {
 			query = query.skip((input.cursor ?? 0) + (input.skip ?? 0));
 		}
 

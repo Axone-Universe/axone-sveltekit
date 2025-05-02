@@ -449,14 +449,13 @@
 						<Confetti
 							x={[-5, 5]}
 							y={[0, 0.1]}
-							delay={[500, 2000]}
 							infinite
 							duration={5000}
 							amount={200}
 							fallDistance="100vh"
 						/>
 					</div>
-					<AccordionItem>
+					<AccordionItem open>
 						<svelte:fragment slot="lead"><div class="text-xl">🥇</div></svelte:fragment>
 						<svelte:fragment slot="summary">Winners</svelte:fragment>
 						<svelte:fragment slot="content">

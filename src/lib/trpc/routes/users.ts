@@ -19,6 +19,28 @@ import type { UserProperties } from '$lib/properties/user';
 import { createNotificationSubscriber, subscribeToTopic } from '$lib/util/notifications/novu';
 
 export const users = t.router({
+	get: t.procedure
+		.use(logger)
+		.input(read)
+		.query(async ({ input, ctx }) => {
+			const usersRepo = new UsersRepository();
+
+			const response: Response = {
+				success: true,
+				message: 'user successfully retrieved',
+				data: {}
+			};
+			try {
+				const result = await usersRepo.get(ctx.session, input);
+				response.data = result;
+				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties>[] } };
+		}),
 	getById: t.procedure
 		.use(logger)
 		.input(read)
@@ -62,29 +84,6 @@ export const users = t.router({
 				...{ data: response.data as HydratedDocument<UserProperties>[] | null }
 			};
 		}),
-	get: t.procedure
-		.use(logger)
-		.input(read)
-		.query(async ({ input, ctx }) => {
-			const usersRepo = new UsersRepository();
-
-			const response: Response = {
-				success: true,
-				message: 'user successfully retrieved',
-				data: {}
-			};
-			try {
-				const result = await usersRepo.get(ctx.session, input);
-				response.data = result;
-				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
-			} catch (error) {
-				response.success = false;
-				response.message = error instanceof Object ? error.toString() : 'unkown error';
-			}
-
-			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties>[] } };
-		}),
-
 	update: t.procedure
 		.use(logger)
 		.use(auth)
