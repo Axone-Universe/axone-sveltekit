@@ -20,7 +20,7 @@ export class StorylinesRepository extends Repository {
 		const postPipeline = [];
 		const filter: any = {};
 
-		if (input.title) filter.$text = { $search: input.title };
+		if (input.title) filter.title = { $regex: input.title, $options: 'i' };
 		if (input.user) filter.user = input.user;
 		if (input.bookID) filter.book = input.bookID;
 		if (input.archived !== undefined) filter.archived = input.archived;
