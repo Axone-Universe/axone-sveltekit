@@ -92,6 +92,7 @@
 			permissions[userID] = permission;
 			permissions = permissions;
 			notifications[userID] = {
+				type: 'USER',
 				senderID: documentOwner._id,
 				receiverID: userID,
 				subject: 'Request To Collaborate!',
