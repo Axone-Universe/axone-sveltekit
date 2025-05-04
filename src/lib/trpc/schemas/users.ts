@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { genreSchema } from './genres';
 import { USER_LABELS } from '$lib/properties/user';
-import { readingList } from './readingLists';
 
 const UserSchema = z.enum(USER_LABELS);
 

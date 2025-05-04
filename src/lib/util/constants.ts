@@ -21,6 +21,8 @@ const units = [
 	{ label: 'second', seconds: 1 }
 ];
 
+export const NotificationTypes = ['USER', 'TOPIC'] as const;
+
 export const timeAgo = (date: string | number | Date) => {
 	const time = Math.floor((new Date().valueOf() - new Date(date).valueOf()) / 1000);
 	const { interval, unit } = calculateTimeDifference(time);

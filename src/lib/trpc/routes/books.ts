@@ -4,14 +4,12 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { addStoryline, create, read, update } from '$lib/trpc/schemas/books';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendNotifications, sendUserNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
 import type { BookProperties } from '$lib/properties/book';
 import type mongoose from 'mongoose';
-import StorylineDetails from '$lib/components/storyline/StorylineDetails.svelte';
-import { StorylineProperties } from '$lib/properties/storyline';
 
 export const books = t.router({
 	get: t.procedure
@@ -72,7 +70,7 @@ export const books = t.router({
 				const book = await bookBuilder.update();
 
 				if (input.notifications) {
-					sendUserNotifications(ctx.session, input.notifications);
+					sendNotifications(input.notifications);
 				}
 				response.data = book;
 			} catch (error) {
@@ -147,7 +145,7 @@ export const books = t.router({
 				const book = await bookBuilder.build();
 
 				if (input.notifications) {
-					sendUserNotifications(ctx.session, input.notifications);
+					sendNotifications(input.notifications);
 				}
 				response.data = book;
 			} catch (error) {
