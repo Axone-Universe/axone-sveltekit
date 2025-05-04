@@ -11,6 +11,7 @@ import {
 	testUserTwo
 } from '$lib/util/testing/testing';
 import type { UserNotificationProperties } from '$lib/properties/notification';
+import { NotificationType } from '$lib/util/types';
 
 beforeAll(async () => {
 	await connectTestDatabase();
@@ -22,7 +23,7 @@ describe('notifications', () => {
 	});
 
 	test('send notifications', async () => {
-		const mock = vi.spyOn(novu, 'sendUserNotifications');
+		const mock = vi.spyOn(novu, 'sendNotifications');
 
 		const testBookTitle = 'My Book';
 
@@ -41,9 +42,10 @@ describe('notifications', () => {
 
 		const notifications: { [key: string]: UserNotificationProperties } = {};
 		const notification = {
+			url: 'url',
+			type: 'USER' as NotificationType,
 			senderID: testUserOne.id,
 			receiverID: testUserTwo.id,
-			url: 'url',
 			notification: 'test notification',
 			subject: 'test notification'
 		};

@@ -10,9 +10,28 @@ import type {
 import { HydratedDocument } from 'mongoose';
 import { UserProperties } from '$lib/properties/user';
 import { User } from '$lib/models/user';
-import { Session } from '@supabase/supabase-js';
 
 export const novu = new Novu(NOVU_API_KEY);
+
+export async function sendNotifications(notifications: {
+	[key: string]: UserNotificationProperties | TopicNotificationProperties;
+}) {
+	const userNotifications: { [key: string]: UserNotificationProperties } = {};
+	const topicNotifications: { [key: string]: TopicNotificationProperties } = {};
+
+	for (const [key, value] of Object.entries(notifications)) {
+		if (value.type === 'USER') {
+			userNotifications[key] = value as UserNotificationProperties;
+		} else {
+			topicNotifications[key] = value as TopicNotificationProperties;
+		}
+	}
+
+	sendUserNotifications(userNotifications);
+	for (const value of Object.values(topicNotifications)) {
+		sendTopicNotification(value);
+	}
+}
 
 /**
  * Sends a collaboration notification to the userID
@@ -20,12 +39,9 @@ export const novu = new Novu(NOVU_API_KEY);
  * @param firstName
  * @param notification
  */
-export async function sendUserNotifications(
-	session: Session | null,
-	notifications: {
-		[key: string]: UserNotificationProperties;
-	}
-) {
+export async function sendUserNotifications(notifications: {
+	[key: string]: UserNotificationProperties;
+}) {
 	if (process.env.NODE_ENV === 'test') {
 		return;
 	}
@@ -128,6 +144,7 @@ export async function sendTopicNotification(notification: TopicNotificationPrope
 				url: notification.url
 			}
 		});
+		console.log('novu - topic notification');
 	} catch (e: any) {
 		console.log('novu - send topic notification error');
 	}

@@ -4,7 +4,7 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/storylines';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendNotifications } from '$lib/util/notifications/novu';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
@@ -147,7 +147,7 @@ export const storylines = t.router({
 				const result = await storylineBuilder.update();
 
 				if (input.notifications) {
-					sendUserNotifications(ctx.session, input.notifications);
+					sendNotifications(input.notifications);
 				}
 				response.data = result;
 			} catch (error) {
@@ -211,7 +211,7 @@ export const storylines = t.router({
 				const result = await storylineBuilder.build();
 
 				if (input.notifications) {
-					await sendUserNotifications(ctx.session, input.notifications);
+					await sendNotifications(input.notifications);
 				}
 				response.data = result;
 			} catch (error) {

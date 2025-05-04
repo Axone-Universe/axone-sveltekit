@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
-	import { Avatar, InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
+	import { InputChip, type ToastSettings, getToastStore } from '@skeletonlabs/skeleton';
 	import type { BookProperties } from '$lib/properties/book';
 	import type { HydratedDocument } from 'mongoose';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -16,7 +16,10 @@
 	import { campaignDaysLeft } from '$lib/util/constants';
 	import UserFilter from '../user/UserFilter.svelte';
 	import { type UserProperties } from '$lib/properties/user';
-	import { type UserNotificationProperties } from '$lib/properties/notification';
+	import {
+		type TopicNotificationProperties,
+		type UserNotificationProperties
+	} from '$lib/properties/notification';
 	import { documentURL } from '$lib/util/links';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { trash } from 'svelte-awesome/icons';
@@ -46,7 +49,8 @@
 	// Used for the users filter
 	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
 	// Used to send notifications to winners
-	let notifications: { [key: string]: UserNotificationProperties } = {};
+	let notifications: { [key: string]: UserNotificationProperties | TopicNotificationProperties } =
+		{};
 
 	$: campaign.startDate = new Date(tempStartDate);
 	$: campaign.endDate = new Date(tempEndDate);
@@ -96,7 +100,9 @@
 		winners.push(users[userID]);
 		winners = winners;
 
+		// create the notification to send to the winner
 		notifications[userID] = {
+			type: 'USER',
 			senderID: campaign.user,
 			receiverID: userID,
 			subject: 'You have won!!',
@@ -107,6 +113,33 @@
 			
 			Please reach out to us at admin@axone.network to claim your prize 🏆`
 		};
+
+		// create the general notification to send to all users
+		notifications['general'] = {
+			url: documentURL($page.url.origin, 'Book', book),
+			type: 'TOPIC',
+			topicKey: 'general',
+			topicName: 'general',
+			subject: 'Writing Competition Winners!',
+			notification: `We have released the winners of our campaign, '${book.title}'. 
+
+			Find out more by visiting the campaign's page below. 
+
+			Keep writing folks, more campaigns coming soon!!`
+		};
+	}
+
+	function newCampaignNotification() {
+		notifications['general'] = {
+			url: documentURL($page.url.origin, 'Book', book),
+			type: 'TOPIC',
+			topicKey: 'general',
+			topicName: 'general',
+			subject: 'Writing Competition!',
+			notification: `A new campaign, ${book.title}, has been launched. Hurry and submit to win your share of the rewards!`
+		};
+
+		return notifications;
 	}
 
 	async function fetchWinners() {
@@ -163,6 +196,7 @@
 					criteria: criteria,
 					rewards: rewards,
 					resources: resources,
+					notifications: newCampaignNotification(),
 					book: {
 						title: book.title,
 						description: book.description,
@@ -286,7 +320,7 @@
 				<CampaignFeaturesList
 					bind:features={resources}
 					insertLink={true}
-					placeholder="e.g. All entries must be original work"
+					placeholder="e.g. Judging Criteria"
 					class="textarea w-full h-full overflow-hidden"
 				/>
 			</div>

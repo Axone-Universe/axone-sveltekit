@@ -3,11 +3,18 @@ export const label = 'Delta';
 export const GENRES = [
 	'Action',
 	'Adventure',
+	'Chick Lit',
+	'Contemporary Fiction',
 	'Dystopian',
+	'Fan Fiction',
 	'Fantasy',
 	'Historical',
 	'Horror',
+	'Humor',
 	'Mystery',
+	'New Adult',
+	'Paranormal',
+	'Poetry',
 	'Romance',
 	'Science Fiction',
 	'Thriller',
@@ -17,9 +24,8 @@ export const GENRES = [
 	'Journalism',
 	'Self-help',
 	'Science',
-	'Travel Guides',
-	'Fan Fiction',
-	'Poetry'
+	'Teen Fiction',
+	'Travel Guides'
 ] as const;
 
 export type Genre = (typeof GENRES)[number];

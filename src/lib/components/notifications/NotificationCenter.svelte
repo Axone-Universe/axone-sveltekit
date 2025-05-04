@@ -28,8 +28,6 @@
 	});
 
 	function setNotifications(newNotifications: IMessage[]) {
-		console.log('fetched notifs ' + newNotifications.length);
-		console.log(newNotifications);
 		notifications = newNotifications;
 	}
 
@@ -43,11 +41,8 @@
 
 	function initializeNotificationService() {
 		notificationsService.initializeSession({
-			listener: (res) => {
-				console.log('Initialized Notifications Listener');
-			},
+			listener: (res) => {},
 			onSuccess: (session) => {
-				console.log('Initialized Notifications');
 				fetchNotifications();
 			},
 			onError: (error) => {
