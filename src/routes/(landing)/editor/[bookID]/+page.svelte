@@ -642,6 +642,7 @@
 	function submitReaderComment(comment: string) {
 		const notifications: { [key: string]: UserNotificationProperties } = {};
 		notifications[''] = {
+			type: 'USER',
 			senderID: session!.user.id,
 			receiverID:
 				typeof selectedChapter!.user === 'string'
@@ -1147,7 +1148,6 @@
 
 				<div class="flex flex-col p-2 bg-surface-50-900-token mb-14">
 					<div class="h-3/4 flex flex-col items-center">
-						<!-- {#if selectedChapter} -->
 						<EditorNav
 							{mode}
 							menuItems={[
@@ -1251,7 +1251,6 @@
 								}
 							]}
 						/>
-						<!-- {/if} -->
 					</div>
 					<div class="h-1/4 flex flex-col-reverse items-center">
 						<EditorNav

@@ -6,6 +6,7 @@
 	import { type HydratedDocument } from 'mongoose';
 	import { type BookProperties } from '$lib/properties/book';
 	import { documentURL } from '$lib/util/links';
+	import { onMount } from 'svelte';
 
 	export let book: HydratedDocument<BookProperties>;
 	export let cancelCallback: () => void = () => {
@@ -25,6 +26,11 @@
 		subject: '',
 		notification: ''
 	};
+
+	let mounted = false;
+	onMount(() => {
+		mounted = true;
+	});
 
 	async function createNotification() {
 		let response;
@@ -69,12 +75,16 @@
 						required
 					/>
 					<label for="book-description">* Notification </label>
-					<textarea
-						id="description"
-						class="textarea w-full h-full overflow-hidden"
-						bind:value={notification.notification}
-						required
-					/>
+					{#await import('../TextArea.svelte')}
+						{console.log('importing')}
+					{:then component}
+						<svelte:component
+							this={component.default}
+							placeholder=""
+							maxLength={1000}
+							bind:textContent={notification.notification}
+						/>
+					{/await}
 				</div>
 			</div>
 			<div class="flex flex-col justify-end sm:flex-row gap-2">
