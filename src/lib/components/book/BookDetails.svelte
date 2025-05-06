@@ -139,6 +139,7 @@
 				<div id="genres-div" class="flex flex-wrap gap-1">
 					{#each GENRES as genre}
 						<button
+							type="button"
 							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
 							on:click={() => {
 								const index = genres.indexOf(genre);

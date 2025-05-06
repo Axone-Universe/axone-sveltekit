@@ -9,6 +9,7 @@ import { deltas } from '$lib/trpc/routes/deltas';
 import { notes } from '$lib/trpc/routes/notes';
 import { t } from '$lib/trpc/t';
 import { reviews } from './routes/reviews';
+import { notifications } from './routes/notifications';
 
 export const router = t.router({
 	books,
@@ -18,7 +19,8 @@ export const router = t.router({
 	chapters,
 	deltas,
 	notes,
-	reviews
+	reviews,
+	notifications
 });
 
 export type Router = typeof router;

@@ -5,7 +5,7 @@
 	import type { PageData } from './$types';
 	import { BookPropertyBuilder, type BookProperties } from '$lib/properties/book';
 	import { decodeTime } from 'ulid';
-	import { arrowDown, book, edit, plus, trash } from 'svelte-awesome/icons';
+	import { arrowDown, bell, book, edit, plus, trash } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		type ModalSettings,
@@ -32,6 +32,7 @@
 	import Tutorial from './tutorial.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { deleteBucket } from '$lib/util/bucket/bucket';
+	import NotificationForm from '$lib/components/notifications/NotificationForm.svelte';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -61,6 +62,14 @@
 	const bookModal: ModalSettings = {
 		type: 'component',
 		component: bookModalComponent
+	};
+
+	const notificationModalComponent: ModalComponent = {
+		ref: NotificationForm
+	};
+	const notificationModal: ModalSettings = {
+		type: 'component',
+		component: notificationModalComponent
 	};
 
 	const createBookModalComponent: ModalComponent = {
@@ -220,6 +229,14 @@
 			session: data.session
 		};
 		modalStore.trigger(bookModal);
+	}
+
+	function openNotificationModal(book: HydratedDocument<BookProperties>) {
+		notificationModalComponent.props = {
+			book,
+			cancelCallback: modalStore.close
+		};
+		modalStore.trigger(notificationModal);
 	}
 
 	function loadMore() {
@@ -418,7 +435,10 @@
 												label: 'Delete',
 												icon: trash,
 												callback: deleteBook
-											}
+											},
+											...(isCampaigns
+												? [{ label: 'Notify', icon: bell, callback: openNotificationModal }]
+												: [])
 										]}
 									/>
 								</td>

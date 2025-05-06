@@ -21,5 +21,5 @@ export const topicNotification = z.object({
 });
 
 export const userNotifications = z.object({
-	notifications: z.record(z.string(), userNotification)
+	notifications: z.record(z.string(), topicNotification)
 });
