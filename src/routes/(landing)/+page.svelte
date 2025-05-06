@@ -70,45 +70,6 @@
 <Section class="bg-surface-100-800-token flex flex-col items-center !w-full">
 	<div class="embla w-full" on:emblaInit={onInit} use:emblaCarouselSvelte={{ plugins: [autoplay] }}>
 		<div class="embla__container h-[700px] items-center m-0">
-			<div class="embla__slide h-full">
-				<div
-					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full items-center relative"
-					style="background-image: url(/background.png)"
-				>
-					<div
-						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
-					/>
-					<div class="lg:order-2 w-2/3 mx-auto relative">
-						<div class="aspect-video">
-							<Components />
-						</div>
-					</div>
-					<div
-						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4 relative"
-					>
-						<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
-						<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
-						<p class="!text-l md:!text-xl">
-							Collaborate with authors and illustrators to create stories with multiple storylines
-						</p>
-						<div class="flex gap-4">
-							<a href="/login" class="btn variant-filled-primary"
-								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
-							> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="embla__slide h-full">
-				<div
-					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full relative"
-					style="background-image: url(/competition.png)"
-				>
-					<div
-						class="absolute bg-opacity-20 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
-					/>
-				</div>
-			</div>
 			{#each campaigns as campaign}
 				<div class="embla__slide h-full">
 					<div
@@ -199,6 +160,45 @@
 					</div>
 				</div>
 			{/each}
+			<div class="embla__slide h-full">
+				<div
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full items-center relative"
+					style="background-image: url(/background.png)"
+				>
+					<div
+						class="absolute bg-opacity-50 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
+					<div class="lg:order-2 w-2/3 mx-auto relative">
+						<div class="aspect-video">
+							<Components />
+						</div>
+					</div>
+					<div
+						class="flex flex-col lg:order-1 items-center lg:items-start text-center lg:text-left space-y-4 relative"
+					>
+						<h1 class="!text-3xl lg:!text-5xl">Enter The Axone Universe</h1>
+						<h3 class="!text-2xl lg:!text-3xl">A collaborative way of storytelling</h3>
+						<p class="!text-l md:!text-xl">
+							Collaborate with authors and illustrators to create stories with multiple storylines
+						</p>
+						<div class="flex gap-4">
+							<a href="/login" class="btn variant-filled-primary"
+								><span>Get Started</span> <i class="fa-solid fa-arrow-right-long" /></a
+							> <a href="/learn" class="btn variant-soft-primary">Learn More</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="embla__slide h-full">
+				<div
+					class="bg-center bg-no-repeat bg-cover grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 p-14 h-full relative"
+					style="background-image: url(/competition.png)"
+				>
+					<div
+						class="absolute bg-opacity-20 w-full h-full {$modeCurrent ? 'bg-white' : 'bg-black'}"
+					/>
+				</div>
+			</div>
 		</div>
 		<div class="embla__controls flex flex-row w-full items-centern justify-center">
 			<div class="embla__dot m-4 flex flex-row w-fit items-center">
