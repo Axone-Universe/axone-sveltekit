@@ -2,15 +2,22 @@ import { auth } from '$lib/trpc/middleware/auth';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { userNotifications } from '$lib/trpc/schemas/notifications';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { sendNotifications } from '$lib/util/notifications/novu';
+import type { Response } from '$lib/util/types';
 
-export const notes = t.router({
+export const notifications = t.router({
 	notifyUsers: t.procedure
 		.use(logger)
 		.use(auth)
 		.input(userNotifications)
 		.mutation(async ({ input, ctx }) => {
-			const result = await sendUserNotifications(ctx.session, input.notifications);
-			console.log(result);
+			const response: Response = {
+				success: true,
+				message: 'notification successfully created',
+				data: {}
+			};
+			const result = await sendNotifications(input.notifications);
+
+			return response;
 		})
 });
