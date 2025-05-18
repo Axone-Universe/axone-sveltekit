@@ -58,18 +58,19 @@
 	}
 
 	let creatorsMenuList: RowAction[] = [
-		{ callback: uploadFile, label: 'Upload', icon: upload },
+		// { callback: uploadFile, label: 'Upload', icon: upload },
 		{ callback: adobeCreateCover, label: 'Create', icon: paintBrush }
 	];
 
 	async function adobeCreateCover() {
 		if (!adobeSDKIsInitialized) {
-			ccEverywhere = await customWindow.CCEverywhere.initialize({
-				clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
-				appName: 'Axone',
-				appVersion: { major: 1, minor: 0 },
-				platformCategory: 'web'
-			});
+			ccEverywhere = await customWindow.CCEverywhere.initialize(
+				{
+					clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
+					appName: 'Axone'
+				},
+				{ loginMode: 'delayed' }
+			);
 
 			adobeSDKIsInitialized = true;
 		}
@@ -87,7 +88,7 @@
 					console.log('*** ERROR', err);
 				}
 			},
-			onPublish: async (publishParams: any) => {
+			onPublish: async (intent: any, publishParams: any) => {
 				const localData = {
 					project: publishParams.asset[0].projectId,
 					image: publishParams.asset[0].data,
@@ -134,16 +135,22 @@
 					callbacks: createDesignCallback
 				},
 				[
+					// {
+					// 	id: 'download',
+					// 	label: 'Download',
+					// 	action: {
+					// 		target: 'download',
+					// 		publishFileType: 'image/jpeg'
+					// 	},
+					// 	style: {
+					// 		uiType: 'button'
+					// 	}
+					// }
 					{
-						id: 'download',
-						label: 'Download',
-						action: {
-							target: 'download',
-							publishFileType: 'image/jpeg'
-						},
-						style: {
-							uiType: 'button'
-						}
+						id: 'save-modified-asset',
+						label: 'Use Book Cover',
+						action: { target: 'publish' },
+						style: { uiType: 'button' }
 					}
 				]
 			);
