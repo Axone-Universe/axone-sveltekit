@@ -68,8 +68,8 @@
 				{
 					clientId: '5d43d5ccb49f49c2ad04c1cc34f298a4',
 					appName: 'Axone'
-				},
-				{ loginMode: 'delayed' }
+				}
+				// { loginMode: 'delayed' }
 			);
 
 			adobeSDKIsInitialized = true;
@@ -145,7 +145,7 @@
 					// 	style: {
 					// 		uiType: 'button'
 					// 	}
-					// }
+					// },
 					{
 						id: 'save-modified-asset',
 						label: 'Use Book Cover',
