@@ -26,7 +26,60 @@
 
 	onMount(() => {
 		customWindow = window as unknown as CustomWindow;
+		checkSafariSettings();
 	});
+
+	let isSafari = true;
+	let isIOS = false;
+	let isMac = false;
+
+	/**
+	 * If
+	 */
+	function checkSafariSettings() {
+		// Detect Safari and platform
+		const ua = navigator.userAgent;
+
+		isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+		isIOS = /iP(hone|od|ad)/.test(ua);
+		isMac = /Macintosh/.test(ua);
+
+		let message = '';
+		if (isSafari) {
+			message = `
+				<div class="warning">
+					${
+						isIOS
+							? `<p>
+							It looks like you're using Safari on <strong>iOS</strong>. To enable full <strong>Book Cover Creation</strong> functionality:
+						</p>
+						<ol class="text-md font-thin list">
+							<li>Open the <strong>Settings</strong> app</li>
+							<li>Scroll down and tap <strong>Safari</strong></li>
+							<li>Find the <strong>Privacy & Security</strong> section</li>
+							<li>Disable <strong>Prevent Cross-Site Tracking</strong></li>
+						</ol>`
+							: isMac
+							? `<p>
+							It looks like you're using Safari on a <strong>Mac</strong>. To enable full <strong>Book Cover Creation</strong> functionality:
+						</p>
+						<ol class="text-md font-thin list">
+							<li>Open Safari</li>
+							<li>Go to <strong>Safari → Settings</strong> (or <strong>Preferences</strong>)</li>
+							<li>Click the <strong>Privacy</strong> tab</li>
+							<li>Uncheck <strong>Prevent cross-site tracking</strong></li>
+						</ol>`
+							: ``
+					}
+				</div>`;
+
+			const t: ToastSettings = {
+				message: message,
+				autohide: false
+			};
+			toastStore.trigger(t);
+		}
+	}
 
 	function removeImage() {
 		currentImagePath = '';
@@ -191,16 +244,14 @@
 		</button>
 		<input on:change={onImageChange} bind:this={input} type="file" hidden />
 	</div>
-	<div data-popup="dropdownEditOptions" class="card p-4 w-fit">
-		<ul class="flex flex-col list justify-start">
+	<div data-popup="dropdownEditOptions" class="card p-2 w-fit">
+		<div class="flex flex-col list justify-start">
 			{#each creatorsMenuList as menuItem}
-				<li>
-					<button on:click={menuItem.callback} class="w-full" type="button">
-						<Icon class="p-2" data={menuItem.icon} scale={2.3} />
-						{menuItem.label}
-					</button>
-				</li>
+				<button on:click={menuItem.callback} class="w-full" type="button">
+					<Icon class="p-2" data={menuItem.icon} scale={2.3} />
+					{menuItem.label}
+				</button>
 			{/each}
-		</ul>
+		</div>
 	</div>
 </div>
