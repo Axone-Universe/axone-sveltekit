@@ -111,7 +111,7 @@
 	}
 
 	let creatorsMenuList: RowAction[] = [
-		// { callback: uploadFile, label: 'Upload', icon: upload },
+		{ callback: uploadFile, label: 'Upload', icon: upload },
 		{ callback: adobeCreateCover, label: 'Create', icon: paintBrush }
 	];
 
