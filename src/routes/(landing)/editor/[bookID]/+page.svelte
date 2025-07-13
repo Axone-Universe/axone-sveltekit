@@ -38,6 +38,7 @@
 		unlock,
 		star,
 		bookmark,
+		dollar,
 		history,
 		lock,
 		pencil,
@@ -72,6 +73,7 @@
 	import { autoStartTour, getBaseURL } from '$lib/util/tour/tour';
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
+	import SupportPage from '$lib/components/support/SupportPage.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
 	import { timeAgo } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';
@@ -296,6 +298,18 @@
 		modalSettings.response = (storylineId) => {
 			if (storylineId) storylineClicked(storylineId);
 		};
+		modalStore.trigger(modalSettings);
+	};
+
+	let showSupportPage = () => {
+		modalComponent.ref = SupportPage;
+		modalComponent.props = {
+			documentType: 'Chapter' as PermissionedDocument,
+			document: selectedChapter,
+			creator: selectedChapter?.user,
+			class: 'md:!w-7/12'
+		};
+
 		modalStore.trigger(modalSettings);
 	};
 
@@ -1169,6 +1183,14 @@
 										setupEditor();
 									},
 									hidden: !selectedChapter?.userPermissions?.collaborate
+								},
+								{
+									id: 'reading-lists',
+									label: 'Support the author!',
+									icon: dollar,
+									callback: showSupportPage,
+									hidden: !selectedChapter,
+									mode: 'reader'
 								},
 								{
 									id: 'chapter-info',

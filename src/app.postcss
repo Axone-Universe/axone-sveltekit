@@ -68,6 +68,17 @@ aside {
 	overflow: visible !important;
 }
 
+/* Remove number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type='number'] {
+	-moz-appearance: textfield; /* Firefox */
+}
+
 /* Logo */
 .fill-logo {
 	fill: rgba(var(--theme-font-color-base));

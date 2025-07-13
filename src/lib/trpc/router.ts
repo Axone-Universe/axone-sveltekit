@@ -1,6 +1,8 @@
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 
 import { books } from '$lib/trpc/routes/books';
+import { xumm } from '$lib/trpc/routes/xumm';
+import { transactions } from '$lib/trpc/routes/transactions';
 import { campaigns } from '$lib/trpc/routes/campaigns';
 import { users } from '$lib/trpc/routes/users';
 import { storylines } from '$lib/trpc/routes/storylines';
@@ -20,7 +22,9 @@ export const router = t.router({
 	deltas,
 	notes,
 	reviews,
-	notifications
+	notifications,
+	transactions,
+	xumm
 });
 
 export type Router = typeof router;

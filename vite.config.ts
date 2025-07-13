@@ -6,7 +6,8 @@ export default defineConfig({
 	optimizeDeps: {
 		include: ['lodash.get', 'lodash.isequal', 'lodash.clonedeep']
 	},
-	server: { https: true, proxy: {} },
+	// server: { https: true, proxy: {} },
+	server: { https: false, proxy: {} },
 	plugins: [sveltekit(), mkcert()],
 	test: {
 		environment: 'happy-dom',

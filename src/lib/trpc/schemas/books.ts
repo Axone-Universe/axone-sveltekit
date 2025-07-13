@@ -3,9 +3,9 @@ import { genreSchema } from './genres';
 import { permissions } from './permissions';
 import { userNotification } from './notifications';
 
-import { HOME_FILTER_TAGS } from '$lib/util/types';
+import { homeFilterTags } from '$lib/util/constants';
 
-const TagsEnum = z.enum(HOME_FILTER_TAGS);
+const TagsEnum = z.enum(homeFilterTags);
 export const tagsSchema = z.array(TagsEnum);
 
 export const create = z.object({

@@ -21,7 +21,9 @@ const units = [
 	{ label: 'second', seconds: 1 }
 ];
 
-export const NotificationTypes = ['USER', 'TOPIC'] as const;
+export const notificationTypes = ['USER', 'TOPIC'] as const;
+
+export const paymentMethods = ['xaman', 'mastercard', 'visa'] as const;
 
 export const timeAgo = (date: string | number | Date) => {
 	const time = Math.floor((new Date().valueOf() - new Date(date).valueOf()) / 1000);
@@ -73,3 +75,17 @@ export const campaignDaysLeft = (
 
 	return [diffInDays, color];
 };
+
+export const homeFilterTags = [
+	'Newest',
+	'Recommended',
+	'Campaigns',
+	'Books',
+	'Past 30 Days'
+] as const;
+
+export const xrplTransactionTypes = ['Payment'] as const;
+
+export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
+
+export const transactionStatuses = ['pending', 'success', 'failed'] as const;
