@@ -32,6 +32,10 @@ transactionSchema.pre(['find', 'findOne'], function () {
 	throw new Error('Please use aggregate.');
 });
 
+// transactionSchema.post(['find', 'findOne'], function () {
+// 	throw new Error('Please use aggregate.');
+// });
+
 transactionSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();

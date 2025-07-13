@@ -39,7 +39,7 @@ export const transactions = t.router({
 
 		return response;
 	}),
-	get: t.procedure
+	getByPayloadId: t.procedure
 		.input(z.object({ payloadId: z.string().optional() }))
 		.query(async ({ input }) => {
 			const response: Response = {

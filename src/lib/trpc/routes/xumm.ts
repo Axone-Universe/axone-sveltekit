@@ -1,17 +1,11 @@
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import type { Response } from '$lib/util/types';
-import { XummSdk } from 'xumm-sdk';
-import { XUMM_APIKEY } from '$env/static/private';
-import { XUMM_APISECRET } from '$env/static/private';
 import { AXONE_XRPL_ADDRESS } from '$env/static/private';
 import { type Payment, xrpToDrops } from 'xrpl';
+import { xummSdk } from '$lib/services/xumm';
 
-import {
-	RatesResponse,
-	XummJsonTransaction,
-	XummPostPayloadResponse
-} from 'xumm-sdk/dist/src/types';
+import { RatesResponse } from 'xumm-sdk/dist/src/types';
 import { createPayload, readRates } from '../schemas/xumm';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { TransactionBuilder } from '$lib/documents/transaction';
@@ -32,8 +26,7 @@ export const xumm = t.router({
 			};
 
 			try {
-				const xumm = new XummSdk(XUMM_APIKEY, XUMM_APISECRET);
-				const rates = await xumm.getRates(input.currencyCode);
+				const rates = await xummSdk.getRates(input.currencyCode);
 				response.data = rates;
 			} catch (error) {
 				response.success = false;
@@ -80,7 +73,6 @@ export const xumm = t.router({
 			console.log(transaction);
 
 			try {
-				const xumm = new XummSdk(XUMM_APIKEY, XUMM_APISECRET);
 				const xrpTransaction = {
 					TransactionType: transaction.type,
 					Amount: xrpToDrops(transaction.value!),
@@ -91,7 +83,7 @@ export const xumm = t.router({
 				console.log('<< xrp transaction');
 				console.log(xrpTransaction);
 
-				const payload = await xumm.payload.create(xrpTransaction);
+				const payload = await xummSdk.payload.create(xrpTransaction);
 
 				console.log('<< payload ');
 				console.log(payload);

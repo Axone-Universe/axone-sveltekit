@@ -21,7 +21,7 @@
 	/** life cycle */
 
 	onMount(async () => {
-		const response = await trpc($page).transactions.get.query({
+		const response = await trpc($page).transactions.getByPayloadId.query({
 			payloadId: payloadId ?? ''
 		});
 		console.log('<< payload ', payloadId);
@@ -57,7 +57,7 @@
 	async function paymentCheck() {
 		// check payment
 
-		const response = await trpc($page).transactions.get.query({
+		const response = await trpc($page).transactions.getByPayloadId.query({
 			payloadId: payloadId!
 		});
 

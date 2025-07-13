@@ -1,5 +1,5 @@
 import { ulid } from 'ulid';
-import type { HydratedDocument } from 'mongoose';
+import { startSession, type HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from './documentBuilder';
 import type { TransactionProperties } from '$lib/properties/transaction';
 import { Transaction } from '$lib/models/transaction';
@@ -7,6 +7,7 @@ import type mongoose from 'mongoose';
 import { TransactionStatus, TransactionType } from '$lib/util/types';
 import { createHash } from 'crypto';
 import { XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
+import { Account } from '$lib/models/account';
 
 export class TransactionBuilder extends DocumentBuilder<HydratedDocument<TransactionProperties>> {
 	private _sessionUserID?: string;
@@ -123,13 +124,52 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		if (!this._transactionProperties._id)
 			throw new Error('Must provide an transactionID to update the transaction.');
 
-		const transaction = await Transaction.findOneAndUpdate(
-			{ _id: this._transactionProperties._id },
-			this._transactionProperties,
-			{ new: true }
-		);
+		const session = await startSession();
 
-		return transaction as any;
+		try {
+			// create transaction
+			const transaction = await Transaction.findOneAndUpdate(
+				{ _id: this._transactionProperties._id },
+				this._transactionProperties,
+				{ new: true, session }
+			);
+
+			// update the account balance
+			if (this._transactionProperties.status) {
+				const accountTransactions = (await Transaction.aggregate([
+					{
+						$match: { account: transaction?.account }
+					}
+				])) as HydratedDocument<TransactionProperties>[];
+
+				const balance = accountTransactions.reduce((currentBalance, transaction) => {
+					if (transaction.status !== 'success') return currentBalance;
+
+					const multiplier = transaction.type === 'Payment' ? 1 : -1;
+					return currentBalance + multiplier * (transaction.netValue ?? 0);
+				}, 0);
+
+				await Account.findOneAndUpdate(
+					{ _id: transaction?.account },
+					{ balance: balance },
+					{ new: true, session }
+				);
+			}
+		} finally {
+			session.endSession();
+		}
+
+		const newTransaction = await Transaction.aggregate([
+			{
+				$match: {
+					_id: this._transactionProperties._id
+				}
+			}
+		])
+			.cursor()
+			.next();
+
+		return newTransaction as any;
 	}
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
