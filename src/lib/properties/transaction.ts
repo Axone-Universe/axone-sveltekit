@@ -1,4 +1,4 @@
-import { type TransactionStatus, type TransactionType } from '$lib/util/types';
+import { CurrencyCode, type TransactionStatus, type TransactionType } from '$lib/util/types';
 import { type HydratedDocument } from 'mongoose';
 import { type UserProperties } from './user';
 import { type XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
@@ -19,10 +19,15 @@ export interface TransactionProperties {
 	fee?: number;
 	value?: number;
 	netValue?: number;
+	// base values are the values in the account's currency
+	baseValue?: number;
+	baseNetValue?: number;
 	documentType?: string;
 	documentId?: string;
-	currency?: string;
-	// this is the rate for the txn's currency convert to the account's currency
+	currency?: CurrencyCode;
+	currencyScale?: number;
+	// exchange rate is accountCurrency/transactionCurrency e.g. USD/XRP
+	// you derive transaction values from base values by multiplication i.e. value = baseValue * exchangeRate
 	exchangeRate?: number;
 	note?: string;
 	payload?: XummPostPayloadResponse;

@@ -4,10 +4,11 @@ import { DocumentBuilder } from './documentBuilder';
 import type { TransactionProperties } from '$lib/properties/transaction';
 import { Transaction } from '$lib/models/transaction';
 import type mongoose from 'mongoose';
-import { TransactionStatus, TransactionType } from '$lib/util/types';
+import { CurrencyCode, TransactionStatus, TransactionType } from '$lib/util/types';
 import { createHash } from 'crypto';
 import { XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
 import { Account } from '$lib/models/account';
+import { currencies } from '$lib/util/constants';
 
 export class TransactionBuilder extends DocumentBuilder<HydratedDocument<TransactionProperties>> {
 	private _sessionUserID?: string;
@@ -60,13 +61,23 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
-	value(value: number): TransactionBuilder {
-		this._transactionProperties.value = value;
+	baseValue(baseValue: number): TransactionBuilder {
+		this._transactionProperties.baseValue = baseValue;
+
+		const currencyScale = currencies[this._transactionProperties.currency!].scale;
+		this._transactionProperties.value = Number(
+			(this._transactionProperties.exchangeRate! * baseValue).toFixed(currencyScale)
+		);
 		return this;
 	}
 
-	netValue(netValue: number): TransactionBuilder {
-		this._transactionProperties.netValue = netValue;
+	baseNetValue(baseNetValue: number): TransactionBuilder {
+		this._transactionProperties.baseNetValue = baseNetValue;
+
+		const currencyScale = currencies[this._transactionProperties.currency!].scale;
+		this._transactionProperties.netValue = Number(
+			(this._transactionProperties.exchangeRate! * baseNetValue).toFixed(currencyScale)
+		);
 		return this;
 	}
 
@@ -85,8 +96,13 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
-	currency(currency: string): TransactionBuilder {
+	currency(currency: CurrencyCode): TransactionBuilder {
 		this._transactionProperties.currency = currency;
+		return this;
+	}
+
+	currencyScale(currencyScale: number): TransactionBuilder {
+		this._transactionProperties.currencyScale = currencyScale;
 		return this;
 	}
 
@@ -146,7 +162,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 					if (transaction.status !== 'success') return currentBalance;
 
 					const multiplier = transaction.type === 'Payment' ? 1 : -1;
-					return currentBalance + multiplier * (transaction.netValue ?? 0);
+					return currentBalance + multiplier * (transaction.baseNetValue ?? 0);
 				}, 0);
 
 				await Account.findOneAndUpdate(

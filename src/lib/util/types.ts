@@ -2,6 +2,7 @@ import type { Bucket, FileObject, StorageError as SupabasStorageError } from '@s
 import type { IconData } from 'svelte-awesome/components/Icon.svelte';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+	currencyCodes,
 	homeFilterTags,
 	notificationTypes,
 	paymentMethods,
@@ -71,3 +72,7 @@ export type XrplTransactionType = (typeof xrplTransactionTypes)[number];
 export type TransactionType = (typeof transactionTypes)[number];
 
 export type TransactionStatus = (typeof transactionStatuses)[number];
+
+export type CurrencyCode = (typeof currencyCodes)[number];
+
+export type Currency = { code: string; scale: number; symbol: string };

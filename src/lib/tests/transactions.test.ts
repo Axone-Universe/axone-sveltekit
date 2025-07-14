@@ -60,8 +60,8 @@ describe('transactions', () => {
 		const transaction = (
 			await caller.xumm.payload({
 				transactionType: 'Payment',
-				value: 1.03,
-				netValue: 1,
+				baseValue: 1.03,
+				baseNetValue: 1,
 				documentType: 'Chapter',
 				documentId: '1',
 				receiver: writer._id,
@@ -74,6 +74,7 @@ describe('transactions', () => {
 
 		// confirm transaction payload
 		expect(transaction.payload?.uuid).toEqual(payload_uuid);
+		expect(transaction.sender).toEqual(reader._id);
 
 		// confirm an account has been created
 		const account = (
@@ -99,15 +100,15 @@ describe('transactions', () => {
 		// create payload
 		await caller.xumm.payload({
 			transactionType: 'Payment',
-			value: 1.03,
-			netValue: 1,
+			baseValue: 1.03,
+			baseNetValue: 1,
 			documentType: 'Chapter',
 			documentId: '1',
 			receiver: writer._id,
 			note: 'great work!',
 			fee: 0.03,
 			currency: 'XRP',
-			exchangeRate: 1
+			exchangeRate: 2
 		});
 
 		// call the xaman transaction webhook

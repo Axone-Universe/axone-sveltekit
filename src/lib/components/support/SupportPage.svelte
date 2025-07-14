@@ -49,10 +49,10 @@
 	const feeRate = 0.03;
 
 	// Reactive statements for derived values
-	$: finalAmount = selectedAmount || parseFloat(customAmount) || 0;
-	$: platformFee = finalAmount * feeRate;
-	$: totalAmount = finalAmount + platformFee;
-	$: isValidAmount = finalAmount > 0;
+	$: netAmount = selectedAmount || parseFloat(customAmount) || 0;
+	$: platformFee = netAmount * feeRate;
+	$: totalAmount = netAmount + platformFee;
+	$: isValidAmount = netAmount > 0;
 	$: canSubmit = isValidAmount && selectedPaymentMethod && !isProcessing;
 
 	// xrp values
@@ -100,8 +100,8 @@
 			if (selectedPaymentMethod === 'xaman') {
 				const response = await trpc($page).xumm.payload.query({
 					transactionType: 'Payment',
-					value: totalAmountXRP,
-					netValue: netAmountXRP,
+					baseValue: totalAmount,
+					baseNetValue: netAmount,
 					documentId: document._id,
 					documentType: documentType,
 					fee: platformFeeXRP,
@@ -120,7 +120,7 @@
 
 			// Here you would integrate with actual payment processing
 			console.log('Payment submitted:', {
-				amount: finalAmount,
+				amount: netAmount,
 				fee: platformFee,
 				total: totalAmount,
 				message: note,
@@ -247,7 +247,7 @@
 							<span class="font-medium"
 								>{selectedPaymentMethod === 'xaman'
 									? `XRP ${netAmountXRP.toFixed(6)}`
-									: `$${finalAmount.toFixed(2)}`}</span
+									: `$${netAmount.toFixed(2)}`}</span
 							>
 						</div>
 						<div class="flex justify-between">

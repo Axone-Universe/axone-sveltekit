@@ -19,10 +19,13 @@ export const transactionSchema = new Schema<TransactionProperties>({
 	fee: Number,
 	value: Number,
 	netValue: Number,
+	baseValue: Number,
+	baseNetValue: Number,
 	documentType: String,
 	documentId: String,
 	exchangeRate: Number,
 	currency: String,
+	currencyScale: Number,
 	note: String,
 	payload: Object,
 	payloadId: String

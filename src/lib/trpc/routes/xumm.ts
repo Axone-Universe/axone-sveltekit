@@ -58,14 +58,14 @@ export const xumm = t.router({
 			const transactionBuilder = new TransactionBuilder()
 				.accountId(account._id)
 				.senderID(ctx.session!.user.id)
-				.value(input.value)
-				.netValue(input.netValue)
+				.exchangeRate(input.exchangeRate)
+				.currency(input.currency)
+				.baseValue(input.baseValue)
+				.baseNetValue(input.baseNetValue)
 				.documentId(input.documentId)
 				.documentType(input.documentType)
 				.fee(input.fee)
 				.note(input.note)
-				.currency(input.currency)
-				.exchangeRate(input.exchangeRate)
 				.type(input.transactionType);
 			const transaction = await transactionBuilder.build();
 

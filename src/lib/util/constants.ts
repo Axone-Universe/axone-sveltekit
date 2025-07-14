@@ -1,5 +1,6 @@
 import { type HydratedCampaignProperties, type CampaignProperties } from '$lib/properties/campaign';
 import { HydratedDocument } from 'mongoose';
+import { Currency, CurrencyCode } from './types';
 
 export const formatDate = (date: Date) => {
 	return date.toLocaleDateString(undefined, {
@@ -89,3 +90,10 @@ export const xrplTransactionTypes = ['Payment'] as const;
 export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
 
 export const transactionStatuses = ['pending', 'success', 'failed'] as const;
+
+export const currencyCodes = ['XRP', 'USD'] as const;
+
+export const currencies: Record<CurrencyCode, Currency> = {
+	XRP: { scale: 6, code: 'XRP', symbol: 'XRP' },
+	USD: { code: 'USD', symbol: '$', scale: 2 }
+};
