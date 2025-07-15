@@ -11,7 +11,7 @@
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
+	import { caretDown, dollar, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 	import { goto } from '$app/navigation';
@@ -194,6 +194,11 @@
 									>
 										<Icon data={pencil} />
 										<span>Studio</span>
+									</a>
+									<hr class="!my-2 variant-fill-primary" />
+									<a class="btn space-x-6 hover:variant-soft-primary" href={`/monetize/earnings`}>
+										<Icon data={dollar} />
+										<span>Monetize</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
 									<button

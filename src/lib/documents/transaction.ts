@@ -41,6 +41,11 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
+	receiverID(receiverID: string): TransactionBuilder {
+		this._transactionProperties.receiver = receiverID;
+		return this;
+	}
+
 	accountId(accountId: string): TransactionBuilder {
 		this._transactionProperties.account = accountId;
 		return this;

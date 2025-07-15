@@ -9,7 +9,7 @@ import { RatesResponse } from 'xumm-sdk/dist/src/types';
 import { createPayload, readRates } from '../schemas/xumm';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { TransactionBuilder } from '$lib/documents/transaction';
-import { TransactionProperties } from '$lib/properties/transaction';
+import { HydratedTransactionProperties, TransactionProperties } from '$lib/properties/transaction';
 import { HydratedDocument } from 'mongoose';
 import { auth } from '../middleware/auth';
 
@@ -57,6 +57,7 @@ export const xumm = t.router({
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()
 				.accountId(account._id)
+				.receiverID(input.receiver)
 				.senderID(ctx.session!.user.id)
 				.exchangeRate(input.exchangeRate)
 				.currency(input.currency)
@@ -98,6 +99,9 @@ export const xumm = t.router({
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
 
-			return { ...response, ...{ data: response.data as HydratedDocument<TransactionProperties> } };
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<HydratedTransactionProperties> }
+			};
 		})
 });

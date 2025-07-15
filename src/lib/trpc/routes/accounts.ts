@@ -47,7 +47,7 @@ export const accounts = t.router({
 			const accountsRepo = new AccountsRepository();
 
 			// get the account
-			const account = await accountsRepo.getByUserId(input.userId!);
+			const account = await accountsRepo.getByUserId(input.userId!, true);
 			response.data = account;
 
 			console.log('<< response');

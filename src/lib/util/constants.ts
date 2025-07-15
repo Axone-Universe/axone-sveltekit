@@ -1,6 +1,6 @@
 import { type HydratedCampaignProperties, type CampaignProperties } from '$lib/properties/campaign';
-import { HydratedDocument } from 'mongoose';
-import { Currency, CurrencyCode } from './types';
+import { type HydratedDocument } from 'mongoose';
+import { type Currency, type CurrencyCode } from './types';
 
 export const formatDate = (date: Date) => {
 	return date.toLocaleDateString(undefined, {

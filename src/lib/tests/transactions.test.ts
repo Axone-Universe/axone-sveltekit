@@ -74,7 +74,8 @@ describe('transactions', () => {
 
 		// confirm transaction payload
 		expect(transaction.payload?.uuid).toEqual(payload_uuid);
-		expect(transaction.sender).toEqual(reader._id);
+		expect(transaction.sender?._id).toEqual(reader._id);
+		expect(transaction.receiver?._id).toEqual(writer._id);
 
 		// confirm an account has been created
 		const account = (

@@ -7,8 +7,40 @@ import type { Response } from '$lib/util/types';
 import { HydratedDocument } from 'mongoose';
 import { XummWebhookBody } from 'xumm-sdk/dist/src/types';
 import { z } from 'zod';
+import { read } from '../schemas/transactions';
 
 export const transactions = t.router({
+	get: t.procedure
+		.use(logger)
+		.input(read)
+		.query(async ({ input, ctx }) => {
+			const transactionsRepo = new TransactionsRepository();
+
+			const response: Response = {
+				success: true,
+				message: 'transactions successfully obtained',
+				data: {}
+			};
+
+			console.log('<< getting txns');
+			console.log(input);
+			try {
+				const result = await transactionsRepo.get(ctx.session, input);
+
+				response.data = result;
+				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			console.log(response.data);
+
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<TransactionProperties>[] }
+			};
+		}),
 	xaman: t.procedure.input(z.any()).mutation(async ({ input }) => {
 		const response: Response = {
 			success: true,
