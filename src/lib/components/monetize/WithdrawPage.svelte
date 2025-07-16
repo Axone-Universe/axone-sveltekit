@@ -24,7 +24,7 @@
 
 	/** state management */
 	$: xrpAddress = '';
-	$: destinationTag = '';
+	$: destinationTag = 0;
 	$: withdrawalAmount = '';
 	$: isProcessing = false;
 	$: showSuccessModal = false;
@@ -180,11 +180,12 @@
 						Withdrawal Submitted!
 					</h2>
 					<p class="mb-4">
-						Your withdrawal of {xrpAmount} XRP has been submitted for processing.
+						Your withdrawal of <span class="chip text-md variant-soft-primary">{xrpAmount}</span> XRP
+						has been submitted for processing.
 					</p>
 					<div class=" rounded-lg p-3 mb-4">
 						<div class="text-sm mb-1">To Address:</div>
-						<div class="font-mono text-xs break-all">{xrpAddress}</div>
+						<div class="chip variant-soft-primary font-mono text-md break-all">{xrpAddress}</div>
 						{#if destinationTag}
 							<div class="text-sm mt-2 mb-1">Destination Tag:</div>
 							<div class="font-mono text-sm">{destinationTag}</div>

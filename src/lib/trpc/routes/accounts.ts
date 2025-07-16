@@ -60,7 +60,7 @@ export const accounts = t.router({
 			z.object({
 				id: z.string(),
 				receiverAddress: z.string(),
-				destinationTag: z.string().optional()
+				destinationTag: z.number().optional()
 			})
 		)
 		.query(async ({ input, ctx }) => {
@@ -103,11 +103,13 @@ export const accounts = t.router({
 
 			try {
 				const xrpTransaction = {
-					TransactionType: transaction.xrplType,
-					Amount: xrpToDrops(transaction.value!),
-					Destination: AXONE_XRPL_ADDRESS,
-					DestinationTag: input.destinationTag ?? undefined,
-					InvoiceID: transaction.hash
+					...{
+						TransactionType: transaction.xrplType,
+						Amount: xrpToDrops(transaction.value!),
+						Destination: input.receiverAddress,
+						InvoiceID: transaction.hash
+					},
+					...(input.destinationTag ? { DestinationTag: input.destinationTag } : {})
 				} as Payment;
 
 				console.log('<< xrp transaction');
