@@ -8,17 +8,11 @@ import type { StorylineProperties } from '$lib/properties/storyline';
 import { router } from '$lib/trpc/router';
 
 import {
-	TEST_MONGO_PASSWORD,
-	TEST_MONGO_URL,
-	TEST_MONGO_USER,
-	TEST_MONGO_DB,
 	MONGO_PASSWORD,
 	MONGO_URL,
 	MONGO_USER,
 	MONGO_DB,
-	TEST_USER_ID,
-	TEST_USER_FIRST_NAME,
-	TEST_USER_LAST_NAME
+	TEST_DATA_USER_EMAIL
 } from '$env/static/private';
 import { UserPropertyBuilder } from '$lib/properties/user';
 import type { Rating, ReviewOf } from '$lib/properties/review';
@@ -26,37 +20,7 @@ import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/prope
 import type { CreateBook } from '$lib/trpc/schemas/books';
 
 /** Supabase Test User Infos */
-export const testUserOne: User = {
-	id: TEST_USER_ID ? TEST_USER_ID : '1',
-	email: 'test.user.one@test.com',
-	user_metadata: {
-		firstName: TEST_USER_FIRST_NAME ? TEST_USER_FIRST_NAME : 'user',
-		lastName: TEST_USER_LAST_NAME ? TEST_USER_LAST_NAME : 'one'
-	},
-	app_metadata: {},
-	aud: '',
-	created_at: ''
-};
-
-export const testUserTwo: User = {
-	id: '2',
-	email: 'test.user.two@test.com',
-	user_metadata: { firstName: 'user', lastName: 'two' },
-	app_metadata: {},
-	aud: '',
-	created_at: ''
-};
-
-export const testUserThree: User = {
-	id: '3',
-	email: 'test.user.three@test.com',
-	user_metadata: { firstName: 'user', lastName: 'three' },
-	app_metadata: {},
-	aud: '',
-	created_at: ''
-};
-
-export function generateTestUser(): User {
+export function generateUserSessionData(): User {
 	const id = `test-${ulid()}`;
 	const firstName = faker.person.firstName();
 	const lastName = faker.person.lastName();
@@ -227,17 +191,7 @@ export async function createReview(
 /**
  * Differentiate the DBs so that Dev DB is not wiped out when testing
  */
-export async function connectTestDatabase() {
-	const options: mongoose.ConnectOptions = {
-		dbName: TEST_MONGO_DB,
-		user: TEST_MONGO_USER,
-		pass: TEST_MONGO_PASSWORD
-	};
-
-	await mongoose.connect(TEST_MONGO_URL, options);
-}
-
-export async function connectDevDatabase() {
+export async function connectDatabase() {
 	const options: mongoose.ConnectOptions = {
 		dbName: MONGO_DB,
 		user: MONGO_USER,

@@ -1,18 +1,29 @@
 import { ulid } from 'ulid';
-import { startSession, type HydratedDocument } from 'mongoose';
+import { ClientSession, startSession, type HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from './documentBuilder';
 import type { TransactionProperties } from '$lib/properties/transaction';
 import { Transaction } from '$lib/models/transaction';
 import type mongoose from 'mongoose';
-import { CurrencyCode, TransactionStatus, TransactionType } from '$lib/util/types';
+import type {
+	CurrencyCode,
+	TransactionStatus,
+	TransactionType,
+	XrplTransactionType
+} from '$lib/util/types';
 import { createHash } from 'crypto';
 import { XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
 import { Account } from '$lib/models/account';
 import { currencies } from '$lib/util/constants';
+import { AccountProperties } from '$lib/properties/account';
 
 export class TransactionBuilder extends DocumentBuilder<HydratedDocument<TransactionProperties>> {
 	private _sessionUserID?: string;
 	private readonly _transactionProperties: TransactionProperties;
+	private _account?: HydratedDocument<AccountProperties> | null;
+
+	get account(): HydratedDocument<AccountProperties> | undefined {
+		return this._account ?? undefined;
+	}
 
 	constructor(id?: string) {
 		super();
@@ -58,6 +69,11 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 
 	type(type: TransactionType): TransactionBuilder {
 		this._transactionProperties.type = type;
+		return this;
+	}
+
+	xrplType(xrplType: XrplTransactionType): TransactionBuilder {
+		this._transactionProperties.xrplType = xrplType;
 		return this;
 	}
 
@@ -141,6 +157,27 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
+	async updateAccountBalance(session: ClientSession, accountId: string) {
+		const accountTransactions = (await Transaction.aggregate([
+			{
+				$match: { account: accountId }
+			}
+		])) as HydratedDocument<TransactionProperties>[];
+
+		const balance = accountTransactions.reduce((currentBalance, transaction) => {
+			if (transaction.type === 'Payment' && transaction.status !== 'success') return currentBalance;
+
+			const multiplier = transaction.type === 'Payment' ? 1 : -1;
+			return currentBalance + multiplier * (transaction.baseNetValue ?? 0);
+		}, 0);
+
+		this._account = await Account.findOneAndUpdate(
+			{ _id: accountId },
+			{ balance: balance },
+			{ new: true, session }
+		);
+	}
+
 	async update(): Promise<HydratedDocument<TransactionProperties>> {
 		if (!this._transactionProperties._id)
 			throw new Error('Must provide an transactionID to update the transaction.');
@@ -149,38 +186,22 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 
 		try {
 			// create transaction
-			const transaction = await Transaction.findOneAndUpdate(
-				{ _id: this._transactionProperties._id },
-				this._transactionProperties,
-				{ new: true, session }
-			);
+			const transaction =
+				(await Transaction.findOneAndUpdate(
+					{ _id: this._transactionProperties._id },
+					this._transactionProperties,
+					{ new: true, session }
+				)) ?? undefined;
 
 			// update the account balance
 			if (this._transactionProperties.status) {
-				const accountTransactions = (await Transaction.aggregate([
-					{
-						$match: { account: transaction?.account }
-					}
-				])) as HydratedDocument<TransactionProperties>[];
-
-				const balance = accountTransactions.reduce((currentBalance, transaction) => {
-					if (transaction.status !== 'success') return currentBalance;
-
-					const multiplier = transaction.type === 'Payment' ? 1 : -1;
-					return currentBalance + multiplier * (transaction.baseNetValue ?? 0);
-				}, 0);
-
-				await Account.findOneAndUpdate(
-					{ _id: transaction?.account },
-					{ balance: balance },
-					{ new: true, session }
-				);
+				await this.updateAccountBalance(session, transaction?.account ?? '');
 			}
 		} finally {
 			session.endSession();
 		}
 
-		const newTransaction = await Transaction.aggregate([
+		const transaction = await Transaction.aggregate([
 			{
 				$match: {
 					_id: this._transactionProperties._id
@@ -190,7 +211,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 			.cursor()
 			.next();
 
-		return newTransaction as any;
+		return transaction as any;
 	}
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
@@ -199,10 +220,30 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 
 		let result = {};
 
-		result = await Transaction.deleteOne(
-			{ _id: this._transactionProperties._id },
-			{ userID: this._sessionUserID }
-		);
+		const session = await startSession();
+
+		try {
+			// get transaction account id
+			const transaction = await Transaction.aggregate([
+				{
+					$match: {
+						_id: this._transactionProperties._id
+					}
+				}
+			])
+				.cursor()
+				.next();
+
+			// delete transaction
+			result = await Transaction.deleteOne(
+				{ _id: this._transactionProperties._id },
+				{ userID: this._sessionUserID, session: session }
+			);
+
+			await this.updateAccountBalance(session, transaction?.account ?? '');
+		} finally {
+			session.endSession();
+		}
 
 		return result as mongoose.mongo.DeleteResult;
 	}
@@ -214,10 +255,21 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		console.log('<< building txn');
 		console.log(this._transactionProperties);
 
+		const session = await startSession();
 		let transaction = new Transaction(this._transactionProperties);
-		transaction = await transaction.save();
 
-		console.log('<< saved txn');
+		try {
+			// create transaction
+			transaction = await transaction.save({ session });
+
+			// update the account balance if it's a withdrawal txn
+			if (this._transactionProperties.type === 'Withdrawal') {
+				await this.updateAccountBalance(session, transaction.account!);
+			}
+		} finally {
+			session.endSession();
+		}
+
 		return transaction;
 	}
 }

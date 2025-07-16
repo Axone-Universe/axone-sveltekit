@@ -7,10 +7,9 @@
 		type TransactionProperties,
 		type HydratedTransactionProperties
 	} from '$lib/properties/transaction';
-	import { getToastStore, getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
-	import { getArchiveModal, getUnarchiveModal } from '$lib/util/studio/modals';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
 	import { arrowDown, creditCard, edit, pencil, trash } from 'svelte-awesome/icons';
@@ -20,9 +19,8 @@
 	import { type AccountProperties } from '$lib/properties/account';
 	import { currencies } from '$lib/util/constants';
 	import { type CurrencyCode } from '$lib/util/types';
+	import WithdrawPage from '$lib/components/monetize/WithdrawPage.svelte';
 
-	const archiveModal = getArchiveModal();
-	const unArchiveModal = getUnarchiveModal();
 	const colSpan = 10;
 
 	export let data: PageData;
@@ -31,7 +29,6 @@
 	let archiveMode: boolean = false;
 	let selectedTransactions: HydratedDocument<TransactionProperties>[] = [];
 
-	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
 	let placeHolderAccount: HydratedDocument<AccountProperties> | undefined;
@@ -73,6 +70,18 @@
 		}
 	});
 
+	const withdrawComponent: ModalComponent = {
+		ref: WithdrawPage,
+		props: {
+			account: account
+		}
+	};
+
+	const withdrawModal: ModalSettings = {
+		type: 'component',
+		component: withdrawComponent
+	};
+
 	function loadMore() {
 		$getTransactionsInfinite.fetchNextPage();
 	}
@@ -99,7 +108,10 @@
 	}
 
 	function withdraw() {
-		console.log('withdraw');
+		withdrawComponent.props = {
+			account
+		};
+		modalStore.trigger(withdrawModal);
 	}
 </script>
 

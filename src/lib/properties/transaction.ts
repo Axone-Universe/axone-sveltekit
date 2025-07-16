@@ -1,4 +1,9 @@
-import { type CurrencyCode, type TransactionStatus, type TransactionType } from '$lib/util/types';
+import type {
+	XrplTransactionType,
+	CurrencyCode,
+	TransactionStatus,
+	TransactionType
+} from '$lib/util/types';
 import { type HydratedDocument } from 'mongoose';
 import { type UserProperties } from './user';
 import { type XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
@@ -17,6 +22,7 @@ export type TransactionProperties = {
 	ref?: string;
 	status?: TransactionStatus;
 	type?: TransactionType;
+	xrplType?: XrplTransactionType;
 	fee?: number;
 	value?: number;
 	netValue?: number;

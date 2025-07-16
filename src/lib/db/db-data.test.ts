@@ -6,7 +6,7 @@ import {
 	createDBUser,
 	createTestSession,
 	createChapter,
-	generateTestUser,
+	generateUserSessionData,
 	createBook,
 	getRandomElement,
 	testUserOne,
@@ -59,14 +59,14 @@ test(
 		sessions.push(createTestSession(testUserOne));
 
 		for (let i = 0; i < NUM_USERS; i++) {
-			sessions.push(createTestSession(generateTestUser()));
+			sessions.push(createTestSession(generateUserSessionData()));
 		}
 
 		const reviewCallers = [];
 
 		// Number of reviewers could be an env variable - should be fine for now
 		for (let i = 0; i < 3; i++) {
-			const reviewer1 = createTestSession(generateTestUser());
+			const reviewer1 = createTestSession(generateUserSessionData());
 			await createDBUser(reviewer1);
 			reviewCallers.push(router.createCaller({ session: reviewer1 }));
 		}

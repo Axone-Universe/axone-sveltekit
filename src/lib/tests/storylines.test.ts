@@ -2,20 +2,18 @@ import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/prope
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
-	connectTestDatabase,
+	connectDatabase,
 	createDBUser,
 	createBook,
 	createTestSession,
-	testUserOne,
-	testUserTwo,
-	testUserThree,
 	createChapter,
-	createCampaign
+	createCampaign,
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('storylines', () => {
@@ -30,8 +28,8 @@ describe('storylines', () => {
 		const chapter3_1Title = 'Chapter 3_1';
 		const chapter2_2Title = 'Chapter 2_2';
 
-		const testUserOneSession = createTestSession(testUserOne);
-		const testUserTwoSession = createTestSession(testUserTwo);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		await createDBUser(testUserTwoSession);
@@ -132,20 +130,21 @@ describe('storylines', () => {
 	});
 
 	test('get storylines by genres', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		await createDBUser(createTestSession(testUserTwo));
-		await createDBUser(createTestSession(testUserThree));
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
+		const testUserThreeSession = createTestSession(generateUserSessionData());
 
-		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
-			'Action',
-			'Adventure'
-		]);
-		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+		await createDBUser(testUserOneSession);
+		await createDBUser(testUserTwoSession);
+		await createDBUser(testUserThreeSession);
+
+		const bookResponse1 = await createBook(testUserOneSession, '', ['Action', 'Adventure']);
+		const bookResponse2 = await createBook(testUserTwoSession, '', [
 			'Action',
 			'Adventure',
 			'Fantasy'
 		]);
-		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+		await createBook(testUserThreeSession, '', ['Action', 'Dystopian']);
 
 		const caller = router.createCaller({ session: null });
 		const storylineResponses = await caller.storylines.get({ genres: ['Action', 'Adventure'] });
@@ -156,20 +155,21 @@ describe('storylines', () => {
 	});
 
 	test('get storylines by ids', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		await createDBUser(createTestSession(testUserTwo));
-		await createDBUser(createTestSession(testUserThree));
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
+		const testUserThreeSession = createTestSession(generateUserSessionData());
 
-		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
-			'Action',
-			'Adventure'
-		]);
-		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+		await createDBUser(testUserOneSession);
+		await createDBUser(testUserTwoSession);
+		await createDBUser(testUserThreeSession);
+
+		const bookResponse1 = await createBook(testUserOneSession, '', ['Action', 'Adventure']);
+		const bookResponse2 = await createBook(testUserTwoSession, '', [
 			'Action',
 			'Adventure',
 			'Fantasy'
 		]);
-		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+		await createBook(testUserThreeSession, '', ['Action', 'Dystopian']);
 
 		const caller = router.createCaller({ session: null });
 		const storylineResponses = await caller.storylines.getByIds({
@@ -185,14 +185,16 @@ describe('storylines', () => {
 	});
 
 	test('updating archived status', async () => {
-		const sessionOne = createTestSession(testUserOne);
-		const sessionTwo = createTestSession(testUserTwo);
-		await createDBUser(sessionOne);
-		await createDBUser(sessionTwo);
-		const book = await createBook(sessionOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
-		const callerOne = router.createCaller({ session: sessionOne });
-		const callerTwo = router.createCaller({ session: sessionTwo });
+		await createDBUser(testUserOneSession);
+		await createDBUser(testUserTwoSession);
+
+		const book = await createBook(testUserOneSession);
+
+		const callerOne = router.createCaller({ session: testUserOneSession });
+		const callerTwo = router.createCaller({ session: testUserTwoSession });
 
 		const userOneMainStoryline = (
 			await callerOne.storylines.get({
@@ -201,7 +203,12 @@ describe('storylines', () => {
 		).data[0];
 
 		const userOneChapter = (
-			await createChapter(sessionOne, "UserOne's Chapter 1", 'Chapter 1', userOneMainStoryline)
+			await createChapter(
+				testUserOneSession,
+				"UserOne's Chapter 1",
+				'Chapter 1',
+				userOneMainStoryline
+			)
 		).data;
 
 		const userOneSecondStoryline = (
@@ -226,7 +233,7 @@ describe('storylines', () => {
 
 		const userTwoChapter = (
 			await createChapter(
-				sessionTwo,
+				testUserTwoSession,
 				"UserTwo's Chapter 1",
 				'The Spin-off Chapter 1',
 				userTwoStoryline
@@ -267,9 +274,10 @@ describe('storylines', () => {
 	});
 
 	test('delete storyline', async () => {
-		await createDBUser(createTestSession(testUserOne));
+		const testUserOneSession = createTestSession(generateUserSessionData());
+
+		await createDBUser(testUserOneSession);
 		const testBookTitle1 = 'My Book 1';
-		const testUserOneSession = createTestSession(testUserOne);
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle1);
 
 		const caller = router.createCaller({ session: testUserOneSession });
@@ -309,9 +317,11 @@ describe('storylines', () => {
 	});
 
 	test('remove storyline', async () => {
-		await createDBUser(createTestSession(testUserOne));
+		const testUserOneSession = createTestSession(generateUserSessionData());
+
+		await createDBUser(testUserOneSession);
+
 		const testBookTitle1 = 'My Book 1';
-		const testUserOneSession = createTestSession(testUserOne);
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle1);
 
 		const caller = router.createCaller({ session: testUserOneSession });

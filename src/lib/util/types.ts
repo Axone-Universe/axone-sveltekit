@@ -67,6 +67,7 @@ export type NotificationType = (typeof notificationTypes)[number];
 
 export type PaymentMethod = (typeof paymentMethods)[number];
 
+// These are the types we support currently. We are not using all the types from the lib
 export type XrplTransactionType = (typeof xrplTransactionTypes)[number];
 
 export type TransactionType = (typeof transactionTypes)[number];

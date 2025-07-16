@@ -4,7 +4,7 @@ import { TransactionsRepository } from '$lib/repositories/transactionsRepository
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import type { Response } from '$lib/util/types';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { XummWebhookBody } from 'xumm-sdk/dist/src/types';
 import { z } from 'zod';
 import { read } from '../schemas/transactions';
@@ -22,8 +22,6 @@ export const transactions = t.router({
 				data: {}
 			};
 
-			console.log('<< getting txns');
-			console.log(input);
 			try {
 				const result = await transactionsRepo.get(ctx.session, input);
 
@@ -33,8 +31,6 @@ export const transactions = t.router({
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
-
-			console.log(response.data);
 
 			return {
 				...response,
@@ -92,5 +88,23 @@ export const transactions = t.router({
 				...response,
 				...{ data: response.data as HydratedDocument<TransactionProperties> }
 			};
-		})
+		}),
+	cancel: t.procedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+		const response: Response = {
+			success: true,
+			message: 'transaction successfully cancelled',
+			data: {}
+		};
+
+		const transactionBuilder = new TransactionBuilder(input.id);
+		try {
+			const result = await transactionBuilder.delete();
+			response.data = result;
+		} catch (error) {
+			response.success = false;
+			response.message = error instanceof Object ? error.toString() : 'unkown error';
+		}
+
+		return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
+	})
 });

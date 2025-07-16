@@ -17,6 +17,7 @@ export const transactionSchema = new Schema<TransactionProperties>({
 	ref: String,
 	status: String,
 	type: String,
+	xrplType: String,
 	fee: Number,
 	value: Number,
 	netValue: Number,

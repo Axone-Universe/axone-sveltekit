@@ -73,7 +73,7 @@
 	import { autoStartTour, getBaseURL } from '$lib/util/tour/tour';
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
-	import SupportPage from '$lib/components/support/SupportPage.svelte';
+	import SupportPage from '$lib/components/monetize/SupportPage.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
 	import { timeAgo } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';

@@ -7,17 +7,21 @@
 		type TransactionProperties,
 		type HydratedTransactionProperties
 	} from '$lib/properties/transaction';
-	import { getToastStore, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		getToastStore,
+		getModalStore,
+		type ModalSettings,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import { getArchiveModal, getUnarchiveModal } from '$lib/util/studio/modals';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import RowActions from '$lib/components/studio/RowActions.svelte';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
-	import { arrowDown, cartArrowDown, creditCard, edit, pencil, trash } from 'svelte-awesome/icons';
+	import { arrowDown, cartArrowDown, trash } from 'svelte-awesome/icons';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { onMount } from 'svelte';
 	import { type AccountProperties } from '$lib/properties/account';
 
 	const archiveModal = getArchiveModal();
@@ -57,12 +61,6 @@
 		$getTransactionsInfinite.fetchNextPage();
 	}
 
-	async function refetch() {
-		$getTransactionsInfinite.remove();
-		await $getTransactionsInfinite.refetch();
-		selectedTransactions = [];
-	}
-
 	function handleTransactionSelect(
 		e: Event & {
 			currentTarget: EventTarget & HTMLInputElement;
@@ -78,8 +76,36 @@
 		}
 	}
 
-	function deleteTransactions() {
-		console.log('delete transactions');
+	function cancelTransaction(transactionId: string) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: 'Cancel Transaction',
+			body: 'Are you sure you want to cancel this transaction?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.transactions.cancel.mutate({
+							id: transactionId
+						})
+						.then(async (response) => {
+							if (response.success) {
+								transactions = transactions.filter((txn) => txn._id !== transactionId);
+							}
+							const deleteFail: ToastSettings = {
+								message: response.message,
+								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+							};
+							toastStore.trigger(deleteFail);
+						})
+						.catch((error: any) => {
+							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
 	}
 </script>
 
@@ -158,22 +184,28 @@
 								<td>{transaction.netValue}</td>
 								<td>
 									{#if transaction.status === 'pending'}
-										<Tooltip
-											on:click={() => {
-												window.open(`/payment?payloadId=${transaction.payload?.uuid}`, '_blank');
-											}}
-											content="Checkout"
-											placement="top"
-											target="create-campaign-btn"
-										>
-											<button
-												id="create-btn"
-												type="button"
-												class="btn btn-sm bg-primary-300-600-token"
-											>
-												<span class="px-2"><Icon data={cartArrowDown} Checkout /></span>
-											</button>
-										</Tooltip>
+										<RowActions
+											document={transaction}
+											rowActions={[
+												{
+													label: 'Checkout',
+													icon: cartArrowDown,
+													callback: () => {
+														window.open(
+															`/payment?payloadId=${transaction.payload?.uuid}`,
+															'_blank'
+														);
+													}
+												},
+												{
+													label: 'Cancel',
+													icon: trash,
+													callback: () => {
+														cancelTransaction(transaction._id);
+													}
+												}
+											]}
+										/>
 									{/if}
 								</td>
 							</tr>

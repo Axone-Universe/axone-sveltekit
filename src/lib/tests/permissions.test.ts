@@ -1,20 +1,19 @@
 import type { PermissionProperties } from '$lib/properties/permission';
 import { router } from '$lib/trpc/router';
 import {
-	connectTestDatabase,
+	connectDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	testUserOne,
-	testUserTwo,
 	createBook,
-	createChapter
+	createChapter,
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
 import { ulid } from 'ulid';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('permissions', () => {
@@ -24,15 +23,16 @@ describe('permissions', () => {
 
 	test('update permission', async () => {
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
-		const testUserTwoDB = await createDBUser(createTestSession(testUserTwo));
+		const testUserTwoDB = await createDBUser(testUserTwoSession);
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 		let permissions = createBookResponse.data.permissions;
 
-		permissions[testUserTwo.id] = {
+		permissions[testUserTwoSession.user.id] = {
 			_id: ulid(),
 			user: testUserTwoDB.data._id,
 			permission: 'collaborate'
@@ -45,11 +45,13 @@ describe('permissions', () => {
 			permissions
 		});
 
-		expect(updatedBookResponse.data.permissions[testUserTwo.id]?.permission).toEqual('collaborate');
+		expect(updatedBookResponse.data.permissions[testUserTwoSession.user.id]?.permission).toEqual(
+			'collaborate'
+		);
 
 		permissions = updatedBookResponse.data.permissions;
 
-		permissions[testUserTwo.id] = {
+		permissions[testUserTwoSession.user.id] = {
 			_id: ulid(),
 			user: testUserTwoDB.data._id,
 			permission: 'view'
@@ -60,22 +62,25 @@ describe('permissions', () => {
 			permissions: permissions
 		});
 
-		expect(updatedBookResponse.data.permissions[testUserTwo.id]?.permission).toEqual('view');
+		expect(updatedBookResponse.data.permissions[testUserTwoSession.user.id]?.permission).toEqual(
+			'view'
+		);
 	});
 
 	test('delete permission', async () => {
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
-		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(createTestSession(generateUserSessionData()));
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 		let permissions = createBookResponse.data.permissions;
 
-		permissions[testUserTwo.id] = {
+		permissions[testUserTwoSession.user.id] = {
 			_id: ulid(),
-			user: testUserTwo.id,
+			user: testUserTwoSession.user.id,
 			permission: 'collaborate'
 		} as HydratedDocument<PermissionProperties>;
 
@@ -86,26 +91,29 @@ describe('permissions', () => {
 			permissions: permissions
 		});
 
-		expect(updatedBookResponse.data.permissions[testUserTwo.id]?.permission).toEqual('collaborate');
+		expect(updatedBookResponse.data.permissions[testUserTwoSession.user.id]?.permission).toEqual(
+			'collaborate'
+		);
 
 		// delete permission
 		permissions = updatedBookResponse.data.permissions;
-		delete permissions[testUserTwo.id];
+		delete permissions[testUserTwoSession.user.id];
 
 		updatedBookResponse = await caller.books.update({
 			id: createBookResponse.data._id,
 			permissions: permissions
 		});
 
-		expect(updatedBookResponse.data.permissions[testUserTwo.id]).toEqual(undefined);
+		expect(updatedBookResponse.data.permissions[testUserTwoSession.user.id]).toEqual(undefined);
 	});
 
 	test('test permission', async () => {
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
-		await createDBUser(createTestSession(testUserTwo));
+		await createDBUser(testUserTwoSession);
 
 		const createBookResponse = await createBook(testUserOneSession, testBookTitle);
 
@@ -152,7 +160,7 @@ describe('permissions', () => {
 
 		expect(chapter1Response.data.userPermissions?.view).toEqual(true);
 
-		caller = router.createCaller({ session: createTestSession(testUserTwo) });
+		caller = router.createCaller({ session: testUserTwoSession });
 
 		storylines = (
 			await caller.storylines.get({
@@ -171,13 +179,13 @@ describe('permissions', () => {
 		permissions = storylines[0].permissions;
 		delete permissions['public'];
 
-		caller = router.createCaller({ session: createTestSession(testUserOne) });
+		caller = router.createCaller({ session: testUserOneSession });
 		await caller.storylines.update({
 			id: storylines[0]._id,
 			permissions: permissions
 		});
 
-		caller = router.createCaller({ session: createTestSession(testUserTwo) });
+		caller = router.createCaller({ session: testUserTwoSession });
 		storylineChapters = await caller.chapters.getByStoryline({
 			storylineID: storylines[0]._id,
 			storylineChapterIDs: storylines[0].chapters as string[]

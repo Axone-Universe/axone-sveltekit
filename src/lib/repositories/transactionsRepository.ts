@@ -34,8 +34,6 @@ export class TransactionsRepository extends Repository {
 
 		pipeline.push({ $match: filter });
 
-		console.log('<< filter');
-		console.log(filter);
 		if (input.cursor) {
 			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
 		}

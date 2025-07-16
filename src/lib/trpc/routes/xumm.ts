@@ -67,7 +67,9 @@ export const xumm = t.router({
 				.documentType(input.documentType)
 				.fee(input.fee)
 				.note(input.note)
-				.type(input.transactionType);
+				.type(input.transactionType)
+				.xrplType('Payment');
+
 			const transaction = await transactionBuilder.build();
 
 			console.log('<< txn created');
@@ -75,7 +77,7 @@ export const xumm = t.router({
 
 			try {
 				const xrpTransaction = {
-					TransactionType: transaction.type,
+					TransactionType: transaction.xrplType,
 					Amount: xrpToDrops(transaction.value!),
 					Destination: AXONE_XRPL_ADDRESS,
 					InvoiceID: transaction.hash

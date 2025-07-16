@@ -1,22 +1,22 @@
 import { DEFAULT_READING_LIST } from '$lib/properties/user';
 import { router } from '$lib/trpc/router';
 import {
-	connectTestDatabase,
+	connectDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	generateTestUser,
+	generateUserSessionData,
 	createBook
 } from '$lib/util/testing/testing';
 import * as novu from '$lib/util/notifications/novu';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('users', () => {
-	const userOne = generateTestUser();
-	const userTwo = generateTestUser();
+	const userOne = generateUserSessionData();
+	const userTwo = generateUserSessionData();
 	const testSessionOne = createTestSession(userOne);
 	const testSessionTwo = createTestSession(userTwo);
 
