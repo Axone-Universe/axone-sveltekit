@@ -20,6 +20,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 	private _sessionUserID?: string;
 	private readonly _transactionProperties: TransactionProperties;
 	private _account?: HydratedDocument<AccountProperties> | null;
+	private _accountCurrency?: CurrencyCode;
 
 	get account(): HydratedDocument<AccountProperties> | undefined {
 		return this._account ?? undefined;
@@ -82,22 +83,24 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
-	baseValue(baseValue: number): TransactionBuilder {
-		this._transactionProperties.baseValue = baseValue;
+	value(value: number): TransactionBuilder {
+		this._transactionProperties.value = value;
 
-		const currencyScale = currencies[this._transactionProperties.currency!].scale;
-		this._transactionProperties.value = Number(
-			(this._transactionProperties.exchangeRate! * baseValue).toFixed(currencyScale)
+		console.log('<< acc currency');
+		console.log(this._accountCurrency);
+		const currencyScale = currencies[this._accountCurrency!].scale;
+		this._transactionProperties.baseValue = Number(
+			(value / this._transactionProperties.exchangeRate!).toFixed(currencyScale)
 		);
 		return this;
 	}
 
-	baseNetValue(baseNetValue: number): TransactionBuilder {
-		this._transactionProperties.baseNetValue = baseNetValue;
+	netValue(netValue: number): TransactionBuilder {
+		this._transactionProperties.netValue = netValue;
 
 		const currencyScale = currencies[this._transactionProperties.currency!].scale;
-		this._transactionProperties.netValue = Number(
-			(this._transactionProperties.exchangeRate! * baseNetValue).toFixed(currencyScale)
+		this._transactionProperties.baseNetValue = Number(
+			(netValue / this._transactionProperties.exchangeRate!).toFixed(currencyScale)
 		);
 		return this;
 	}
@@ -114,6 +117,11 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 
 	exchangeRate(exchangeRate: number): TransactionBuilder {
 		this._transactionProperties.exchangeRate = exchangeRate;
+		return this;
+	}
+
+	accountCurrency(accountCurrency: CurrencyCode): TransactionBuilder {
+		this._accountCurrency = accountCurrency;
 		return this;
 	}
 

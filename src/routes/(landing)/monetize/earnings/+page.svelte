@@ -12,7 +12,15 @@
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
-	import { arrowDown, creditCard, edit, pencil, trash } from 'svelte-awesome/icons';
+	import {
+		arrowDown,
+		arrowLeft,
+		arrowRight,
+		creditCard,
+		edit,
+		pencil,
+		trash
+	} from 'svelte-awesome/icons';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { onMount } from 'svelte';
@@ -137,12 +145,13 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td colspan={colSpan - 1}>
-							<div class="flex sm:justify-end items-center gap-2 sm:gap-4">
-								<p class="text-lg font-bold">Balance</p>
-								<button class=" w-2/12 btn variant-ghost-primary !py-1">
-									{currencySymbol}{account?.balance?.toFixed(account.currencyScale) ?? 0}</button
-								>
+						<td colspan={colSpan - 2} />
+						<td colspan={1}>
+							<div class="flex">
+								<button class="btn !text-sm font-bold variant-ghost-primary !py-1">
+									{currencySymbol}
+									{account?.balance?.toFixed(account.currencyScale) ?? 0}
+								</button>
 							</div>
 						</td>
 						<td colspan={1}>
@@ -196,22 +205,42 @@
 								</td>
 								<td>{transaction.note}</td>
 								<td>{transaction.sender?.firstName}</td>
-								<td
-									><span
+								<td>
+									<span
 										class="chip rounded-full {transaction.status === 'success'
 											? 'variant-soft-success'
 											: transaction.status === 'pending'
 											? 'variant-soft-warning'
 											: 'variant-soft-error'}">{transaction.status}</span
-									></td
-								>
-								<td>{transaction.type}</td>
+									>
+								</td>
+								<td>
+									<span
+										class="chip rounded-full {transaction.type === 'Payment'
+											? 'variant-soft-success'
+											: 'variant-soft-error'}">{transaction.type}</span
+									>
+								</td>
 								<td>{account?.currency}</td>
 								<td
-									>{((transaction.baseValue ?? 0) - (transaction.baseNetValue ?? 0)).toFixed(2)}</td
+									>{((transaction.baseValue ?? 0) - (transaction.baseNetValue ?? 0)).toFixed(
+										account?.currencyScale
+									)}</td
 								>
-								<td>{transaction.baseValue?.toFixed(2)}</td>
-								<td>{transaction.baseNetValue?.toFixed(2)}</td>
+								<td>{transaction.baseValue?.toFixed(account?.currencyScale)}</td>
+								<td
+									class="font-bold {transaction.type === 'Payment'
+										? 'text-success-600-300-token'
+										: 'text-error-600-300-token'}"
+								>
+									<Icon
+										class="mr-2"
+										data={transaction.type === 'Payment' ? arrowRight : arrowLeft}
+										scale={1}
+									/>
+									{currencySymbol}
+									{transaction.baseNetValue?.toFixed(account?.currencyScale)}
+								</td>
 								<td />
 							</tr>
 						{/each}

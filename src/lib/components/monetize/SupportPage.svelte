@@ -100,15 +100,14 @@
 			if (selectedPaymentMethod === 'xaman') {
 				const response = await trpc($page).xumm.payload.query({
 					transactionType: 'Payment',
-					baseValue: totalAmount,
-					baseNetValue: netAmount,
+					value: totalAmountXRP,
+					netValue: netAmountXRP,
 					documentId: document._id,
 					documentType: documentType,
 					fee: platformFeeXRP,
 					receiver: creator._id,
 					note: note,
-					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD',
-					exchangeRate: usdToXrpRate
+					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD'
 				});
 
 				console.log('<< Create Payload');

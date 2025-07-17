@@ -9,7 +9,7 @@ import { RatesResponse } from 'xumm-sdk/dist/src/types';
 import { createPayload, readRates } from '../schemas/xumm';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { TransactionBuilder } from '$lib/documents/transaction';
-import { HydratedTransactionProperties, TransactionProperties } from '$lib/properties/transaction';
+import { HydratedTransactionProperties } from '$lib/properties/transaction';
 import { HydratedDocument } from 'mongoose';
 import { auth } from '../middleware/auth';
 
@@ -49,20 +49,29 @@ export const xumm = t.router({
 
 			console.log('<< create payload input');
 			console.log(input);
+
 			// get account of receiver or create one if not found
 			const account = await accountRepo.getByUserId(input.receiver, true);
 
+			// get the exchange rate
+			const rates = await xummSdk.getRates(account.currency!);
+			const accountCurrencyToXrpExchangeRate = rates.XRP;
+
 			console.log('<< account');
 			console.log(account);
+			console.log(rates);
+
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()
 				.accountId(account._id)
 				.receiverID(input.receiver)
 				.senderID(ctx.session!.user.id)
-				.exchangeRate(input.exchangeRate)
-				.currency(input.currency)
-				.baseValue(input.baseValue)
-				.baseNetValue(input.baseNetValue)
+				.exchangeRate(accountCurrencyToXrpExchangeRate)
+				.accountCurrency(account.currency!)
+				// It's XRP because we are using the XUMM API
+				.currency('XRP')
+				.value(input.value)
+				.netValue(input.netValue)
 				.documentId(input.documentId)
 				.documentType(input.documentType)
 				.fee(input.fee)

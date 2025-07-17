@@ -4,16 +4,24 @@ import { DocumentBuilder } from './documentBuilder';
 import type { AccountProperties } from '$lib/properties/account';
 import { Account } from '$lib/models/account';
 import type mongoose from 'mongoose';
+import { type CurrencyCode } from '$lib/util/types';
+import { currencies } from '$lib/util/constants';
 
 export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProperties>> {
 	private _sessionUserID?: string;
 	private readonly _accountProperties: AccountProperties;
 
-	constructor(id?: string) {
+	constructor(id?: string, currency?: CurrencyCode) {
 		super();
 		this._accountProperties = {
 			...{ _id: id ? id : ulid() },
-			...(id ? {} : { currency: 'USD', currencyScale: 2, balance: 0 })
+			...(id
+				? {}
+				: {
+						currency: currency ?? 'XRP',
+						currencyScale: currency ? currencies[currency].scale : currencies['XRP'].scale,
+						balance: 0
+				  })
 		};
 	}
 
@@ -22,7 +30,7 @@ export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProp
 		return this;
 	}
 
-	currency(currency: string): AccountBuilder {
+	currency(currency: CurrencyCode): AccountBuilder {
 		this._accountProperties.currency = currency;
 		return this;
 	}

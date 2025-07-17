@@ -26,12 +26,12 @@ function mockXummSdk() {
 				getRates: vi.fn(() =>
 					Promise.resolve({
 						USD: 1,
-						XRP: 2,
+						XRP: 1,
 						__meta: {
 							currency: {
-								en: 'US Dollar',
-								code: 'USD',
-								symbol: '$',
+								en: 'XRP',
+								code: 'XRP',
+								symbol: 'XRP',
 								isoDecimals: 4
 							}
 						}
@@ -86,15 +86,14 @@ describe('transactions', () => {
 		const transaction = (
 			await caller.xumm.payload({
 				transactionType: 'Payment',
-				baseValue: 1.03,
-				baseNetValue: 1,
+				value: 1.03,
+				netValue: 1,
 				documentType: 'Chapter',
 				documentId: '1',
 				receiver: writer._id,
 				note: 'great work!',
 				fee: 0.03,
-				currency: 'XRP',
-				exchangeRate: 1
+				currency: 'XRP'
 			})
 		).data;
 
@@ -112,7 +111,7 @@ describe('transactions', () => {
 			})
 		).data;
 
-		expect(account.currency).toEqual('USD');
+		expect(account.currency).toEqual('XRP');
 		expect(account.balance).toEqual(0);
 	});
 
@@ -129,15 +128,14 @@ describe('transactions', () => {
 		// create payload
 		await caller.xumm.payload({
 			transactionType: 'Payment',
-			baseValue: 1.03,
-			baseNetValue: 1,
+			value: 1.03,
+			netValue: 1,
 			documentType: 'Chapter',
 			documentId: '1',
 			receiver: writer._id,
 			note: 'great work!',
 			fee: 0.03,
-			currency: 'XRP',
-			exchangeRate: 2
+			currency: 'XRP'
 		});
 
 		// call the xaman transaction webhook
@@ -203,15 +201,14 @@ describe('transactions', () => {
 		// create payload
 		await caller.xumm.payload({
 			transactionType: 'Payment',
-			baseValue: 1.03,
-			baseNetValue: 1,
+			value: 1.03,
+			netValue: 1,
 			documentType: 'Chapter',
 			documentId: '1',
 			receiver: writer._id,
 			note: 'great work!',
 			fee: 0.03,
-			currency: 'XRP',
-			exchangeRate: 2
+			currency: 'XRP'
 		});
 
 		// call the xaman transaction webhook

@@ -49,6 +49,9 @@ export const transactions = t.router({
 		const webhookBody: XummWebhookBody = input as XummWebhookBody;
 		const payloadResponse = webhookBody.payloadResponse;
 
+		console.log('<< payload response');
+		console.log(payloadResponse);
+
 		// get the transaction
 		const transaction = await transactionsRepo.getByPayloadId(payloadResponse.payload_uuidv4);
 

@@ -33,7 +33,7 @@
 	$: usdToXrpRate = 0; // Mock XRP to USD rate
 
 	// Reactive calculations
-	$: xrpAmount = withdrawalAmount
+	$: usdAmount = withdrawalAmount
 		? (parseFloat(withdrawalAmount) / usdToXrpRate).toFixed(6)
 		: '0.000000';
 	$: isValidAddress = validateXRPAddress(xrpAddress);
@@ -92,7 +92,9 @@
 		if (withdrawalAmount && (isNaN(amount) || amount <= 0)) {
 			amountError = 'Please enter a valid amount';
 		} else if (amount > (account.balance ?? 0)) {
-			amountError = `Amount exceeds available balance ($${(account.balance ?? 0).toFixed(2)})`;
+			amountError = `Amount exceeds available balance (${(account.balance ?? 0).toFixed(
+				account.currencyScale
+			)})`;
 		} else {
 			amountError = '';
 		}
@@ -153,9 +155,12 @@
 					<span class="text-sm font-medium">Available Balance</span>
 				</div>
 				<div class="text-right">
-					<div class="text-2xl font-bold">${(account.balance ?? 0).toFixed(2)}</div>
+					<div class="text-2xl font-bold">
+						{account.currency}
+						{(account.balance ?? 0).toFixed(account.currencyScale)}
+					</div>
 					<div class="text-sm">
-						≈ {((account.balance ?? 0) / usdToXrpRate).toFixed(2)} XRP
+						≈ {((account.balance ?? 0) / usdToXrpRate).toFixed(2)} USD
 					</div>
 				</div>
 			</div>
@@ -180,7 +185,10 @@
 						Withdrawal Submitted!
 					</h2>
 					<p class="mb-4">
-						Your withdrawal of <span class="chip text-md variant-soft-primary">{xrpAmount}</span> XRP
+						Your withdrawal of <span class="chip text-md variant-soft-primary"
+							>{account.balance}</span
+						>
+						{account.currency}
 						has been submitted for processing.
 					</p>
 					<div class=" rounded-lg p-3 mb-4">
@@ -258,10 +266,12 @@
 					<!-- Amount Field -->
 					<div class="mb-6">
 						<label for="amount" class="block text-sm font-medium mb-2">
-							Withdrawal Amount (USD) *
+							Withdrawal Amount ({account.currency}) *
 						</label>
 						<div class="relative">
-							<span class="absolute left-3 top-1/2 transform -translate-y-1/2 font-medium">$</span>
+							<span class="absolute left-3 top-1/2 transform -translate-y-1/2 font-medium"
+								>{account.currency}</span
+							>
 							<input
 								disabled
 								id="amount"
@@ -272,7 +282,7 @@
 								min="0"
 								max={account.balance ?? 0}
 								step="0.01"
-								class="input w-full pl-8 pr-20 py-2 border-1 focus:outline-none transition-colors
+								class="input w-full pl-12 pr-20 py-2 border-1 focus:outline-none transition-colors
 							{amountError ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'}"
 							/>
 							<button
@@ -296,12 +306,12 @@
 							<h3 class="font-medium mb-3">You will receive:</h3>
 							<div class="space-y-2">
 								<div class="flex justify-between items-center">
-									<span class="">XRP Amount:</span>
-									<span class="font-bold text-lg">{xrpAmount} XRP</span>
+									<span class="">{account.currency} Amount:</span>
+									<span class="font-bold text-lg">{account.balance} {account.currency}</span>
 								</div>
 								<div class="flex justify-between items-center text-sm">
-									<span class="">Exchange Rate:</span>
-									<span class="">1 XRP = ${usdToXrpRate.toFixed(4)} USD</span>
+									<span class="">USD Amount:</span>
+									<span class="">≈ {((account.balance ?? 0) / usdToXrpRate).toFixed(2)} USD</span>
 								</div>
 							</div>
 						</div>
@@ -330,7 +340,7 @@
 						{:else if !isValidAmount}
 							Invalid amount
 						{:else}
-							Withdraw {xrpAmount} XRP
+							Withdraw {usdAmount} XRP
 						{/if}
 					</button>
 				</fieldset>
