@@ -1,5 +1,5 @@
 {
-	"name": "axone-mvp",
+	"name": "axone",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
@@ -84,6 +84,9 @@
 		"trpc-svelte-query-adapter": "^2.2.2",
 		"trpc-sveltekit": "^3.5.22",
 		"ulid": "^2.3.0",
+		"xrpl": "^4.3.0",
+		"xumm": "^1.8.0",
+		"xumm-sdk": "^1.11.2",
 		"zod": "^3.22.4"
 	}
 }

@@ -12,23 +12,23 @@ concurrency:
 env:
   MONGO_PASSWORD: ''
   MONGO_USER: ''
-  MONGO_URL: 'mongodb://localhost:27017'
-  MONGO_DB: 'axone-books-test'
+  MONGO_URL: mongodb://localhost:27017
+  MONGO_DB: axone-books-test
 
   VERSION_OP_LENGTH: '500'
   PUBLIC_PLATFORM_FEES: '0.03'
-  
+
   NOVU_API_KEY: ''
   PUBLIC_NOVU_APP_ID: ''
-  
+
   PUBLIC_SUPABASE_URL: ''
   PUBLIC_SUPABASE_ANON_KEY: ''
   SUPABASE_SERVICE_ROLE_KEY: ''
-  
+
   PUBLIC_ADOBE_CCEVERYWHERE_CLIENTID: ''
-  
-  OPENAI_API_KEYS: '[""]'
-  
+
+  OPENAI_API_KEYS: ''
+
   XUMM_APIKEY: ''
   XUMM_APISECRET: ''
   AXONE_XRPL_ADDRESS: 'rPVcVvFkTdvhQ1w5he9VN9BhtP4qfsFHdP'

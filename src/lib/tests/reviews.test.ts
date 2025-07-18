@@ -2,12 +2,12 @@ import { RATING } from '$lib/properties/review';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import { router } from '$lib/trpc/router';
 import {
-	connectTestDatabase,
+	connectDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
 	createBook,
-	generateTestUser,
+	generateUserSessionData,
 	createReview,
 	getRandomElement,
 	getRandomKey
@@ -16,13 +16,13 @@ import type { Session } from '@supabase/supabase-js';
 import { format } from 'date-fns';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('reviews', async () => {
-	const testUserOneSession = createTestSession(generateTestUser());
-	const testUserTwoSession = createTestSession(generateTestUser());
-	const testUserThreeSession = createTestSession(generateTestUser());
+	const testUserOneSession = createTestSession(generateUserSessionData());
+	const testUserTwoSession = createTestSession(generateUserSessionData());
+	const testUserThreeSession = createTestSession(generateUserSessionData());
 	const caller1 = router.createCaller({ session: testUserOneSession });
 	const caller2 = router.createCaller({ session: testUserTwoSession });
 	const caller3 = router.createCaller({ session: testUserThreeSession });
@@ -168,7 +168,7 @@ describe('reviews', async () => {
 
 		// create new users and have each randomly review main or new storyline
 		for (let i = 0; i < numReviewers; i++) {
-			const session = createTestSession(generateTestUser());
+			const session = createTestSession(generateUserSessionData());
 			await createDBUser(session);
 
 			const rating = getRandomElement(RATING);
@@ -379,7 +379,7 @@ describe('reviews', async () => {
 
 		// create users and randomly review a storyline
 		for (let i = 0; i < numReviews; i++) {
-			const session = createTestSession(generateTestUser());
+			const session = createTestSession(generateUserSessionData());
 			await createDBUser(session);
 
 			const rating = getRandomElement(RATING);
@@ -406,7 +406,7 @@ describe('reviews', async () => {
 
 		// create users and record them
 		for (let i = 0; i < numReviewers; i++) {
-			const session = createTestSession(generateTestUser());
+			const session = createTestSession(generateUserSessionData());
 			await createDBUser(session);
 			reviewers.push(session);
 			reviews[session.user.id] = 0;
@@ -447,7 +447,7 @@ describe('reviews', async () => {
 
 		// create new users and review the storyline with a random rating
 		for (let i = 0; i < 10; i++) {
-			const session = createTestSession(generateTestUser());
+			const session = createTestSession(generateUserSessionData());
 			await createDBUser(session);
 
 			const rating = getRandomElement(RATING);
@@ -485,7 +485,7 @@ describe('reviews', async () => {
 
 		// create users and give random rating to storyline
 		for (let i = 0; i < numReviews; i++) {
-			const session = createTestSession(generateTestUser());
+			const session = createTestSession(generateUserSessionData());
 			await createDBUser(session);
 
 			const rating = getRandomElement(RATING);

@@ -2,13 +2,14 @@
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import { GENRES, type Genre } from '$lib/properties/genre';
-	import { HOME_FILTER_TAGS, type HomeFilterTag } from '$lib/util/types';
+	import { type HomeFilterTag } from '$lib/util/types';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import Tutorial from './tutorial.svelte';
 	import DocumentsInfiniteScroll from '$lib/components/documents/DocumentsInfiniteScroll.svelte';
 	import type { PageData } from './$types';
 	import { setupTour } from '../editor/[bookID]/tutorial';
+	import { homeFilterTags } from '$lib/util/constants';
 
 	export let data: PageData;
 	export let { user } = data;
@@ -118,7 +119,7 @@
 
 				<div id="filters" class="!max-h-[150px] overflow-y-auto space-y-2">
 					<div class="flex flex-wrap gap-2">
-						{#each HOME_FILTER_TAGS as tag}
+						{#each homeFilterTags as tag}
 							<button
 								class="chip rounded-full {tags.includes(tag)
 									? 'variant-filled-primary'

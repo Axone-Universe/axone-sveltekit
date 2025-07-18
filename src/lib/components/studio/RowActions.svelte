@@ -2,15 +2,16 @@
 	import type { BookProperties } from '$lib/properties/book';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import type { StorylineProperties } from '$lib/properties/storyline';
+	import { type TransactionProperties } from '$lib/properties/transaction';
 	import type { RowAction } from '$lib/util/types';
-	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
-	import { id } from 'date-fns/locale';
+	import { popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { ellipsisV, pencil } from 'svelte-awesome/icons';
+	import { ellipsisV } from 'svelte-awesome/icons';
 
 	export let rowActions: RowAction[] = [];
 	export let document:
+		| HydratedDocument<TransactionProperties>
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>
 		| HydratedDocument<StorylineProperties>;

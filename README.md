@@ -110,11 +110,28 @@ console.log('\n');
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# use the --host flag to give the app an IP on your router's network
+# this is needed by localtunnel
+pnpm run dev --host
 ```
+
+> NOTE: by default, the app will start on https://localhost. This is because it is needed when testing the `adobe express` book-cover creator
+
+> NOTE: you can change this by editing the `vite.config.ts` file to `https:false`
+
+### Webhooks
+
+Xaman sends a callback to our webhooks after transaction events.
+
+- To enable this for development mode run localtunnel using this command;
+
+```bash
+lt --port 5173 --subdomain axone
+```
+
+> NOTE: when using localtunnel make sure that your dev app is running on http://localhost not https://localhost
+
+> NOTE: you can change this by editing the `vite.config.ts` file to `https:false`
 
 ## Building
 
