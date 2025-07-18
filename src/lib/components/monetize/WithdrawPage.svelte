@@ -142,13 +142,12 @@
 
 <Section class="{customClass} min-h-screen py-8 px-4 w-modal">
 	<div class="max-w-md mx-auto">
-		<!-- Header -->
-		<div class="flex items-center mb-6">
-			<h1 class="text-xl font-semibold ml-3">Withdraw Funds</h1>
-		</div>
-
 		<!-- Balance Card -->
 		<div class="card shadow-lg p-6 mb-6">
+			<div class="w-full flex flex-col items-center mb-6">
+				<h1 class="text-xl font-semibold ml-3">Withdraw Funds</h1>
+			</div>
+
 			<div class="flex items-center justify-between mb-4">
 				<div class="flex items-center">
 					<Icon class="w-8 h-8 text-primary-600-300-token mr-2" data={creditCardAlt} scale={2} />

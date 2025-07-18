@@ -12,6 +12,7 @@
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
 	import { type TransactionProperties } from '$lib/properties/transaction';
+	import Tooltip from '../Tooltip.svelte';
 
 	/** props */
 	export let documentType: PermissionedDocument;
@@ -148,10 +149,12 @@
 				<Avatar src={creator.imageURL} width="w-20" rounded="rounded-full" />
 				<div>
 					<h1 class="text-2xl font-bold">{creator.firstName} {creator.lastName}</h1>
-					<p class="">Science Fiction Author</p>
-					<div class="flex items-center mt-2">
-						<Icon class="w-5 h-5 text-red-500 mr-2" data={heartO} scale={1.2} />
-						<span class="text-sm">1,234 supporters</span>
+					<div class="my-2 flex space-x-2">
+						{#if creator.labels}
+							{#each creator.labels as label}
+								<div class="chip variant-filled">{label}</div>
+							{/each}
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -216,21 +219,28 @@
 			<!-- Payment Method Selection -->
 			<div class="mb-6">
 				<label for="paymentMethod" class="block text-sm font-mediummb-3"> Payment Method </label>
-				<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-2">
 					{#each paymentMethods as method}
-						<button
-							id="paymentMethod"
+						<Tooltip
 							on:click={() => selectPaymentMethod(method)}
-							class="btn variant-ghost flex items-center justify-center px-2 py-2
-						{selectedPaymentMethod === method ? '!bg-surface-50-900-token' : ''}"
+							content={method !== 'xaman' ? 'coming soon' : 'pay with XRP'}
+							placement="top"
+							target="{method}-btn"
 						>
-							<Icon
-								class="w-5 h-5 mr-2"
-								data={method === 'xaman' ? bitcoin : method === 'visa' ? ccVisa : ccMastercard}
-								scale={1.2}
-							/>
-							<span class="font-medium">{method}</span>
-						</button>
+							<button
+								disabled={method !== 'xaman'}
+								id="{method}-btn"
+								class="btn w-full variant-ghost flex items-center justify-center px-2 py-2
+						{selectedPaymentMethod === method ? '!bg-surface-50-900-token' : ''}"
+							>
+								<Icon
+									class="w-5 h-5 mr-2"
+									data={method === 'xaman' ? bitcoin : method === 'visa' ? ccVisa : ccMastercard}
+									scale={1.2}
+								/>
+								<span class="font-medium">{method}</span>
+							</button>
+						</Tooltip>
 					{/each}
 				</div>
 			</div>
