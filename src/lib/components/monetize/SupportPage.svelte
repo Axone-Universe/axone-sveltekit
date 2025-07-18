@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { type PermissionedDocument } from '$lib/properties/permission';
 	import { type PaymentMethod } from '$lib/util/types';
-	import { Avatar, getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import { PUBLIC_PLATFORM_FEES } from '$env/static/public';
+	import { Avatar } from '@skeletonlabs/skeleton';
 	import { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { heartO, ccMastercard, ccVisa, bitcoin } from 'svelte-awesome/icons';
@@ -47,7 +48,7 @@
 	const presetAmounts = [1, 2, 3, 5, 8];
 
 	// Platform fee rate (3%)
-	const feeRate = 0.03;
+	const feeRate = Number(PUBLIC_PLATFORM_FEES);
 
 	// Reactive statements for derived values
 	$: netAmount = selectedAmount || parseFloat(customAmount) || 0;
@@ -59,7 +60,7 @@
 	// xrp values
 	$: usdToXrpRate = 0;
 	$: totalAmountXRP = Number((usdToXrpRate * totalAmount).toFixed(6));
-	$: netAmountXRP = Number((totalAmountXRP - platformFeeXRP).toFixed(6));
+	$: netAmountXRP = Number((usdToXrpRate * netAmount).toFixed(6));
 	$: platformFeeXRP = Number((usdToXrpRate * platformFee).toFixed(6));
 
 	// Functions
@@ -101,11 +102,9 @@
 			if (selectedPaymentMethod === 'xaman') {
 				const response = await trpc($page).xumm.payload.query({
 					transactionType: 'Payment',
-					value: totalAmountXRP,
 					netValue: netAmountXRP,
 					documentId: document._id,
 					documentType: documentType,
-					fee: platformFeeXRP,
 					receiver: creator._id,
 					note: note,
 					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD'
@@ -260,7 +259,7 @@
 							>
 						</div>
 						<div class="flex justify-between">
-							<span>Platform fee (3%):</span>
+							<span>Platform fee ({feeRate * 100}%):</span>
 							<span class="font-medium"
 								>{selectedPaymentMethod === 'xaman'
 									? `XRP ${platformFeeXRP.toFixed(6)}`

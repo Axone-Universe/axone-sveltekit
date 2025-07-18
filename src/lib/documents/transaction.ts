@@ -92,6 +92,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		this._transactionProperties.baseValue = Number(
 			(value / this._transactionProperties.exchangeRate!).toFixed(currencyScale)
 		);
+
 		return this;
 	}
 
@@ -102,6 +103,9 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		this._transactionProperties.baseNetValue = Number(
 			(netValue / this._transactionProperties.exchangeRate!).toFixed(currencyScale)
 		);
+
+		// update value based on the fees
+		this.value(netValue + (this._transactionProperties.fee ?? 0));
 		return this;
 	}
 

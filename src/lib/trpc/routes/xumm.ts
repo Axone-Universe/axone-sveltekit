@@ -2,6 +2,7 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import type { Response } from '$lib/util/types';
 import { AXONE_XRPL_ADDRESS } from '$env/static/private';
+import { PUBLIC_PLATFORM_FEES } from '$env/static/public';
 import { type Payment, xrpToDrops } from 'xrpl';
 import { xummSdk } from '$lib/services/xumm';
 
@@ -12,6 +13,7 @@ import { TransactionBuilder } from '$lib/documents/transaction';
 import { HydratedTransactionProperties } from '$lib/properties/transaction';
 import { HydratedDocument } from 'mongoose';
 import { auth } from '../middleware/auth';
+import { currencies } from '$lib/util/constants';
 
 export const xumm = t.router({
 	getRates: t.procedure
@@ -57,9 +59,12 @@ export const xumm = t.router({
 			const rates = await xummSdk.getRates(account.currency!);
 			const accountCurrencyToXrpExchangeRate = rates.XRP;
 
+			// calculate the fees
+			const currencyScale = currencies[input.currency].scale;
+			const fees = (input.netValue * Number(PUBLIC_PLATFORM_FEES)).toFixed(currencyScale);
+
 			console.log('<< account');
 			console.log(account);
-			console.log(rates);
 
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()
@@ -70,11 +75,10 @@ export const xumm = t.router({
 				.accountCurrency(account.currency!)
 				// It's XRP because we are using the XUMM API
 				.currency('XRP')
-				.value(input.value)
+				.fee(Number(fees))
 				.netValue(input.netValue)
 				.documentId(input.documentId)
 				.documentType(input.documentType)
-				.fee(input.fee)
 				.note(input.note)
 				.type(input.transactionType)
 				.xrplType('Payment');

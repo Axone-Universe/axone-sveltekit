@@ -86,13 +86,11 @@ describe('transactions', () => {
 		const transaction = (
 			await caller.xumm.payload({
 				transactionType: 'Payment',
-				value: 1.03,
 				netValue: 1,
 				documentType: 'Chapter',
 				documentId: '1',
 				receiver: writer._id,
 				note: 'great work!',
-				fee: 0.03,
 				currency: 'XRP'
 			})
 		).data;
@@ -103,6 +101,8 @@ describe('transactions', () => {
 		expect(transaction.payload?.uuid).toEqual(payload_uuid);
 		expect(transaction.sender?._id).toEqual(reader._id);
 		expect(transaction.receiver?._id).toEqual(writer._id);
+		expect(transaction.netValue).toEqual(1);
+		expect(transaction.fee).toEqual(0.03);
 
 		// confirm an account has been created
 		const account = (
@@ -128,13 +128,11 @@ describe('transactions', () => {
 		// create payload
 		await caller.xumm.payload({
 			transactionType: 'Payment',
-			value: 1.03,
 			netValue: 1,
 			documentType: 'Chapter',
 			documentId: '1',
 			receiver: writer._id,
 			note: 'great work!',
-			fee: 0.03,
 			currency: 'XRP'
 		});
 
@@ -201,13 +199,11 @@ describe('transactions', () => {
 		// create payload
 		await caller.xumm.payload({
 			transactionType: 'Payment',
-			value: 1.03,
 			netValue: 1,
 			documentType: 'Chapter',
 			documentId: '1',
 			receiver: writer._id,
 			note: 'great work!',
-			fee: 0.03,
 			currency: 'XRP'
 		});
 
