@@ -1,5 +1,4 @@
 import { router } from '$lib/trpc/router';
-import { xummSdk } from '$lib/services/xumm';
 import {
 	cleanUpDatabase,
 	connectDatabase,
@@ -7,7 +6,7 @@ import {
 	createTestSession,
 	generateUserSessionData
 } from '$lib/util/testing/testing';
-import { TEST_DATA_USER_EMAIL } from '$env/static/private';
+import { AXONE_ADMIN_EMAIL } from '$env/static/private';
 
 const payload_uuid_1 = '854ef029-72ec-4031-99c0-e4af42250c71';
 const payload_uuid_2 = '854ef029-72ec-4031-99c0-e4af42250c72';
@@ -70,7 +69,7 @@ describe('transactions', () => {
 
 		// create admin user
 		const adminUserSession = createTestSession(generateUserSessionData());
-		adminUserSession.user.email = TEST_DATA_USER_EMAIL;
+		adminUserSession.user.email = AXONE_ADMIN_EMAIL;
 		await createDBUser(adminUserSession);
 	});
 
