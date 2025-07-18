@@ -138,7 +138,7 @@ export const chapters = t.router({
 				const result = await chapterBuilder.update();
 
 				if (input.notifications) {
-					await sendUserNotifications(ctx.session, input.notifications);
+					await sendUserNotifications(input.notifications);
 				}
 
 				response.data = result;
@@ -202,7 +202,7 @@ export const chapters = t.router({
 				const result = await chapterBuilder.build();
 
 				if (input.notifications) {
-					await sendUserNotifications(ctx.session, input.notifications);
+					await sendUserNotifications(input.notifications);
 				}
 
 				// sendTopicNotification({
@@ -264,7 +264,7 @@ export const chapters = t.router({
 				response.data = result.comments?.at(0);
 
 				if (input.notifications) {
-					await sendUserNotifications(ctx.session, input.notifications);
+					await sendUserNotifications(input.notifications);
 				}
 			} catch (error) {
 				response.success = false;

@@ -1,18 +1,17 @@
 import type { UserProperties } from '$lib/properties/user';
 import { router } from '$lib/trpc/router';
 import {
-	connectTestDatabase,
+	connectDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	testUserOne,
-	testUserTwo,
 	createBook,
-	createChapter
+	createChapter,
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('chapters', () => {
@@ -25,7 +24,7 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const chapter2Title = 'Chapter 2';
 
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 		const user = await createDBUser(testUserOneSession);
 
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -101,7 +100,7 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
 
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -134,8 +133,8 @@ describe('chapters', () => {
 
 	test('delete chapters', async () => {
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
-		const testUserTwoSession = createTestSession(testUserTwo);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		await createDBUser(testUserTwoSession);
@@ -243,7 +242,7 @@ describe('chapters', () => {
 	});
 
 	test('updating archived status', async () => {
-		const session = createTestSession(testUserOne);
+		const session = createTestSession(generateUserSessionData());
 		await createDBUser(session);
 		const book = await createBook(session);
 
@@ -323,7 +322,7 @@ describe('chapters', () => {
 		const testBookTitle = 'My Book';
 		const chapter1Title = 'Chapter 1';
 
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 		const user = await createDBUser(testUserOneSession);
 
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);

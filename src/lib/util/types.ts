@@ -1,7 +1,15 @@
 import type { Bucket, FileObject, StorageError as SupabasStorageError } from '@supabase/storage-js';
 import type { IconData } from 'svelte-awesome/components/Icon.svelte';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { NotificationTypes } from './constants';
+import {
+	currencyCodes,
+	homeFilterTags,
+	notificationTypes,
+	paymentMethods,
+	transactionStatuses,
+	transactionTypes,
+	xrplTransactionTypes
+} from './constants';
 
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
@@ -34,14 +42,7 @@ export type Response = {
 	cursor?: number | undefined;
 };
 
-export const HOME_FILTER_TAGS = [
-	'Newest',
-	'Recommended',
-	'Campaigns',
-	'Books',
-	'Past 30 Days'
-] as const;
-export type HomeFilterTag = (typeof HOME_FILTER_TAGS)[number];
+export type HomeFilterTag = (typeof homeFilterTags)[number];
 
 export type StorageError =
 	| { data: { path: string }; error: null }
@@ -62,4 +63,17 @@ export interface UploadFileToBucketParams {
 	newFileName: string | undefined;
 }
 
-export type NotificationType = (typeof NotificationTypes)[number];
+export type NotificationType = (typeof notificationTypes)[number];
+
+export type PaymentMethod = (typeof paymentMethods)[number];
+
+// These are the types we support currently. We are not using all the types from the lib
+export type XrplTransactionType = (typeof xrplTransactionTypes)[number];
+
+export type TransactionType = (typeof transactionTypes)[number];
+
+export type TransactionStatus = (typeof transactionStatuses)[number];
+
+export type CurrencyCode = (typeof currencyCodes)[number];
+
+export type Currency = { code: string; scale: number; symbol: string };

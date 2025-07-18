@@ -17,6 +17,14 @@ export class UsersRepository extends Repository {
 		return await query;
 	}
 
+	async getByEmail(
+		session: Session | null,
+		email?: string
+	): Promise<HydratedDocument<UserProperties> | null> {
+		const query = User.findOne({ email: email });
+		return await query;
+	}
+
 	async getByIds(
 		session: Session | null,
 		ids?: string[]

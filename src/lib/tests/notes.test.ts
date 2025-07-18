@@ -1,16 +1,16 @@
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
-	connectTestDatabase,
+	connectDatabase,
 	createDBUser,
 	createBook,
 	createTestSession,
-	testUserOne,
-	createChapter
+	createChapter,
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('notes', () => {
@@ -21,7 +21,7 @@ describe('notes', () => {
 	test('update notes', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -66,7 +66,7 @@ describe('notes', () => {
 	test('delete notes', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);

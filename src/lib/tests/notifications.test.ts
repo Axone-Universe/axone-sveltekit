@@ -3,18 +3,17 @@ import { vi, expect, describe } from 'vitest';
 import * as novu from '$lib/util/notifications/novu';
 import {
 	cleanUpDatabase,
-	connectTestDatabase,
+	connectDatabase,
 	createDBUser,
 	createBook,
 	createTestSession,
-	testUserOne,
-	testUserTwo
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 import type { UserNotificationProperties } from '$lib/properties/notification';
 import { NotificationType } from '$lib/util/types';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('notifications', () => {
@@ -27,7 +26,8 @@ describe('notifications', () => {
 
 		const testBookTitle = 'My Book';
 
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserTwoSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -44,13 +44,13 @@ describe('notifications', () => {
 		const notification = {
 			url: 'url',
 			type: 'USER' as NotificationType,
-			senderID: testUserOne.id,
-			receiverID: testUserTwo.id,
+			senderID: testUserOneSession.user.id,
+			receiverID: testUserTwoSession.user.id,
 			notification: 'test notification',
 			subject: 'test notification'
 		};
 
-		notifications[testUserTwo.id] = notification;
+		notifications[testUserTwoSession.user.id] = notification;
 
 		await caller.storylines.update({
 			id: storylines[0]._id,

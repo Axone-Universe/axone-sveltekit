@@ -338,10 +338,7 @@
 										target="create-campaign-btn"
 									>
 										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
-											<span class="-mr-1"><Icon data={edit} /></span>
-											<span>
-												<Icon data={plus} />
-											</span>
+											<span class="px-2"><Icon data={edit} /></span>
 										</button>
 									</Tooltip>
 								{:else}
@@ -352,14 +349,10 @@
 										target="create-book-btn"
 									>
 										<button id="create-btn" type="button" class="btn btn-sm variant-filled-primary">
-											<span class="-mr-1"><Icon data={book} /></span>
-											<span>
-												<Icon data={plus} />
-											</span>
+											<span class="px-2"><Icon data={book} /></span>
 										</button>
 									</Tooltip>
 								{/if}
-
 								<span class="divider-vertical h-6 mx-0" />
 								<ArchiveSelectedButton
 									selected={selectedBooks}

@@ -11,7 +11,7 @@
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { caretDown, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
+	import { caretDown, dollar, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 	import { goto } from '$app/navigation';
@@ -177,27 +177,38 @@
 								<div class="grid grid-cols-1">
 									<a
 										id="profile-btn"
-										class="btn space-x-6 hover:variant-soft-primary"
+										class="btn space-x-6 hover:variant-soft-primary justify-between"
 										href={`/profile/${data.session.user.id}`}
 									>
 										<Icon data={user} />
 										<span>Profile</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
-									<a class="btn space-x-6 hover:variant-soft-primary" href={`/library`}>
+									<a
+										class="btn space-x-6 hover:variant-soft-primary justify-between"
+										href={`/library`}
+									>
 										<Icon data={listUl} /><span>Library</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
 									<a
-										class="btn space-x-6 hover:variant-soft-primary"
+										class="btn space-x-6 hover:variant-soft-primary justify-between"
 										href={`/studio/books?campaigns=true`}
 									>
 										<Icon data={pencil} />
 										<span>Studio</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
+									<a
+										class="btn space-x-6 hover:variant-soft-primary justify-between"
+										href={`/monetize/earnings`}
+									>
+										<Icon data={dollar} />
+										<span>Monetize</span>
+									</a>
+									<hr class="!my-2 variant-fill-primary" />
 									<button
-										class="btn space-x-6 hover:variant-soft-primary"
+										class="btn space-x-6 hover:variant-soft-primary justify-between"
 										on:click={onLogoutButtonClick}
 										><Icon data={powerOff} />
 										<span>Logout</span>

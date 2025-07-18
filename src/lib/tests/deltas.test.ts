@@ -1,16 +1,16 @@
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
-	connectTestDatabase,
+	connectDatabase,
 	createDBUser,
 	createBook,
 	createTestSession,
-	testUserOne,
-	createChapter
+	createChapter,
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('deltas', () => {
@@ -21,7 +21,7 @@ describe('deltas', () => {
 	test('update deltas', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -62,7 +62,7 @@ describe('deltas', () => {
 	test('version history', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
@@ -146,7 +146,7 @@ describe('deltas', () => {
 	test('restore version', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';
-		const testUserOneSession = createTestSession(testUserOne);
+		const testUserOneSession = createTestSession(generateUserSessionData());
 
 		await createDBUser(testUserOneSession);
 		const bookResponse = await createBook(testUserOneSession, testBookTitle);
