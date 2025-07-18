@@ -76,7 +76,7 @@ export const accounts = t.router({
 			const account = await accountsRepo.getById(ctx.session, input.id!);
 
 			// get the exchange rate
-			const rates = await xummSdk.getRates(account.currency!);
+			const rates = await xummSdk!.getRates(account.currency!);
 			const exchangeRate = rates.XRP;
 
 			// get the axone admin user
@@ -116,7 +116,7 @@ export const accounts = t.router({
 				console.log('<< xrp transaction');
 				console.log(xrpTransaction);
 
-				const payload = await xummSdk.payload.create(xrpTransaction);
+				const payload = await xummSdk!.payload.create(xrpTransaction);
 
 				console.log('<< payload ');
 				console.log(payload);

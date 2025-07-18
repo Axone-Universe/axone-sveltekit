@@ -1,5 +1,4 @@
-import { XUMM_APIKEY } from '$env/static/private';
-import { XUMM_APISECRET } from '$env/static/private';
+import { XUMM_APIKEY, XUMM_APISECRET } from '$env/static/private';
 import { SdkTypes, XummSdk } from 'xumm-sdk';
 
 export class CustomXummSdk extends XummSdk {
@@ -19,4 +18,5 @@ export class CustomXummSdk extends XummSdk {
 	}
 }
 
-export const xummSdk = new CustomXummSdk(XUMM_APIKEY, XUMM_APISECRET);
+export const xummSdk =
+	process.env.NODE_ENV === 'test' ? undefined : new CustomXummSdk(XUMM_APIKEY, XUMM_APISECRET);
