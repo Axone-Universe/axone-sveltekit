@@ -1,13 +1,15 @@
 <script lang="ts">
-	import type { Illustration } from '$lib/util/editor/quill';
+	import { type ResourceProperties } from '$lib/properties/resource';
+	import type { Resource } from '$lib/util/editor/quill';
 	import { FileButton, getModalStore } from '@skeletonlabs/skeleton';
+	import { type HydratedDocument } from 'mongoose';
 
-	export let illustration: Illustration;
-	export let uploadClick: (file: File, illustration: Illustration) => void;
+	export let resource: HydratedDocument<ResourceProperties>;
+	export let uploadClick: (file: File, resource: HydratedDocument<ResourceProperties>) => void;
 
 	const modalStore = getModalStore();
 	/**
-	 * Change the image of the illustration to the one selected by the user
+	 * Change the image of the resource to the one selected by the user
 	 * Calls the uploadClick function to upload the image to Supabase
 	 * @param event
 	 */
@@ -28,7 +30,7 @@
 		};
 		reader.readAsDataURL(file);
 
-		uploadClick(file, illustration);
+		uploadClick(file, resource);
 	}
 </script>
 
@@ -37,8 +39,8 @@
 		<img
 			id="modal-image"
 			class="rounded-lg max-w-[100%] max-h-[100%]"
-			src={illustration?.illustration?.src || ''}
-			alt={illustration?.illustration?.alt || illustration?.illustration?.src || ''}
+			src={resource?.src || ''}
+			alt={resource?.alt || resource?.src || ''}
 		/>
 	</main>
 	<footer class="flex flex-row-reverse">
@@ -47,7 +49,7 @@
 		</button>
 		<FileButton
 			type="file"
-			name={illustration.id}
+			name={resource._id}
 			accept="image/png, image/jpeg, image/gif, image/svg"
 			button="btn-icon btn-sm variant-ringed-primary"
 			on:change={changeImage}

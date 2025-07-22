@@ -6,6 +6,7 @@ import {
 	homeFilterTags,
 	notificationTypes,
 	paymentMethods,
+	resourceTypes,
 	transactionStatuses,
 	transactionTypes,
 	xrplTransactionTypes
@@ -77,3 +78,5 @@ export type TransactionStatus = (typeof transactionStatuses)[number];
 export type CurrencyCode = (typeof currencyCodes)[number];
 
 export type Currency = { code: string; scale: number; symbol: string };
+
+export type ResourceType = (typeof resourceTypes)[number];

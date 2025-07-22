@@ -100,7 +100,7 @@
 			<QLComments />
 		</button>
 		<button type="button" class="ql-comments-toggle" />
-		<button type="button" class="ql-illustrations-add">
+		<button type="button" class="ql-resources-add">
 			<QLIllustrations />
 		</button>
 	</span>
