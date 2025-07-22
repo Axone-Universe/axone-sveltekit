@@ -97,3 +97,5 @@ export const currencies: Record<CurrencyCode, Currency> = {
 	XRP: { scale: 6, code: 'XRP', symbol: 'XRP' },
 	USD: { code: 'USD', symbol: '$', scale: 2 }
 };
+
+export const resourceTypes = ['image', 'video', 'audio', 'document'] as const;

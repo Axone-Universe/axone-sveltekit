@@ -2,7 +2,6 @@ import { label, type AccountProperties } from '$lib/properties/account';
 import { label as TransactionLabel } from '$lib/properties/transaction';
 import { label as UserLabel } from '$lib/properties/user';
 import mongoose, { Schema, model } from 'mongoose';
-import { addViewRestrictionPipeline } from './permission';
 
 export const accountSchema = new Schema<AccountProperties>({
 	_id: { type: String, required: true },
@@ -18,6 +17,7 @@ accountSchema.pre(['find', 'findOne'], function () {
 });
 
 accountSchema.pre('aggregate', function (next) {
+	// TODO: add permissions logic
 	next();
 });
 
