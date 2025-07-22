@@ -16,8 +16,8 @@
 	} from '@skeletonlabs/skeleton';
 	import { afterUpdate, onDestroy, onMount } from 'svelte';
 	import { trpc } from '$lib/trpc/client';
-	import type { Illustration } from '$lib/util/editor/quill';
-	import '$lib/util/editor/illustrations';
+	import type { Resource } from '$lib/util/editor/quill';
+	import '$lib/util/editor/resources';
 	import { savingDeltaWritable, QuillEditor } from '$lib/util/editor/quill';
 	import type { PageData } from './$types';
 	import type { HydratedDocument } from 'mongoose';
@@ -59,9 +59,9 @@
 		ChapterPropertyBuilder,
 		type CommentProperties
 	} from '$lib/properties/chapter';
-	import IllustrationModal from '$lib/components/chapter/IllustrationModal.svelte';
+	import ResourceModal from '$lib/components/chapter/ResourceModal.svelte';
 	import type { EditorMode, StorageFileError, UploadFileToBucketParams } from '$lib/util/types';
-	import type { IllustrationObject } from '$lib/util/editor/illustrations';
+	import type { ResourceObject } from '$lib/util/editor/resources';
 	import BookNav from '$lib/components/book/BookNav.svelte';
 	import EditorNav from '$lib/components/editor/EditorNav.svelte';
 	import type { UserProperties } from '$lib/properties/user';
@@ -80,6 +80,7 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { type UserNotificationProperties } from '$lib/properties/notification';
 	import { documentURL } from '$lib/util/links';
+	import { type ResourceProperties } from '$lib/properties/resource';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -147,18 +148,18 @@
 	 * Toast settings
 	 */
 	const successUploadToast: ToastSettings = {
-		message: 'Illustration has been uploaded successfully',
+		message: 'Resource has been uploaded successfully',
 		// Provide any utility or variant background style:
 		background: 'variant-filled-success'
 	};
 	const progressUploadToast: ToastSettings = {
-		message: 'Uploading illustration...',
+		message: 'Uploading resource...',
 		// Provide any utility or variant background style:
 		background: 'variant-filled-secondary',
 		autohide: false
 	};
 	const errorUploadToast: ToastSettings = {
-		message: 'There was an issue uploading the illustration',
+		message: 'There was an issue uploading the resource',
 		// Provide any utility or variant background style:
 		background: 'variant-filled-error'
 	};
@@ -376,7 +377,7 @@
 	};
 
 	/**
-	 * Deletes all illustrations from supabase storage for this chapter
+	 * Deletes all resources from supabase storage for this chapter
 	 * @param chapter
 	 */
 	function deleteChapterStorage(chapter: HydratedDocument<ChapterProperties>) {
@@ -406,7 +407,7 @@
 								console.log(response.error);
 								// show toast error
 								const errorUploadToast: ToastSettings = {
-									message: 'There was an issue deleting the illustrations',
+									message: 'There was an issue deleting the resources',
 									// Provide any utility or variant background style:
 									background: 'variant-filled-error'
 								};
@@ -474,7 +475,7 @@
 			// TRUE if confirm pressed, FALSE if cancel pressed
 			response: (r: boolean) => {
 				if (r) {
-					//delete all illustrations from supabase storage for this chapter
+					//delete all resources from supabase storage for this chapter
 					deleteChapterStorage(selectedChapter!);
 
 					trpc($page)
@@ -582,33 +583,33 @@
 	let quill: QuillEditor;
 	let showAuthorComments = false;
 	let showReaderComments = false;
-	let showIllustrations = false;
+	let showResources = false;
 	let savingDelta: boolean;
 	let numComments = 0;
-	let numIllustrations = 0;
+	let numResources = 0;
 
 	// Subscribe to the quill changeDelta to see if delta has changed
 	savingDeltaWritable.subscribe((value) => {
 		savingDelta = value;
 		if (quill) {
 			quill.comments = quill.comments;
-			quill.illustrations = quill.illustrations;
+			quill.resources = quill.resources;
 			numComments = Object.keys(quill.comments).length;
-			numIllustrations = Object.keys(quill.illustrations).length;
+			numResources = Object.keys(quill.resources).length;
 		}
 	});
 
 	$: commentBgColor = showAuthorComments ? 'var(--color-primary-500)' : '';
-	$: illustrationBgColor = showIllustrations ? 'var(--color-warning-800)' : '';
-	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --illustration-bg-color:${illustrationBgColor};`;
+	$: resourceBgColor = showResources ? 'var(--color-warning-800)' : '';
+	$: cssVarStyles = `--comment-bg-color:${commentBgColor}; --resource-bg-color:${resourceBgColor};`;
 
 	/**
 	 * Toggles the showComments boolean and updates the quill module
 	 *
 	 */
 	function toggleShowAuthorComments() {
-		if (showIllustrations && !showAuthorComments) {
-			toggleShowIllustrations();
+		if (showResources && !showAuthorComments) {
+			toggleShowResources();
 		}
 		showAuthorComments = !showAuthorComments;
 	}
@@ -618,15 +619,15 @@
 	}
 
 	/**
-	 * Toggles the showIllustrations boolean and updates the quill module
+	 * Toggles the showResources boolean and updates the quill module
 	 */
-	function toggleShowIllustrations() {
-		if (showAuthorComments && !showIllustrations) {
+	function toggleShowResources() {
+		if (showAuthorComments && !showResources) {
 			toggleShowAuthorComments();
 		}
-		showIllustrations = !showIllustrations;
-		// if (showIllustrations) quill.getModule('illustration').addIllustrationStyle('green')
-		// else quill.getModule('illustration').addIllustrationStyle('transparent')
+		showResources = !showResources;
+		// if (showResources) quill.getModule('resource').addResourceStyle('green')
+		// else quill.getModule('resource').addResourceStyle('transparent')
 	}
 
 	function removeComment(id: string) {
@@ -702,24 +703,24 @@
 	}
 
 	/**
-	 * Removes the illustration from the quill Parchment
-	 * Also removes the illustration from supabase storage
+	 * Removes the resource from the quill Parchment
+	 * Also removes the resource from supabase storage
 	 * @param id
 	 */
-	function removeIllustration(id: string) {
+	function removeResource(id: string) {
 		let editor = document.getElementById('editor');
 
-		const src = quill.illustrations[id].illustration.src;
+		const src = quill.resources[id].resource.src;
 		// bucket name is excluded, but all other folder and file paths are included
 		const filename = src.substring(src.indexOf('books') + 'books'.length + 1);
 
 		quill
-			.removeIllustration({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
+			.removeResource({ id: id, editor: editor, supabase: supabase, filenames: [filename] })
 			.then((response: any) => {
 				if (response.error) {
 					//error
 					const errorUploadToast: ToastSettings = {
-						message: 'There was an issue deleting the illustration',
+						message: 'There was an issue deleting the resource',
 						// Provide any utility or variant background style:
 						background: 'variant-filled-error'
 					};
@@ -727,7 +728,7 @@
 				} else {
 					//success
 					const successUploadToast: ToastSettings = {
-						message: 'Illustration has been deleted successfully',
+						message: 'Resource has been deleted successfully',
 						// Provide any utility or variant background style:
 						background: 'variant-filled-success'
 					};
@@ -750,16 +751,19 @@
 	}
 
 	/**
-	 * Updates existing illustration by getting the blot from the quill Parchment
-	 * @param id - the id of the illustration
-	 * @param newIllustrationObject - the new illustration object
+	 * Updates existing resource by getting the blot from the quill Parchment
+	 * @param id - the id of the resource
+	 * @param newResource - the new resource object
 	 */
-	function submitIllustration(id: string, newIllustrationObject: IllustrationObject | undefined) {
-		const illustration = newIllustrationObject
-			? newIllustrationObject
-			: quill.illustrations[id].illustration;
+	function submitResource(
+		id: string,
+		newResource: HydratedDocument<ResourceProperties> | undefined
+	) {
+		if (!newResource) {
+			return;
+		}
 		let editor = document.getElementById('editor');
-		quill.updateIllustration(id, editor, illustration);
+		quill.updateResource(id, editor, newResource);
 	}
 
 	function commentAddClick() {
@@ -767,62 +771,51 @@
 			return; // same range is selected
 		}
 
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
+		if (!quill.selectedContainsComment() && !quill.selectedContainsResource()) {
 			quill.getModule('comment').addComment(' ');
 			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
 		}
 
-		if (quill.selectedContainsIllustration()) {
+		if (quill.selectedContainsResource()) {
 			drawerStore.open(drawerSettings);
 			showAuthorComments = false;
-			showIllustrations = true;
+			showResources = true;
 		} else {
 			drawerStore.open(drawerSettings);
 			showAuthorComments = true;
-			showIllustrations = false;
+			showResources = false;
 		}
 	}
 
 	/**
-	 * Adds an illustration to the quill
+	 * Adds an resource to the quill
 	 */
-	function illustrationAddClick() {
-		if (quill.oldSelectedRange === quill.selectedRange) {
-			return; // same range is selected
-		}
-
-		if (!quill.selectedContainsComment() && !quill.selectedContainsIllustration()) {
-			quill.getModule('illustration').addIllustration({
-				src: '',
-				alt: '',
-				caption: ''
-			});
-			quill.oldSelectedRange = quill.selectedRange; // update the old selected range
-		}
+	async function resourceAddClick() {
+		quill.addResource(selectedChapter!._id);
 
 		if (quill.selectedContainsComment()) {
 			drawerStore.open(drawerSettings);
 			showAuthorComments = true;
-			showIllustrations = false;
+			showResources = false;
 		} else {
 			drawerStore.open(drawerSettings);
 			showAuthorComments = false;
-			showIllustrations = true;
+			showResources = true;
 		}
 	}
 
 	/**
-	 * Shows the illustration modal
-	 * @param illustration
+	 * Shows the resource modal
+	 * @param resource
 	 */
-	function showIllustrationModal(illustration: Illustration) {
+	function showResourceModal(resource: HydratedDocument<ResourceProperties>) {
 		const modalComponent: ModalComponent = {
 			// Pass a reference to your custom component
-			ref: IllustrationModal,
+			ref: ResourceModal,
 			// Add the component properties as key/value pairs
 			props: {
-				illustration: illustration,
-				uploadClick: uploadIllustration
+				resource: resource,
+				uploadClick: uploadResource
 			}
 		};
 
@@ -835,17 +828,20 @@
 	}
 
 	/**
-	 * Uploads an illustration to supabase storage
-	 * @param newIllustrationFile - the file to upload or the event that contains the file
-	 * @param illustration - the illustration
+	 * Uploads an resource to supabase storage
+	 * @param newResourceFile - the file to upload or the event that contains the file
+	 * @param resource - the resource
 	 */
-	async function uploadIllustration(newIllustrationFile: File | Event, illustration: Illustration) {
+	async function uploadResource(
+		newResourceFile: File | Event,
+		resource: HydratedDocument<ResourceProperties>
+	) {
 		// if the file is an event, get the file from the event
-		if (newIllustrationFile instanceof Event) {
-			newIllustrationFile = (newIllustrationFile.target as HTMLInputElement)?.files?.[0] as File;
+		if (newResourceFile instanceof Event) {
+			newResourceFile = (newResourceFile.target as HTMLInputElement)?.files?.[0] as File;
 		}
 
-		if (!newIllustrationFile) {
+		if (!newResourceFile) {
 			return; // No file selected
 		}
 
@@ -855,36 +851,31 @@
 		//retrieve supabase storage bucket
 		const bucketName = `books/${bookId}/chapters/${chapterId}`;
 
-		const response = await uploadImage(
-			supabase,
-			bucketName,
-			newIllustrationFile as File,
-			toastStore
-		);
+		const response = await uploadImage(supabase, bucketName, newResourceFile as File, toastStore);
 
 		if (response.url && response.url !== null) {
-			illustration.illustration.src = response.url;
-			submitIllustration(illustration.id, illustration.illustration);
+			resource.src = response.url;
+			submitResource(resource.id, resource);
 		} else {
 			toastStore.trigger(errorUploadToast);
 		}
 	}
 
 	/**
-	 * Replaces the illustration image element src with the selected file's src
+	 * Replaces the resource image element src with the selected file's src
 	 * @param event
 	 */
-	function replaceIllustrationSrc(event: Event) {
+	function replaceResourceSrc(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
 		const inputElementId = inputElement.id;
-		const illustrationId = inputElementId.substring(inputElementId.indexOf('-') + 1);
+		const resourceId = inputElementId.substring(inputElementId.indexOf('-') + 1);
 		const file = inputElement.files?.[0];
 
 		if (!file) {
 			return; // No file selected
 		}
 
-		const imageElement = document.getElementById(`src-${illustrationId}`) as HTMLImageElement;
+		const imageElement = document.getElementById(`src-${resourceId}`) as HTMLImageElement;
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			if (e.target?.result) {
@@ -903,7 +894,7 @@
 		});
 	}
 
-	function illustrationServerTimestamp() {
+	function resourceServerTimestamp() {
 		// call from server or local time. But must return promise with UNIX Epoch timestamp resolved (like 1507617041)
 		return new Promise((resolve, reject) => {
 			let currentTimestamp = Math.round(new Date().getTime() / 1000);
@@ -940,13 +931,13 @@
 						commentAddClick: commentAddClick, // get called when `ADD COMMENT` btn on options bar is clicked
 						commentTimestamp: commentServerTimestamp
 					},
-					illustration: {
+					resource: {
 						enabled: true,
 						color: 'transparent',
-						illustrationAuthorId: session?.user.id,
-						illustrationAddOn: session?.user.email, // any additional info needed
-						illustrationAddClick: illustrationAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
-						illustrationTimestamp: illustrationServerTimestamp
+						resourceAuthorId: session?.user.id,
+						resourceAddOn: session?.user.email, // any additional info needed
+						resourceAddClick: resourceAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
+						resourceTimestamp: resourceServerTimestamp
 					},
 					history: {
 						delay: 1000,
@@ -961,7 +952,7 @@
 			await quill.getChapterNotes(selectedChapter._id);
 
 			numComments = Object.keys(quill.comments).length;
-			numIllustrations = Object.keys(quill.illustrations).length;
+			numResources = Object.keys(quill.resources).length;
 
 			clearInterval(saveDeltaInterval);
 			saveDeltaInterval = setInterval(() => {
@@ -1094,28 +1085,27 @@
 					</div>
 				{/if}
 
-				{#if showIllustrations && numIllustrations !== 0}
+				{#if showResources && numResources !== 0}
 					<div
-						id="illustrations-container"
+						id="resources-container"
 						class="w-[200px] right-24 fixed h-full p-2 flex flex-col items-center space-y-2 overflow-y-scroll"
 					>
-						{#each Object.entries(quill.illustrations) as [id, illustration]}
+						{#each quill.resourcesData as resourceData}
 							<div
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
-								{#if quill.illustrations[id].illustration.src.length > 0}
+								{#if resourceData.src}
 									<img
-										id={`src-${illustration.id}`}
+										id={`src-${resourceData._id}`}
 										class="h-40 resize-none rounded-md mb-2"
-										alt={quill.illustrations[id].illustration.alt ||
-											quill.illustrations[id].illustration.caption}
-										src={quill.illustrations[id].illustration.src}
-										on:click={() => showIllustrationModal(illustration)}
+										alt={resourceData.title}
+										src={resourceData.src}
+										on:click={() => showResourceModal(resourceData)}
 									/>
 								{:else}
 									<FileDropzone
-										name="illustrationDropZone"
-										on:change={(event) => uploadIllustration(event, illustration)}
+										name="resourceDropZone"
+										on:change={(event) => uploadResource(event, resourceData)}
 									>
 										<svelte:fragment slot="message"
 											><strong>Upload an image</strong> or drag and drop</svelte:fragment
@@ -1125,29 +1115,29 @@
 								{/if}
 								<input
 									type="file"
-									id={`file-${illustration.id}`}
+									id={`file-${resourceData._id}`}
 									class="hidden"
 									accept="image/png, image/jpeg, image/gif, image/svg"
-									on:change={replaceIllustrationSrc}
+									on:change={replaceResourceSrc}
 								/>
 								<input
-									id={`caption-${illustration.id}`}
+									id={`caption-${resourceData._id}`}
 									type="text"
 									class="input text-sm h-6 mb-2 resize-none overflow-hidden focus:border-amber-300"
 									placeholder="Caption"
-									bind:value={quill.illustrations[id].illustration.caption}
+									bind:value={resourceData.title}
 								/>
 
 								<footer class="modal-footer flex flex-col space-x-2 items-center">
 									<div>
 										<button
-											on:click={() => removeIllustration(id)}
+											on:click={() => removeResource(resourceData._id)}
 											class="chip variant-ghost-surface"
 										>
 											Remove
 										</button>
 										<button
-											on:click={() => submitIllustration(id, undefined)}
+											on:click={() => submitResource(resourceData._id, undefined)}
 											class="chip variant-filled"
 											type="submit"
 										>
@@ -1228,14 +1218,14 @@
 									hidden: !isChapterSelected
 								},
 								{
-									id: 'view-illustrations',
-									label: 'View chapter illustrations',
+									id: 'view-resources',
+									label: 'View chapter resources',
 									icon: image,
-									callback: toggleShowIllustrations,
+									callback: toggleShowResources,
 									class: 'relative',
-									notification: numIllustrations,
+									notification: numResources,
 									mode: 'writer',
-									hidden: !isChapterSelected || numIllustrations === 0
+									hidden: !isChapterSelected || numResources === 0
 								},
 								{
 									id: 'chapter-notes',
