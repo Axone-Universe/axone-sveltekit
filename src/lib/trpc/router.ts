@@ -4,6 +4,7 @@ import { accounts } from '$lib/trpc/routes/accounts';
 import { books } from '$lib/trpc/routes/books';
 import { xumm } from '$lib/trpc/routes/xumm';
 import { transactions } from '$lib/trpc/routes/transactions';
+import { resources } from '$lib/trpc/routes/resources';
 import { campaigns } from '$lib/trpc/routes/campaigns';
 import { users } from '$lib/trpc/routes/users';
 import { storylines } from '$lib/trpc/routes/storylines';
@@ -26,6 +27,7 @@ export const router = t.router({
 	reviews,
 	notifications,
 	transactions,
+	resources,
 	xumm
 });
 

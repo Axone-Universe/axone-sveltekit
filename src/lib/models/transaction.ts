@@ -42,7 +42,7 @@ transactionSchema.pre('aggregate', function (next) {
 	const pipeline = this.pipeline();
 
 	populate(pipeline);
-	// addViewRestrictionPipeline(userID, pipeline, 'transactions', 'transaction');
+	// TODO: add permissions logic
 	next();
 });
 
