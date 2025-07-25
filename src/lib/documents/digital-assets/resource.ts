@@ -1,10 +1,13 @@
 import { ulid } from 'ulid';
 import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
-import type { ResourceProperties } from '$lib/properties/resource';
+import type {
+	ResourceCollection,
+	ResourceProperties,
+	ResourceType
+} from '$lib/properties/resource';
 import { Resource } from '$lib/models/resource';
 import type mongoose from 'mongoose';
-import { type ResourceType } from '$lib/util/types';
 
 export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourceProperties>> {
 	private _sessionUserID?: string;
@@ -52,8 +55,33 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 		return this;
 	}
 
-	metadata(metadata: object): ResourceBuilder {
-		this._resourceProperties.metadata = metadata;
+	isListed(listed: boolean): ResourceBuilder {
+		this._resourceProperties.isListed = listed;
+		return this;
+	}
+
+	isTokenized(tokenized: boolean): ResourceBuilder {
+		this._resourceProperties.isTokenized = tokenized;
+		return this;
+	}
+
+	properties(properties: { name: string; value: string }[]): ResourceBuilder {
+		this._resourceProperties.properties = properties;
+		return this;
+	}
+
+	price(price: number): ResourceBuilder {
+		this._resourceProperties.price = price;
+		return this;
+	}
+
+	royalties(royalties: number): ResourceBuilder {
+		this._resourceProperties.royalties = royalties;
+		return this;
+	}
+
+	collection(collection: ResourceCollection): ResourceBuilder {
+		this._resourceProperties.collection = collection;
 		return this;
 	}
 

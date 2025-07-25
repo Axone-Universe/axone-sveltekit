@@ -3,10 +3,37 @@ import { Repository } from '$lib/repositories/repository';
 import type { ResourceProperties } from '$lib/properties/resource';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
+import { ReadResource } from '$lib/trpc/schemas/resources';
 
 export class ResourcesRepository extends Repository {
 	constructor() {
 		super();
+	}
+
+	async get(
+		session: Session | null,
+		input: ReadResource
+	): Promise<HydratedDocument<ResourceProperties>[]> {
+		const pipeline = [];
+		const filter: any = {};
+
+		if (input.title) filter.title = { $regex: input.title, $options: 'i' };
+		if (input.userID) filter.user = input.userID;
+		if (input.chapterID) filter.chapter = input.chapterID;
+
+		pipeline.push({ $match: filter });
+
+		if (input.cursor) {
+			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+		}
+
+		if (input.limit) pipeline.push({ $limit: input.limit });
+
+		const query = Resource.aggregate(pipeline, {
+			userID: session?.user.id
+		});
+
+		return await query;
 	}
 
 	async getById(

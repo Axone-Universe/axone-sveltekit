@@ -75,12 +75,15 @@
 	import DocumentCarousel from '$lib/components/documents/DocumentCarousel.svelte';
 	import SupportPage from '$lib/components/monetize/SupportPage.svelte';
 	import { type PermissionedDocument } from '$lib/properties/permission';
-	import { timeAgo } from '$lib/util/constants';
+	import { timeAgo, uploadResource } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { type UserNotificationProperties } from '$lib/properties/notification';
 	import { documentURL } from '$lib/util/links';
-	import { type ResourceProperties } from '$lib/properties/resource';
+	import {
+		type HydratedResourceProperties,
+		type ResourceProperties
+	} from '$lib/properties/resource';
 
 	export let data: PageData;
 	const { supabase } = data;
@@ -142,26 +145,6 @@
 		height: 'h-full',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
-	};
-
-	/**
-	 * Toast settings
-	 */
-	const successUploadToast: ToastSettings = {
-		message: 'Resource has been uploaded successfully',
-		// Provide any utility or variant background style:
-		background: 'variant-filled-success'
-	};
-	const progressUploadToast: ToastSettings = {
-		message: 'Uploading resource...',
-		// Provide any utility or variant background style:
-		background: 'variant-filled-secondary',
-		autohide: false
-	};
-	const errorUploadToast: ToastSettings = {
-		message: 'There was an issue uploading the resource',
-		// Provide any utility or variant background style:
-		background: 'variant-filled-error'
 	};
 
 	function toggleDrawer() {
@@ -832,32 +815,20 @@
 	 * @param newResourceFile - the file to upload or the event that contains the file
 	 * @param resource - the resource
 	 */
-	async function uploadResource(
+	async function saveResource(
 		newResourceFile: File | Event,
-		resource: HydratedDocument<ResourceProperties>
+		resource: HydratedDocument<HydratedResourceProperties>
 	) {
-		// if the file is an event, get the file from the event
-		if (newResourceFile instanceof Event) {
-			newResourceFile = (newResourceFile.target as HTMLInputElement)?.files?.[0] as File;
-		}
+		const response = await uploadResource(newResourceFile, resource, supabase, toastStore);
 
-		if (!newResourceFile) {
-			return; // No file selected
-		}
-
-		const chapterId = selectedChapter?._id;
-		const bookId = selectedChapter?.book;
-
-		//retrieve supabase storage bucket
-		const bucketName = `books/${bookId}/chapters/${chapterId}`;
-
-		const response = await uploadImage(supabase, bucketName, newResourceFile as File, toastStore);
-
-		if (response.url && response.url !== null) {
-			resource.src = response.url;
+		if (response.success) {
 			submitResource(resource.id, resource);
 		} else {
-			toastStore.trigger(errorUploadToast);
+			toastStore.trigger({
+				message: response.message,
+				// Provide any utility or variant background style:
+				background: 'variant-filled-error'
+			});
 		}
 	}
 
@@ -1105,7 +1076,7 @@
 								{:else}
 									<FileDropzone
 										name="resourceDropZone"
-										on:change={(event) => uploadResource(event, resourceData)}
+										on:change={(event) => saveResource(event, resourceData)}
 									>
 										<svelte:fragment slot="message"
 											><strong>Upload an image</strong> or drag and drop</svelte:fragment

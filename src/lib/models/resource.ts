@@ -7,12 +7,18 @@ export const resourceSchema = new Schema<ResourceProperties>({
 	_id: { type: String, required: true },
 	user: { type: String, ref: UserLabel, required: true },
 	chapter: { type: String, ref: ChapterLabel, required: false },
+	externalId: String,
+	price: Number,
 	src: String,
 	alt: String,
 	type: String,
+	collection: String,
+	royalties: Number,
 	title: String,
+	isListed: Boolean,
+	isTokenized: Boolean,
 	description: String,
-	metadata: Object
+	properties: [{ type: Object }]
 });
 
 resourceSchema.pre(['find', 'findOne'], function () {
@@ -48,6 +54,15 @@ function populate(pipeline: PipelineStage[]) {
 		{
 			$unwind: {
 				path: '$user',
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			$lookup: { from: 'chapters', localField: 'chapter', foreignField: '_id', as: 'chapter' }
+		},
+		{
+			$unwind: {
+				path: '$chapter',
 				preserveNullAndEmptyArrays: true
 			}
 		}

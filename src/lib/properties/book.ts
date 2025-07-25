@@ -7,7 +7,7 @@ import { type StorylineProperties } from './storyline';
 
 export const label = 'Book';
 
-export interface BookProperties {
+export type BookProperties = {
 	_id: string;
 	user: string | HydratedDocument<UserProperties>;
 	title: string;
@@ -24,23 +24,12 @@ export interface BookProperties {
 	campaign?: string | HydratedDocument<CampaignProperties>;
 	createdAt?: Date;
 	updatedAt?: Date;
-}
+};
 
-export interface HydratedBookProperties extends BookProperties {
-	_id: string;
+export type HydratedBookProperties = BookProperties & {
 	user: HydratedDocument<UserProperties>;
-	title: string;
-	description: string;
-	imageURL: string;
-	tags?: string[];
-	permissions: Record<string, HydratedDocument<PermissionProperties>>;
-	permissionsUsers?: HydratedDocument<UserProperties>[];
-	userPermissions?: { view: boolean; collaborate: boolean };
-	genres?: Genre[];
-	rating: number;
-	archived?: boolean;
 	campaign?: HydratedDocument<CampaignProperties>;
-}
+};
 
 export class BookPropertyBuilder {
 	private readonly _properties: BookProperties;
