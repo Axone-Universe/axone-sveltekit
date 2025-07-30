@@ -162,20 +162,21 @@ export const xumm = t.router({
 
 		// update the transaction
 		const transactionBuilder = new TransactionBuilder(transaction._id);
-		transactionBuilder.externalId(payloadResponse.txid);
+		const resourceBuilder = new ResourceBuilder((transaction.resource ?? '') as string);
+
 		if (payloadResponse.signed) {
+			transactionBuilder.externalId(payloadResponse.txid);
 			transactionBuilder.status('success');
 			transactionBuilder.processedAt(new Date());
 
 			// update the resource
 			if (transaction.xrplType === 'NFTokenMint') {
-				const resourceBuilder = new ResourceBuilder(transaction.resource as string).isTokenized(
-					true
-				);
-				await resourceBuilder.build();
+				resourceBuilder.isTokenized(true);
 			}
 		}
 
+		// updated resource and transaction
+		await resourceBuilder.update();
 		const updatedTransaction = await transactionBuilder.update();
 
 		console.log('<< transaction');

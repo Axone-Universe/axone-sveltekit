@@ -15,6 +15,7 @@
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 	import { goto } from '$app/navigation';
+	import { StoreIcon } from 'lucide-svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -138,6 +139,15 @@
 					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 				>
 					<span class="capitalize">Learn More</span>
+				</a>
+			</div>
+			<div>
+				<a
+					href="/market"
+					class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none variant-ghost-secondary p-2"
+				>
+					<StoreIcon size={20} />
+					<span class="capitalize">NFT Market</span>
 				</a>
 			</div>
 		</div>

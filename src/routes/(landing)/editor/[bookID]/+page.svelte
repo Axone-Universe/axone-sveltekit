@@ -822,14 +822,16 @@
 		const response = await uploadResource(newResourceFile, resource, supabase, toastStore);
 
 		if (response.success) {
-			submitResource(resource.id, resource);
-		} else {
-			toastStore.trigger({
-				message: response.message,
-				// Provide any utility or variant background style:
-				background: 'variant-filled-error'
-			});
+			console.log('!! resource');
+			console.log(resource);
+			submitResource(resource._id, resource);
 		}
+
+		toastStore.trigger({
+			message: response.message,
+			// Provide any utility or variant background style:
+			background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+		});
 	}
 
 	/**
@@ -907,7 +909,7 @@
 						color: 'transparent',
 						resourceAuthorId: session?.user.id,
 						resourceAddOn: session?.user.email, // any additional info needed
-						resourceAddClick: resourceAddClick, // get called when `ADD ILLUSTRATION` btn on options bar is clicked
+						resourceAddClick: resourceAddClick, // get called when `ADD RESOURCE` btn on options bar is clicked
 						resourceTimestamp: resourceServerTimestamp
 					},
 					history: {
@@ -1066,13 +1068,15 @@
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								{#if resourceData.src}
-									<img
-										id={`src-${resourceData._id}`}
-										class="h-40 resize-none rounded-md mb-2"
-										alt={resourceData.title}
-										src={resourceData.src}
-										on:click={() => showResourceModal(resourceData)}
-									/>
+									<div class="h-40 w-full object-cover overflow-hidden">
+										<img
+											id={`src-${resourceData._id}`}
+											class="resize-none rounded-md mb-2 w-full"
+											alt={resourceData.title}
+											src={resourceData.src}
+											on:click={() => showResourceModal(resourceData)}
+										/>
+									</div>
 								{:else}
 									<FileDropzone
 										name="resourceDropZone"
