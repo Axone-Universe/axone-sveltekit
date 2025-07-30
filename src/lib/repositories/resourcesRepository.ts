@@ -4,6 +4,7 @@ import type { HydratedResourceProperties, ResourceProperties } from '$lib/proper
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { ReadResource } from '$lib/trpc/schemas/resources';
+import { ulid } from 'ulid';
 
 export class ResourcesRepository extends Repository {
 	constructor() {
@@ -15,25 +16,59 @@ export class ResourcesRepository extends Repository {
 		input: ReadResource
 	): Promise<HydratedDocument<ResourceProperties>[]> {
 		const pipeline = [];
+		const postPipeline = [];
 		const filter: any = {};
 
 		if (input.title) filter.title = { $regex: input.title, $options: 'i' };
 		if (input.userID) filter.user = input.userID;
 		if (input.chapterID) filter.chapter = input.chapterID;
 
+		if (input.tags) {
+			const nftCollections = [
+				...(input.tags.includes('characters') ? ['characters'] : []),
+				...(input.tags.includes('places') ? ['places'] : []),
+				...(input.tags.includes('artifacts') ? ['artifacts'] : [])
+			];
+
+			if (input.tags.includes('newest')) {
+				postPipeline.push({ $sort: { _id: -1 } });
+			}
+
+			if (input.tags.includes('listed')) {
+				filter.isListed = true;
+			}
+
+			if (input.tags.includes('past 30 days')) {
+				const ulid30 = ulid(this.getUnixTimeDaysAgo(30));
+				filter._id = { $gt: ulid30 };
+			}
+
+			if (nftCollections.length > 0) {
+				filter.nftCollection = { $in: nftCollections };
+			}
+		}
+
 		pipeline.push({ $match: filter });
 
 		if (input.cursor) {
-			pipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
+			postPipeline.push({ $skip: (input.cursor ?? 0) + (input.skip ?? 0) });
 		}
 
-		if (input.limit) pipeline.push({ $limit: input.limit });
+		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Resource.aggregate(pipeline, {
-			userID: session?.user.id
+			userID: session?.user.id,
+			postPipeline: postPipeline
 		});
 
 		return await query;
+	}
+
+	getUnixTimeDaysAgo(days: number): number {
+		const currentTime = Date.now();
+		const millisecondsInADay = 86400_000;
+		const thirtyDaysAgo = currentTime - days * millisecondsInADay;
+		return thirtyDaysAgo;
 	}
 
 	async getById(

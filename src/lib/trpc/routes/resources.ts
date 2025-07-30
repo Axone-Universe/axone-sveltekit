@@ -49,6 +49,10 @@ export const resources = t.router({
 				message: 'resources successfully obtained',
 				data: {}
 			};
+
+			console.log('** inputs');
+			console.log(input);
+
 			try {
 				const result = await resourcesRepo.get(ctx.session, input);
 
