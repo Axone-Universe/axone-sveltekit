@@ -13,7 +13,7 @@ import type { ResourceObject } from '$lib/util/editor/resources';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 import type { NoteProperties } from '$lib/properties/note';
-import { type ResourceProperties } from '$lib/properties/resource';
+import { type HydratedResourceProperties, type ResourceProperties } from '$lib/properties/resource';
 
 export const savingDeltaWritable = writable<boolean>(false);
 
@@ -38,7 +38,7 @@ export interface QuillOptions extends QuillOptionsStatic {
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
 	resources: { [key: string]: Resource } = {};
-	resourcesData: HydratedDocument<ResourceProperties>[] = [];
+	resourcesData: HydratedDocument<HydratedResourceProperties>[] = [];
 	selectedDelta: Delta | undefined = undefined;
 	selectedRange: { index: number; length: number } | undefined | null = undefined;
 	oldSelectedRange: { index: number; length: number } | undefined | null = undefined;

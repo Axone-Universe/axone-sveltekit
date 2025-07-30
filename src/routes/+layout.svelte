@@ -16,6 +16,7 @@
 
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import { setSupabaseClient } from '$lib/stores/supabase';
 
 	export let data: LayoutData;
 
@@ -34,7 +35,7 @@
 				invalidate('supabase:auth');
 			}
 		});
-		// setupTawkto();
+		setSupabaseClient(supabase);
 		return () => subscription.unsubscribe();
 	});
 

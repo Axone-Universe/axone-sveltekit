@@ -1,12 +1,11 @@
 import { z } from 'zod';
-import { currencyCodes, transactionTypes } from '$lib/util/constants';
-import { PermissionedDocumentsEnum } from '$lib/properties/permission';
+import { currencyCodes, transactionTypes, visibleDocuments } from '$lib/util/constants';
 export const readRates = z.object({ currencyCode: z.string() });
 
 export const createPayload = z.object({
 	transactionType: z.enum(transactionTypes),
 	netValue: z.number(),
-	documentType: z.enum(PermissionedDocumentsEnum),
+	documentType: z.enum(visibleDocuments),
 	documentId: z.string(),
 	receiver: z.string(),
 	note: z.string(),

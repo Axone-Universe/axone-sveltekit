@@ -7,6 +7,7 @@ import type {
 import { type HydratedDocument } from 'mongoose';
 import { type UserProperties } from './user';
 import { type XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
+import { type ResourceProperties } from './resource';
 
 export const label = 'Transaction';
 
@@ -14,6 +15,7 @@ export type TransactionProperties = {
 	_id: string;
 	sender?: string | HydratedDocument<UserProperties>;
 	receiver?: string | HydratedDocument<UserProperties>;
+	resource?: string | HydratedDocument<ResourceProperties>;
 	hash?: string;
 	account?: string;
 	externalId?: string;
@@ -24,6 +26,8 @@ export type TransactionProperties = {
 	type?: TransactionType;
 	xrplType?: XrplTransactionType;
 	fee?: number;
+	transferFee?: number;
+	platformFee?: number;
 	value?: number;
 	netValue?: number;
 	// base values are the values in the account's currency

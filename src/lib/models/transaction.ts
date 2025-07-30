@@ -1,8 +1,8 @@
 import { label } from '$lib/properties/transaction';
 import { label as AccountLabel } from '$lib/properties/account';
 import { label as UserLabel } from '$lib/properties/user';
+import { label as ResourceLabel } from '$lib/properties/resource';
 import mongoose, { PipelineStage, Schema, model } from 'mongoose';
-import { addViewRestrictionPipeline } from './permission';
 import { type TransactionProperties } from '$lib/properties/transaction';
 
 export const transactionSchema = new Schema<TransactionProperties>({
@@ -11,6 +11,7 @@ export const transactionSchema = new Schema<TransactionProperties>({
 	account: { type: String, ref: AccountLabel, required: true },
 	receiver: { type: String, ref: UserLabel, required: true },
 	sender: { type: String, ref: UserLabel, required: true },
+	resource: { type: String, ref: ResourceLabel, required: false },
 	externalId: String,
 	createdAt: Date,
 	processedAt: Date,
@@ -19,6 +20,8 @@ export const transactionSchema = new Schema<TransactionProperties>({
 	type: String,
 	xrplType: String,
 	fee: Number,
+	transferFee: Number,
+	platformFee: Number,
 	value: Number,
 	netValue: Number,
 	baseValue: Number,

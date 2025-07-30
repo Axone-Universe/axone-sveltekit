@@ -6,11 +6,12 @@ import {
 	homeFilterTags,
 	notificationTypes,
 	paymentMethods,
-	resourceTypes,
 	transactionStatuses,
 	transactionTypes,
+	visibleDocuments,
 	xrplTransactionTypes
 } from './constants';
+import { resourceTypes } from '$lib/properties/resource';
 
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
@@ -79,4 +80,4 @@ export type CurrencyCode = (typeof currencyCodes)[number];
 
 export type Currency = { code: string; scale: number; symbol: string };
 
-export type ResourceType = (typeof resourceTypes)[number];
+export type VisibleDocument = (typeof visibleDocuments)[number];
