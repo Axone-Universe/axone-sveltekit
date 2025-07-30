@@ -88,7 +88,7 @@ export const xumm = t.router({
 					TransferFee: (transaction.fee ?? 0) * 1000,
 					NFTokenTaxon: resourceCollectionsData[resource.nftCollection!].taxon,
 					URI: nftID,
-					Flags: NFTokenMintFlags.tfTransferable | NFTokenMintFlags.tfTrustLine
+					Flags: NFTokenMintFlags.tfTransferable | NFTokenMintFlags.tfMutable
 				} as NFTokenMint;
 
 				console.log('<< xrp transaction');

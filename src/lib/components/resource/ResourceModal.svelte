@@ -67,6 +67,7 @@
 				description: editedResource.description,
 				properties: editedResource.properties,
 				src: editedResource.src,
+				license: editedResource.license,
 				price: editedResource.price,
 				royalties: editedResource.royalties,
 				nftCollection: editedResource.nftCollection
