@@ -131,7 +131,7 @@ export const homeFilterTags = [
 	'Past 30 Days'
 ] as const;
 
-export const xrplTransactionTypes = ['Payment'] as const;
+export const xrplTransactionTypes = ['Payment', 'NFTokenMint'] as const;
 
 export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
 

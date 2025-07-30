@@ -23,6 +23,7 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { type AccountProperties } from '$lib/properties/account';
+	import { currencies } from '$lib/util/constants';
 
 	const archiveModal = getArchiveModal();
 	const unArchiveModal = getUnarchiveModal();
@@ -177,9 +178,21 @@
 											: 'variant-soft-error'}">{transaction.status}</span
 									></td
 								>
-								<td>{transaction.type}</td>
+								<td>
+									<span
+										class="chip rounded-full {transaction.type === 'Payment'
+											? 'variant-soft-success'
+											: transaction.type === 'NFTokenMint'
+											? 'variant-soft-primary'
+											: 'variant-soft-error'}">{transaction.type}</span
+									>
+								</td>
 								<td>{transaction.currency}</td>
-								<td>{transaction.fee}</td>
+								<td
+									>{((transaction.baseValue ?? 0) - (transaction.baseNetValue ?? 0)).toFixed(
+										currencies[transaction.currency ?? 'XRP'].scale
+									)}</td
+								>
 								<td>{transaction.value}</td>
 								<td>{transaction.netValue}</td>
 								<td>

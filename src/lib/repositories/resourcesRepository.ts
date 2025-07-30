@@ -1,6 +1,6 @@
 import { Resource } from '$lib/models/resource';
 import { Repository } from '$lib/repositories/repository';
-import type { ResourceProperties } from '$lib/properties/resource';
+import type { HydratedResourceProperties, ResourceProperties } from '$lib/properties/resource';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { ReadResource } from '$lib/trpc/schemas/resources';
@@ -39,14 +39,14 @@ export class ResourcesRepository extends Repository {
 	async getById(
 		session: Session | null,
 		id?: string
-	): Promise<HydratedDocument<ResourceProperties>> {
+	): Promise<HydratedDocument<HydratedResourceProperties>> {
 		const resource = await Resource.aggregate([{ $match: { _id: id } }], {
 			userID: session?.user.id
 		})
 			.cursor()
 			.next();
 
-		return new Promise<HydratedDocument<ResourceProperties>>((resolve) => {
+		return new Promise<HydratedDocument<HydratedResourceProperties>>((resolve) => {
 			resolve(resource);
 		});
 	}

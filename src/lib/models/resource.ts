@@ -12,12 +12,13 @@ export const resourceSchema = new Schema<ResourceProperties>({
 	src: String,
 	alt: String,
 	type: String,
-	collection: String,
+	nftCollection: String,
 	royalties: Number,
 	title: String,
 	isListed: Boolean,
 	isTokenized: Boolean,
 	description: String,
+	license: String,
 	properties: [{ type: Object }]
 });
 

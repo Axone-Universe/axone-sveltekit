@@ -3,6 +3,7 @@ import type { HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from '../documentBuilder';
 import type {
 	ResourceCollection,
+	ResourceLicense,
 	ResourceProperties,
 	ResourceType
 } from '$lib/properties/resource';
@@ -50,6 +51,11 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 		return this;
 	}
 
+	license(license: ResourceLicense): ResourceBuilder {
+		this._resourceProperties.license = license;
+		return this;
+	}
+
 	alt(alt: string): ResourceBuilder {
 		this._resourceProperties.alt = alt;
 		return this;
@@ -76,12 +82,15 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 	}
 
 	royalties(royalties: number): ResourceBuilder {
+		if (royalties > 50) {
+			throw new Error('Max royalties is 50% on the XRPL');
+		}
 		this._resourceProperties.royalties = royalties;
 		return this;
 	}
 
 	collection(collection: ResourceCollection): ResourceBuilder {
-		this._resourceProperties.collection = collection;
+		this._resourceProperties.nftCollection = collection;
 		return this;
 	}
 

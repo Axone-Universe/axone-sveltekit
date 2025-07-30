@@ -1,8 +1,8 @@
 <script lang="ts">
 	import {
 		resourceCollections,
-		type HydratedResourceProperties,
-		type ResourceProperties
+		resourceLicenses,
+		type HydratedResourceProperties
 	} from '$lib/properties/resource';
 	import {
 		FileDropzone,
@@ -17,14 +17,13 @@
 	import { uploadResource } from '$lib/util/constants';
 	import { supabaseClient } from '$lib/stores/supabase';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { type TransactionProperties } from '$lib/properties/transaction';
 
 	export let resource: HydratedDocument<HydratedResourceProperties>;
-	export let disabled: false;
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
-	const dispatch = createEventDispatcher();
+	const maxRoyalty = 50;
 
 	$: supabase = $supabaseClient;
 
@@ -70,7 +69,7 @@
 				src: editedResource.src,
 				price: editedResource.price,
 				royalties: editedResource.royalties,
-				collection: editedResource.collection
+				nftCollection: editedResource.nftCollection
 			})
 			.then((response) => {
 				resource = response.data as HydratedDocument<HydratedResourceProperties>;
@@ -84,7 +83,8 @@
 			})
 			.catch((error) => {
 				console.log('!! error');
-				console.log(error);
+				console.log(error.message);
+				toastMessage = error.message ?? toastMessage;
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -100,7 +100,7 @@
 	// Create a local copy for editing
 	let editedResource = {
 		...resource,
-		collection: resource.collection ?? 'characters',
+		nftCollection: resource.nftCollection ?? 'characters',
 		properties: [...(resource.properties ?? [])]
 	};
 
@@ -114,7 +114,8 @@
 		editedResource.description?.trim() &&
 		editedResource.royalties !== null &&
 		editedResource.royalties !== undefined &&
-		editedResource.collection &&
+		editedResource.nftCollection &&
+		editedResource.license &&
 		!editedResource.isTokenized;
 
 	$: canList =
@@ -138,21 +139,52 @@
 	}
 
 	async function handleTokenize() {
+		let toastMessage = 'Please save all changes before tokenizing';
+		let toastBackground = 'variant-filled-error';
+
+		if (JSON.stringify(editedResource) !== JSON.stringify(resource)) {
+			console.log(editedResource);
+			console.log(resource);
+			toastStore.trigger({
+				message: toastMessage,
+				background: toastBackground
+			});
+			return;
+		}
+
 		if (!canTokenize) return;
 
 		isTokenizing = true;
 
-		try {
-			// Simulate API call to tokenize NFT
-			await new Promise((resolve) => setTimeout(resolve, 2000));
+		trpc($page)
+			.xumm.createToken.query({
+				resourceId: editedResource._id
+			})
+			.then((response) => {
+				const payload = response.data as HydratedDocument<TransactionProperties>;
 
-			editedResource.isTokenized = true;
-			alert('NFT successfully tokenized!');
-		} catch (error) {
-			alert('Failed to tokenize NFT. Please try again.');
-		} finally {
-			isTokenizing = false;
-		}
+				toastMessage = response.message;
+				toastBackground = response.success ? 'bg-success-500' : toastBackground;
+
+				if ($modalStore[0]) {
+					$modalStore[0].response ? $modalStore[0].response(resource) : '';
+				}
+			})
+			.catch((error) => {
+				console.log('!! error');
+				console.log(error.message);
+				toastMessage = error.message ?? toastMessage;
+			})
+			.finally(() => {
+				let t: ToastSettings = {
+					message: toastMessage,
+					background: toastBackground,
+					autohide: true
+				};
+				toastStore.trigger(t);
+				modalStore.close();
+				isTokenizing = false;
+			});
 	}
 
 	async function handleList() {
@@ -185,6 +217,18 @@
 			closeModal();
 		}
 	}
+
+	function handleRoyaltyChange(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const num = parseFloat(input.value);
+
+		if (num > maxRoyalty) {
+			input.value = String(maxRoyalty); // update the input's visual value
+			editedResource.royalties = maxRoyalty; // update the bound variable
+		} else {
+			editedResource.royalties = num;
+		}
+	}
 </script>
 
 <!-- Modal backdrop -->
@@ -204,8 +248,8 @@
 		<!-- Modal content -->
 		<div class="flex flex-col md:flex-row max-h-[calc(90vh-120px)]">
 			<!-- Left side - Image -->
-			<div class="md:w-2/3 p-6 flex flex-col items-center justify-center">
-				<div class="relative group">
+			<div class="md:w-2/3 p-8 flex flex-col items-center justify-center bg-surface-400-500-token">
+				<div class="relative group m-6">
 					<ImageWithFallback
 						class="w-[200px] md:w-[500px] object-contain rounded-lg shadow-md"
 						src={editedResource.src ?? 'null'}
@@ -286,7 +330,7 @@
 						<label for="collection" class="block text-sm font-medium mb-2">Collection *</label>
 						<select
 							id="collection"
-							bind:value={editedResource.collection}
+							bind:value={editedResource.nftCollection}
 							class="select w-full px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 							required
 						>
@@ -310,11 +354,14 @@
 
 					<!-- Royalties -->
 					<div>
-						<label for="royalties" class="block text-sm font-medium mb-2"> Royalties (%) * </label>
+						<label for="royalties" class="block text-sm font-medium mb-2">
+							Royalties (Max 50%) *
+						</label>
 						<input
 							id="royalties"
 							type="number"
 							bind:value={editedResource.royalties}
+							on:change={handleRoyaltyChange}
 							min="0"
 							max="100"
 							step="0.1"
@@ -323,6 +370,28 @@
 							required
 						/>
 						<p class="text-xs mt-1">Percentage given to creator on secondary sales</p>
+					</div>
+
+					<!-- license -->
+					<div>
+						<label for="license" class="block text-sm font-medium mb-2">License *</label>
+						<select
+							id="license"
+							bind:value={editedResource.license}
+							class="select w-full px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+							required
+						>
+							{#each resourceLicenses as license}
+								<option value={license}>{license}</option>
+							{/each}
+						</select>
+						<p class="text-xs mt-1">
+							Listed from most to least permissive. <a
+								target="_blank"
+								class="text-blue-600 dark:text-blue-500 hover:underline"
+								href="https://creativecommons.org/share-your-work/cclicenses/">Details</a
+							>
+						</p>
 					</div>
 
 					<!-- Properties -->

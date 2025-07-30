@@ -94,14 +94,12 @@ describe('transactions', () => {
 			})
 		).data;
 
-		console.log('** test txn');
-		console.log(transaction);
 		// confirm transaction payload
 		expect(transaction.payload?.uuid).toEqual(payload_uuid);
-		expect(transaction.sender?._id).toEqual(reader._id);
-		expect(transaction.receiver?._id).toEqual(writer._id);
+		expect(transaction.sender).toEqual(reader._id);
+		expect(transaction.receiver).toEqual(writer._id);
 		expect(transaction.netValue).toEqual(1);
-		expect(transaction.fee).toEqual(0.03);
+		expect(transaction.platformFee).toEqual(0.03);
 
 		// confirm an account has been created
 		const account = (
@@ -136,7 +134,7 @@ describe('transactions', () => {
 		});
 
 		// call the xaman transaction webhook
-		const webhookResponse = await caller.transactions.xaman({
+		const webhookResponse = await caller.xumm.webhook({
 			meta: {
 				url: '',
 				application_uuidv4: '',
@@ -207,7 +205,7 @@ describe('transactions', () => {
 		});
 
 		// call the xaman transaction webhook
-		const webhookResponse = await caller.transactions.xaman({
+		const webhookResponse = await caller.xumm.webhook({
 			meta: {
 				url: '',
 				application_uuidv4: '',

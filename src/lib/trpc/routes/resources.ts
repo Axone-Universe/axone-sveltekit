@@ -8,6 +8,7 @@ import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
 import type { ResourceProperties } from '$lib/properties/resource';
 import type mongoose from 'mongoose';
+import { z } from 'zod';
 
 export const resources = t.router({
 	create: t.procedure
@@ -60,7 +61,6 @@ export const resources = t.router({
 
 			return { ...response, ...{ data: response.data as HydratedDocument<ResourceProperties>[] } };
 		}),
-
 	getByIds: t.procedure
 		.use(logger)
 		.input(read)
@@ -122,7 +122,8 @@ export const resources = t.router({
 			if (input.properties) resourceBuilder.properties(input.properties);
 
 			if (input.price) resourceBuilder.price(input.price);
-			if (input.collection) resourceBuilder.collection(input.collection);
+			if (input.nftCollection) resourceBuilder.collection(input.nftCollection);
+			if (input.license) resourceBuilder.license(input.license);
 			if (input.royalties) resourceBuilder.royalties(input.royalties);
 
 			const response: Response = {

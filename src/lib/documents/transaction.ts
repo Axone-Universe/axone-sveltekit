@@ -8,6 +8,7 @@ import type {
 	CurrencyCode,
 	TransactionStatus,
 	TransactionType,
+	VisibleDocument,
 	XrplTransactionType
 } from '$lib/util/types';
 import { createHash } from 'crypto';
@@ -24,6 +25,10 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 
 	get account(): HydratedDocument<AccountProperties> | undefined {
 		return this._account ?? undefined;
+	}
+
+	get properties(): TransactionProperties {
+		return this._transactionProperties;
 	}
 
 	constructor(id?: string) {
@@ -83,6 +88,21 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
+	transferFee(transferFee: number): TransactionBuilder {
+		this._transactionProperties.transferFee = transferFee;
+		return this;
+	}
+
+	platformFee(platformFee: number): TransactionBuilder {
+		this._transactionProperties.platformFee = platformFee;
+		return this;
+	}
+
+	resource(resource: string): TransactionBuilder {
+		this._transactionProperties.resource = resource;
+		return this;
+	}
+
 	value(value: number): TransactionBuilder {
 		this._transactionProperties.value = value;
 
@@ -114,7 +134,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
-	documentType(documentType: string): TransactionBuilder {
+	documentType(documentType: VisibleDocument): TransactionBuilder {
 		this._transactionProperties.documentType = documentType;
 		return this;
 	}

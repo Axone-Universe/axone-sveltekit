@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TAGS } from '$lib/properties/note';
-import { resourceCollections, resourceTypes } from '$lib/properties/resource';
+import { resourceCollections, resourceLicenses, resourceTypes } from '$lib/properties/resource';
 
 export const create = z.object({
 	type: z.enum(resourceTypes),
@@ -25,11 +25,12 @@ export const update = z.object({
 	title: z.string().optional(),
 	description: z.string().optional(),
 	type: z.enum(resourceTypes).optional(),
-	collection: z.enum(resourceCollections).optional(),
+	nftCollection: z.enum(resourceCollections).optional(),
 	price: z.number().optional(),
 	royalties: z.number().optional(),
 	src: z.string().optional(),
 	alt: z.string().optional(),
+	license: z.enum(resourceLicenses).optional(),
 	properties: z.array(z.object({ name: z.string(), value: z.string() })).optional()
 });
 
