@@ -1,0 +1,71 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"required": ["schema", "nftType", "name", "description", "image"],
+	"properties": {
+		"schema": {
+			"type": "string",
+			"enum": ["ipfs://QmNpi8rcXEkohca8iXu7zysKKSJYqCvBJn3xJwga8jXqWU"]
+		},
+		"nftType": {
+			"enum": ["art.v0"],
+			"type": "string"
+		},
+		"name": {
+			"type": "string"
+		},
+		"description": {
+			"type": "string"
+		},
+		"image": {
+			"type": "string",
+			"format": "uri"
+		},
+		"animation": {
+			"type": "string",
+			"format": "uri"
+		},
+		"video": {
+			"type": "string",
+			"format": "uri"
+		},
+		"audio": {
+			"type": "string",
+			"format": "uri"
+		},
+		"file": {
+			"type": "string",
+			"format": "uri"
+		},
+		"collection": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"family": {
+					"type": "string"
+				}
+			},
+			"required": ["name"]
+		},
+		"attributes": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"trait_type": {
+						"type": "string"
+					},
+					"value": {
+						"type": ["string", "integer", "number"]
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"required": ["trait_type", "value"]
+			}
+		}
+	}
+}

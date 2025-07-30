@@ -19,7 +19,7 @@ export interface CommentProperties {
 	comment: string;
 }
 
-export interface ChapterProperties {
+export type ChapterProperties = {
 	_id: string;
 	book?: string | HydratedDocument<BookProperties>;
 	storyline?: string | HydratedDocument<StorylineProperties>;
@@ -38,24 +38,16 @@ export interface ChapterProperties {
 	archived?: boolean;
 	createdAt?: Date;
 	updatedAt?: Date;
-}
+};
 
-export interface HydratedChapterProperties extends ChapterProperties {
+export type HydratedChapterProperties = ChapterProperties & {
 	_id: string;
 	book?: HydratedDocument<BookProperties>;
 	storyline?: HydratedDocument<StorylineProperties>;
 	user?: HydratedDocument<UserProperties>;
 	delta?: HydratedDocument<DeltaProperties>;
 	children?: HydratedDocument<ChapterProperties>[];
-	permissions: Record<string, HydratedDocument<PermissionProperties>>;
-	permissionsUsers?: HydratedDocument<UserProperties>[]; // List of all users given certain permissions to the document
-	userPermissions?: { view: boolean; collaborate: boolean }; // Has the current session user permission details
-	chapterNotes?: HydratedDocument<NoteProperties>[];
-	genres?: Genre[];
-	title?: string;
-	description?: string;
-	archived?: boolean;
-}
+};
 
 export class ChapterPropertyBuilder {
 	private readonly _properties: ChapterProperties;

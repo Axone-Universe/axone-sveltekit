@@ -8,6 +8,7 @@ import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
 import type { ResourceProperties } from '$lib/properties/resource';
 import type mongoose from 'mongoose';
+import { z } from 'zod';
 
 export const resources = t.router({
 	create: t.procedure
@@ -37,7 +38,29 @@ export const resources = t.router({
 			}
 			return { ...response, ...{ data: response.data as HydratedDocument<ResourceProperties> } };
 		}),
+	get: t.procedure
+		.use(logger)
+		.input(read)
+		.query(async ({ input, ctx }) => {
+			const resourcesRepo = new ResourcesRepository();
 
+			const response: Response = {
+				success: true,
+				message: 'resources successfully obtained',
+				data: {}
+			};
+			try {
+				const result = await resourcesRepo.get(ctx.session, input);
+
+				response.data = result;
+				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<ResourceProperties>[] } };
+		}),
 	getByIds: t.procedure
 		.use(logger)
 		.input(read)
@@ -86,6 +109,9 @@ export const resources = t.router({
 		.mutation(async ({ input, ctx }) => {
 			const resourceBuilder = new ResourceBuilder(input.id).sessionUserID(ctx.session!.user.id);
 
+			console.log('>> updating resource');
+			console.log(input);
+
 			if (input.title) resourceBuilder.title(input.title);
 			if (input.description) resourceBuilder.description(input.description);
 			if (input.type) resourceBuilder.type(input.type);
@@ -93,7 +119,12 @@ export const resources = t.router({
 			if (input.chapterID) resourceBuilder.chapterID(input.chapterID);
 			if (input.src) resourceBuilder.src(input.src);
 			if (input.alt) resourceBuilder.alt(input.alt);
-			if (input.metadata) resourceBuilder.metadata(input.metadata);
+			if (input.properties) resourceBuilder.properties(input.properties);
+
+			if (input.price) resourceBuilder.price(input.price);
+			if (input.nftCollection) resourceBuilder.collection(input.nftCollection);
+			if (input.license) resourceBuilder.license(input.license);
+			if (input.royalties) resourceBuilder.royalties(input.royalties);
 
 			const response: Response = {
 				success: true,

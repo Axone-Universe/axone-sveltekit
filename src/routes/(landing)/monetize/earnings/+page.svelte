@@ -12,15 +12,7 @@
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
-	import {
-		arrowDown,
-		arrowLeft,
-		arrowRight,
-		creditCard,
-		edit,
-		pencil,
-		trash
-	} from 'svelte-awesome/icons';
+	import { arrowDown, arrowLeft, arrowRight, creditCard } from 'svelte-awesome/icons';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { onMount } from 'svelte';
@@ -218,6 +210,8 @@
 									<span
 										class="chip rounded-full {transaction.type === 'Payment'
 											? 'variant-soft-success'
+											: transaction.type === 'NFTokenMint'
+											? 'variant-soft-primary'
 											: 'variant-soft-error'}">{transaction.type}</span
 									>
 								</td>
