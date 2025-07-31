@@ -89,8 +89,18 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 		return this;
 	}
 
-	collection(collection: ResourceCollection): ResourceBuilder {
-		this._resourceProperties.nftCollection = collection;
+	nftCollection(nftCollection: ResourceCollection): ResourceBuilder {
+		this._resourceProperties.nftCollection = nftCollection;
+		return this;
+	}
+
+	nftId(nftId: string): ResourceBuilder {
+		this._resourceProperties.nftId = nftId;
+		return this;
+	}
+
+	nftWalletAddress(nftWalletAddress: string): ResourceBuilder {
+		this._resourceProperties.nftWalletAddress = nftWalletAddress;
 		return this;
 	}
 

@@ -12,6 +12,8 @@ export const resourceSchema = new Schema<ResourceProperties>({
 	src: String,
 	alt: String,
 	type: String,
+	nftId: String,
+	nftWalletAddress: String,
 	nftCollection: String,
 	royalties: Number,
 	title: String,

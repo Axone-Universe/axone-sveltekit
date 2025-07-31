@@ -29,7 +29,7 @@ import { ResourcesRepository } from '$lib/repositories/resourcesRepository';
 import { resourceCollectionsData } from '$lib/properties/resource';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { ResourceBuilder } from '$lib/documents/digital-assets/resource';
-import { getNFTokenIDFromTxId, getNFTokenOfferId } from '$lib/services/xrpl';
+import { getNFTokenId, getNFTokenOfferId, getNFTokenWalletAddress } from '$lib/services/xrpl';
 
 export const xumm = t.router({
 	createToken: t.procedure
@@ -160,8 +160,6 @@ export const xumm = t.router({
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()
 				.accountId(account._id)
-				.receiverID(resource.user!._id)
-				.senderID(admin!._id)
 				.exchangeRate(1)
 				.accountCurrency(account.currency!)
 				.resource(resource._id)
@@ -175,12 +173,19 @@ export const xumm = t.router({
 				.type('NFTokenCreateOffer')
 				.xrplType('NFTokenCreateOffer');
 
+			// if the owner is not admin, change receiver and sender
+			if (resource.nftWalletAddress !== AXONE_XRPL_ADDRESS) {
+				transactionBuilder.senderID(resource.user!._id);
+			} else {
+				transactionBuilder.receiverID(resource.user!._id).senderID(admin!._id);
+			}
+
 			const transaction = await transactionBuilder.build();
 
 			console.log('<< txn created');
 			console.log(transaction);
 
-			const nftID = await getNFTokenIDFromTxId(NFTokenMintTxn.externalId!);
+			const nftID = await getNFTokenId(resource, NFTokenMintTxn.externalId!);
 
 			try {
 				const xrpTransaction = {
@@ -259,7 +264,7 @@ export const xumm = t.router({
 			const netValue = (resource.price! - Number(platformFee)).toFixed(currencyScale);
 
 			// get nftID
-			const nftID = await getNFTokenIDFromTxId(NFTokenMintTxn.externalId!);
+			const nftID = await getNFTokenId(resource, NFTokenMintTxn.externalId!);
 
 			// get offer id
 			const offerId = await getNFTokenOfferId(nftID!, xrpToDrops(resource.price!));
@@ -271,6 +276,7 @@ export const xumm = t.router({
 				.senderID(ctx.session!.user.id)
 				.exchangeRate(accountCurrencyToXrpExchangeRate)
 				.accountCurrency(account.currency!)
+				.resource(resource._id)
 				// It's XRP because we are using the XUMM API
 				.currency('XRP')
 				.platformFee(Number(platformFee))
@@ -372,7 +378,12 @@ export const xumm = t.router({
 
 			// update the resource
 			if (transaction.xrplType === 'NFTokenMint') {
+				// get the nft id
+				const nftID = await getNFTokenId(undefined, payloadResponse.txid!);
+
 				resourceBuilder.isTokenized(true);
+				resourceBuilder.nftWalletAddress(AXONE_XRPL_ADDRESS);
+				if (nftID) resourceBuilder.nftId(nftID);
 			}
 
 			if (transaction.xrplType === 'NFTokenCreateOffer') {
@@ -380,7 +391,15 @@ export const xumm = t.router({
 			}
 
 			if (transaction.xrplType === 'NFTokenAcceptOffer') {
+				const resourcesRepo = new ResourcesRepository();
+				const resource = await resourcesRepo.getById(null, (transaction.resource ?? '') as string);
+
 				resourceBuilder.userID(transaction.receiver! as string).isListed(false);
+
+				if (resource && resource.nftId) {
+					const nftWalletAddress = await getNFTokenWalletAddress(payloadResponse.txid);
+					resourceBuilder.nftWalletAddress(nftWalletAddress);
+				}
 			}
 		}
 

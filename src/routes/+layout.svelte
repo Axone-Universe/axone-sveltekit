@@ -16,7 +16,7 @@
 
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
-	import { setSupabaseClient } from '$lib/stores/supabase';
+	import { setSupabaseClient, setSupabaseSession } from '$lib/stores/supabase';
 
 	export let data: LayoutData;
 
@@ -36,6 +36,7 @@
 			}
 		});
 		setSupabaseClient(supabase);
+		setSupabaseSession(session);
 		return () => subscription.unsubscribe();
 	});
 

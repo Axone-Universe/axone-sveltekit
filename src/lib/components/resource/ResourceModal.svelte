@@ -15,7 +15,7 @@
 	import { page } from '$app/stores';
 	import type { HydratedDocument } from 'mongoose';
 	import { uploadResource } from '$lib/util/constants';
-	import { supabaseClient } from '$lib/stores/supabase';
+	import { supabaseClient, supabaseSession } from '$lib/stores/supabase';
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import { type TransactionProperties } from '$lib/properties/transaction';
 
@@ -26,6 +26,7 @@
 	const maxRoyalty = 50;
 
 	$: supabase = $supabaseClient;
+	$: session = $supabaseSession;
 
 	let closeModal = () => {
 		modalStore.close();
@@ -324,18 +325,21 @@
 						alt={editedResource.title ?? 'Resource Title'}
 					/>
 					<!-- Image upload overlay -->
-					<div
-						class="absolute inset-0 p-8 bg-surface-50-900-token bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-300 rounded-lg cursor-pointer"
-					>
-						<FileDropzone name="resourceDropZone" on:change={(event) => saveResourceFile(event)}>
-							<svelte:fragment slot="message"
-								><div class="text-center">
-									<p class="text-sm"><strong>Upload an image</strong> or drag and drop</p>
-								</div></svelte:fragment
-							>
-							<svelte:fragment slot="meta">PNG, JPG, SVG, and GIF allowed.</svelte:fragment>
-						</FileDropzone>
-					</div>
+
+					{#if session && session.user.id === resource?.user?._id && !resource.isTokenized}
+						<div
+							class="absolute inset-0 p-8 bg-surface-50-900-token bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-300 rounded-lg cursor-pointer"
+						>
+							<FileDropzone name="resourceDropZone" on:change={(event) => saveResourceFile(event)}>
+								<svelte:fragment slot="message"
+									><div class="text-center">
+										<p class="text-sm"><strong>Upload an image</strong> or drag and drop</p>
+									</div></svelte:fragment
+								>
+								<svelte:fragment slot="meta">PNG, JPG, SVG, and GIF allowed.</svelte:fragment>
+							</FileDropzone>
+						</div>
+					{/if}
 
 					<!-- Status badges on modal image -->
 					<div class="absolute top-3 left-3 flex flex-col gap-2">
@@ -369,7 +373,9 @@
 						saveChanges();
 					}}
 				>
-					<fieldset disabled={resource.isTokenized}>
+					<fieldset
+						disabled={(session && session.user.id !== resource?.user?._id) || resource.isTokenized}
+					>
 						<!-- Title -->
 						<div>
 							<label for="title" class="block text-sm font-medium mb-2">Title *</label>
@@ -514,7 +520,7 @@
 					<div class="space-y-3 pt-4 border-t">
 						<h3 class="text-lg font-medium">NFT Actions</h3>
 
-						{#if !resource.isListed}
+						{#if session && session.user.id === resource?.user?._id && !resource.isListed}
 							<!-- Tokenize button -->
 							<button
 								type="button"
@@ -587,39 +593,39 @@
 							{#if editedResource.isTokenized && !editedResource.price && !editedResource.isListed}
 								<p class="text-xs text-red-500">Please set a price to list on marketplace</p>
 							{/if}
+						{:else if resource.isListed}
+							<button
+								type="button"
+								on:click={handleBuy}
+								class="w-full button variant-ghost-secondary flex-1 py-2 px-4 rounded-full transition-colors font-medium"
+							>
+								{#if isBuying}
+									<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+										<circle
+											class="opacity-25"
+											cx="12"
+											cy="12"
+											r="10"
+											stroke="currentColor"
+											stroke-width="4"
+										/>
+										<path
+											class="opacity-75"
+											fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+										/>
+									</svg>
+									Buying...
+								{:else}
+									Buy Token
+								{/if}
+							</button>
 						{/if}
-						<button
-							type="button"
-							on:click={handleBuy}
-							class="w-full button variant-ghost-secondary flex-1 py-2 px-4 rounded-full transition-colors font-medium"
-						>
-							{#if isBuying}
-								<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-									<circle
-										class="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										stroke-width="4"
-									/>
-									<path
-										class="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									/>
-								</svg>
-								Buying...
-							{:else}
-								Buy Token
-							{/if}
-						</button>
 					</div>
 
 					<!-- Save/Cancel buttons -->
-
 					<div class="flex gap-3 pt-4 border-t">
-						{#if !resource.isListed}
+						{#if session && session.user.id === resource?.user?._id && !resource.isTokenized}
 							<button
 								type="button"
 								on:click={saveChanges}

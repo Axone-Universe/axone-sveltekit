@@ -126,7 +126,7 @@ export const resources = t.router({
 			if (input.properties) resourceBuilder.properties(input.properties);
 
 			if (input.price) resourceBuilder.price(input.price);
-			if (input.nftCollection) resourceBuilder.collection(input.nftCollection);
+			if (input.nftCollection) resourceBuilder.nftCollection(input.nftCollection);
 			if (input.license) resourceBuilder.license(input.license);
 			if (input.royalties) resourceBuilder.royalties(input.royalties);
 
