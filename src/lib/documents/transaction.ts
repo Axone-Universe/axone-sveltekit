@@ -125,7 +125,11 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		);
 
 		// update value based on the fees
-		this.value(netValue + (this._transactionProperties.fee ?? 0));
+		this.value(
+			netValue +
+				(this._transactionProperties.fee ?? 0) +
+				(this._transactionProperties.platformFee ?? 0)
+		);
 		return this;
 	}
 
@@ -199,7 +203,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		const balance = accountTransactions.reduce((currentBalance, transaction) => {
 			if (transaction.type === 'Payment' && transaction.status !== 'success') return currentBalance;
 
-			const multiplier = transaction.type === 'Payment' ? 1 : -1;
+			const multiplier = transaction.type === 'Withdrawal' ? -1 : 1;
 			return currentBalance + multiplier * (transaction.baseNetValue ?? 0);
 		}, 0);
 

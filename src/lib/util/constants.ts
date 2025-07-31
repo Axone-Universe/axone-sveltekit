@@ -140,7 +140,12 @@ export const marketFilterTags = [
 	...resourceCollections
 ] as const;
 
-export const xrplTransactionTypes = ['Payment', 'NFTokenMint'] as const;
+export const xrplTransactionTypes = [
+	'Payment',
+	'NFTokenMint',
+	'NFTokenCreateOffer',
+	'NFTokenAcceptOffer'
+] as const;
 
 export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
 

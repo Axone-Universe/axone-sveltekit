@@ -5,11 +5,13 @@ import { AXONE_ADMIN_EMAIL, AXONE_XRPL_ADDRESS } from '$env/static/private';
 import { PUBLIC_PLATFORM_FEES, PUBLIC_DOMAIN_NAME } from '$env/static/public';
 import {
 	NFTokenMint,
+	NFTokenCreateOffer,
 	type Payment,
 	xrpToDrops,
 	convertStringToHex,
-	NFTokenMintFlagsInterface,
-	NFTokenMintFlags
+	NFTokenMintFlags,
+	NFTokenCreateOfferFlags,
+	NFTokenAcceptOffer
 } from 'xrpl';
 import { xummSdk } from '$lib/services/xumm';
 
@@ -27,6 +29,7 @@ import { ResourcesRepository } from '$lib/repositories/resourcesRepository';
 import { resourceCollectionsData } from '$lib/properties/resource';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { ResourceBuilder } from '$lib/documents/digital-assets/resource';
+import { getNFTokenIDFromTxId, getNFTokenOfferId } from '$lib/services/xrpl';
 
 export const xumm = t.router({
 	createToken: t.procedure
@@ -121,6 +124,204 @@ export const xumm = t.router({
 				...{ data: response.data as HydratedDocument<HydratedTransactionProperties> }
 			};
 		}),
+	listToken: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(z.object({ resourceId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const response: Response = {
+				success: true,
+				message: 'token successfully submitted for listing!',
+				data: {}
+			};
+
+			// get resource to be listed
+			const resourcesRepo = new ResourcesRepository();
+			const resource = await resourcesRepo.getById(ctx.session, input.resourceId);
+
+			if (!resource.isTokenized) {
+				response.success = false;
+				response.message = 'resource has not been tokenized';
+				return response;
+			}
+
+			// get account of minter
+			const accountRepo = new AccountsRepository();
+			const account = await accountRepo.getByUserId(resource.user!._id, true);
+
+			// get the axone admin user
+			const usersRepo = new UsersRepository();
+			const admin = await usersRepo.getByEmail(ctx.session, AXONE_ADMIN_EMAIL);
+
+			// get the minting transaction
+			const transactionsRepo = new TransactionsRepository();
+			const NFTokenMintTxn = await transactionsRepo.getByResourceId(resource._id, 'NFTokenMint');
+
+			// create the transaction
+			const transactionBuilder = new TransactionBuilder()
+				.accountId(account._id)
+				.receiverID(resource.user!._id)
+				.senderID(admin!._id)
+				.exchangeRate(1)
+				.accountCurrency(account.currency!)
+				.resource(resource._id)
+				// It's XRP because we are using the XUMM API
+				.currency('XRP')
+				.transferFee(resource.royalties ?? 0)
+				.netValue(0)
+				.documentId(resource.chapter!._id)
+				.documentType('Chapter')
+				.note('Token Listing')
+				.type('NFTokenCreateOffer')
+				.xrplType('NFTokenCreateOffer');
+
+			const transaction = await transactionBuilder.build();
+
+			console.log('<< txn created');
+			console.log(transaction);
+
+			const nftID = await getNFTokenIDFromTxId(NFTokenMintTxn.externalId!);
+
+			try {
+				const xrpTransaction = {
+					TransactionType: transaction.xrplType,
+					Amount: xrpToDrops(resource.price!),
+					NFTokenID: nftID,
+					Flags: NFTokenCreateOfferFlags.tfSellNFToken
+				} as NFTokenCreateOffer;
+
+				console.log('<< xrp transaction');
+				console.log(xrpTransaction);
+
+				const payload = await xummSdk!.payload.create(xrpTransaction);
+
+				console.log('<< payload ');
+				console.log(payload);
+
+				if (payload) {
+					// update the transaction payload
+					transactionBuilder.payload(payload!);
+					transactionBuilder.payloadId(payload!.uuid);
+
+					response.data = await transactionBuilder.update();
+				} else {
+					response.success = false;
+					response.message = 'Error while creating NFT offer transaction payload';
+				}
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+				console.log('!! token create error');
+				console.log(error);
+			}
+
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<HydratedTransactionProperties> }
+			};
+		}),
+	buyToken: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(z.object({ resourceId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const response: Response = {
+				success: true,
+				message: 'token successfully submitted for buying!',
+				data: {}
+			};
+
+			// get resource to be bought
+			const resourcesRepo = new ResourcesRepository();
+			const resource = await resourcesRepo.getById(ctx.session, input.resourceId);
+
+			if (!resource.isListed) {
+				response.success = false;
+				response.message = 'resource has not been listed';
+				return response;
+			}
+
+			// get account of minter
+			const accountRepo = new AccountsRepository();
+			const account = await accountRepo.getByUserId(resource.user!._id, true);
+
+			// get the offer transaction
+			const transactionsRepo = new TransactionsRepository();
+			const NFTokenMintTxn = await transactionsRepo.getByResourceId(resource._id, 'NFTokenMint');
+
+			// get the exchange rate
+			const rates = await xummSdk!.getRates(account.currency!);
+			const accountCurrencyToXrpExchangeRate = rates.XRP;
+
+			// calculate the fees and net value
+			const currencyScale = currencies[account.currency!].scale;
+			const platformFee = (resource.price! * Number(PUBLIC_PLATFORM_FEES)).toFixed(currencyScale);
+			const netValue = (resource.price! - Number(platformFee)).toFixed(currencyScale);
+
+			// get nftID
+			const nftID = await getNFTokenIDFromTxId(NFTokenMintTxn.externalId!);
+
+			// get offer id
+			const offerId = await getNFTokenOfferId(nftID!, xrpToDrops(resource.price!));
+
+			// create the transaction
+			const transactionBuilder = new TransactionBuilder()
+				.accountId(account._id)
+				.receiverID(resource.user!._id)
+				.senderID(ctx.session!.user.id)
+				.exchangeRate(accountCurrencyToXrpExchangeRate)
+				.accountCurrency(account.currency!)
+				// It's XRP because we are using the XUMM API
+				.currency('XRP')
+				.platformFee(Number(platformFee))
+				.netValue(Number(netValue))
+				.documentId(resource.chapter!._id)
+				.documentType('Chapter')
+				.note('Token Buying')
+				.type('NFTokenAcceptOffer')
+				.xrplType('NFTokenAcceptOffer');
+
+			const transaction = await transactionBuilder.build();
+
+			console.log('<< txn created');
+			console.log(transaction);
+
+			try {
+				const xrpTransaction = {
+					TransactionType: transaction.xrplType,
+					NFTokenSellOffer: offerId
+				} as NFTokenAcceptOffer;
+
+				console.log('<< xrp transaction');
+				console.log(xrpTransaction);
+
+				const payload = await xummSdk!.payload.create(xrpTransaction);
+
+				console.log('<< payload ');
+				console.log(payload);
+
+				if (payload) {
+					// update the transaction payload
+					transactionBuilder.payload(payload!);
+					transactionBuilder.payloadId(payload!.uuid);
+
+					response.data = await transactionBuilder.update();
+				} else {
+					response.success = false;
+					response.message = 'Error while creating NFT offer transaction payload';
+				}
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unkown error';
+				console.log('!! token create error');
+				console.log(error);
+			}
+
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<HydratedTransactionProperties> }
+			};
+		}),
 	getRates: t.procedure
 		.use(logger)
 		.use(auth)
@@ -172,6 +373,14 @@ export const xumm = t.router({
 			// update the resource
 			if (transaction.xrplType === 'NFTokenMint') {
 				resourceBuilder.isTokenized(true);
+			}
+
+			if (transaction.xrplType === 'NFTokenCreateOffer') {
+				resourceBuilder.isListed(true);
+			}
+
+			if (transaction.xrplType === 'NFTokenAcceptOffer') {
+				resourceBuilder.userID(transaction.receiver! as string).isListed(false);
 			}
 		}
 

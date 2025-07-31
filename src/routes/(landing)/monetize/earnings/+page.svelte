@@ -208,11 +208,11 @@
 								</td>
 								<td>
 									<span
-										class="chip rounded-full {transaction.type === 'Payment'
-											? 'variant-soft-success'
+										class="chip rounded-full {transaction.type === 'Withdrawal'
+											? 'variant-soft-error'
 											: transaction.type === 'NFTokenMint'
 											? 'variant-soft-primary'
-											: 'variant-soft-error'}">{transaction.type}</span
+											: 'variant-soft-success'}">{transaction.type}</span
 									>
 								</td>
 								<td>{account?.currency}</td>
@@ -223,13 +223,13 @@
 								>
 								<td>{transaction.baseValue?.toFixed(account?.currencyScale)}</td>
 								<td
-									class="font-bold {transaction.type === 'Payment'
-										? 'text-success-600-300-token'
-										: 'text-error-600-300-token'}"
+									class="font-bold {transaction.type === 'Withdrawal'
+										? 'text-error-600-300-token'
+										: 'text-success-600-300-token'}"
 								>
 									<Icon
 										class="mr-2"
-										data={transaction.type === 'Payment' ? arrowRight : arrowLeft}
+										data={transaction.type === 'Withdrawal' ? arrowLeft : arrowRight}
 										scale={1}
 									/>
 									{currencySymbol}

@@ -4,6 +4,7 @@ import type { TransactionProperties } from '$lib/properties/transaction';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { ReadTransaction } from '$lib/trpc/schemas/transactions';
+import { XrplTransactionType } from '$lib/util/types';
 
 export class TransactionsRepository extends Repository {
 	constructor() {
@@ -19,6 +20,24 @@ export class TransactionsRepository extends Repository {
 	async getByAccountId(accountId: string): Promise<HydratedDocument<TransactionProperties>[]> {
 		// We use exec here because cursor doesn't go through post middleware for aggregate
 		const result = await Transaction.aggregate([{ $match: { account: accountId } }]).exec();
+		return result;
+	}
+
+	async getByResourceId(
+		resourceId: string,
+		transactionType?: XrplTransactionType
+	): Promise<HydratedDocument<TransactionProperties>> {
+		// We use exec here because cursor doesn't go through post middleware for aggregate
+		const result = await Transaction.aggregate([
+			{
+				$match: {
+					...{ resource: resourceId },
+					...(transactionType ? { xrplType: transactionType } : {})
+				}
+			}
+		])
+			.cursor()
+			.next();
 		return result;
 	}
 
