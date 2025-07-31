@@ -9,7 +9,7 @@ export const transactionSchema = new Schema<TransactionProperties>({
 	_id: String,
 	hash: String,
 	account: { type: String, ref: AccountLabel, required: true },
-	receiver: { type: String, ref: UserLabel, required: true },
+	receiver: { type: String, ref: UserLabel, required: false },
 	sender: { type: String, ref: UserLabel, required: true },
 	resource: { type: String, ref: ResourceLabel, required: false },
 	externalId: String,

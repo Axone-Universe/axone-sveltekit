@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
-	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { check } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
@@ -48,15 +46,15 @@
 </script>
 
 <div
-	class={`card card-hover group rounded-md overflow-hidden w-full relative cursor-pointer text-left ${
+	class={`card card-hover group rounded-md aspect-[2/3] overflow-hidden w-full relative cursor-pointer text-left ${
 		didError ? '' : 'bg-[url(/tail-spin.svg)] bg-no-repeat bg-center'
 	} ${selected && 'p-1 !bg-primary-400'}`}
 	on:click={dispatchEvent ? dispatchUpdatedEvent : () => modalStore.trigger(modal)}
 	on:keydown={handleKeyDown}
 >
-	<div class="relative bg-surface-200-700-token">
+	<div class="relative bg-surface-200-700-token w-full h-full">
 		<ImageWithFallback
-			class="w-full h-64 object-cover"
+			class="w-full object-contain"
 			src={resource.src ?? 'null'}
 			alt={resource.title ?? 'Resource Title'}
 			bind:didError
@@ -86,7 +84,7 @@
 		{/if}
 	</div>
 
-	<div class="p-4 bg-surface-300-600-token">
+	<div class="absolute top-2/3 p-4 bg-surface-300-600-token w-full h-full">
 		<h3 class="text-lg font-semibold mb-2">{resource.title ?? '<Update Title>'}</h3>
 		<p class="text-sm mb-3">
 			{`by ${resourceUser.firstName} ${resourceUser.lastName}`}

@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
 	currencyCodes,
 	homeFilterTags,
+	marketFilterTags,
 	notificationTypes,
 	paymentMethods,
 	transactionStatuses,
@@ -11,7 +12,6 @@ import {
 	visibleDocuments,
 	xrplTransactionTypes
 } from './constants';
-import { resourceTypes } from '$lib/properties/resource';
 
 export const EditorModes = ['reader', 'writer'] as const;
 export type EditorMode = (typeof EditorModes)[number];
@@ -45,6 +45,7 @@ export type Response = {
 };
 
 export type HomeFilterTag = (typeof homeFilterTags)[number];
+export type MarketFilterTag = (typeof marketFilterTags)[number];
 
 export type StorageError =
 	| { data: { path: string }; error: null }

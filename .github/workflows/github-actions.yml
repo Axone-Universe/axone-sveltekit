@@ -34,6 +34,8 @@ env:
   AXONE_XRPL_ADDRESS: 'rPVcVvFkTdvhQ1w5he9VN9BhtP4qfsFHdP'
   AXONE_ADMIN_EMAIL: 'admin@example.com'
 
+  PUBLIC_XRPL_SERVER: 'wss://s.altnet.rippletest.net:51233/'
+
 jobs:
   test:
     runs-on: ubuntu-latest

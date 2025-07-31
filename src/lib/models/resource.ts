@@ -12,6 +12,8 @@ export const resourceSchema = new Schema<ResourceProperties>({
 	src: String,
 	alt: String,
 	type: String,
+	nftId: String,
+	nftWalletAddress: String,
 	nftCollection: String,
 	royalties: Number,
 	title: String,
@@ -29,10 +31,14 @@ resourceSchema.pre(['find', 'findOne'], function () {
 resourceSchema.pre('aggregate', function (next) {
 	const userID = this.options.userID;
 	const pipeline = this.pipeline();
+	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
-
 	// TODO: add permissions logic
+
+	for (const filter of postPipeline) {
+		pipeline.push(filter);
+	}
 	next();
 });
 
