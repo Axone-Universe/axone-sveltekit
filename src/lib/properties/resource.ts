@@ -37,6 +37,10 @@ export type ResourceProperties = {
 	src?: string;
 	alt?: string;
 	type?: ResourceType;
+	// id of the nft on the ledger
+	nftId?: string;
+	// wallet address of the nft's holder
+	nftWalletAddress?: string;
 	nftCollection?: ResourceCollection;
 	title?: string;
 	description?: string;

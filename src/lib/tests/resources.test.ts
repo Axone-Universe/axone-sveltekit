@@ -109,6 +109,7 @@ describe('resources', () => {
 		expect(resourceUpdateResponse.data.license).toEqual('CC BY');
 	});
 
+	// TODO: test coverage of token signing, token listing and token buying
 	test('create token', async () => {
 		const chapter1Title = 'Chapter 1';
 		const testBookTitle = 'My Book';

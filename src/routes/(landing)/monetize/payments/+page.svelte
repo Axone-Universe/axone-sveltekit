@@ -180,11 +180,11 @@
 								>
 								<td>
 									<span
-										class="chip rounded-full {transaction.type === 'Payment'
-											? 'variant-soft-success'
+										class="chip rounded-full {transaction.type === 'Withdrawal'
+											? 'variant-soft-error'
 											: transaction.type === 'NFTokenMint'
 											? 'variant-soft-primary'
-											: 'variant-soft-error'}">{transaction.type}</span
+											: 'variant-soft-success'}">{transaction.type}</span
 									>
 								</td>
 								<td>{transaction.currency}</td>

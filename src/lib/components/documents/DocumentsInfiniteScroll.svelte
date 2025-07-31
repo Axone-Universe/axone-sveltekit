@@ -131,7 +131,7 @@
 				<InfoHeader
 					emoji="🤲"
 					heading="We're empty handed!"
-					description={'Try changing your filters or write your own story!'}
+					description={'Try changing your filters...'}
 				>
 					{#if documentType === 'Book' || documentType === 'Storyline'}
 						<a href="/book/create" class="btn variant-filled-primary">Start writing</a>

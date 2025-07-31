@@ -5,7 +5,11 @@ import { type Currency, type CurrencyCode } from './types';
 import { label as BookLabel } from '$lib/properties/book';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import { label as ChapterLabel } from '$lib/properties/chapter';
-import { type HydratedResourceProperties, label as ResourceLabel } from '$lib/properties/resource';
+import {
+	type HydratedResourceProperties,
+	resourceCollections,
+	label as ResourceLabel
+} from '$lib/properties/resource';
 import { uploadImage } from './bucket/bucket';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -131,7 +135,17 @@ export const homeFilterTags = [
 	'Past 30 Days'
 ] as const;
 
-export const xrplTransactionTypes = ['Payment', 'NFTokenMint'] as const;
+export const marketFilterTags = [
+	...['listed', 'newest', 'past 30 days'],
+	...resourceCollections
+] as const;
+
+export const xrplTransactionTypes = [
+	'Payment',
+	'NFTokenMint',
+	'NFTokenCreateOffer',
+	'NFTokenAcceptOffer'
+] as const;
 
 export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
 

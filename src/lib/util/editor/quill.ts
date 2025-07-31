@@ -550,15 +550,17 @@ export class QuillEditor extends Quill {
 		// update the db resource first then the quill object
 		trpc(this.page)
 			.resources.update.mutate({
-				id: resource.id,
+				id: resource._id,
 				title: resource.title,
 				src: resource.src,
 				alt: resource.alt
 			})
 			.then((response) => {
+				console.log('updated');
+				console.log(response);
 				if (response.success) {
 					const resourceObject: ResourceObject = {
-						id: resource.id,
+						id: resource._id,
 						title: resource.title ?? '',
 						src: resource.src ?? '',
 						alt: resource.alt ?? ''

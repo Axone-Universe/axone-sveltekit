@@ -49,6 +49,10 @@ export const resources = t.router({
 				message: 'resources successfully obtained',
 				data: {}
 			};
+
+			console.log('** inputs');
+			console.log(input);
+
 			try {
 				const result = await resourcesRepo.get(ctx.session, input);
 
@@ -122,7 +126,7 @@ export const resources = t.router({
 			if (input.properties) resourceBuilder.properties(input.properties);
 
 			if (input.price) resourceBuilder.price(input.price);
-			if (input.nftCollection) resourceBuilder.collection(input.nftCollection);
+			if (input.nftCollection) resourceBuilder.nftCollection(input.nftCollection);
 			if (input.license) resourceBuilder.license(input.license);
 			if (input.royalties) resourceBuilder.royalties(input.royalties);
 

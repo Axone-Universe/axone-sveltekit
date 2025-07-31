@@ -1,16 +1,20 @@
 import { z } from 'zod';
-import { TAGS } from '$lib/properties/note';
 import { resourceCollections, resourceLicenses, resourceTypes } from '$lib/properties/resource';
+import { marketFilterTags } from '$lib/util/constants';
 
 export const create = z.object({
 	type: z.enum(resourceTypes),
 	chapterID: z.string().optional()
 });
 
+const TagsEnum = z.enum(marketFilterTags);
+export const tagsSchema = z.array(TagsEnum);
+
 export const read = z.object({
 	limit: z.number().optional(),
 	cursor: z.number().optional(),
 	skip: z.number().optional(),
+	tags: tagsSchema.optional(),
 	id: z.string().optional(),
 	title: z.string().optional(),
 	ids: z.array(z.string()).optional(),

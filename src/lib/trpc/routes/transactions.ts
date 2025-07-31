@@ -51,8 +51,6 @@ export const transactions = t.router({
 			const transaction = await transactionsRepo.getByPayloadId(input.payloadId!);
 			response.data = transaction;
 
-			console.log('<< response');
-			console.log(response);
 			return {
 				...response,
 				...{ data: response.data as HydratedDocument<TransactionProperties> }
