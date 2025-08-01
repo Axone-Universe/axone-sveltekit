@@ -4,6 +4,7 @@
 	import Section from '$lib/components/Section.svelte';
 	import { type TransactionProperties } from '$lib/properties/transaction';
 	import { trpc } from '$lib/trpc/client';
+	import { currencies } from '$lib/util/constants';
 	import { type HydratedDocument } from 'mongoose';
 	import { onMount, onDestroy } from 'svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
@@ -127,17 +128,17 @@
 					<div class="flex justify-between">
 						<span class="">Amount:</span>
 						<span class="font-medium"
-							>{paymentData?.currency === 'XRP'
-								? `XRP ${paymentData?.netValue?.toFixed(6)}`
-								: `$${paymentData?.netValue?.toFixed(2)}`}</span
+							>{`${paymentData?.currency ?? 'XRP'} ${paymentData?.netValue?.toFixed(
+								currencies[paymentData.currency ?? 'XRP'].scale
+							)}`}</span
 						>
 					</div>
 					<div class="flex justify-between">
-						<span class="">Platform fee:</span>
+						<span class="">Fees:</span>
 						<span class="font-medium"
-							>{paymentData?.currency === 'XRP'
-								? `XRP ${paymentData?.fee?.toFixed(6)}`
-								: `$${paymentData?.fee?.toFixed(2)}`}</span
+							>{`${paymentData?.currency ?? 'XRP'} ${(
+								(paymentData?.value ?? 0) - (paymentData?.netValue ?? 0)
+							).toFixed(currencies[paymentData?.currency ?? 'XRP'].scale)}`}</span
 						>
 					</div>
 					<div class="flex justify-between">
@@ -148,9 +149,9 @@
 						<div class="flex justify-between font-semibold">
 							<span>Total:</span>
 							<span
-								>{paymentData?.currency === 'XRP'
-									? `XRP ${paymentData?.value?.toFixed(6)}`
-									: `$${paymentData?.value?.toFixed(2)}`}</span
+								>{`${paymentData?.currency ?? 'XRP'} ${paymentData?.value?.toFixed(
+									currencies[paymentData.currency ?? 'XRP'].scale
+								)}`}</span
 							>
 						</div>
 					</div>

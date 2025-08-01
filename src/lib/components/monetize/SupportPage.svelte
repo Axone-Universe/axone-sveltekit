@@ -14,6 +14,8 @@
 	import { trpc } from '$lib/trpc/client';
 	import { type TransactionProperties } from '$lib/properties/transaction';
 	import Tooltip from '../Tooltip.svelte';
+	import { supabaseSession } from '$lib/stores/supabase';
+	import { documentURL } from '$lib/util/links';
 
 	/** props */
 	export let documentType: PermissionedDocument;
@@ -49,6 +51,8 @@
 
 	// Platform fee rate (3%)
 	const feeRate = Number(PUBLIC_PLATFORM_FEES);
+
+	$: session = $supabaseSession;
 
 	// Reactive statements for derived values
 	$: netAmount = selectedAmount || parseFloat(customAmount) || 0;
@@ -98,6 +102,16 @@
 
 		isProcessing = true;
 
+		let notifications: any = {};
+		notifications[creator._id] = {
+			type: 'USER',
+			senderID: session?.user.id,
+			receiverID: creator._id,
+			subject: 'Incoming support payment!',
+			url: $page.url.origin + '/monetize/earnings',
+			notification: `You have received a pending amount of ${netAmountXRP} XRP from a supporter!`
+		};
+
 		try {
 			if (selectedPaymentMethod === 'xaman') {
 				const response = await trpc($page).xumm.payload.query({
@@ -107,7 +121,8 @@
 					documentType: documentType,
 					receiver: creator._id,
 					note: note,
-					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD'
+					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD',
+					notifications: notifications
 				});
 
 				console.log('<< Create Payload');
@@ -132,7 +147,6 @@
 			note = '';
 			selectedPaymentMethod = 'xaman';
 		} catch (error) {
-			alert('Payment failed. Please try again.');
 			console.log(error);
 		} finally {
 			isProcessing = false;
