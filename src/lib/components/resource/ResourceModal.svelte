@@ -243,9 +243,19 @@
 
 		isBuying = true;
 
+		let notifications: any = {};
+		notifications[resource?.user?._id ?? ''] = {
+			type: 'USER',
+			senderID: session?.user.id,
+			receiverID: resource?.user?._id ?? '',
+			subject: 'Incoming NFT purchase!',
+			url: $page.url.origin + '/monetize/earnings',
+			notification: `You have received pending offer for your NFT!`
+		};
 		trpc($page)
 			.xumm.buyToken.query({
-				resourceId: editedResource._id
+				resourceId: editedResource._id,
+				notifications: notifications
 			})
 			.then((response) => {
 				if (response.success) {
