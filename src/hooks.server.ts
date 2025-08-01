@@ -1,7 +1,6 @@
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { createTRPCHandle } from 'trpc-sveltekit';
-
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { createContext } from '$lib/trpc/context';
@@ -44,7 +43,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, '/login');
 		}
 
-		//Add protected pages name in the list
+		// Add protected pages name in the list
 		const pages = [
 			'home',
 			'studio',

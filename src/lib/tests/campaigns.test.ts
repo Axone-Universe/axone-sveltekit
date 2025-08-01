@@ -2,22 +2,22 @@ import type { CampaignProperties } from '$lib/properties/campaign';
 import { router } from '$lib/trpc/router';
 import type { CreateBook } from '$lib/trpc/schemas/books';
 import {
-	connectTestDatabase,
+	connectDatabase,
 	cleanUpDatabase,
 	createDBUser,
 	createTestSession,
-	generateTestUser
+	generateUserSessionData
 } from '$lib/util/testing/testing';
 import type { HydratedDocument } from 'mongoose';
 
 beforeAll(async () => {
-	await connectTestDatabase();
+	await connectDatabase();
 });
 
 describe('campaigns', async () => {
-	const testUserOneSession = createTestSession(generateTestUser());
-	const testUserTwoSession = createTestSession(generateTestUser());
-	const testUserThreeSession = createTestSession(generateTestUser());
+	const testUserOneSession = createTestSession(generateUserSessionData());
+	const testUserTwoSession = createTestSession(generateUserSessionData());
+	const testUserThreeSession = createTestSession(generateUserSessionData());
 	const caller1 = router.createCaller({ session: testUserOneSession });
 	const caller2 = router.createCaller({ session: testUserTwoSession });
 

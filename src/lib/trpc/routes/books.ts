@@ -152,6 +152,7 @@ export const books = t.router({
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
+			
 
 			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),

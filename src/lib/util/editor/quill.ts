@@ -7,12 +7,13 @@ import { trpc } from '$lib/trpc/client';
 import type { Page } from '@sveltejs/kit';
 import type { DeltaProperties } from '$lib/properties/delta';
 import { writable } from 'svelte/store';
-import '$lib/util/editor/illustrations.ts';
-import { QuillIllustration } from '$lib/util/editor/illustrations';
-import type { IllustrationObject } from '$lib/util/editor/illustrations';
+import '$lib/util/editor/resources';
+import { QuillResource } from '$lib/util/editor/resources';
+import type { ResourceObject } from '$lib/util/editor/resources';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 import type { NoteProperties } from '$lib/properties/note';
+import { type HydratedResourceProperties, type ResourceProperties } from '$lib/properties/resource';
 
 export const savingDeltaWritable = writable<boolean>(false);
 
@@ -23,9 +24,9 @@ export interface Comment {
 	timestamp: string;
 }
 
-export interface Illustration {
+export interface Resource {
 	id: string;
-	illustration: IllustrationObject;
+	resource: ResourceObject;
 	author: string;
 	timestamp: string;
 }
@@ -36,7 +37,8 @@ export interface QuillOptions extends QuillOptionsStatic {
 
 export class QuillEditor extends Quill {
 	comments: { [key: string]: Comment } = {};
-	illustrations: { [key: string]: Illustration } = {};
+	resources: { [key: string]: Resource } = {};
+	resourcesData: HydratedDocument<HydratedResourceProperties>[] = [];
 	selectedDelta: Delta | undefined = undefined;
 	selectedRange: { index: number; length: number } | undefined | null = undefined;
 	oldSelectedRange: { index: number; length: number } | undefined | null = undefined;
@@ -62,7 +64,7 @@ export class QuillEditor extends Quill {
 		options?: QuillOptions
 	) {
 		super(container, options);
-		Quill.register('modules/illustration', QuillIllustration);
+		Quill.register('modules/resource', QuillResource);
 		this.chapters = chapters;
 		this.page = page;
 		savingDeltaWritable.subscribe((savingDelta) => {
@@ -91,14 +93,10 @@ export class QuillEditor extends Quill {
 			deltaID = (chapter?.delta as HydratedDocument<DeltaProperties>)._id;
 		}
 
-		// Stringify illustration ops
+		// Stringify resource ops
 		this.changeDelta.ops.forEach((op: Op) => {
-			if (
-				op.attributes &&
-				op.attributes.illustration &&
-				typeof op.attributes.illustration === 'object'
-			) {
-				op.attributes.illustration = JSON.stringify(op.attributes.illustration as string);
+			if (op.attributes && op.attributes.resource && typeof op.attributes.resource === 'object') {
+				op.attributes.resource = JSON.stringify(op.attributes.resource as string);
 			}
 		});
 
@@ -225,14 +223,10 @@ export class QuillEditor extends Quill {
 		const opsJSON = (deltaResponse as HydratedDocument<DeltaProperties>).ops;
 		const ops = opsJSON ? opsJSON : [];
 
-		//Parse the illustrations to JavaScript objects
+		//Parse the resources to JavaScript objects
 		(ops as Op[]).forEach((op) => {
-			if (
-				op.attributes &&
-				op.attributes.illustration &&
-				typeof op.attributes.illustration === 'string'
-			) {
-				op.attributes.illustration = JSON.parse(op.attributes.illustration as string);
+			if (op.attributes && op.attributes.resource && typeof op.attributes.resource === 'string') {
+				op.attributes.resource = JSON.parse(op.attributes.resource as string);
 			}
 		});
 		this.setContents(new Delta(ops as Op[]));
@@ -255,14 +249,14 @@ export class QuillEditor extends Quill {
 	override setContents(delta: Delta, source?: Sources | undefined): Delta {
 		const resultDelta: Delta = super.setContents(delta, source);
 		this.intializeComments(delta);
-		this.initializeIllustrations(delta);
+		this.initializeResources(delta);
 		return resultDelta;
 	}
 
 	/**
-	 * Check if the selection is a comment or illustration
+	 * Check if the selection is a comment or resource
 	 * If it's a comment, focus on the comment element in the UI
-	 * If it's an illustration, focus on the illustration element in the UI
+	 * If it's an resource, focus on the resource element in the UI
 	 * @param range
 	 * @param oldRange
 	 * @param source
@@ -282,7 +276,7 @@ export class QuillEditor extends Quill {
 		this.selectedRange = range;
 		this.selectedDelta = delta;
 
-		if (!this.isComment(delta.ops[0]) && !this.isIllustration(delta.ops[0])) {
+		if (!this.isComment(delta.ops[0]) && !this.isResource(delta.ops[0])) {
 			return;
 		}
 
@@ -295,17 +289,15 @@ export class QuillEditor extends Quill {
 			const comments = document.getElementById('comments-container');
 			// focus on the textarea. it has the id of the comment
 			(comments?.querySelector(('#' + commentId).toString()) as HTMLElement).focus();
-		} else if (delta.ops[0].attributes?.illustrationId) {
-			const illustrationId = delta.ops[0].attributes?.illustrationId;
-			if (!(illustrationId in this.illustrations)) {
+		} else if (delta.ops[0].attributes?.resourceId) {
+			const resourceId = delta.ops[0].attributes?.resourceId;
+			if (!(resourceId in this.resources)) {
 				return;
 			}
-			// get the container with all the illustrations
-			const illustrations = document.getElementById('illustrations-container');
-			// focus on the caption input. id = "caption-" + illustrationId
-			(
-				illustrations?.querySelector(('#caption-' + illustrationId).toString()) as HTMLElement
-			).focus();
+			// get the container with all the resource
+			const resources = document.getElementById('resources-container');
+			// focus on the caption input. id = "caption-" + resourceId
+			(resources?.querySelector(('#caption-' + resourceId).toString()) as HTMLElement).focus();
 		}
 	}
 
@@ -325,15 +317,15 @@ export class QuillEditor extends Quill {
 		// check if new comment was added
 		const added: {
 			comment: boolean;
-			illustration: boolean;
+			resource: boolean;
 		} = this.delta(delta);
 		if (added.comment) {
 			// eslint-disable-next-line no-self-assign
 			this.comments = this.comments;
 		}
-		if (added.illustration) {
+		if (added.resource) {
 			// eslint-disable-next-line no-self-assign
-			this.illustrations = this.illustrations;
+			this.resources = this.resources;
 		}
 	}
 
@@ -349,7 +341,7 @@ export class QuillEditor extends Quill {
 		});
 	}
 
-	initializeIllustrations(delta: Delta) {
+	initializeResources(delta: Delta) {
 		this.ops = delta.ops;
 
 		if (!this.ops) {
@@ -357,26 +349,50 @@ export class QuillEditor extends Quill {
 		}
 
 		this.ops.forEach((op) => {
-			this.addIllustration(op);
+			this.addIResource(op);
 		});
+
+		// load the resources from the DB
+		this.loadDBResources();
+	}
+
+	async loadDBResources() {
+		// note: the Resource and ResourseObject types are different
+		// get ResourceObjects
+
+		if (!this.resources) return;
+
+		const resources = Object.values(this.resources);
+		const resourceObjects = resources.map((resource) => resource.resource);
+
+		trpc(this.page)
+			.resources.getByIds.query({
+				ids: resourceObjects.map((resource) => resource.id)
+			})
+			.then(async (result) => {
+				const data = result.data as HydratedDocument<ResourceProperties>[];
+
+				// Update the content to be one delta
+				this.resourcesData = data;
+			});
 	}
 
 	delta(delta: Delta): {
 		comment: boolean;
-		illustration: boolean;
+		resource: boolean;
 	} {
 		const ops = delta.ops;
 		let commentAdded = false;
-		let illustrationAdded = false;
+		let resourceAdded = false;
 
 		ops.forEach((op) => {
 			commentAdded = this.addComment(op);
-			illustrationAdded = this.addIllustration(op);
+			resourceAdded = this.addIResource(op);
 		});
 
 		return {
 			comment: commentAdded,
-			illustration: illustrationAdded
+			resource: resourceAdded
 		};
 	}
 
@@ -395,15 +411,15 @@ export class QuillEditor extends Quill {
 	}
 
 	/**
-	 * returns true if the first character of the selected text contains an illustration
-	 * when adding an illustration, each letter of the selection contains an attribute for the illustration
+	 * returns true if the first character of the selected text contains an resource
+	 * when adding an resource, each letter of the selection contains an attribute for the resource
 	 */
-	selectedContainsIllustration(): boolean {
+	selectedContainsResource(): boolean {
 		return (
 			this.selectedDelta &&
 			this.selectedDelta.ops &&
 			this.selectedDelta.ops[0].attributes &&
-			this.selectedDelta.ops[0].attributes.illustrationId
+			this.selectedDelta.ops[0].attributes.resourceId
 		);
 	}
 
@@ -427,29 +443,30 @@ export class QuillEditor extends Quill {
 		return true;
 	}
 
-	addIllustration(op: Op): boolean {
-		if (!this.isIllustration(op)) {
+	addIResource(op: Op): boolean {
+		if (!this.isResource(op)) {
 			return false;
 		}
 
-		if (this.selectedContainsIllustration()) {
-			return false; //illustration already exists on this selection
+		if (this.selectedContainsResource()) {
+			return false; //resource already exists on this selection
 		}
 
-		const defaultIllustration: IllustrationObject = {
+		const defaultResource: ResourceObject = {
+			id: '',
 			alt: '',
-			caption: '',
+			title: '',
 			src: ''
 		};
 
-		const illustration: Illustration = {
-			id: op?.attributes?.illustrationId,
-			illustration: op?.attributes?.illustration || defaultIllustration,
+		const resource: Resource = {
+			id: op?.attributes?.resourceId,
+			resource: op?.attributes?.resource || defaultResource,
 			author: op?.attributes?.commentAuthor,
 			timestamp: op?.attributes?.commentTimestamp
 		};
 
-		this.illustrations[illustration.id] = illustration;
+		this.resources[resource.id] = resource;
 		return true;
 	}
 
@@ -465,12 +482,12 @@ export class QuillEditor extends Quill {
 		return true;
 	}
 
-	isIllustration(op: Op): boolean {
+	isResource(op: Op): boolean {
 		if (!op.attributes) {
 			return false;
 		}
 
-		if (!op.attributes['illustrationId']) {
+		if (!op.attributes['resourceId']) {
 			return false;
 		}
 
@@ -482,7 +499,7 @@ export class QuillEditor extends Quill {
 			return;
 		}
 
-		const [index, length] = this.getRangeByID(id, editor);
+		const [index, length] = this.getRangeByID(id);
 
 		if (index === null || length === null) {
 			return;
@@ -492,29 +509,65 @@ export class QuillEditor extends Quill {
 		return delta;
 	}
 
-	updateIllustration(
+	addResource(selectedChapterID: string) {
+		if (this.oldSelectedRange === this.selectedRange) {
+			return; // same range is selected
+		}
+
+		if (!this.selectedContainsComment() && !this.selectedContainsResource()) {
+			// create the resource
+			trpc(this.page)
+				.resources.create.mutate({ type: 'image', chapterID: selectedChapterID })
+				.then((response) => {
+					if (response.success) {
+						this.getModule('resource').addResource({
+							id: (response.data as HydratedDocument<ResourceProperties>)._id,
+							src: '',
+							alt: '',
+							title: ''
+						});
+						this.oldSelectedRange = this.selectedRange; // update the old selected range
+					}
+				});
+		}
+	}
+
+	updateResource(
 		id: string,
 		editor: HTMLElement | null,
-		illustrationObject: IllustrationObject
+		resource: HydratedDocument<ResourceProperties>
 	) {
 		if (editor == null) {
 			return;
 		}
 
-		const [index, length] = this.getRangeByID(id, editor);
+		const [index, length] = this.getRangeByID(id);
 
 		if (index === null || length === null) {
 			return;
 		}
 
-		const delta = this.formatText(
-			index,
-			length,
-			'illustration',
-			JSON.stringify(illustrationObject),
-			'user'
-		);
-		return delta;
+		// update the db resource first then the quill object
+		trpc(this.page)
+			.resources.update.mutate({
+				id: resource._id,
+				title: resource.title,
+				src: resource.src,
+				alt: resource.alt
+			})
+			.then((response) => {
+				console.log('updated');
+				console.log(response);
+				if (response.success) {
+					const resourceObject: ResourceObject = {
+						id: resource._id,
+						title: resource.title ?? '',
+						src: resource.src ?? '',
+						alt: resource.alt ?? ''
+					};
+					this.formatText(index, length, 'resource', JSON.stringify(resourceObject), 'user');
+				}
+			});
 	}
 
 	removeComment(id: string, editor: HTMLElement | null) {
@@ -522,7 +575,7 @@ export class QuillEditor extends Quill {
 			return;
 		}
 
-		const [index, length] = this.getRangeByID(id, editor);
+		const [index, length] = this.getRangeByID(id);
 
 		if (index === null || length === null) {
 			return;
@@ -535,7 +588,7 @@ export class QuillEditor extends Quill {
 		delete this.comments[id];
 	}
 
-	async removeIllustration({
+	async removeResource({
 		id,
 		editor,
 		supabase,
@@ -550,18 +603,18 @@ export class QuillEditor extends Quill {
 			return { data: null, error: null };
 		}
 
-		const [index, length] = this.getRangeByID(id, editor);
+		const [index, length] = this.getRangeByID(id);
 
 		if (index === null || length === null) {
 			return { data: null, error: null };
 		}
 
-		this.formatText(index, length, 'illustration', false);
-		this.formatText(index, length, 'illustrationAuthor', false);
-		this.formatText(index, length, 'illustrationTimestamp', false);
-		this.formatText(index, length, 'illustrationId', false);
+		this.formatText(index, length, 'resource', false);
+		this.formatText(index, length, 'resourceAuthor', false);
+		this.formatText(index, length, 'resourceTimestamp', false);
+		this.formatText(index, length, 'resourceId', false);
 
-		delete this.illustrations[id];
+		delete this.resources[id];
 
 		if (supabase && filenames) {
 			return await supabase.storage.from('books').remove(filenames);
@@ -576,8 +629,8 @@ export class QuillEditor extends Quill {
 	 * Gets the range of the element with specified ID from the editor
 	 * @param id
 	 */
-	getRangeByID(id: string, editor: HTMLElement): [number | null, number | null] {
-		const element = editor?.querySelector(('#' + id).toString());
+	getRangeByID(id: string): [number | null, number | null] {
+		const element = document.getElementById(id);
 
 		if (!element) {
 			return [null, null];
@@ -629,7 +682,7 @@ export class QuillEditor extends Quill {
 	 * @param errorCallback
 	 * @param bucket
 	 */
-	async createIllustrationBucket({
+	async createResourceBucket({
 		supabase,
 		errorCallback,
 		bucket

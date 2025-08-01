@@ -10,21 +10,22 @@
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { arrowDown } from 'svelte-awesome/icons';
-	import type { PermissionedDocument } from '$lib/properties/permission';
 	import StorylinePreview from '../storyline/StorylinePreview.svelte';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import IntersectionObserver from 'svelte-intersection-observer';
-	import { type RowAction } from '$lib/util/types';
+	import { type VisibleDocument, type RowAction } from '$lib/util/types';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import { type HydratedResourceProperties } from '$lib/properties/resource';
+	import ResourcePreview from '../resource/ResourcePreview.svelte';
 
 	let customClass = '';
 	export { customClass as class };
 	export let gridStyle: string | 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6';
 	export let limit: number | 8;
-	export let documentType: PermissionedDocument;
+	export let documentType: VisibleDocument;
 	export let selectedDocuments: string[] = [];
 	export let parameters: any = {};
 	export let action: RowAction | undefined = undefined;
@@ -41,6 +42,8 @@
 			? trpcWithQuery($page).books
 			: documentType === 'Storyline'
 			? trpcWithQuery($page).storylines
+			: documentType === 'Resource'
+			? trpcWithQuery($page).resources
 			: trpcWithQuery($page).chapters;
 
 	$: getDocumentsInfinite = query.get.createInfiniteQuery(
@@ -78,6 +81,10 @@
 		return item as unknown as HydratedDocument<ChapterProperties>;
 	}
 
+	function resourceItem(item: HydratedDocument<unknown>) {
+		return item as unknown as HydratedDocument<HydratedResourceProperties>;
+	}
+
 	function loadMore(intersecting: boolean, newItems: any) {
 		if (intersecting) {
 			$getDocumentsInfinite.fetchNextPage();
@@ -90,9 +97,15 @@
 
 	const modalStore = getModalStore();
 	function handleSelected(event: { detail: any }) {
-		const storyline = items.find((item) => item._id === event.detail);
+		const item = items.find((item) => item._id === event.detail);
 		const selected = !selectedDocuments.includes(event.detail);
-		callback(storyline, selected);
+		callback(item, selected);
+	}
+
+	function handleUpdated(event: { detail: any }) {
+		console.log('** updated event');
+		items = items.map((item) => (item._id === event.detail._id ? event.detail : item));
+		console.log(items);
 	}
 </script>
 
@@ -118,7 +131,7 @@
 				<InfoHeader
 					emoji="🤲"
 					heading="We're empty handed!"
-					description={'Try changing your filters or write your own story!'}
+					description={'Try changing your filters...'}
 				>
 					{#if documentType === 'Book' || documentType === 'Storyline'}
 						<a href="/book/create" class="btn variant-filled-primary">Start writing</a>
@@ -140,8 +153,14 @@
 							user={undefined}
 							storyline={storylineItem(item)}
 						/>
-					{:else}
+					{:else if documentType === 'Chapter'}
 						<ChapterPreview chapter={chapterItem(item)} />
+					{:else}
+						<ResourcePreview
+							{dispatchEvent}
+							on:updatedResource={handleUpdated}
+							resource={resourceItem(item)}
+						/>
 					{/if}
 				</div>
 			{/each}

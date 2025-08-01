@@ -4,6 +4,6 @@
 </script>
 
 <div class="flex items-center gap-1">
-	<Icon data={filter} class="mr-1" />
+	<Icon data={filter} class="px-2" />
 	<slot />
 </div>

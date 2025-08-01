@@ -15,11 +15,5 @@
 	disabled={selected.length === 0}
 	on:click={() => (archiveMode ? openUnarchiveModal(selected) : openArchiveModal(selected))}
 >
-	<span class="-mr-1"><Icon data={archive} /></span>
-	<span>
-		<Icon
-			data={arrowLeft}
-			class="transition-all duration-300 {archiveMode ? 'rotate-180' : 'rotate-0'}"
-		/>
-	</span>
+	<span class="px-2"><Icon data={archive} /></span>
 </button>
