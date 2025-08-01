@@ -5,6 +5,7 @@
 	import { pencil, user, trash, users, infoCircle } from 'svelte-awesome/icons';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 	import { page } from '$app/stores';
+	import { StoreIcon } from 'lucide-svelte';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 	const drawerStore = getDrawerStore();
@@ -29,6 +30,9 @@
 						</AppRailTile>
 						<AppRailTile bind:group={selectedTile} name="collaborate" title="Collaborate" value={2}>
 							<Icon data={pencil} scale={1.5} />
+						</AppRailTile>
+						<AppRailTile bind:group={selectedTile} name="market" title="market" value={3}>
+							<StoreIcon class="w-full" size={20} />
 						</AppRailTile>
 						<hr class="mx-2" />
 						<AppRailTile bind:group={selectedTile} name="profile" title="Profile" value={4}>
@@ -89,6 +93,25 @@
 								on:click={() => {
 									window.open('/book/create', '_self');
 								}}>Start!</a
+							>
+						</li>
+					</ul>
+				</nav>
+			</section>
+			<section hidden={selectedTile != 3} class="m-4 col-span-2">
+				<div id="elements" class="text-primary-700 dark:text-primary-500 font-bold uppercase px-4">
+					NFTs
+				</div>
+				<hr class="my-3 opacity-50" />
+				<nav class="list-nav">
+					<ul class="list">
+						<li>
+							<a
+								class="w-full"
+								href="/market"
+								on:click={() => {
+									window.open('/book/create', '_self');
+								}}>Market</a
 							>
 						</li>
 					</ul>

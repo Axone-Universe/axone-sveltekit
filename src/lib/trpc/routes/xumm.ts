@@ -16,7 +16,7 @@ import {
 import { xummSdk } from '$lib/services/xumm';
 
 import { RatesResponse, XummWebhookBody } from 'xumm-sdk/dist/src/types';
-import { createPayload, readRates } from '../schemas/xumm';
+import { buyToken, createPayload, readRates } from '../schemas/xumm';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { TransactionBuilder } from '$lib/documents/transaction';
 import { HydratedTransactionProperties } from '$lib/properties/transaction';
@@ -30,6 +30,7 @@ import { resourceCollectionsData } from '$lib/properties/resource';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { ResourceBuilder } from '$lib/documents/digital-assets/resource';
 import { getNFTokenId, getNFTokenOfferId, getNFTokenWalletAddress } from '$lib/services/xrpl';
+import { sendUserNotifications } from '$lib/util/notifications/novu';
 
 export const xumm = t.router({
 	createToken: t.procedure
@@ -228,7 +229,7 @@ export const xumm = t.router({
 	buyToken: t.procedure
 		.use(logger)
 		.use(auth)
-		.input(z.object({ resourceId: z.string() }))
+		.input(buyToken)
 		.query(async ({ input, ctx }) => {
 			const response: Response = {
 				success: true,
@@ -312,6 +313,10 @@ export const xumm = t.router({
 					transactionBuilder.payloadId(payload!.uuid);
 
 					response.data = await transactionBuilder.update();
+
+					if (input.notifications) {
+						await sendUserNotifications(input.notifications);
+					}
 				} else {
 					response.success = false;
 					response.message = 'Error while creating NFT offer transaction payload';
@@ -482,6 +487,10 @@ export const xumm = t.router({
 				transactionBuilder.payloadId(payload!.uuid);
 
 				response.data = await transactionBuilder.build();
+
+				if (input.notifications) {
+					await sendUserNotifications(input.notifications);
+				}
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

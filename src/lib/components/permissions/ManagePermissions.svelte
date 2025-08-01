@@ -129,6 +129,7 @@
 
 <div class={`card w-full ${customClass}`}>
 	<div class="space-y-4 rounded-container-token p-2">
+		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
 			Share {permissionedDocument.title}
 			<UserFilter defaultUser={documentOwner} bind:users {onUserSelect} />
