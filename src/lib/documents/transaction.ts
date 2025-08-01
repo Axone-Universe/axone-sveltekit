@@ -106,8 +106,6 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 	value(value: number): TransactionBuilder {
 		this._transactionProperties.value = value;
 
-		console.log('<< acc currency');
-		console.log(this._accountCurrency);
 		const currencyScale = currencies[this._accountCurrency!].scale;
 		this._transactionProperties.baseValue = Number(
 			(value / this._transactionProperties.exchangeRate!).toFixed(currencyScale)
@@ -287,9 +285,6 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 	async build(): Promise<HydratedDocument<TransactionProperties>> {
 		if (!this._transactionProperties.account)
 			throw new Error('Must provide an account to build the transaction.');
-
-		console.log('<< building txn');
-		console.log(this._transactionProperties);
 
 		const session = await startSession();
 		let transaction = new Transaction(this._transactionProperties);

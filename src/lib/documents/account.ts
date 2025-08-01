@@ -70,11 +70,8 @@ export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProp
 	async build(): Promise<HydratedDocument<AccountProperties>> {
 		if (!this._accountProperties.user) throw new Error('Must provide a user to build the account.');
 
-		console.log('<< saving account');
-
 		let account = new Account(this._accountProperties);
 		account = await account.save();
-		console.log('<< account saved');
 
 		return account;
 	}
