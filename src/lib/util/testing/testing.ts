@@ -7,13 +7,7 @@ import { GenresBuilder, type Genre } from '$lib/properties/genre';
 import type { StorylineProperties } from '$lib/properties/storyline';
 import { router } from '$lib/trpc/router';
 
-import {
-	MONGO_PASSWORD,
-	MONGO_URL,
-	MONGO_USER,
-	MONGO_DB,
-	TEST_DATA_USER_EMAIL
-} from '$env/static/private';
+import { MONGO_PASSWORD, MONGO_URL, MONGO_USER, MONGO_DB } from '$env/static/private';
 import { UserPropertyBuilder } from '$lib/properties/user';
 import type { Rating, ReviewOf } from '$lib/properties/review';
 import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
@@ -191,9 +185,9 @@ export async function createReview(
 /**
  * Differentiate the DBs so that Dev DB is not wiped out when testing
  */
-export async function connectDatabase() {
+export async function connectDatabase(DB_NAME?: string) {
 	const options: mongoose.ConnectOptions = {
-		dbName: MONGO_DB,
+		dbName: DB_NAME ?? MONGO_DB,
 		user: MONGO_USER,
 		pass: MONGO_PASSWORD
 	};

@@ -2,15 +2,14 @@ import { faker } from '@faker-js/faker';
 import { router } from '$lib/trpc/router';
 import {
 	cleanUpDatabase,
-	connectDevDatabase,
 	createDBUser,
 	createTestSession,
 	createChapter,
 	generateUserSessionData,
 	createBook,
 	getRandomElement,
-	testUserOne,
-	createCampaign
+	createCampaign,
+	connectDatabase
 } from '$lib/util/testing/testing';
 
 import type { Session } from '@supabase/supabase-js';
@@ -19,7 +18,9 @@ import {
 	TEST_DATA_CHAPTERS_PER_STORYLINE,
 	TEST_DATA_NUM_USERS,
 	TEST_DATA_NUM_BOOKS_PER_USER,
-	TEST_DATA_NUM_STORYLINES_PER_BOOK
+	TEST_DATA_NUM_STORYLINES_PER_BOOK,
+	TEST_DATA_USER_EMAIL,
+	TEST_DATA_USER_ID
 } from '$env/static/private';
 import { RATING } from '$lib/properties/review';
 import type { ChapterProperties } from '$lib/properties/chapter';
@@ -36,7 +37,7 @@ const TIMEOUT_SECONDS = 3000;
 beforeAll(async () => {
 	console.log('CLEANING UP');
 
-	await connectDevDatabase();
+	await connectDatabase('axone-books');
 	await cleanUpDatabase(true);
 
 	console.log('CLEANED');
@@ -56,7 +57,11 @@ test(
 		const sessions: Session[] = [];
 
 		// push default user
-		sessions.push(createTestSession(testUserOne));
+		const defaultUserSession = createTestSession(generateUserSessionData());
+		defaultUserSession.user.email = TEST_DATA_USER_EMAIL;
+		defaultUserSession.user.id = TEST_DATA_USER_ID;
+
+		sessions.push(defaultUserSession);
 
 		for (let i = 0; i < NUM_USERS; i++) {
 			sessions.push(createTestSession(generateUserSessionData()));
@@ -93,6 +98,7 @@ test(
 				).data;
 				const chapters: HydratedDocument<ChapterProperties>[] = [];
 
+				// console.log('here 1');
 				for (let k = 0; k < CHAPTERS_PER_STORYLINE; k++) {
 					chapters.push(
 						(
@@ -108,6 +114,7 @@ test(
 					);
 				}
 
+				// console.log('here 2');
 				for (let l = 0; l < NUM_STORYLINES_PER_BOOK; l++) {
 					const storyline = (
 						await caller.storylines.create({
@@ -134,6 +141,7 @@ test(
 
 				const num = Math.random();
 
+				// console.log('here 3');
 				// randomly review the storyline
 				if (num > 0.3) {
 					await reviewCallers[0].reviews.create({
