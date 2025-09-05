@@ -8,7 +8,7 @@
 	import type { UserProperties } from '$lib/properties/user';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createEventDispatcher, onMount, tick } from 'svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { lock } from 'svelte-awesome/icons';
 
@@ -89,7 +89,7 @@
 		>
 			<p class="whitespace-normal text-sm sm:text-base font-bold line-clamp-2">{storyline.title}</p>
 			<p class="whitespace-normal text-sm italic">
-				{`by ${storylineUser.firstName} ${storylineUser.lastName}`}
+				{`by ${storylineUser?.firstName} ${storylineUser?.lastName}`}
 			</p>
 		</div>
 	</div>
