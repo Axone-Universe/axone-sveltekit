@@ -63,11 +63,6 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		const user = await userRepo.getById(session, session.user.id);
 		event.locals.user = user as UserProperties;
 
-		// User if the user is logged in and coming from the landing page, go to the homepage
-		if (event.url.pathname === '/') {
-			throw redirect(303, '/home');
-		}
-
 		if (user && event.url.pathname === '/profile/create') {
 			// user already has a profile - go to it instead of creating one
 			throw redirect(303, `/profile/${session.user.id}`);
@@ -76,6 +71,11 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 		if (event.url.pathname === '/login' || event.url.pathname === '/sign-up') {
 			// user already logged in - redirect to home page
 			throw redirect(303, '/');
+		}
+
+		// User if the user is logged in and coming from the landing page, go to the homepage
+		if (event.url.pathname === '/') {
+			throw redirect(303, '/home');
 		}
 	}
 

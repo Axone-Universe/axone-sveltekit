@@ -72,11 +72,11 @@
 			<button class="lg:hidden" on:click={openDrawer}>
 				<Icon data={navicon} scale={1.5} />
 			</button>
-			<a class="hidden lg:flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
+			<a class="hidden lg:!flex text-l" href={data.session && data.session.user.id ? '/home' : '/'}>
 				<span class="flex flex-row h-20 items-center logo-name"><Logo />XONE</span>
 			</a>
 		</svelte:fragment>
-		<div class="hidden lg:flex">
+		<div class="hidden lg:!flex">
 			<div>
 				<div class="card p-4 w-fit" data-popup="readPopupBox">
 					<nav class="list-nav">
@@ -159,7 +159,7 @@
 		</a>
 		<svelte:fragment slot="trail">
 			<div class="flex gap-2 items-center">
-				<div class="lg:flex gap-2 hidden">
+				<div class="lg:!flex gap-2 hidden">
 					{#if data.session && data.session.user}
 						<a
 							id="write-btn"
@@ -167,7 +167,7 @@
 							class="btn outline-none hover:variant-soft-primary [&>*]:pointer-events-none"
 						>
 							<Icon data={pencil} />
-							<span class="hidden md:inline-block">Write</span>
+							<span class="hidden md:!inline-block">Write</span>
 						</a>
 
 						<div>
