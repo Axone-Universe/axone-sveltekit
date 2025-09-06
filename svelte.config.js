@@ -8,7 +8,7 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({ runtime: 'nodejs20.x' }),
 		csrf: {
 			// Disable CSRF origin checking for test purposes
 			checkOrigin: process.env.TEST === 'true' ? false : true
