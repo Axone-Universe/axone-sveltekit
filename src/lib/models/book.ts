@@ -1,5 +1,5 @@
 import { label, type BookProperties } from '$lib/properties/book';
-import mongoose, { ClientSession, Schema, model, type PipelineStage } from 'mongoose';
+import mongoose, { type ClientSession, Schema, model, type PipelineStage } from 'mongoose';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as CampaignLabel } from '$lib/properties/campaign';
 import { label as StorylineLabel } from '$lib/properties/storyline';
@@ -46,14 +46,14 @@ bookSchema.pre(['find', 'findOne'], function () {
 });
 
 bookSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 	// Used for pipelines that must be put after the default populate and permissions
 	// The order is usually important e.g. limit pipeline should be at the end
 	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
-	addUserPermissionPipeline(userID, pipeline);
+	addUserPermissionPipeline(user, pipeline);
 
 	for (const filter of postPipeline) {
 		pipeline.push(filter);
@@ -63,10 +63,10 @@ bookSchema.pre('aggregate', function (next) {
 });
 
 bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
-	const userID = this.getOptions().userID;
+	const user = this.getOptions().user;
 	const filter = this.getFilter();
 
-	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -75,12 +75,12 @@ bookSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (
 bookSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
 
 		setUpdateDate(this.getUpdate());
 
-		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
 		this.setQuery(updatedFilter);

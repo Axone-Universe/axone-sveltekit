@@ -6,29 +6,21 @@ import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument, PipelineStage } from 'mongoose';
 import type { Genre } from '$lib/properties/genre';
 import { GetUsers } from '$lib/trpc/schemas/users';
+import type { Context } from '$lib/trpc/context';
 
 export class UsersRepository extends Repository {
-	async getById(
-		session: Session | null,
-		id?: string
-	): Promise<HydratedDocument<UserProperties> | null> {
+	async getById(ctx?: Context, id?: string): Promise<HydratedDocument<UserProperties> | null> {
 		const query = User.findById(id);
 
 		return await query;
 	}
 
-	async getByEmail(
-		session: Session | null,
-		email?: string
-	): Promise<HydratedDocument<UserProperties> | null> {
+	async getByEmail(ctx: Context, email?: string): Promise<HydratedDocument<UserProperties> | null> {
 		const query = User.findOne({ email: email });
 		return await query;
 	}
 
-	async getByIds(
-		session: Session | null,
-		ids?: string[]
-	): Promise<HydratedDocument<UserProperties>[] | null> {
+	async getByIds(ctx: Context, ids?: string[]): Promise<HydratedDocument<UserProperties>[] | null> {
 		const query = User.find({ _id: { $in: ids } });
 		return await query;
 	}
@@ -99,7 +91,7 @@ export class UsersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async get(session: Session | null, input: GetUsers): Promise<HydratedDocument<UserProperties>[]> {
+	async get(ctx: Context, input: GetUsers): Promise<HydratedDocument<UserProperties>[]> {
 		const filterQueries = [];
 
 		if (input.detail) {

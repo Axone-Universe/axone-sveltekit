@@ -47,7 +47,7 @@ export const reviews = t.router({
 				data: {}
 			};
 			try {
-				const result = await reviewsRepo.getById(ctx.session, input.id);
+				const result = await reviewsRepo.getById(ctx, input.id);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -64,14 +64,15 @@ export const reviews = t.router({
 			// Ensure that user sending review is not the creator of the reviewed item itself
 			if (input.reviewOf === 'Storyline') {
 				const storylinesRepo = new StorylinesRepository();
-				const storyline = await storylinesRepo.getById(ctx.session, input.item);
+				const storyline = await storylinesRepo.getById(ctx, input.item);
 				if (storyline && (storyline.user as UserProperties)._id === ctx.session?.user.id) {
 					throw new TRPCError({ code: 'FORBIDDEN', message: 'Self reviews are not allowed' });
 				}
 			}
 
 			const reviewBuilder = new ReviewBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.userID(ctx.user!._id)
+				.sessionUser(ctx.user!)
 				.item(input.item)
 				.reviewOf(input.reviewOf)
 				.rating(input.rating as Rating);
@@ -88,6 +89,7 @@ export const reviews = t.router({
 				const result = await reviewBuilder.build();
 				response.data = result;
 			} catch (error) {
+				// console.log('** rev resp ', error);
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
@@ -99,7 +101,9 @@ export const reviews = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const reviewBuilder = new ReviewBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const reviewBuilder = new ReviewBuilder(input.id)
+				.userID(ctx.user!._id)
+				.sessionUser(ctx.user!);
 
 			if (input.title) reviewBuilder.title(input.title);
 			if (input.text) reviewBuilder.text(input.text);
@@ -125,7 +129,9 @@ export const reviews = t.router({
 		.use(auth)
 		.input(single)
 		.mutation(async ({ input, ctx }) => {
-			const reviewBuilder = new ReviewBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const reviewBuilder = new ReviewBuilder(input.id)
+				.userID(ctx.user!._id)
+				.sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,

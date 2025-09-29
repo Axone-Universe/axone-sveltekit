@@ -6,16 +6,14 @@ import type { HydratedDocument } from 'mongoose';
 import type { ReadStoryline } from '$lib/trpc/schemas/storylines';
 import { UsersRepository } from './usersRepository';
 import { ulid } from 'ulid';
+import type { Context } from '$lib/trpc/context';
 
 export class StorylinesRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async get(
-		session: Session | null,
-		input: ReadStoryline
-	): Promise<HydratedDocument<StorylineProperties>[]> {
+	async get(ctx: Context, input: ReadStoryline): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
 		const postPipeline = [];
 		const filter: any = {};
@@ -43,7 +41,7 @@ export class StorylinesRepository extends Repository {
 
 			if (input.tags.includes('Recommended')) {
 				const userRepo = new UsersRepository();
-				const user = await userRepo.getById(session, session?.user.id);
+				const user = await userRepo.getById(ctx, ctx.session?.user.id);
 				if (user && user.genres) {
 					filter.genres = { $in: user.genres };
 				}
@@ -68,7 +66,7 @@ export class StorylinesRepository extends Repository {
 		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Storyline.aggregate(pipeline, {
-			userID: session?.user.id,
+			user: ctx.user,
 			postPipeline: postPipeline
 		});
 
@@ -83,7 +81,7 @@ export class StorylinesRepository extends Repository {
 	}
 
 	async getByTitle(
-		session: Session | null,
+		ctx: Context,
 		title?: string,
 		limit?: number,
 		skip?: number
@@ -91,12 +89,9 @@ export class StorylinesRepository extends Repository {
 		throw new Error('not Implemented');
 	}
 
-	async getById(
-		session: Session | null,
-		id: string
-	): Promise<HydratedDocument<StorylineProperties>> {
+	async getById(ctx: Context, id: string): Promise<HydratedDocument<StorylineProperties>> {
 		const storyline = await Storyline.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		})
 			.cursor()
 			.next();
@@ -106,12 +101,9 @@ export class StorylinesRepository extends Repository {
 		});
 	}
 
-	async getByIds(
-		session: Session | null,
-		ids: string[]
-	): Promise<HydratedDocument<StorylineProperties>[]> {
+	async getByIds(ctx: Context, ids: string[]): Promise<HydratedDocument<StorylineProperties>[]> {
 		const storylines = await Storyline.aggregate([{ $match: { _id: { $in: ids } } }], {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
@@ -120,7 +112,7 @@ export class StorylinesRepository extends Repository {
 	}
 
 	async getByBookID(
-		session: Session | null,
+		ctx: Context,
 		bookID: string,
 		main?: boolean | undefined
 	): Promise<HydratedDocument<StorylineProperties>[]> {
@@ -129,7 +121,7 @@ export class StorylinesRepository extends Repository {
 		pipeline.push(main ? { $match: { book: bookID, main: true } } : { $match: { book: bookID } });
 
 		const storylines = await Storyline.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
@@ -138,7 +130,7 @@ export class StorylinesRepository extends Repository {
 	}
 
 	async getStorylinesByUserID(
-		session: Session | null,
+		ctx: Context,
 		id?: string
 	): Promise<HydratedDocument<StorylineProperties>[]> {
 		const pipeline = [];
@@ -146,7 +138,7 @@ export class StorylinesRepository extends Repository {
 		pipeline.push({ $match: { user: id, main: true } });
 
 		const storyline = (await Storyline.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		})) as HydratedDocument<StorylineProperties>[];
 		return new Promise<HydratedDocument<StorylineProperties>[]>((resolve) => {
 			resolve(storyline);

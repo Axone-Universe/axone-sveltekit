@@ -23,22 +23,31 @@ describe('reviews', async () => {
 	const testUserOneSession = createTestSession(generateUserSessionData());
 	const testUserTwoSession = createTestSession(generateUserSessionData());
 	const testUserThreeSession = createTestSession(generateUserSessionData());
-	const caller1 = router.createCaller({ session: testUserOneSession });
-	const caller2 = router.createCaller({ session: testUserTwoSession });
-	const caller3 = router.createCaller({ session: testUserThreeSession });
+
+	let testUserOneDB = (await createDBUser(testUserOneSession)).data;
+	let testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+	let testUserThreeDB = (await createDBUser(testUserThreeSession)).data;
+
+	let caller1 = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
+	let caller2 = router.createCaller({ session: testUserTwoSession, user: testUserTwoDB });
+	let caller3 = router.createCaller({ session: testUserThreeSession, user: testUserThreeDB });
 
 	beforeEach(async () => {
 		await cleanUpDatabase();
-		await createDBUser(testUserOneSession);
-		await createDBUser(testUserTwoSession);
-		await createDBUser(testUserThreeSession);
+		testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+		testUserThreeDB = (await createDBUser(testUserThreeSession)).data;
+
+		caller1 = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
+		caller2 = router.createCaller({ session: testUserTwoSession, user: testUserTwoDB });
+		caller3 = router.createCaller({ session: testUserThreeSession, user: testUserThreeDB });
 	});
 
 	test('create a storyline review as not the storyline creator', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		const storylines = (
 			await caller1.storylines.get({
@@ -48,6 +57,7 @@ describe('reviews', async () => {
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -68,7 +78,7 @@ describe('reviews', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		const storylines = (
 			await caller1.storylines.get({
@@ -77,7 +87,8 @@ describe('reviews', async () => {
 		).data;
 
 		expect(
-			async () => await createReview(testUserOneSession, storylines[0]._id, reviewOf, rating)
+			async () =>
+				await createReview(testUserOneSession, testUserOneDB, storylines[0]._id, reviewOf, rating)
 		).rejects.toThrowError('Self reviews are not allowed');
 	});
 
@@ -85,7 +96,7 @@ describe('reviews', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		const storylines = (
 			await caller1.storylines.get({
@@ -93,10 +104,11 @@ describe('reviews', async () => {
 			})
 		).data;
 
-		await createReview(testUserTwoSession, storylines[0]._id, reviewOf, rating);
+		await createReview(testUserTwoSession, testUserTwoDB, storylines[0]._id, reviewOf, rating);
 
 		const createReviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -109,7 +121,7 @@ describe('reviews', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		const storylines = (
 			await caller1.storylines.get({
@@ -119,6 +131,7 @@ describe('reviews', async () => {
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -130,7 +143,7 @@ describe('reviews', async () => {
 	});
 
 	test('get reviews for a storyline with limit and cursor', async () => {
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		// add main storyline
 		const storylines = [
@@ -169,11 +182,11 @@ describe('reviews', async () => {
 		// create new users and have each randomly review main or new storyline
 		for (let i = 0; i < numReviewers; i++) {
 			const session = createTestSession(generateUserSessionData());
-			await createDBUser(session);
+			const user = (await createDBUser(session)).data;
 
 			const rating = getRandomElement(RATING);
 			const storyline = getRandomElement(storylines) as StorylineProperties;
-			const review = await createReview(session, storyline._id, reviewOf, rating);
+			const review = await createReview(session, user, storyline._id, reviewOf, rating);
 			if (storyline._id === storylines[0]._id) {
 				reviewIDs.push(review.data._id);
 			}
@@ -195,7 +208,7 @@ describe('reviews', async () => {
 	});
 
 	test('get reviews for a user', async () => {
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 
 		const storylines = (
 			await caller1.storylines.get({
@@ -223,6 +236,7 @@ describe('reviews', async () => {
 
 		const reviewResponse1 = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -230,12 +244,19 @@ describe('reviews', async () => {
 
 		const reviewResponse2 = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storyline2.data._id,
 			reviewOf,
 			rating
 		);
 
-		await createReview(testUserThreeSession, storyline2.data._id, reviewOf, rating);
+		await createReview(
+			testUserThreeSession,
+			testUserThreeDB,
+			storyline2.data._id,
+			reviewOf,
+			rating
+		);
 
 		const reviews = await caller1.reviews.get({ user: testUserTwoSession.user.id });
 
@@ -249,7 +270,7 @@ describe('reviews', async () => {
 		const newRating = 4;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.get({
 				bookID: bookResponse.data._id
@@ -258,6 +279,7 @@ describe('reviews', async () => {
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -278,7 +300,7 @@ describe('reviews', async () => {
 		const newRating = 4;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.get({
 				bookID: bookResponse.data._id
@@ -287,6 +309,7 @@ describe('reviews', async () => {
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -307,7 +330,7 @@ describe('reviews', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.get({
 				bookID: bookResponse.data._id
@@ -316,6 +339,7 @@ describe('reviews', async () => {
 
 		let reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -334,7 +358,7 @@ describe('reviews', async () => {
 		const rating = 3;
 		const reviewOf = 'Storyline';
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.get({
 				bookID: bookResponse.data._id
@@ -343,6 +367,7 @@ describe('reviews', async () => {
 
 		const reviewResponse = await createReview(
 			testUserTwoSession,
+			testUserTwoDB,
 			storylines[0]._id,
 			reviewOf,
 			rating
@@ -367,7 +392,7 @@ describe('reviews', async () => {
 
 		// create and record each storyline
 		for (let i = 0; i < numStorylines; i++) {
-			const bookResponse = await createBook(testUserOneSession);
+			const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 			const storylines = (
 				await caller1.storylines.getByBookID({
 					bookID: bookResponse.data._id
@@ -380,11 +405,11 @@ describe('reviews', async () => {
 		// create users and randomly review a storyline
 		for (let i = 0; i < numReviews; i++) {
 			const session = createTestSession(generateUserSessionData());
-			await createDBUser(session);
+			const user = (await createDBUser(session)).data;
 
 			const rating = getRandomElement(RATING);
 			const storylineID = getRandomKey(storylineReviews) as string;
-			await createReview(session, storylineID, reviewOf, rating);
+			await createReview(session, user, storylineID, reviewOf, rating);
 			// record new review
 			storylineReviews[storylineID] += 1;
 		}
@@ -402,19 +427,23 @@ describe('reviews', async () => {
 		const reviewOf = 'Storyline';
 
 		const reviewers = [];
+		const users = [];
 		const reviews: Record<string, number> = {};
 
 		// create users and record them
 		for (let i = 0; i < numReviewers; i++) {
 			const session = createTestSession(generateUserSessionData());
-			await createDBUser(session);
+			const user = (await createDBUser(session)).data;
+
+			users.push(user);
 			reviewers.push(session);
+
 			reviews[session.user.id] = 0;
 		}
 
 		//	create storylines and randomly pick a user to review
 		for (let i = 0; i < numStorylines; i++) {
-			const bookResponse = await createBook(testUserOneSession);
+			const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 			const storylines = (
 				await caller1.storylines.getByBookID({
 					bookID: bookResponse.data._id
@@ -422,9 +451,14 @@ describe('reviews', async () => {
 			).data;
 
 			const rating = getRandomElement(RATING);
+
 			const reviewer = getRandomElement(reviewers) as Session;
+			const user = users.find((user) => {
+				return user._id === reviewer.user.id;
+			});
+
 			reviews[reviewer.user.id] += 1;
-			await createReview(reviewer, storylines[0]._id, reviewOf, rating);
+			await createReview(reviewer, user!, storylines[0]._id, reviewOf, rating);
 		}
 
 		// check that number of reviews for each user is expected
@@ -435,7 +469,7 @@ describe('reviews', async () => {
 	});
 
 	test('get number of reviews for each rating of a storyline', async () => {
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.getByBookID({
 				bookID: bookResponse.data._id
@@ -448,10 +482,10 @@ describe('reviews', async () => {
 		// create new users and review the storyline with a random rating
 		for (let i = 0; i < 10; i++) {
 			const session = createTestSession(generateUserSessionData());
-			await createDBUser(session);
+			const user = (await createDBUser(session)).data;
 
 			const rating = getRandomElement(RATING);
-			await createReview(session, storylines[0]._id, reviewOf, rating);
+			await createReview(session, user, storylines[0]._id, reviewOf, rating);
 			expectedCounts[rating] += 1;
 		}
 
@@ -472,7 +506,7 @@ describe('reviews', async () => {
 	});
 
 	test('get average rating for a storyline', async () => {
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.getByBookID({
 				bookID: bookResponse.data._id
@@ -486,10 +520,10 @@ describe('reviews', async () => {
 		// create users and give random rating to storyline
 		for (let i = 0; i < numReviews; i++) {
 			const session = createTestSession(generateUserSessionData());
-			await createDBUser(session);
+			const user = (await createDBUser(session)).data;
 
 			const rating = getRandomElement(RATING);
-			await createReview(session, storylines[0]._id, reviewOf, rating);
+			await createReview(session, user, storylines[0]._id, reviewOf, rating);
 
 			ratings.push(rating);
 		}
@@ -508,7 +542,7 @@ describe('reviews', async () => {
 		const numStorylines = 3;
 		const storylineReviews: string[] = [];
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.getByBookID({
 				bookID: bookResponse.data._id
@@ -539,39 +573,34 @@ describe('reviews', async () => {
 
 		let book = await caller2.books.getById({ id: bookResponse.data._id });
 		let storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
-		expect(book.data.rating).toEqual(0);
 		expect(storyline.data.numRatings).toEqual(0);
 		expect(storyline.data.cumulativeRating).toEqual(0);
 
-		await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
+		await createReview(testUserTwoSession, testUserTwoDB, storylineReviews[0], reviewOf, 3);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
 		storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
-		expect(book.data.rating).toEqual(3);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(3);
 
-		await createReview(testUserTwoSession, storylineReviews[1], reviewOf, 4);
+		await createReview(testUserTwoSession, testUserTwoDB, storylineReviews[1], reviewOf, 4);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
 		storyline = await caller2.storylines.getById({ id: storylineReviews[1] });
-		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(4);
 
-		await createReview(testUserThreeSession, storylineReviews[0], reviewOf, 4);
+		await createReview(testUserThreeSession, testUserThreeDB, storylineReviews[0], reviewOf, 4);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
 		storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
-		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(2);
 		expect(storyline.data.cumulativeRating).toEqual(7);
 
-		await createReview(testUserThreeSession, storylineReviews[2], reviewOf, 5);
+		await createReview(testUserThreeSession, testUserThreeDB, storylineReviews[2], reviewOf, 5);
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
 		storyline = await caller2.storylines.getById({ id: storylineReviews[2] });
-		expect(book.data.rating).toEqual(5);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(5);
 	});
@@ -582,7 +611,7 @@ describe('reviews', async () => {
 		const numStorylines = 3;
 		const storylineReviews: string[] = [];
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.getByBookID({
 				bookID: bookResponse.data._id
@@ -610,14 +639,25 @@ describe('reviews', async () => {
 			);
 		}
 
-		const review1 = await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
-		const review2 = await createReview(testUserThreeSession, storylineReviews[1], reviewOf, 4);
+		const review1 = await createReview(
+			testUserTwoSession,
+			testUserTwoDB,
+			storylineReviews[0],
+			reviewOf,
+			3
+		);
+		const review2 = await createReview(
+			testUserThreeSession,
+			testUserThreeDB,
+			storylineReviews[1],
+			reviewOf,
+			4
+		);
 
 		await caller2.reviews.update({ id: review1.data._id, rating: 2 });
 
 		let book = await caller2.books.getById({ id: bookResponse.data._id });
 		let storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
-		expect(book.data.rating).toEqual(4);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(2);
 
@@ -625,7 +665,6 @@ describe('reviews', async () => {
 
 		book = await caller2.books.getById({ id: bookResponse.data._id });
 		storyline = await caller2.storylines.getById({ id: storylineReviews[1] });
-		expect(book.data.rating).toEqual(5);
 		expect(storyline.data.numRatings).toEqual(1);
 		expect(storyline.data.cumulativeRating).toEqual(5);
 	});
@@ -636,7 +675,7 @@ describe('reviews', async () => {
 		const numStorylines = 3;
 		const storylineReviews: string[] = [];
 
-		const bookResponse = await createBook(testUserOneSession);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB);
 		const storylines = (
 			await caller1.storylines.getByBookID({
 				bookID: bookResponse.data._id
@@ -664,15 +703,20 @@ describe('reviews', async () => {
 			);
 		}
 
-		await createReview(testUserTwoSession, storylineReviews[0], reviewOf, 3);
-		await createReview(testUserThreeSession, storylineReviews[0], reviewOf, 4);
-		const review3 = await createReview(testUserThreeSession, storylineReviews[1], reviewOf, 4);
+		await createReview(testUserTwoSession, testUserTwoDB, storylineReviews[0], reviewOf, 3);
+		await createReview(testUserThreeSession, testUserThreeDB, storylineReviews[0], reviewOf, 4);
+		const review3 = await createReview(
+			testUserThreeSession,
+			testUserThreeDB,
+			storylineReviews[1],
+			reviewOf,
+			4
+		);
 
 		await caller3.reviews.delete({ id: review3.data._id });
 
 		const book = await caller2.books.getById({ id: bookResponse.data._id });
 		const storyline = await caller2.storylines.getById({ id: storylineReviews[0] });
-		expect(book.data.rating).toEqual(3.5);
 		expect(storyline.data.numRatings).toEqual(2);
 		expect(storyline.data.cumulativeRating).toEqual(7);
 	});

@@ -31,7 +31,7 @@ export const users = t.router({
 				data: {}
 			};
 			try {
-				const result = await usersRepo.get(ctx.session, input);
+				const result = await usersRepo.get(ctx, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
@@ -53,7 +53,7 @@ export const users = t.router({
 				data: {}
 			};
 			try {
-				const result = await usersRepo.getById(ctx.session, input.id);
+				const result = await usersRepo.getById(ctx, input.id);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -73,7 +73,7 @@ export const users = t.router({
 				data: {}
 			};
 			try {
-				const result = await usersRepo.getByIds(ctx.session, input.ids);
+				const result = await usersRepo.getByIds(ctx, input.ids);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -89,7 +89,7 @@ export const users = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			let userBuilder = new UserBuilder(ctx.session!.user.id).sessionUserID(ctx.session!.user.id);
+			let userBuilder = new UserBuilder(ctx.session!.user.id).sessionUser(ctx.user!);
 
 			if (input.firstName) userBuilder = userBuilder.firstName(input.firstName);
 			if (input.lastName) userBuilder = userBuilder.lastName(input.lastName);
@@ -128,6 +128,7 @@ export const users = t.router({
 				.firstName(input.firstName!)
 				.lastName(input.lastName!);
 
+			if (input.admin) userBuilder = userBuilder.admin(input.admin);
 			if (input.imageURL) userBuilder = userBuilder.imageURL(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.email) userBuilder = userBuilder.email(input.email);
@@ -190,7 +191,7 @@ export const users = t.router({
 
 			try {
 				const result = await new UserBuilder(ctx.session!.user.id)
-					.sessionUserID(ctx.session!.user.id)
+					.sessionUser(ctx.user!)
 					.createReadingList(input);
 				response.data = result;
 			} catch (error) {
@@ -214,7 +215,7 @@ export const users = t.router({
 
 			try {
 				const result = await new UserBuilder(ctx.session!.user.id)
-					.sessionUserID(ctx.session!.user.id)
+					.sessionUser(ctx.user!)
 					.deleteReadingList(input);
 				response.data = result;
 			} catch (error) {
@@ -238,7 +239,7 @@ export const users = t.router({
 
 			try {
 				const result = await new UserBuilder(ctx.session!.user.id)
-					.sessionUserID(ctx.session!.user.id)
+					.sessionUser(ctx.user!)
 					.renameReadingList(input);
 				response.data = result;
 			} catch (error) {
@@ -262,7 +263,7 @@ export const users = t.router({
 
 			try {
 				const result = await new UserBuilder(ctx.session!.user.id)
-					.sessionUserID(ctx.session!.user.id)
+					.sessionUser(ctx.user!)
 					.updateReadingLists(input);
 
 				if (input.storylineID) {

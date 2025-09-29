@@ -14,10 +14,11 @@ import { Delta } from '$lib/models/delta';
 import { Chapter } from '$lib/models/chapter';
 import type Op from 'quill-delta/dist/Op';
 import type { PermissionProperties } from '$lib/properties/permission';
+import type { UserProperties } from '$lib/properties/user';
 
 export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperties>> {
 	private _chapterID?: string;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 	private readonly _deltaProperties: DeltaProperties;
 
 	constructor(id?: string) {
@@ -55,8 +56,8 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 		return this._deltaProperties;
 	}
 
-	sessionUserID(sessionUserID: string): DeltaBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): DeltaBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -77,7 +78,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		)
 			.cursor()
@@ -120,7 +121,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 					}
 				],
 				{
-					userID: this._sessionUserID
+					user: this._sessionUser
 				}
 			)
 				.cursor()
@@ -153,7 +154,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		)
 			.cursor()
@@ -213,7 +214,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 		await Delta.findOneAndUpdate({ _id: this._deltaProperties._id }, this._deltaProperties, {
 			new: true,
-			userID: this._sessionUserID
+			user: this._sessionUser
 		});
 
 		const deltas = await Delta.aggregate(
@@ -225,7 +226,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		).exec();
 
@@ -252,7 +253,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 						}
 					],
 					{
-						userID: this._sessionUserID
+						user: this._sessionUser
 					}
 				)
 					.cursor()
@@ -265,7 +266,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 
 				chapter.delta = delta._id;
 				await Chapter.findOneAndUpdate({ _id: chapter._id }, chapter, {
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					session: session
 				});
 
@@ -284,7 +285,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		).exec();
 

@@ -3,15 +3,16 @@ import { Repository } from '$lib/repositories/repository';
 import type { NoteProperties } from '$lib/properties/note';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
+import type { Context } from '$lib/trpc/context';
 
 export class NotesRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async getById(session: Session | null, id?: string): Promise<HydratedDocument<NoteProperties>> {
+	async getById(ctx: Context, id?: string): Promise<HydratedDocument<NoteProperties>> {
 		const note = await Note.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		})
 			.cursor()
 			.next();
@@ -22,11 +23,11 @@ export class NotesRepository extends Repository {
 	}
 
 	async getByChapterID(
-		session: Session | null,
+		ctx: Context,
 		chapterID?: string
 	): Promise<HydratedDocument<NoteProperties>[]> {
 		const notes = await Note.aggregate([{ $match: { chapter: chapterID } }], {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return new Promise<HydratedDocument<NoteProperties>[]>((resolve) => {

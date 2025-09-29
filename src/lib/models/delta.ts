@@ -34,10 +34,10 @@ deltaSchema.pre(['find', 'findOne'], function () {
 });
 
 deltaSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 
-	addViewRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
+	addViewRestrictionPipeline(user, pipeline, 'chapters', 'chapter');
 	next();
 });
 
@@ -59,12 +59,12 @@ function createDeltaOps(versions: VersionProperties[]) {
 deltaSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
 
 		setUpdateDate(this.getUpdate());
 
-		let updatedFilter = addCollaboratorUpdateRestrictionFilter(userID, filter);
+		let updatedFilter = addCollaboratorUpdateRestrictionFilter(user, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
 		this.setQuery(updatedFilter);

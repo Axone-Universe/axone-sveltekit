@@ -32,7 +32,7 @@ export const chapters = t.router({
 				data: {}
 			};
 			try {
-				const result = await chaptersRepo.get(ctx.session, input);
+				const result = await chaptersRepo.get(ctx, input);
 
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
@@ -56,7 +56,7 @@ export const chapters = t.router({
 				data: {}
 			};
 			try {
-				const result = await chaptersRepo.getChaptersByUserID(ctx.session, input?.searchTerm);
+				const result = await chaptersRepo.getChaptersByUserID(ctx, input?.searchTerm);
 
 				response.data = result;
 			} catch (error) {
@@ -79,7 +79,7 @@ export const chapters = t.router({
 				data: {}
 			};
 			try {
-				const result = await chaptersRepo.getById(ctx.session, input.id);
+				const result = await chaptersRepo.getById(ctx, input.id);
 
 				response.data = result;
 			} catch (error) {
@@ -103,7 +103,7 @@ export const chapters = t.router({
 			};
 			try {
 				const result = await chaptersRepo.getByChapterIDs(
-					ctx.session,
+					ctx,
 					input.storylineID,
 					input.storylineChapterIDs,
 					input.toChapterID
@@ -123,7 +123,7 @@ export const chapters = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const chapterBuilder = new ChapterBuilder(input.id).sessionUser(ctx.user!);
 
 			if (input.description) chapterBuilder.description(input.description);
 			if (input.title) chapterBuilder.title(input.title);
@@ -134,13 +134,13 @@ export const chapters = t.router({
 				message: 'chapters successfully updated',
 				data: {}
 			};
+
 			try {
 				const result = await chapterBuilder.update();
 
 				if (input.notifications) {
 					await sendUserNotifications(input.notifications);
 				}
-
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -156,7 +156,7 @@ export const chapters = t.router({
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
 			const chapterBuilder = new ChapterBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
@@ -183,7 +183,7 @@ export const chapters = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const chapterBuilder = new ChapterBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.bookID(input.bookID)
@@ -198,6 +198,7 @@ export const chapters = t.router({
 				message: 'chapter successfully created',
 				data: {}
 			};
+
 			try {
 				const result = await chapterBuilder.build();
 
@@ -226,7 +227,7 @@ export const chapters = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const chapterBuilder = new ChapterBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const chapterBuilder = new ChapterBuilder(input.id).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
@@ -250,9 +251,7 @@ export const chapters = t.router({
 		.use(auth)
 		.input(createComment)
 		.mutation(async ({ input, ctx }) => {
-			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUserID(
-				ctx.session!.user.id
-			);
+			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
@@ -278,9 +277,7 @@ export const chapters = t.router({
 		.use(auth)
 		.input(deleteComment)
 		.mutation(async ({ input, ctx }) => {
-			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUserID(
-				ctx.session!.user.id
-			);
+			const chapterBuilder = new ChapterBuilder(input.chapterId).sessionUser(ctx.user!);
 
 			await chapterBuilder.deleteComment(input.commentId);
 
@@ -312,7 +309,7 @@ export const chapters = t.router({
 				data: {}
 			};
 			try {
-				const result = await chaptersRepo.getComments(ctx.session, input);
+				const result = await chaptersRepo.getComments(ctx, input);
 
 				response.data = result;
 				response.cursor = result.length;

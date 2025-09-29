@@ -6,6 +6,7 @@ import { Repository } from '$lib/repositories/repository';
 import type { CountReview, ReadReview, ReviewByItem } from '$lib/trpc/schemas/reviews';
 import { Review } from '$lib/models/review';
 import type { ReviewProperties } from '$lib/properties/review';
+import type { Context } from '$lib/trpc/context';
 
 export type CountByRating = {
 	_id: number;
@@ -34,7 +35,7 @@ export class ReviewsRepository extends Repository {
 		return await query;
 	}
 
-	async getById(session: Session | null, id?: string): Promise<HydratedDocument<ReviewProperties>> {
+	async getById(ctx: Context, id?: string): Promise<HydratedDocument<ReviewProperties>> {
 		const query = Review.aggregate([{ $match: { _id: id } }])
 			.cursor()
 			.next();

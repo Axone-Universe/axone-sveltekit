@@ -8,11 +8,12 @@ import type { BookProperties } from '$lib/properties/book';
 import { Book } from '$lib/models/book';
 import { saveBook } from '../digital-products/book';
 import { TRPCError } from '@trpc/server';
+import type { UserProperties } from '$lib/properties/user';
 
 export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignProperties>> {
 	private readonly _campaignProperties: CampaignProperties;
 	private _bookProperties: BookProperties;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -82,6 +83,11 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 		return this;
 	}
 
+	sessionUser(sessionUser: UserProperties): CampaignBuilder {
+		this._sessionUser = sessionUser;
+		return this;
+	}
+
 	async build(): Promise<HydratedDocument<CampaignProperties>> {
 		if (!this._campaignProperties.user)
 			throw new Error('Must provide userID to create a campaign.');
@@ -96,7 +102,7 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 
 		try {
 			await session.withTransaction(async () => {
-				await saveBook(book, session);
+				await saveBook(book, session, this._sessionUser!);
 
 				returnedCampaign = await campaign.save({ session });
 			});
@@ -121,7 +127,7 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 			await session.withTransaction(async () => {
 				await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
 					new: true,
-					userID: this._campaignProperties.user,
+					user: this._sessionUser,
 					session
 				});
 
@@ -130,7 +136,7 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 					this._campaignProperties,
 					{
 						new: true,
-						userID: this._campaignProperties.user,
+						user: this._sessionUser,
 						session
 					}
 				);

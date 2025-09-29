@@ -3,16 +3,17 @@ import { Repository } from '$lib/repositories/repository';
 import type { DeltaProperties } from '$lib/properties/delta';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
+import type { Context } from '$lib/trpc/context';
 
 export class DeltasRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async getById(session: Session | null, id?: string): Promise<HydratedDocument<DeltaProperties>> {
+	async getById(ctx: Context, id?: string): Promise<HydratedDocument<DeltaProperties>> {
 		// We use exec here because cursor doesn't go through post middleware for aggregate
 		const result = await Delta.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		}).exec();
 
 		return result[0];

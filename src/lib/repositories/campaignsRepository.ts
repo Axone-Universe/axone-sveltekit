@@ -4,12 +4,10 @@ import type { HydratedDocument, PipelineStage } from 'mongoose';
 import { Campaign } from '$lib/models/campaign';
 import type { Session } from '@supabase/supabase-js';
 import type { ReadCampaign } from '$lib/trpc/schemas/campaigns';
+import type { Context } from '$lib/trpc/context';
 
 export class CampaignsRepository extends Repository {
-	async get(
-		session: Session | null,
-		input: ReadCampaign
-	): Promise<HydratedDocument<CampaignProperties>[]> {
+	async get(ctx: Context, input: ReadCampaign): Promise<HydratedDocument<CampaignProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
@@ -31,7 +29,7 @@ export class CampaignsRepository extends Repository {
 		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Campaign.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return await query;
@@ -48,7 +46,7 @@ export class CampaignsRepository extends Repository {
 		});
 	}
 
-	getById(session: Session | null, id?: string): Promise<unknown> {
+	getById(ctx: Context, id?: string): Promise<unknown> {
 		throw new Error('Method not implemented.');
 	}
 }

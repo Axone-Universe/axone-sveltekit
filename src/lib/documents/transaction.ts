@@ -1,5 +1,5 @@
 import { ulid } from 'ulid';
-import { ClientSession, startSession, type HydratedDocument } from 'mongoose';
+import { startSession, type ClientSession, type HydratedDocument } from 'mongoose';
 import { DocumentBuilder } from './documentBuilder';
 import type { TransactionProperties } from '$lib/properties/transaction';
 import { Transaction } from '$lib/models/transaction';
@@ -12,13 +12,14 @@ import type {
 	XrplTransactionType
 } from '$lib/util/types';
 import { createHash } from 'crypto';
-import { XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
+import type { XummPostPayloadResponse } from 'xumm-sdk/dist/src/types';
 import { Account } from '$lib/models/account';
 import { currencies } from '$lib/util/constants';
-import { AccountProperties } from '$lib/properties/account';
+import type { AccountProperties } from '$lib/properties/account';
+import type { UserProperties } from '$lib/properties/user';
 
 export class TransactionBuilder extends DocumentBuilder<HydratedDocument<TransactionProperties>> {
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 	private readonly _transactionProperties: TransactionProperties;
 	private _account?: HydratedDocument<AccountProperties> | null;
 	private _accountCurrency?: CurrencyCode;
@@ -191,6 +192,11 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 		return this;
 	}
 
+	sessionUser(sessionUser: UserProperties): TransactionBuilder {
+		this._sessionUser = sessionUser;
+		return this;
+	}
+
 	async updateAccountBalance(session: ClientSession, accountId: string) {
 		const accountTransactions = (await Transaction.aggregate([
 			{
@@ -271,7 +277,7 @@ export class TransactionBuilder extends DocumentBuilder<HydratedDocument<Transac
 			// delete transaction
 			result = await Transaction.deleteOne(
 				{ _id: this._transactionProperties._id },
-				{ userID: this._sessionUserID, session: session }
+				{ user: this._sessionUser, session: session }
 			);
 
 			await this.updateAccountBalance(session, transaction?.account ?? '');

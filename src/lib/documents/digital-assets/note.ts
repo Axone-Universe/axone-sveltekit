@@ -4,10 +4,11 @@ import { DocumentBuilder } from '../documentBuilder';
 import type { NoteProperties, Tag } from '$lib/properties/note';
 import { Note } from '$lib/models/note';
 import type mongoose from 'mongoose';
+import type { UserProperties } from '$lib/properties/user';
 
 export class NoteBuilder extends DocumentBuilder<HydratedDocument<NoteProperties>> {
 	private _chapterID?: string;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 	private readonly _noteProperties: NoteProperties;
 
 	constructor(id?: string) {
@@ -39,8 +40,8 @@ export class NoteBuilder extends DocumentBuilder<HydratedDocument<NoteProperties
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): NoteBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): NoteBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -61,10 +62,7 @@ export class NoteBuilder extends DocumentBuilder<HydratedDocument<NoteProperties
 
 		let result = {};
 
-		result = await Note.deleteOne(
-			{ _id: this._noteProperties._id },
-			{ userID: this._sessionUserID }
-		);
+		result = await Note.deleteOne({ _id: this._noteProperties._id }, { user: this._sessionUser });
 
 		return result as mongoose.mongo.DeleteResult;
 	}
@@ -84,7 +82,7 @@ export class NoteBuilder extends DocumentBuilder<HydratedDocument<NoteProperties
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		)
 			.cursor()

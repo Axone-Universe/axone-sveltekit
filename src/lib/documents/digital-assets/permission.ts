@@ -9,12 +9,13 @@ import { label as ChapterLabel, type ChapterProperties } from '$lib/properties/c
 import { label as StorylineLabel, type StorylineProperties } from '$lib/properties/storyline';
 import { Book } from '$lib/models/book';
 import { Storyline } from '$lib/models/storyline';
+import type { UserProperties } from '$lib/properties/user';
 
 export class PermissionBuilder extends DocumentBuilder<HydratedDocument<PermissionProperties>> {
 	private _documentID?: string;
 	private _documentType: string | undefined;
 	private readonly _permissionProperties: PermissionProperties;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -34,11 +35,6 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		return this;
 	}
 
-	permissionSetterID(permissionSetterID: string): PermissionBuilder {
-		this._sessionUserID = permissionSetterID;
-		return this;
-	}
-
 	permission(permission: Permissions): PermissionBuilder {
 		this._permissionProperties.permission = permission;
 		return this;
@@ -49,15 +45,15 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): PermissionBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): PermissionBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
 	async update(): Promise<HydratedDocument<PermissionProperties>> {
 		if (!this._documentID) throw new Error('Must provide a documentID to update the permission.');
-		if (!this._sessionUserID)
-			throw new Error('Must provide a the permission setter to update the permission.');
+		if (!this._sessionUser)
+			throw new Error('Must provide a the session user to update the permission.');
 
 		const document = await this.parentDocument();
 
@@ -71,7 +67,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	async delete(): Promise<mongoose.mongo.DeleteResult> {
 		if (!this._documentID) throw new Error('Must provide a documentID to delete the permission.');
-		if (!this._sessionUserID)
+		if (!this._sessionUser)
 			throw new Error('Must provide a the permission setter to delete the permission.');
 
 		const result = {};
@@ -97,7 +93,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 						}
 					],
 					{
-						userID: this._sessionUserID
+						user: this._sessionUser
 					}
 				)
 					.cursor()
@@ -115,7 +111,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 						}
 					],
 					{
-						userID: this._sessionUserID
+						user: this._sessionUser
 					}
 				)
 					.cursor()
@@ -133,7 +129,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 						}
 					],
 					{
-						userID: this._sessionUserID
+						user: this._sessionUser
 					}
 				)
 					.cursor()
@@ -153,7 +149,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 		const documentOwnerID = typeof document.user === 'string' ? document.user : document.user?._id;
 
-		if (documentOwnerID !== this._sessionUserID) {
+		if (documentOwnerID !== this._sessionUser?._id) {
 			throw new Error('Unauthorized to modify the permission.');
 		}
 
@@ -166,7 +162,7 @@ export class PermissionBuilder extends DocumentBuilder<HydratedDocument<Permissi
 
 	async build(): Promise<HydratedDocument<PermissionProperties>> {
 		if (!this._documentID) throw new Error('Must provide a documentID to build the permission.');
-		if (!this._sessionUserID)
+		if (!this._sessionUser)
 			throw new Error('Must provide a the permission setter to build the permission.');
 		if (!this._documentType)
 			throw new Error('Must provide a document type to build the permission.');

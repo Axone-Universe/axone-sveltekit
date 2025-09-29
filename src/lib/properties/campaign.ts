@@ -1,4 +1,4 @@
-import { HydratedDocument } from 'mongoose';
+import { type HydratedDocument } from 'mongoose';
 import { type BookProperties } from './book';
 import { type UserProperties } from './user';
 

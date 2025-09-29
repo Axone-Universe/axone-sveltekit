@@ -1,6 +1,6 @@
 import { label, type CampaignProperties } from '$lib/properties/campaign';
 import { label as BookLabel } from '$lib/properties/book';
-import mongoose, { PipelineStage, Schema, model } from 'mongoose';
+import mongoose, { type PipelineStage, Schema, model } from 'mongoose';
 import {
 	addArchivedRestrictionFilter,
 	addOwnerUpdateRestrictionFilter,
@@ -37,10 +37,10 @@ campaignSchema.pre('aggregate', function (next) {
 });
 
 campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
-	const userID = this.getOptions().userID;
+	const user = this.getOptions().user;
 	const filter = this.getFilter();
 
-	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -49,12 +49,12 @@ campaignSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functi
 campaignSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
 
 		setUpdateDate(this.getUpdate());
 
-		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
 		this.setQuery(updatedFilter);

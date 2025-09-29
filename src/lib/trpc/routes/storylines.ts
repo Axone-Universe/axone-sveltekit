@@ -24,7 +24,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.get(ctx.session, input);
+				const result = await storylinesRepo.get(ctx, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
@@ -47,7 +47,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.getById(ctx.session, input.id!);
+				const result = await storylinesRepo.getById(ctx, input.id!);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -69,7 +69,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.getByIds(ctx.session, input.ids!);
+				const result = await storylinesRepo.getByIds(ctx, input.ids!);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -91,7 +91,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.getByBookID(ctx.session, input.bookID!, input.main);
+				const result = await storylinesRepo.getByBookID(ctx, input.bookID!, input.main);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -113,7 +113,7 @@ export const storylines = t.router({
 				data: {}
 			};
 			try {
-				const result = await storylinesRepo.getStorylinesByUserID(ctx.session, input?.searchTerm);
+				const result = await storylinesRepo.getStorylinesByUserID(ctx, input?.searchTerm);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -128,7 +128,7 @@ export const storylines = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const storylineBuilder = new StorylineBuilder(input.id).sessionUser(ctx.user!);
 
 			if (input.description) storylineBuilder.description(input.description);
 			if (input.title) storylineBuilder.title(input.title);
@@ -163,7 +163,7 @@ export const storylines = t.router({
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
 			const storylineBuilder = new StorylineBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
@@ -187,7 +187,9 @@ export const storylines = t.router({
 		.use(auth)
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder().userID(ctx.session!.user.id);
+			const storylineBuilder = new StorylineBuilder()
+				.sessionUser(ctx.user!)
+				.userID(ctx.session!.user.id);
 
 			if (input?.book) storylineBuilder.bookID(input.book as string);
 			if (input?.title) storylineBuilder.title(input.title);
@@ -226,7 +228,7 @@ export const storylines = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const storylineBuilder = new StorylineBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const storylineBuilder = new StorylineBuilder(input.id).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
