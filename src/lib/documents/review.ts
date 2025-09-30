@@ -12,9 +12,11 @@ import {
 } from '$lib/properties/review';
 import { Storyline } from '$lib/models/storyline';
 import { Book } from '$lib/models/book';
+import type { UserProperties } from '$lib/properties/user';
 
 export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProperties>> {
 	private readonly _reviewProperties: ReviewProperties;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -49,13 +51,18 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): ReviewBuilder {
-		this._reviewProperties.user = sessionUserID;
+	userID(userID: string): ReviewBuilder {
+		this._reviewProperties.user = userID;
+		return this;
+	}
+
+	sessionUser(sessionUser: UserProperties): ReviewBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
 	async build(): Promise<HydratedDocument<ReviewProperties>> {
-		if (!this._reviewProperties.user) throw new Error('Must be logged in to give a review.');
+		if (!this._sessionUser) throw new Error('Must be logged in to give a review.');
 
 		const session = await startSession();
 		const review = new Review(this._reviewProperties);
@@ -68,6 +75,7 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 				if (this._reviewProperties.reviewOf === 'Storyline') {
 					await this.syncStorylineAndBook(
 						session,
+						this._sessionUser!,
 						this._reviewProperties.item as string,
 						1,
 						this._reviewProperties.rating
@@ -82,7 +90,7 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 	}
 
 	async update(): Promise<void> {
-		if (!this._reviewProperties.user) throw new Error('Must be logged in to update a review.');
+		if (!this._sessionUser) throw new Error('Must be logged in to update a review.');
 
 		const propsToUpdate: any = {};
 
@@ -96,12 +104,13 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 				const oldReview = await Review.findOneAndUpdate(
 					{ _id: this._reviewProperties._id, user: this._reviewProperties.user },
 					propsToUpdate,
-					{ session, userID: this._reviewProperties.user }
+					{ session, user: this._sessionUser }
 				);
 
 				if (oldReview && this._reviewProperties.reviewOf === 'Storyline') {
 					await this.syncStorylineAndBook(
 						session,
+						this._sessionUser!,
 						oldReview.item as string,
 						0,
 						this._reviewProperties.rating - oldReview.rating
@@ -131,6 +140,7 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 				if (deletedReview && this._reviewProperties.reviewOf === 'Storyline') {
 					await this.syncStorylineAndBook(
 						session,
+						this._sessionUser!,
 						deletedReview.item as string,
 						-1,
 						deletedReview.rating * -1
@@ -144,12 +154,15 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 
 	async syncStorylineAndBook(
 		session: ClientSession,
+		user: UserProperties,
 		storylineID: string,
 		numRatings: number,
 		cumulativeRating: number
 	) {
-		const storyline = await Storyline.aggregate([{ $match: { _id: storylineID } }])
-			.session(session)
+		const storyline = await Storyline.aggregate([{ $match: { _id: storylineID } }], {
+			session,
+			user
+		})
 			.cursor()
 			.next();
 
@@ -162,10 +175,10 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 						cumulativeRating
 					}
 				},
-				{ session, userID: storyline.user._id }
+				{ session, user: storyline.user }
 			);
 
-			const maxStoryline = await Storyline.aggregate([
+			await Storyline.aggregate([
 				{
 					$match: {
 						book: storyline.book._id
@@ -190,15 +203,7 @@ export class ReviewBuilder extends DocumentBuilder<HydratedDocument<ReviewProper
 				.cursor()
 				.next();
 
-			await Book.updateOne(
-				{ _id: storyline.book._id },
-				{
-					$set: {
-						rating: maxStoryline.maxAvg
-					}
-				},
-				{ session, userID: storyline.book.user }
-			);
+			// NOTE: removed the book update because we are going to do away with books
 		} else {
 			return new Error('Storyline does not exist!');
 		}

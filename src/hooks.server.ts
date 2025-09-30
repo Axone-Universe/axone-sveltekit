@@ -60,7 +60,7 @@ const supabaseHandle: Handle = async ({ event, resolve }) => {
 			}
 		}
 	} else {
-		const user = await userRepo.getById(session, session.user.id);
+		const user = await userRepo.getById(undefined, session.user.id);
 		event.locals.user = user as UserProperties;
 
 		if (user && event.url.pathname === '/profile/create') {

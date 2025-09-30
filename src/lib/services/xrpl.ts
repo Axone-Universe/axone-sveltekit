@@ -1,9 +1,9 @@
 import { PUBLIC_XRPL_SERVER } from '$env/static/public';
 import { ResourceBuilder } from '$lib/documents/digital-assets/resource';
-import { ResourceProperties } from '$lib/properties/resource';
-import { HydratedDocument } from 'mongoose';
-import { Client, NFTOffer, TransactionMetadata } from 'xrpl';
-import { NFTokenMintMetadata } from 'xrpl/dist/npm/models/transactions/NFTokenMint';
+import type { ResourceProperties } from '$lib/properties/resource';
+import { type HydratedDocument } from 'mongoose';
+import { Client, type NFTOffer } from 'xrpl';
+import type { NFTokenMintMetadata } from 'xrpl/dist/npm/models/transactions/NFTokenMint';
 
 export const xrplClient = new Client(PUBLIC_XRPL_SERVER);
 

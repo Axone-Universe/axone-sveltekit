@@ -11,13 +11,14 @@ import { Delta } from '$lib/models/delta';
 import { DeltaBuilder } from '../digital-assets/delta';
 import { formatDate } from '$lib/util/constants';
 import { User } from '$lib/models/user';
+import type { UserProperties } from '$lib/properties/user';
 
 export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProperties>> {
 	private readonly _chapterProperties: ChapterProperties;
 	private _prevChapterID?: string;
 	private _bookID?: string;
 	private _storylineID?: string;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -69,8 +70,8 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): ChapterBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): ChapterBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -86,7 +87,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 				result = await Chapter.deleteOne(
 					{ _id: this._chapterProperties._id },
-					{ session: session, userID: this._sessionUserID }
+					{ session: session, user: this._sessionUser }
 				);
 
 				return result;
@@ -116,7 +117,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		)
 			.cursor()
@@ -135,13 +136,18 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 		}
 
 		// re-assign children to the parent
-		const parents = await Chapter.aggregate([
-			{
-				$match: {
-					children: this._chapterProperties._id
+		const parents = await Chapter.aggregate(
+			[
+				{
+					$match: {
+						children: this._chapterProperties._id
+					}
 				}
+			],
+			{
+				user: this._sessionUser
 			}
-		]);
+		);
 
 		for (const parent of parents) {
 			const parentChapter = new Chapter(parent);
@@ -152,13 +158,16 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	async deleteChapterFromStoryline(session: ClientSession) {
 		// remove chapter from storylines refering it
-		const storylines = await Storyline.aggregate([
-			{
-				$match: {
-					chapters: this._chapterProperties._id
+		const storylines = await Storyline.aggregate(
+			[
+				{
+					$match: {
+						chapters: this._chapterProperties._id
+					}
 				}
-			}
-		]);
+			],
+			{ user: this._sessionUser }
+		);
 
 		for (const storyline of storylines) {
 			const storylineModel = new Storyline(storyline);
@@ -169,27 +178,31 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	async update(): Promise<HydratedDocument<ChapterProperties>> {
 		const session = await mongoose.startSession();
-		await session.withTransaction(async () => {
-			const chapter = await Chapter.findOneAndUpdate(
-				{ _id: this._chapterProperties._id },
-				this._chapterProperties,
-				{
-					new: true,
-					userID: this._sessionUserID,
-					session: session
-				}
-			);
 
-			// update delta inherited fields
-			if (chapter?.delta) {
-				await Delta.findOneAndUpdate(
-					{ _id: chapter.delta },
-					{ archived: chapter.archived, permissions: chapter.permissions },
-					{ session }
+		try {
+			await session.withTransaction(async () => {
+				const chapter = await Chapter.findOneAndUpdate(
+					{ _id: this._chapterProperties._id },
+					this._chapterProperties,
+					{
+						new: true,
+						user: this._sessionUser,
+						session: session
+					}
 				);
-			}
-		});
-		session.endSession();
+
+				// update delta inherited fields
+				if (chapter?.delta) {
+					await Delta.findOneAndUpdate(
+						{ _id: chapter.delta },
+						{ archived: chapter.archived, permissions: chapter.permissions },
+						{ session, user: this._sessionUser }
+					);
+				}
+			});
+		} finally {
+			session.endSession();
+		}
 
 		const chapter = await Chapter.aggregate(
 			[
@@ -200,12 +213,12 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			],
 			{
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		)
 			.cursor()
 			.next();
-
+		// console.log('** updated c ', chapter);
 		return chapter;
 	}
 
@@ -218,7 +231,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 					{ _id: { $in: ids }, user: this._chapterProperties.user },
 					{ archived: this._chapterProperties.archived },
 					{
-						userID: this._sessionUserID,
+						user: this._sessionUser,
 						session: session
 					}
 				)
@@ -230,7 +243,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 						{ chapter: { $in: ids }, user: this._chapterProperties.user },
 						{ archived: this._chapterProperties.archived },
 						{
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session: session
 						}
 					)
@@ -253,7 +266,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)
@@ -261,7 +274,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				.next()
 		);
 
-		const user = await User.findOne({ _id: this._sessionUserID });
+		const user = await User.findOne({ _id: this._sessionUser?._id });
 
 		const newComment = {
 			_id: ulid(),
@@ -288,7 +301,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)
@@ -312,7 +325,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 			await session.withTransaction(async () => {
 				// Create the delta
 				const deltaBuilder = new DeltaBuilder()
-					.sessionUserID(this._sessionUserID!)
+					.sessionUser(this._sessionUser!)
 					.chapterID(this._chapterProperties._id)
 					.userID(this._chapterProperties.user as string)
 					.permissions(chapter.permissions);
@@ -335,7 +348,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 							}
 						],
 						{
-							userID: this._chapterProperties.user
+							user: this._sessionUser
 						}
 					)
 						.session(session)
@@ -357,7 +370,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 								}
 							],
 							{
-								userID: this._chapterProperties.user
+								user: this._sessionUser
 							}
 						)
 							.session(session)
@@ -381,7 +394,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 				}
 			],
 			{
-				userID: this._chapterProperties.user
+				user: this._sessionUser
 			}
 		)
 			.cursor()

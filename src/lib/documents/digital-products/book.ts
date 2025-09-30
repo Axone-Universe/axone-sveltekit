@@ -10,11 +10,12 @@ import { StorylineBuilder } from './storyline';
 import type { PermissionProperties } from '$lib/properties/permission';
 import { Chapter } from '$lib/models/chapter';
 import { Campaign } from '$lib/models/campaign';
+import type { UserProperties } from '$lib/properties/user';
 
 export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties>> {
 	private readonly _bookProperties: BookProperties;
-	private readonly _userID: { id?: string };
-	private _sessionUserID?: string;
+	private _userID: string | undefined;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -29,7 +30,6 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			genres: [],
 			rating: 0
 		};
-		this._userID = {};
 	}
 
 	title(title: string): BookBuilder {
@@ -43,10 +43,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	userID(userID: string): BookBuilder {
-		this._userID.id = userID;
-
+		this._userID = userID;
 		this._bookProperties.user = userID;
-
 		return this;
 	}
 
@@ -75,8 +73,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): BookBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): BookBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -91,7 +89,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)
@@ -114,7 +112,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)
@@ -132,7 +130,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)
@@ -163,7 +161,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 					}
 				],
 				{
-					userID: this._sessionUserID
+					user: this._sessionUser
 				}
 			);
 
@@ -174,12 +172,12 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			// delete any campaign linked to the book
 			await Campaign.deleteOne(
 				{ book: this._bookProperties._id },
-				{ session: session, userID: this._sessionUserID }
+				{ session: session, user: this._sessionUser }
 			);
 
 			result = await Book.deleteOne(
 				{ _id: this._bookProperties._id },
-				{ session: session, userID: this._sessionUserID }
+				{ session: session, user: this._sessionUser }
 			);
 
 			return result;
@@ -197,14 +195,14 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 			await session.withTransaction(async () => {
 				await Book.findOneAndUpdate({ _id: this._bookProperties._id }, this._bookProperties, {
 					new: true,
-					userID: this._sessionUserID
+					user: this._sessionUser
 				});
 
 				await Storyline.findOneAndUpdate(
 					{ $and: [{ book: this._bookProperties._id }, { main: true }] },
 					{ imageURL: this._bookProperties.imageURL },
 					{
-						userID: this._sessionUserID
+						user: this._sessionUser
 					}
 				);
 			});
@@ -222,7 +220,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 				}
 			],
 			{
-				userID: this._userID.id
+				user: this._sessionUser
 			}
 		)
 			.cursor()
@@ -243,7 +241,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 						{ archived: this._bookProperties.archived },
 						{
 							new: true,
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session
 						}
 					)
@@ -255,7 +253,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 						{ archived: this._bookProperties.archived },
 						{
 							new: true,
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session
 						}
 					);
@@ -265,7 +263,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 						{ archived: this._bookProperties.archived },
 						{
 							new: true,
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session
 						}
 					);
@@ -279,7 +277,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	async build(): Promise<HydratedDocument<BookProperties>> {
-		if (!this._userID.id) throw new Error('Must provide userID of author to build book.');
+		if (!this._userID) throw new Error('Must provide the author to build book.');
 
 		const session = await mongoose.startSession();
 
@@ -288,7 +286,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 		try {
 			// use a transaction to make sure everything saves
 			await session.withTransaction(async () => {
-				await saveBook(book, session);
+				await saveBook(book, session, this._sessionUser!);
 			});
 		} finally {
 			session.endSession();
@@ -303,7 +301,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 				}
 			],
 			{
-				userID: this._userID.id
+				user: this._sessionUser
 			}
 		)
 			.cursor()
@@ -317,7 +315,11 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 }
 
-export async function saveBook(book: HydratedDocument<BookProperties>, session: ClientSession) {
+export async function saveBook(
+	book: HydratedDocument<BookProperties>,
+	session: ClientSession,
+	sessionUser: UserProperties
+) {
 	const hydratedBook = book as HydratedDocument<BookProperties>;
 
 	const permissions: Record<string, HydratedDocument<PermissionProperties>> = {};
@@ -328,6 +330,7 @@ export async function saveBook(book: HydratedDocument<BookProperties>, session: 
 
 	// Also create the default/main storyline
 	const storylineBuilder = new StorylineBuilder()
+		.sessionUser(sessionUser)
 		.userID(typeof hydratedBook.user === 'string' ? hydratedBook.user : hydratedBook.user._id)
 		.bookID(hydratedBook._id)
 		.title(hydratedBook.title!)

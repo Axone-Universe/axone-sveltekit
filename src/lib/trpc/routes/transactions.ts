@@ -1,10 +1,10 @@
 import { TransactionBuilder } from '$lib/documents/transaction';
-import { TransactionProperties } from '$lib/properties/transaction';
+import type { TransactionProperties } from '$lib/properties/transaction';
 import { TransactionsRepository } from '$lib/repositories/transactionsRepository';
 import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import type { Response } from '$lib/util/types';
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { type HydratedDocument } from 'mongoose';
 import { z } from 'zod';
 import { read } from '../schemas/transactions';
 
@@ -22,7 +22,7 @@ export const transactions = t.router({
 			};
 
 			try {
-				const result = await transactionsRepo.get(ctx.session, input);
+				const result = await transactionsRepo.get(ctx, input);
 
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;

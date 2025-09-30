@@ -4,6 +4,7 @@ import type { ChapterProperties, CommentProperties } from '$lib/properties/chapt
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import type { GetByIdSchema, ReadChapter } from '$lib/trpc/schemas/chapters';
+import type { Context } from '$lib/trpc/context';
 
 export class ChaptersRepository extends Repository {
 	constructor() {
@@ -17,10 +18,7 @@ export class ChaptersRepository extends Repository {
 	 * @param skip
 	 * @returns
 	 */
-	async get(
-		session: Session | null,
-		input: ReadChapter
-	): Promise<HydratedDocument<ChapterProperties>[]> {
+	async get(ctx: Context, input: ReadChapter): Promise<HydratedDocument<ChapterProperties>[]> {
 		const pipeline = [];
 		const filter: any = {};
 
@@ -37,15 +35,15 @@ export class ChaptersRepository extends Repository {
 		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Chapter.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return await query;
 	}
 
-	async getById(session: Session | null, id: string): Promise<HydratedDocument<ChapterProperties>> {
+	async getById(ctx: Context, id: string): Promise<HydratedDocument<ChapterProperties>> {
 		const chapter = await Chapter.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		})
 			.cursor()
 			.next();
@@ -54,7 +52,7 @@ export class ChaptersRepository extends Repository {
 	}
 
 	async getByChapterIDs(
-		session: Session | null,
+		ctx: Context,
 		storylineID: string,
 		storylineChapterIDs?: string[],
 		toChapterID?: string
@@ -64,7 +62,7 @@ export class ChaptersRepository extends Repository {
 		const storylineChapters = await Chapter.aggregate(
 			[{ $match: { _id: { $in: storylineChapterIDs } } }],
 			{
-				userID: session?.user.id,
+				user: ctx.user,
 				storylineID: storylineID
 			}
 		);
@@ -93,7 +91,7 @@ export class ChaptersRepository extends Repository {
 	}
 
 	async getChaptersByUserID(
-		session: Session | null,
+		ctx: Context,
 		id?: string
 	): Promise<HydratedDocument<ChapterProperties>[]> {
 		const pipeline = [];
@@ -105,14 +103,14 @@ export class ChaptersRepository extends Repository {
 		pipeline.push({ $unwind: '$book' });
 
 		const chapters = (await Chapter.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		})) as HydratedDocument<ChapterProperties>[];
 
 		return chapters;
 	}
 
 	async getComments(
-		session: Session | null,
+		ctx: Context,
 		input: GetByIdSchema
 	): Promise<HydratedDocument<CommentProperties>[]> {
 		const pipeline = [];
@@ -125,7 +123,7 @@ export class ChaptersRepository extends Repository {
 		});
 
 		const chapter = await Chapter.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		})
 			.cursor()
 			.next();

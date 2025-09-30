@@ -1,5 +1,5 @@
 import { XUMM_APIKEY, XUMM_APISECRET } from '$env/static/private';
-import { SdkTypes, XummSdk } from 'xumm-sdk';
+import { type SdkTypes, XummSdk } from 'xumm-sdk';
 
 export class CustomXummSdk extends XummSdk {
 	constructor(apiKey?: string, apiSecret?: string) {

@@ -20,7 +20,7 @@ export const books = t.router({
 
 			const response: Response = { success: true, message: 'books retrieved', data: {} };
 			try {
-				const result = await booksRepo.get(ctx.session, input);
+				const result = await booksRepo.get(ctx, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
@@ -39,7 +39,7 @@ export const books = t.router({
 
 			const response: Response = { success: true, message: 'book retrieved', data: {} };
 			try {
-				const result = await booksRepo.getById(ctx.session, input.id);
+				const result = await booksRepo.getById(ctx, input.id);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -55,7 +55,7 @@ export const books = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder(input.id)
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id);
 
 			if (input.title) bookBuilder.title(input.title);
@@ -87,7 +87,7 @@ export const books = t.router({
 		.input(setArchived)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.archived(input.archived);
 
@@ -126,7 +126,7 @@ export const books = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const bookBuilder = new BookBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.title(input.title)
 				.description(input.description);
@@ -152,7 +152,6 @@ export const books = t.router({
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
 			}
-			
 
 			return { ...response, ...{ data: response.data as HydratedDocument<BookProperties> } };
 		}),
@@ -161,7 +160,7 @@ export const books = t.router({
 		.use(auth)
 		.input(addStoryline)
 		.mutation(async ({ input, ctx }) => {
-			const bookBuilder = new BookBuilder(input.bookID).sessionUserID(ctx.session!.user.id);
+			const bookBuilder = new BookBuilder(input.bookID).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
@@ -182,7 +181,7 @@ export const books = t.router({
 		.use(auth)
 		.input(addStoryline)
 		.mutation(async ({ input, ctx }) => {
-			const bookBuilder = new BookBuilder(input.bookID).sessionUserID(ctx.session!.user.id);
+			const bookBuilder = new BookBuilder(input.bookID).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
@@ -203,7 +202,7 @@ export const books = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const bookBuilder = new BookBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const bookBuilder = new BookBuilder(input.id).sessionUser(ctx.user!);
 
 			const response: Response = { success: true, message: 'book successfully deleted', data: {} };
 			try {

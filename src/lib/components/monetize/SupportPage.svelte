@@ -3,7 +3,7 @@
 	import { type PaymentMethod } from '$lib/util/types';
 	import { PUBLIC_PLATFORM_FEES } from '$env/static/public';
 	import { Avatar } from '@skeletonlabs/skeleton';
-	import { HydratedDocument } from 'mongoose';
+	import { type HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { heartO, ccMastercard, ccVisa, bitcoin } from 'svelte-awesome/icons';
 	import Section from '../Section.svelte';

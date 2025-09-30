@@ -22,10 +22,10 @@ noteSchema.pre(['find', 'findOne'], function () {
 });
 
 noteSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 
-	addViewRestrictionPipeline(userID, pipeline, 'chapters', 'chapter');
+	addViewRestrictionPipeline(user, pipeline, 'chapters', 'chapter');
 	next();
 });
 

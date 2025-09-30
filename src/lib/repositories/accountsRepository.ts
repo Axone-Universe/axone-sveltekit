@@ -4,6 +4,7 @@ import type { AccountProperties } from '$lib/properties/account';
 import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { AccountBuilder } from '$lib/documents/account';
+import type { Context } from '$lib/trpc/context';
 
 export class AccountsRepository extends Repository {
 	constructor() {
@@ -25,10 +26,10 @@ export class AccountsRepository extends Repository {
 		return result[0];
 	}
 
-	async getById(session: Session | null, id: string): Promise<HydratedDocument<AccountProperties>> {
+	async getById(ctx: Context, id: string): Promise<HydratedDocument<AccountProperties>> {
 		// We use exec here because cursor doesn't go through post middleware for aggregate
 		const result = await Account.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		}).exec();
 
 		return result[0];

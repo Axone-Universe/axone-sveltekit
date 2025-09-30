@@ -17,7 +17,7 @@
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
 	import { type HydratedCampaignProperties } from '$lib/properties/campaign';
-	import { HydratedDocument } from 'mongoose';
+	import { type HydratedDocument } from 'mongoose';
 	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
 	import { formattedDate } from '$lib/util/studio/strings';
 	import { modeCurrent, popup, type PopupSettings } from '@skeletonlabs/skeleton';

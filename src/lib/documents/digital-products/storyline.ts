@@ -9,6 +9,7 @@ import { Chapter } from '$lib/models/chapter';
 import type { Genre } from '$lib/properties/genre';
 import { Book } from '$lib/models/book';
 import { BookProperties } from '$lib/properties/book';
+import type { UserProperties } from '$lib/properties/user';
 
 export class StorylineBuilder extends DocumentBuilder<HydratedDocument<StorylineProperties>> {
 	private readonly _storylineProperties: StorylineProperties;
@@ -17,7 +18,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	// If a storyline has no parent it is the default storyline
 	private _parentStorylineID?: string;
 	private _branchOffChapterID?: string;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -91,8 +92,8 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): StorylineBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): StorylineBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -121,7 +122,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 					}
 				],
 				{
-					userID: this._sessionUserID
+					user: this._sessionUser
 				}
 			);
 
@@ -138,7 +139,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 					}
 				],
 				{
-					userID: this._sessionUserID,
+					user: this._sessionUser,
 					comments: true
 				}
 			)) as HydratedDocument<BookProperties>[];
@@ -153,7 +154,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 			result = await Storyline.deleteOne(
 				{ _id: this._storylineProperties._id },
-				{ session: session, userID: this._sessionUserID }
+				{ session: session, user: this._sessionUser }
 			);
 
 			return result;
@@ -169,7 +170,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 			this._storylineProperties,
 			{
 				new: true,
-				userID: this._sessionUserID
+				user: this._sessionUser
 			}
 		);
 
@@ -191,7 +192,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 						{ _id: { $in: ids }, user: this._storylineProperties.user },
 						{ archived: this._storylineProperties.archived },
 						{
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session
 						}
 					)
@@ -202,7 +203,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 						{ storyline: { $in: ids }, user: this._storylineProperties.user },
 						{ archived: this._storylineProperties.archived },
 						{
-							userID: this._sessionUserID,
+							user: this._sessionUser,
 							session
 						}
 					);
@@ -243,7 +244,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 					}
 				],
 				{
-					userID: this._userID
+					user: this._sessionUser
 				}
 			)
 				.cursor()
@@ -274,7 +275,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 							}
 						],
 						{
-							userID: this._storylineProperties.user
+							user: this._sessionUser
 						}
 					)
 						.session(session)

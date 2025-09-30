@@ -9,9 +9,10 @@ import type {
 } from '$lib/properties/resource';
 import { Resource } from '$lib/models/resource';
 import type mongoose from 'mongoose';
+import type { UserProperties } from '$lib/properties/user';
 
 export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourceProperties>> {
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 	private readonly _resourceProperties: ResourceProperties;
 
 	constructor(id?: string) {
@@ -104,8 +105,8 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): ResourceBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): ResourceBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -130,7 +131,7 @@ export class ResourceBuilder extends DocumentBuilder<HydratedDocument<ResourcePr
 
 		result = await Resource.deleteOne(
 			{ _id: this._resourceProperties._id },
-			{ userID: this._sessionUserID }
+			{ user: this._sessionUser }
 		);
 
 		return result as mongoose.mongo.DeleteResult;

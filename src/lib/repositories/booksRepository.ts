@@ -4,13 +4,12 @@ import { Repository } from '$lib/repositories/repository';
 import type { HydratedDocument, PipelineStage } from 'mongoose';
 import { Book } from '$lib/models/book';
 import type { Session } from '@supabase/supabase-js';
-import type { Genre } from '$lib/properties/genre';
 import { UsersRepository } from './usersRepository';
-import type { HomeFilterTag } from '$lib/util/types';
 import { ReadBook } from '$lib/trpc/schemas/books';
+import type { Context } from '$lib/trpc/context';
 
 export class BooksRepository extends Repository {
-	async get(session: Session | null, input: ReadBook): Promise<HydratedDocument<BookProperties>[]> {
+	async get(ctx: Context, input: ReadBook): Promise<HydratedDocument<BookProperties>[]> {
 		const pipeline: PipelineStage[] = [];
 		const filter: any = {};
 
@@ -39,7 +38,7 @@ export class BooksRepository extends Repository {
 
 			if (input.tags.includes('Recommended')) {
 				const userRepo = new UsersRepository();
-				const user = await userRepo.getById(session, session?.user.id);
+				const user = await userRepo.getById(ctx, ctx.session?.user.id);
 				if (user && user.genres) {
 					filter.genres = { $in: user.genres };
 				}
@@ -63,15 +62,15 @@ export class BooksRepository extends Repository {
 		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Book.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return await query;
 	}
 
-	async getById(session: Session | null, id?: string): Promise<HydratedDocument<BookProperties>> {
+	async getById(ctx: Context, id?: string): Promise<HydratedDocument<BookProperties>> {
 		const query = Book.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx.user
 		})
 			.cursor()
 			.next();

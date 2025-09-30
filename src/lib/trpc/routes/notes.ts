@@ -16,7 +16,7 @@ export const notes = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const noteBuilder = new NoteBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.title(input.title)
 				.note(input.note)
 				.chapterID(input.chapterID);
@@ -50,7 +50,7 @@ export const notes = t.router({
 				data: {}
 			};
 			try {
-				const result = await notesRepo.getByChapterID(ctx.session, input.chapterID);
+				const result = await notesRepo.getByChapterID(ctx, input.chapterID);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -64,7 +64,7 @@ export const notes = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const noteBuilder = new NoteBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const noteBuilder = new NoteBuilder(input.id).sessionUser(ctx.user!);
 
 			if (input.title) noteBuilder.title(input.title);
 			if (input.note) noteBuilder.note(input.note);
@@ -90,7 +90,7 @@ export const notes = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const noteBuilder = new NoteBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const noteBuilder = new NoteBuilder(input.id).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,
