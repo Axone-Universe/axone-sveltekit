@@ -9,6 +9,7 @@ export const userSchema = z.array(UserSchema);
 export const create = z.object({
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
+	admin: z.boolean().optional(),
 	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	email: z.string().optional(),
@@ -22,6 +23,7 @@ export const create = z.object({
 export const update = z.object({
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
+	admin: z.boolean().optional(),
 	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	email: z.string().optional(),

@@ -1,7 +1,7 @@
 import { label, type ResourceProperties } from '$lib/properties/resource';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import { label as UserLabel } from '$lib/properties/user';
-import mongoose, { PipelineStage, Schema, model } from 'mongoose';
+import mongoose, { type PipelineStage, Schema, model } from 'mongoose';
 
 export const resourceSchema = new Schema<ResourceProperties>({
 	_id: { type: String, required: true },
@@ -29,7 +29,7 @@ resourceSchema.pre(['find', 'findOne'], function () {
 });
 
 resourceSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 	const postPipeline = this.options.postPipeline ?? [];
 

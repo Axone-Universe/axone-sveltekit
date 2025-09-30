@@ -5,16 +5,14 @@ import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { ReadResource } from '$lib/trpc/schemas/resources';
 import { ulid } from 'ulid';
+import type { Context } from '$lib/trpc/context';
 
 export class ResourcesRepository extends Repository {
 	constructor() {
 		super();
 	}
 
-	async get(
-		session: Session | null,
-		input: ReadResource
-	): Promise<HydratedDocument<ResourceProperties>[]> {
+	async get(ctx: Context, input: ReadResource): Promise<HydratedDocument<ResourceProperties>[]> {
 		const pipeline = [];
 		const postPipeline = [];
 		const filter: any = {};
@@ -57,7 +55,7 @@ export class ResourcesRepository extends Repository {
 		if (input.limit) postPipeline.push({ $limit: input.limit });
 
 		const query = Resource.aggregate(pipeline, {
-			userID: session?.user.id,
+			user: ctx.user,
 			postPipeline: postPipeline
 		});
 
@@ -71,12 +69,9 @@ export class ResourcesRepository extends Repository {
 		return thirtyDaysAgo;
 	}
 
-	async getById(
-		session: Session | null,
-		id?: string
-	): Promise<HydratedDocument<HydratedResourceProperties>> {
+	async getById(ctx?: Context, id?: string): Promise<HydratedDocument<HydratedResourceProperties>> {
 		const resource = await Resource.aggregate([{ $match: { _id: id } }], {
-			userID: session?.user.id
+			user: ctx?.user
 		})
 			.cursor()
 			.next();
@@ -86,12 +81,9 @@ export class ResourcesRepository extends Repository {
 		});
 	}
 
-	async getByIds(
-		session: Session | null,
-		ids: string[]
-	): Promise<HydratedDocument<ResourceProperties>[]> {
+	async getByIds(ctx: Context, ids: string[]): Promise<HydratedDocument<ResourceProperties>[]> {
 		const resources = await Resource.aggregate([{ $match: { _id: { $in: ids } } }], {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return new Promise<HydratedDocument<ResourceProperties>[]>((resolve) => {
@@ -100,11 +92,11 @@ export class ResourcesRepository extends Repository {
 	}
 
 	async getByChapterID(
-		session: Session | null,
+		ctx: Context,
 		chapterID?: string
 	): Promise<HydratedDocument<ResourceProperties>[]> {
 		const resources = await Resource.aggregate([{ $match: { chapter: chapterID } }], {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return new Promise<HydratedDocument<ResourceProperties>[]>((resolve) => {

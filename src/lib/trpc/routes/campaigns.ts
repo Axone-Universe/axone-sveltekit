@@ -23,7 +23,7 @@ export const campaigns = t.router({
 				data: {}
 			};
 			try {
-				const result = await campaignsRepo.get(ctx.session, input);
+				const result = await campaignsRepo.get(ctx, input);
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
 			} catch (error) {
@@ -53,7 +53,7 @@ export const campaigns = t.router({
 		.input(create)
 		.mutation(async ({ ctx, input }) => {
 			const bookBuilder = new BookBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.title(input.book.title)
 				.description(input.book.description)
@@ -98,11 +98,13 @@ export const campaigns = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ ctx, input }) => {
-			const campaignBuilder = new CampaignBuilder(input.id).userID(ctx.session!.user.id);
+			const campaignBuilder = new CampaignBuilder(input.id)
+				.sessionUser(ctx.user!)
+				.userID(ctx.session!.user.id);
 
 			if (input.book) {
 				const bookBuilder = new BookBuilder(input.book.id)
-					.sessionUserID(ctx.session!.user.id)
+					.sessionUser(ctx.user!)
 					.userID(ctx.session!.user.id);
 
 				if (input.book.title) bookBuilder.title(input.book.title);

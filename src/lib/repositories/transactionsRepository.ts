@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import type { HydratedDocument } from 'mongoose';
 import { ReadTransaction } from '$lib/trpc/schemas/transactions';
 import { XrplTransactionType } from '$lib/util/types';
+import type { Context } from '$lib/trpc/context';
 
 export class TransactionsRepository extends Repository {
 	constructor() {
@@ -42,7 +43,7 @@ export class TransactionsRepository extends Repository {
 	}
 
 	async get(
-		session: Session | null,
+		ctx: Context,
 		input: ReadTransaction
 	): Promise<HydratedDocument<TransactionProperties>[]> {
 		const pipeline = [];
@@ -60,13 +61,13 @@ export class TransactionsRepository extends Repository {
 		if (input.limit) pipeline.push({ $limit: input.limit });
 
 		const query = Transaction.aggregate(pipeline, {
-			userID: session?.user.id
+			user: ctx.user
 		});
 
 		return await query;
 	}
 
-	getById(session: Session | null, id?: string): Promise<unknown> {
+	getById(ctx: Context, id?: string): Promise<unknown> {
 		throw new Error('Method not implemented.');
 	}
 

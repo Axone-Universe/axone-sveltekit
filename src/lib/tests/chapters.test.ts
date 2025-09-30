@@ -25,11 +25,11 @@ describe('chapters', () => {
 		const chapter2Title = 'Chapter 2';
 
 		const testUserOneSession = createTestSession(generateUserSessionData());
-		const user = await createDBUser(testUserOneSession);
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
 
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
 
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		let storylines = (
 			await caller.storylines.get({
 				bookID: bookResponse.data._id
@@ -38,6 +38,7 @@ describe('chapters', () => {
 
 		const chapter1Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			chapter1Title,
 			'My chapter 1',
 			storylines[0]
@@ -45,6 +46,7 @@ describe('chapters', () => {
 
 		const chapter2Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			chapter2Title,
 			'My chapter 2',
 			storylines[0],
@@ -83,7 +85,7 @@ describe('chapters', () => {
 			typeof chapter2Response.data.user === 'string'
 				? chapter2Response.data.user
 				: chapter2Response.data.user?._id
-		).toEqual(user.data._id);
+		).toEqual(testUserOneDB._id);
 		expect(storylineChapters.data[0].title).toEqual(chapter1Title);
 
 		// Get up to a certain point
@@ -101,12 +103,12 @@ describe('chapters', () => {
 		const testBookTitle = 'My Book';
 
 		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
 
-		await createDBUser(testUserOneSession);
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
 
 		// get the default storyline from created book
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		const storylines = (
 			await caller.storylines.get({
 				bookID: bookResponse.data._id
@@ -115,6 +117,7 @@ describe('chapters', () => {
 
 		const chapterCreateResponse = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			chapter1Title,
 			'My chapter 1',
 			storylines[0]
@@ -136,21 +139,29 @@ describe('chapters', () => {
 		const testUserOneSession = createTestSession(generateUserSessionData());
 		const testUserTwoSession = createTestSession(generateUserSessionData());
 
-		await createDBUser(testUserOneSession);
-		await createDBUser(testUserTwoSession);
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
 
-		let caller = router.createCaller({ session: testUserOneSession });
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
+
+		let caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		const storylines = (
 			await caller.storylines.get({
 				bookID: bookResponse.data._id
 			})
 		).data;
 
-		await createChapter(testUserOneSession, 'Chapter 1', 'My chapter 1', storylines[0]);
+		await createChapter(
+			testUserOneSession,
+			testUserOneDB,
+			'Chapter 1',
+			'My chapter 1',
+			storylines[0]
+		);
 
 		const chapter2Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			'Chapter 2',
 			'My chapter 2',
 			storylines[0]
@@ -158,6 +169,7 @@ describe('chapters', () => {
 
 		const chapter3Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			'Chapter 3',
 			'My chapter 3',
 			storylines[0]
@@ -165,6 +177,7 @@ describe('chapters', () => {
 
 		const chapter4Response = await createChapter(
 			testUserTwoSession,
+			testUserTwoDB,
 			'Chapter 4',
 			'My chapter 4',
 			storylines[0]
@@ -172,6 +185,7 @@ describe('chapters', () => {
 
 		const chapter5Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			'Chapter 5',
 			'My chapter 5',
 			storylines[0]
@@ -194,7 +208,7 @@ describe('chapters', () => {
 		expect(storylineChapters[0].children![0]).toEqual(chapter2Response.data._id);
 
 		// Delete chapter 2
-		caller = router.createCaller({ session: testUserOneSession });
+		caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		const chapter2DeleteResponse = await caller.chapters.delete({
 			id: chapter2Response.data._id
 		});
@@ -233,7 +247,7 @@ describe('chapters', () => {
 		});
 		expect(chapter5DeleteResponse.data.deletedCount).toEqual(1);
 
-		caller = router.createCaller({ session: testUserTwoSession });
+		caller = router.createCaller({ session: testUserTwoSession, user: testUserTwoDB });
 		const chapter4DeleteResponse = await caller.chapters.delete({
 			id: chapter4Response.data._id
 		});
@@ -242,11 +256,12 @@ describe('chapters', () => {
 	});
 
 	test('updating archived status', async () => {
-		const session = createTestSession(generateUserSessionData());
-		await createDBUser(session);
-		const book = await createBook(session);
+		const testUserOneSession = createTestSession(generateUserSessionData());
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
 
-		const caller = router.createCaller({ session });
+		const book = await createBook(testUserOneSession, testUserOneDB);
+
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 
 		const storyline = (
 			await caller.storylines.get({
@@ -254,16 +269,24 @@ describe('chapters', () => {
 			})
 		).data[0];
 
-		const chapterOne = await createChapter(session, 'Chapter 1', 'My chapter 1', storyline);
+		const chapterOne = await createChapter(
+			testUserOneSession,
+			testUserOneDB,
+			'Chapter 1',
+			'My chapter 1',
+			storyline
+		);
 		const chapterTwo = await createChapter(
-			session,
+			testUserOneSession,
+			testUserOneDB,
 			'Chapter 2',
 			'My chapter 2',
 			storyline,
 			chapterOne.data._id
 		);
 		const chapterThree = await createChapter(
-			session,
+			testUserOneSession,
+			testUserOneDB,
 			'Chapter 3',
 			'My chapter 3',
 			storyline,
@@ -323,11 +346,11 @@ describe('chapters', () => {
 		const chapter1Title = 'Chapter 1';
 
 		const testUserOneSession = createTestSession(generateUserSessionData());
-		const user = await createDBUser(testUserOneSession);
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
 
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
 
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		const storylines = (
 			await caller.storylines.get({
 				bookID: bookResponse.data._id
@@ -336,6 +359,7 @@ describe('chapters', () => {
 
 		const chapter1Response = await createChapter(
 			testUserOneSession,
+			testUserOneDB,
 			chapter1Title,
 			'My chapter 1',
 			storylines[0]

@@ -8,7 +8,7 @@ import type { StorylineProperties } from '$lib/properties/storyline';
 import { router } from '$lib/trpc/router';
 
 import { MONGO_PASSWORD, MONGO_URL, MONGO_USER, MONGO_DB } from '$env/static/private';
-import { UserPropertyBuilder } from '$lib/properties/user';
+import { type UserProperties, UserPropertyBuilder } from '$lib/properties/user';
 import type { Rating, ReviewOf } from '$lib/properties/review';
 import { PermissionPropertyBuilder, type PermissionProperties } from '$lib/properties/permission';
 import type { CreateBook } from '$lib/trpc/schemas/books';
@@ -52,8 +52,13 @@ export function createTestSession(supabaseUser: User) {
  * @param session
  * @returns
  */
-export async function createBook(testSession: Session, title?: string, genres: Genre[] = []) {
-	const caller = router.createCaller({ session: testSession });
+export async function createBook(
+	session: Session,
+	user: HydratedDocument<UserProperties>,
+	title?: string,
+	genres: Genre[] = []
+) {
+	const caller = router.createCaller({ session, user });
 
 	const publicPermission =
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
@@ -77,8 +82,12 @@ export async function createBook(testSession: Session, title?: string, genres: G
  * @param session
  * @returns
  */
-export async function createCampaign(testSession: Session, title?: string) {
-	const caller = router.createCaller({ session: testSession });
+export async function createCampaign(
+	session: Session,
+	user: HydratedDocument<UserProperties>,
+	title?: string
+) {
+	const caller = router.createCaller({ session, user });
 
 	const publicPermission =
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
@@ -121,13 +130,14 @@ export async function createCampaign(testSession: Session, title?: string) {
 
 export async function createChapter(
 	session: Session,
+	user: HydratedDocument<UserProperties>,
 	title: string,
 	description: string,
 	storyline: HydratedDocument<StorylineProperties>,
 	prevChapterID?: string,
 	comments?: boolean
 ) {
-	const caller = router.createCaller({ session: session });
+	const caller = router.createCaller({ session, user });
 
 	const publicPermission =
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
@@ -162,14 +172,15 @@ export async function createChapter(
  * @returns
  */
 export async function createReview(
-	testSession: Session,
+	session: Session,
+	user: HydratedDocument<UserProperties>,
 	itemID: string,
 	reviewOf: ReviewOf,
 	rating: Rating,
 	title?: string,
 	text?: string
 ) {
-	const caller = router.createCaller({ session: testSession });
+	const caller = router.createCaller({ session, user });
 
 	const review = await caller.reviews.create({
 		item: itemID,
@@ -213,8 +224,8 @@ export async function cleanUpDatabase(isPartOfDBSetup = false) {
  * @param session
  * @returns
  */
-export async function createDBUser(session: Session, genres: Genre[] = []) {
-	const caller = router.createCaller({ session });
+export async function createDBUser(session: Session, genres: Genre[] = [], isAdmin?: boolean) {
+	const caller = router.createCaller({ session, user: undefined });
 
 	const supabaseUser = session.user;
 
@@ -228,6 +239,7 @@ export async function createDBUser(session: Session, genres: Genre[] = []) {
 	userProperties.about = faker.person.bio() + ' - ' + faker.lorem.paragraph();
 	userProperties.imageURL = `https://picsum.photos/id/${Math.floor(Math.random() * 1001)}/500/1000`;
 	userProperties.genres = genres;
+	userProperties.admin = isAdmin;
 
 	return await caller.users.create(userProperties);
 }

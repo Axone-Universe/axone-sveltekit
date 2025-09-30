@@ -1,5 +1,4 @@
-import type { CampaignProperties } from '$lib/properties/campaign';
-import { router } from '$lib/trpc/router';
+import { Router, router } from '$lib/trpc/router';
 import type { CreateBook } from '$lib/trpc/schemas/books';
 import {
 	connectDatabase,
@@ -8,7 +7,7 @@ import {
 	createTestSession,
 	generateUserSessionData
 } from '$lib/util/testing/testing';
-import type { HydratedDocument } from 'mongoose';
+import { RouterCaller } from '@trpc/server';
 
 beforeAll(async () => {
 	await connectDatabase();
@@ -18,8 +17,12 @@ describe('campaigns', async () => {
 	const testUserOneSession = createTestSession(generateUserSessionData());
 	const testUserTwoSession = createTestSession(generateUserSessionData());
 	const testUserThreeSession = createTestSession(generateUserSessionData());
-	const caller1 = router.createCaller({ session: testUserOneSession });
-	const caller2 = router.createCaller({ session: testUserTwoSession });
+
+	let testUserOneDB;
+	let testUserTwoDB;
+
+	let caller1 = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
+	let caller2 = router.createCaller({ session: testUserTwoSession, user: testUserTwoDB });
 
 	const startDate = new Date();
 	const endDate = new Date();
@@ -48,9 +51,11 @@ describe('campaigns', async () => {
 
 	beforeEach(async () => {
 		await cleanUpDatabase();
-		await createDBUser(testUserOneSession);
-		await createDBUser(testUserTwoSession);
-		await createDBUser(testUserThreeSession);
+		testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+
+		caller1 = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
+		caller2 = router.createCaller({ session: testUserTwoSession, user: testUserTwoDB });
 	});
 
 	test('create a campaign', async () => {

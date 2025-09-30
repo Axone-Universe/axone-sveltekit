@@ -4,7 +4,7 @@ import {
 	type PermissionProperties
 } from '$lib/properties/permission';
 import { Schema, type PipelineStage } from 'mongoose';
-import { label as UserLabel } from '$lib/properties/user';
+import { label as UserLabel, UserProperties } from '$lib/properties/user';
 
 export const permissionSchema = new Schema<PermissionProperties>({
 	_id: { type: String, required: true },
@@ -13,13 +13,13 @@ export const permissionSchema = new Schema<PermissionProperties>({
 });
 
 /**
- * This method adds permissions that the session user has for the document
- * @param userID - ID of user for the session
+ * This method adds permissions that the session user has for the document to the result of the aggregate pipeline
+ * @param user - user object for the session
  * @param collection - The name of the collection that restricts access to this document e.g. storylines access is restricted by books
  * @param path - The name of the field referencing the collection
  * @param pipeline - The aggregate pipeline
  */
-export function addUserPermissionPipeline(userID: string, pipeline: PipelineStage[]) {
+export function addUserPermissionPipeline(user: UserProperties, pipeline: PipelineStage[]) {
 	pipeline.push(
 		{
 			$addFields: {
@@ -39,37 +39,42 @@ export function addUserPermissionPipeline(userID: string, pipeline: PipelineStag
 		}
 	);
 
+	// console.log('** permissions push ', user);
 	pipeline.push({
 		$addFields: {
 			userPermissions: {
-				[PermissionsEnum[0]]: {
-					$cond: [
-						{
-							$or: [
-								{ $eq: ['$user._id', userID] },
-								{ $ne: [{ $type: ['$permissions.public'] }, 'missing'] },
-								{ $ne: [{ $type: ['$permissions.' + userID] }, 'missing'] }
-							]
-						},
-						true,
-						false
-					]
-				},
-				[PermissionsEnum[1]]: {
-					$cond: [
-						{
-							$or: [
-								{ $eq: ['$user._id', userID] },
-								{ $eq: ['$permissions.public.permission', PermissionsEnum[1]] },
+				[PermissionsEnum[0]]: user.admin
+					? true
+					: {
+							$cond: [
 								{
-									$eq: ['$permissions.' + userID + '.permission', PermissionsEnum[1]]
-								}
+									$or: [
+										{ $eq: ['$user._id', user._id] },
+										{ $ne: [{ $type: ['$permissions.public'] }, 'missing'] },
+										{ $ne: [{ $type: ['$permissions.' + user._id] }, 'missing'] }
+									]
+								},
+								true,
+								false
 							]
-						},
-						true,
-						false
-					]
-				}
+					  },
+				[PermissionsEnum[1]]: user.admin
+					? true
+					: {
+							$cond: [
+								{
+									$or: [
+										{ $eq: ['$user._id', user._id] },
+										{ $eq: ['$permissions.public.permission', PermissionsEnum[1]] },
+										{
+											$eq: ['$permissions.' + user._id + '.permission', PermissionsEnum[1]]
+										}
+									]
+								},
+								true,
+								false
+							]
+					  }
 			}
 		}
 	});
@@ -86,7 +91,7 @@ export function addUserPermissionPipeline(userID: string, pipeline: PipelineStag
  * @param path
  */
 export function addViewRestrictionPipeline(
-	userID: string,
+	user: UserProperties,
 	pipeline: PipelineStage[],
 	collection: string,
 	path: string,
@@ -123,9 +128,10 @@ export function addViewRestrictionPipeline(
 		{
 			$match: {
 				$or: [
-					{ [path + '.user']: userID },
+					...(user.admin ? [{}] : []),
+					{ [path + '.user']: user._id },
 					{ [path + '.permissions.public']: { $exists: true } },
-					{ [path + '.permissions.' + userID]: { $exists: true } }
+					{ [path + '.permissions.' + user._id]: { $exists: true } }
 				]
 			}
 		}
@@ -141,12 +147,15 @@ export function addViewRestrictionPipeline(
  * @param filter
  * @returns
  */
-export function addOwnerUpdateRestrictionFilter(userID: string, filter: any) {
-	if (!userID) {
+export function addOwnerUpdateRestrictionFilter(user: UserProperties, filter: any) {
+	if (!user) {
 		throw new Error('Unknown user requesting update');
 	}
 
-	const permissionFilter = { user: userID };
+	let permissionFilter = {};
+	permissionFilter = {
+		$or: [...(user.admin ? [{}] : []), { user: user._id }]
+	};
 
 	const updatedFilter = { $and: [filter, permissionFilter] };
 
@@ -175,19 +184,20 @@ export function addArchivedRestrictionFilter(filter: any) {
  * @param filter
  * @returns
  */
-export function addCollaboratorUpdateRestrictionFilter(userID: string, filter: any) {
+export function addCollaboratorUpdateRestrictionFilter(user: UserProperties, filter: any) {
 	let permissionFilter = {};
 
 	const collaborate: Permissions = 'collaborate';
 
 	permissionFilter = {
 		$or: [
-			{ user: userID },
+			...(user.admin ? [{}] : []),
+			{ user: user._id },
 			{
 				['permissions.public.permission']: collaborate
 			},
 			{
-				['permissions.' + userID + '.permission']: collaborate
+				['permissions.' + user._id + '.permission']: collaborate
 			}
 		]
 	};

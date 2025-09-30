@@ -81,7 +81,7 @@ describe('transactions', () => {
 		const writer = (await createDBUser(testUserTwoSession)).data;
 
 		// pay writer
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: reader });
 		const transaction = (
 			await caller.xumm.payload({
 				transactionType: 'Payment',
@@ -120,7 +120,7 @@ describe('transactions', () => {
 		const writer = (await createDBUser(testUserTwoSession)).data;
 
 		// pay writer
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: reader });
 
 		// create payload
 		await caller.xumm.payload({
@@ -191,7 +191,7 @@ describe('transactions', () => {
 		const writer = (await createDBUser(testUserTwoSession)).data;
 
 		// pay writer
-		let caller = router.createCaller({ session: testUserOneSession });
+		let caller = router.createCaller({ session: testUserOneSession, user: reader });
 
 		// create payload
 		await caller.xumm.payload({
@@ -257,7 +257,7 @@ describe('transactions', () => {
 		payload_uuid = payload_uuid_2;
 		mockXummSdk();
 
-		caller = router.createCaller({ session: testUserTwoSession });
+		caller = router.createCaller({ session: testUserTwoSession, user: writer });
 		const withdrawResponse = await caller.accounts.withdraw({
 			id: account._id!,
 			receiverAddress: 'xxxx'
