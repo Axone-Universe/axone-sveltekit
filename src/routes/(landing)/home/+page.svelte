@@ -10,6 +10,8 @@
 	import type { PageData } from './$types';
 	import { setupTour } from '../editor/[bookID]/tutorial';
 	import { homeFilterTags } from '$lib/util/constants';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { filter, times } from 'svelte-awesome/icons';
 
 	export let data: PageData;
 	export let { user } = data;
@@ -41,10 +43,23 @@
 	let accordionOpen = false;
 	let searchValue = '';
 	let debouncedSearchValue = '';
+	let showFilters = false;
 
 	function handleClear() {
 		genres = [];
 		tags = [];
+	}
+
+	function toggleFilters() {
+		showFilters = !showFilters;
+	}
+
+	function removeGenre(genre: Genre) {
+		genres = genres.filter((g) => g !== genre);
+	}
+
+	function removeTag(tag: HomeFilterTag) {
+		tags = tags.filter((t) => t !== tag);
 	}
 
 	function debounce(timeout = SEARCH_DEBOUNCE_SECONDS * 1000) {
@@ -80,6 +95,13 @@
 				if (!acc) {
 					accordionOpen = false;
 				}
+
+				// Close filter panel if clicking outside of it
+				const filterContainer = (e.target as HTMLElement).closest('#filters-container');
+				const filterButton = (e.target as HTMLElement).closest('#filter-toggle-btn');
+				if (!filterContainer && !filterButton && showFilters) {
+					showFilters = false;
+				}
 			}
 		}
 
@@ -95,7 +117,7 @@
 <Tutorial />
 
 <Container class="w-full min-h-screen">
-	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
+	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-2">
 		<input
 			id="search-input"
 			class="input text-sm h-8 p-2"
@@ -105,61 +127,101 @@
 			bind:value={searchValue}
 			on:input={onType}
 		/>
-		<div>
+
+		<!-- Filter button and selected chips row -->
+		<div class="flex items-center gap-2 flex-wrap px-2">
+			<button
+				id="filter-toggle-btn"
+				class="btn btn-sm variant-filled-primary gap-2"
+				on:click={toggleFilters}
+				title="Toggle filters"
+			>
+				<Icon data={filter} scale={1} />
+				Filters
+			</button>
+
+			<!-- Display selected filters as chips -->
+			{#each tags as tag}
+				<button
+					class="chip variant-filled-primary rounded-full text-xs"
+					on:click={() => removeTag(tag)}
+					title="Click to remove"
+				>
+					<span>{tag}</span>
+					<Icon class="w-3 h-3" data={times} />
+				</button>
+			{/each}
+			{#each genres as genre}
+				<button
+					class="chip variant-filled-primary rounded-full text-xs"
+					on:click={() => removeGenre(genre)}
+					title="Click to remove"
+				>
+					<span class="capitalize">{genre}</span>
+					<Icon class="w-3 h-3" data={times} />
+				</button>
+			{/each}
+		</div>
+
+		<!-- Collapsible filter panel -->
+		{#if showFilters}
 			<div
 				id="filters-container"
 				class="m-2 bg-surface-200-700-token rounded-lg bg-opacity-90 p-4 space-y-2"
 			>
 				<div class="flex justify-between items-center">
-					<p>Filters</p>
-					<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
-						Clear
-					</button>
+					<p class="font-bold">Select Filters</p>
 				</div>
 
-				<div id="filters" class="!max-h-[150px] overflow-y-auto space-y-2">
-					<div class="flex flex-wrap gap-2">
-						{#each homeFilterTags as tag}
-							<button
-								class="chip rounded-full {tags.includes(tag)
-									? 'variant-filled-primary'
-									: 'variant-filled'}"
-								on:click={() => {
-									const index = tags.indexOf(tag);
-									if (index > -1) {
-										tags = tags.filter((v) => v !== tag);
-									} else {
-										tags = [...tags, tag];
-									}
-								}}
-							>
-								<p>{tag}</p>
-							</button>
-						{/each}
+				<div id="filters" class="!max-h-[200px] overflow-y-auto space-y-2">
+					<div>
+						<p class="text-sm mb-2 font-semibold">Tags</p>
+						<div class="flex flex-wrap gap-2">
+							{#each homeFilterTags as tag}
+								<button
+									class="chip rounded-full {tags.includes(tag)
+										? 'variant-filled-primary'
+										: 'variant-filled'}"
+									on:click={() => {
+										const index = tags.indexOf(tag);
+										if (index > -1) {
+											tags = tags.filter((v) => v !== tag);
+										} else {
+											tags = [...tags, tag];
+										}
+									}}
+								>
+									<p>{tag}</p>
+								</button>
+							{/each}
+						</div>
 					</div>
 					<hr />
-					<div class="flex flex-wrap gap-2">
-						{#each GENRES as genre}
-							<button
-								class="chip rounded-full {genres.includes(genre)
-									? 'variant-filled-primary'
-									: 'variant-filled'}"
-								on:click={() => {
-									const index = genres.indexOf(genre);
-									if (index > -1) {
-										genres = genres.filter((v) => v !== genre);
-									} else {
-										genres = [...genres, genre];
-									}
-								}}
-							>
-								<span class="capitalize">{genre}</span>
-							</button>
-						{/each}
+					<div>
+						<p class="text-sm mb-2 font-semibold">Genres</p>
+						<div class="flex flex-wrap gap-2">
+							{#each GENRES as genre}
+								<button
+									class="chip rounded-full {genres.includes(genre)
+										? 'variant-filled-primary'
+										: 'variant-filled'}"
+									on:click={() => {
+										const index = genres.indexOf(genre);
+										if (index > -1) {
+											genres = genres.filter((v) => v !== genre);
+										} else {
+											genres = [...genres, genre];
+										}
+									}}
+								>
+									<span class="capitalize">{genre}</span>
+								</button>
+							{/each}
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		{/if}
 	</div>
 
 	{#if tagsSet}
