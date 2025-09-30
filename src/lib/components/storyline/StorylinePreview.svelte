@@ -4,19 +4,18 @@
 		type ModalSettings,
 		getModalStore,
 		getToastStore,
-		type ToastSettings,
-		popup,
-		type PopupSettings
+		type ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { check, star, lock, ellipsisV, edit, trash } from 'svelte-awesome/icons';
+	import { check, star, lock, edit, trash, bookmark } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
 	import StorylineDetails from './StorylineDetails.svelte';
+	import RowActions from '../studio/RowActions.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import type { BookProperties } from '$lib/properties/book';
 	import { trpc } from '$lib/trpc/client';
@@ -43,12 +42,6 @@
 	$: book = storyline.book as BookProperties;
 
 	let didError = false;
-
-	const popupSettings: PopupSettings = {
-		event: 'click',
-		target: `adminMenu-${storyline._id}`,
-		placement: 'bottom'
-	};
 
 	const modalComponent: ModalComponent = {
 		ref: StorylineModal,
@@ -84,12 +77,12 @@
 		dispatch('selectedStoryline', storyline._id);
 	}
 
-	async function openEditModal() {
+	function openEditModal(storylineToEdit: HydratedDocument<StorylineProperties>) {
 		const storylineDetailsModalComponent: ModalComponent = {
 			ref: StorylineDetails,
 			props: {
-				book: storyline.book,
-				storyline,
+				book: storylineToEdit.book,
+				storyline: storylineToEdit,
 				supabase: supabase,
 				cancelCallback: modalStore.close
 			}
@@ -124,27 +117,87 @@
 		}
 	}
 
-	function deleteStoryline() {
+	function openReadingListModal() {
+		if (!user) {
+			const toast: ToastSettings = {
+				message: 'Please log in to add storylines to reading lists',
+				background: 'variant-filled-warning'
+			};
+			toastStore.trigger(toast);
+			return;
+		}
+
+		readingListModal.meta = {
+			user: user,
+			storylineID: storyline._id
+		};
+		readingListModal.body = `Select the reading lists to add "${storyline.title}" to.`;
+		readingListModal.response = async (r) => {
+			if (r) {
+				await handleAddToReadingList(r);
+			}
+		};
+		modalStore.trigger(readingListModal);
+	}
+
+	async function handleAddToReadingList(names: string[]) {
+		try {
+			const userResponse = await trpc($page).users.updateReadingLists.mutate({
+				names,
+				storylineID: storyline._id
+			});
+
+			if (userResponse.success) {
+				// Update the user prop if possible
+				if (user) {
+					user = userResponse.data as HydratedDocument<UserProperties>;
+				}
+
+				const toast: ToastSettings = {
+					message: `"${storyline.title}" added to reading list${names.length > 1 ? 's' : ''}!`,
+					background: 'variant-filled-success'
+				};
+				toastStore.trigger(toast);
+			} else {
+				const toast: ToastSettings = {
+					message: userResponse.message || 'Failed to add to reading list',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(toast);
+			}
+		} catch (error) {
+			console.error(error);
+			const toast: ToastSettings = {
+				message: 'Error adding to reading list',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(toast);
+		}
+	}
+
+	function deleteStoryline(storylineToDelete: HydratedDocument<StorylineProperties>) {
 		const deleteModal: ModalSettings = {
 			type: 'confirm',
-			title: storyline.title,
+			title: storylineToDelete.title,
 			body: 'Are you sure you want to delete this storyline?',
 			response: async (r: boolean) => {
 				if (r) {
 					try {
 						const response = await trpc($page).storylines.delete.mutate({
-							id: storyline._id
+							id: storylineToDelete._id
 						});
 
 						if (response.success) {
 							let bookID =
-								typeof storyline.book === 'string' ? storyline.book : storyline.book?._id;
+								typeof storylineToDelete.book === 'string'
+									? storylineToDelete.book
+									: storylineToDelete.book?._id;
 
 							if (supabase && bookID) {
 								await deleteBucket({
 									supabase: supabase,
 									bucket: 'books',
-									path: `${bookID}/storylines/${storyline._id}`
+									path: `${bookID}/storylines/${storylineToDelete._id}`
 								});
 							}
 
@@ -187,36 +240,27 @@
 		</button>
 	{/if}
 	{#if user?.admin}
-		<button
-			class="absolute top-1 right-1 btn-icon btn-icon-sm variant-soft-surface z-10"
-			use:popup={popupSettings}
-			on:click|stopPropagation
-		>
-			<Icon class="w-4 h-4" data={ellipsisV} />
-		</button>
-		<div class="card p-2 w-40 shadow-xl z-20" data-popup={`adminMenu-${storyline._id}`}>
-			<nav class="list-nav">
-				<ul>
-					<li>
-						<button
-							class="w-full text-left flex items-center gap-2 p-2 hover:variant-soft-primary rounded-md"
-							on:click|stopPropagation={openEditModal}
-						>
-							<Icon class="w-4 h-4" data={edit} />
-							<span>Edit</span>
-						</button>
-					</li>
-					<li>
-						<button
-							class="w-full text-left flex items-center gap-2 p-2 hover:variant-soft-error rounded-md"
-							on:click|stopPropagation={deleteStoryline}
-						>
-							<Icon class="w-4 h-4" data={trash} />
-							<span>Delete</span>
-						</button>
-					</li>
-				</ul>
-			</nav>
+		<div class="absolute top-1 right-1 z-10">
+			<RowActions
+				document={storyline}
+				rowActions={[
+					{
+						label: 'Edit',
+						icon: edit,
+						callback: openEditModal
+					},
+					{
+						label: 'Delete',
+						icon: trash,
+						callback: deleteStoryline
+					},
+					{
+						label: 'Save',
+						icon: bookmark,
+						callback: () => openReadingListModal()
+					}
+				]}
+			/>
 		</div>
 	{/if}
 	<ImageWithFallback
