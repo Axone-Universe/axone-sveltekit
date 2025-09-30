@@ -168,6 +168,8 @@
 			{parameters}
 			gridStyle={'grid-cols-2 md:grid-cols-6'}
 			limit={18}
+			{user}
+			supabase={data.supabase}
 		/>
 	{/if}
 </Container>

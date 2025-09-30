@@ -8,4 +8,8 @@ export const load = (async (event) => {
 	if (!user || user === null) {
 		throw redirect(303, '/profile/create');
 	}
+
+	return {
+		user: user ? JSON.parse(JSON.stringify(user)) : {}
+	};
 }) satisfies PageServerLoad;
