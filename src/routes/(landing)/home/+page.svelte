@@ -265,7 +265,7 @@
 			/>
 
 			<!-- Content -->
-			<div class="relative z-10 p-6">
+			<div class="relative p-6">
 				<div class="mb-6">
 					<h2 class="text-2xl md:text-3xl font-bold mb-2">The Curated Shelf</h2>
 					<p class="text-lg text-surface-700-200-token">Handpicked collections from our editors</p>
