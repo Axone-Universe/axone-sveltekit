@@ -12,6 +12,11 @@
 	import { homeFilterTags } from '$lib/util/constants';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { filter, times } from 'svelte-awesome/icons';
+	import ReadingListCarousel from '$lib/components/readingList/ReadingListCarousel.svelte';
+	import { trpcWithQuery } from '$lib/trpc/client';
+	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
+	import type { HydratedDocument } from 'mongoose';
+	import type { StorylineProperties } from '$lib/properties/storyline';
 
 	export let data: PageData;
 	export let { user } = data;
@@ -75,6 +80,30 @@
 
 	const onType = debounce();
 
+	// Fetch admin reading lists
+	$: adminReadingListsQuery = trpcWithQuery($page).readingLists.getAdminReadingLists.createQuery();
+
+	// Fetch storylines for reading lists
+	$: storylineIds =
+		$adminReadingListsQuery.data?.data?.flatMap((list: { storylineIds: string[] }) =>
+			list.storylineIds.slice(0, 1)
+		) || [];
+
+	$: storylinesQuery = trpcWithQuery($page).storylines.getByIds.createQuery(
+		{ ids: storylineIds },
+		{
+			enabled: storylineIds.length > 0
+		}
+	);
+
+	$: hasReadingLists =
+		$adminReadingListsQuery.data?.data &&
+		$adminReadingListsQuery.data.data.length > 0 &&
+		$storylinesQuery.data?.data;
+
+	$: readingListStorylines =
+		($storylinesQuery.data?.data as HydratedDocument<StorylineProperties>[]) || [];
+
 	onMount(() => {
 		const genreFilters = sessionStorage.getItem(GENRES_FILTER_KEY) ?? undefined;
 		const tagFilters = sessionStorage.getItem(TAGS_FILTER_KEY) ?? undefined;
@@ -132,7 +161,7 @@
 		<div class="flex items-center gap-2 flex-wrap px-2">
 			<button
 				id="filter-toggle-btn"
-				class="btn btn-sm variant-filled-primary gap-2"
+				class="btn btn-sm variant-glass-primary gap-2"
 				on:click={toggleFilters}
 				title="Toggle filters"
 			>
@@ -223,6 +252,40 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Curated Reading Lists Section -->
+	{#if hasReadingLists}
+		<div
+			class="relative w-full my-8 rounded-lg overflow-hidden bg-[url(/reading-list_bg.webp)] bg-cover bg-center"
+		>
+			<!-- Background decorative elements -->
+
+			<div
+				class="absolute inset-0 bg-gradient-to-b from-surface-50/90 dark:from-surface-900/90 to-transparent"
+			/>
+
+			<!-- Content -->
+			<div class="relative z-10 p-6">
+				<div class="mb-6">
+					<h2 class="text-2xl md:text-3xl font-bold mb-2">The Curated Shelf</h2>
+					<p class="text-lg text-surface-700-200-token">Handpicked collections from our editors</p>
+				</div>
+
+				{#if $adminReadingListsQuery.isLoading || $storylinesQuery.isLoading}
+					<div class="flex justify-center py-8">
+						<LoadingSpinner />
+					</div>
+				{:else if $adminReadingListsQuery.data?.data && $storylinesQuery.data?.data}
+					<ReadingListCarousel
+						readingLists={$adminReadingListsQuery.data.data}
+						storylines={readingListStorylines}
+						{user}
+						supabase={data.supabase}
+					/>
+				{/if}
+			</div>
+		</div>
+	{/if}
 
 	{#if tagsSet}
 		<DocumentsInfiniteScroll
