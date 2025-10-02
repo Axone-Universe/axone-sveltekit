@@ -25,9 +25,15 @@
 	export let documents: HydratedDocument<any>[];
 	export let selectedID: string = documents.at(0)._id;
 	export let viewPort: string = 'w-[70%] md:w-[28%]';
+	export let user: any = undefined;
+	export let supabase: any = undefined;
 
 	let customClass = '';
 	export { customClass as class };
+
+	// Local copy of documents for reactivity
+	let localDocuments = documents;
+	$: localDocuments = documents;
 
 	let elemDocuments: HTMLDivElement;
 
@@ -72,6 +78,16 @@
 	function userItem(item: HydratedDocument<unknown>) {
 		return item as unknown as HydratedDocument<UserProperties>;
 	}
+
+	function handleStorylineDeleted(deletedStorylineId: string) {
+		// Filter out the deleted storyline and trigger reactivity
+		localDocuments = localDocuments.filter((doc) => doc._id.toString() !== deletedStorylineId);
+		// Also close the modal if open
+		if ($modalStore[0]) {
+			modalStore.close();
+		}
+	}
+
 	const modalStore = getModalStore();
 </script>
 
@@ -86,7 +102,7 @@
 			bind:this={elemDocuments}
 			class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto"
 		>
-			{#each documents as document}
+			{#each localDocuments as document}
 				<div class="shrink-0 {viewPort} snap-start">
 					{#if documentType === 'Book'}
 						<BookPreview book={bookItem(document)} />
@@ -94,8 +110,10 @@
 						<StorylinePreview
 							dispatchEvent={true}
 							on:selectedStoryline={handleSelected}
-							user={undefined}
+							{user}
+							{supabase}
 							storyline={storylineItem(document)}
+							onUpdate={() => handleStorylineDeleted(document._id.toString())}
 						/>
 					{:else if documentType === 'Chapter'}
 						<ChapterPreview chapter={chapterItem(document)} />

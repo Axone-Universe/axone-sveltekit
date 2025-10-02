@@ -27,7 +27,12 @@
 
 <div class="flex flex-col justify-center items-end gap-2">
 	<div class="flex-row btn-group variant-filled">
-		<button id="row-actions-btn" class="btn-icon" use:popup={actionsPopupSettings(document._id)}>
+		<button
+			id="row-actions-btn"
+			class="btn-icon"
+			use:popup={actionsPopupSettings(document._id)}
+			on:click|stopPropagation
+		>
 			<Icon data={ellipsisV} />
 		</button>
 	</div>
@@ -36,7 +41,7 @@
 		<div class="grid grid-cols-1">
 			{#each rowActions as rowAction}
 				<button
-					on:click={() => rowAction.callback(document)}
+					on:click|stopPropagation={() => rowAction.callback(document)}
 					type="button"
 					class={`flex justify-start btn space-x-6 hover:variant-soft-primary ${rowAction.class}`}
 				>

@@ -1,8 +1,14 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import {
+		Avatar,
+		getModalStore,
+		getToastStore,
+		type ModalSettings,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { expand, plus } from 'svelte-awesome/icons';
+	import { expand, plus, trash } from 'svelte-awesome/icons';
 	import { afterUpdate } from 'svelte';
 
 	import type { PageData } from './$types';
@@ -17,9 +23,17 @@
 	import { decodeTime } from 'ulid';
 	import Tutorial from './tutorial.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import { deleteBucket } from '$lib/util/bucket/bucket';
+	import type { UserProperties } from '$lib/properties/user';
 
 	export let data: PageData;
 	$: ({ bookData, storylines, activeStoryline } = data);
+
+	const modalStore = getModalStore();
+	const toastStore = getToastStore();
+
+	let user: HydratedDocument<UserProperties> | undefined;
+	$: user = data.user;
 
 	afterUpdate(() => {
 		loadChapters({ detail: activeStoryline._id });
@@ -63,6 +77,60 @@
 				activeStoryline = activateStoryline;
 			});
 	}
+
+	function deleteChapter(chapterToDelete: HydratedDocument<ChapterProperties>) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			title: chapterToDelete.title,
+			body: 'Are you sure you want to delete this chapter?',
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.chapters.delete.mutate({
+							id: chapterToDelete._id
+						})
+						.then(async (response) => {
+							if (response.success) {
+								let bookID =
+									typeof chapterToDelete.book === 'string'
+										? chapterToDelete.book
+										: chapterToDelete.book?._id;
+								await deleteBucket({
+									supabase: data.supabase,
+									bucket: 'books',
+									path: `${bookID}/chapters/${chapterToDelete._id}`
+								});
+
+								// Update the UI by filtering out the deleted chapter
+								if (activeStoryline.chapters && Array.isArray(activeStoryline.chapters)) {
+									const updatedChapters = activeStoryline.chapters.filter(
+										(chapter) => typeof chapter !== 'string' && chapter._id !== chapterToDelete._id
+									) as HydratedDocument<ChapterProperties>[];
+
+									activeStoryline.chapters = updatedChapters;
+									// Trigger reactivity by reassigning the storyline
+									activeStoryline = activeStoryline;
+								}
+							}
+							const toast: ToastSettings = {
+								message: response.message,
+								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+							};
+							toastStore.trigger(toast);
+						})
+						.catch((error) => {
+							console.log(error);
+							const toast: ToastSettings = {
+								message: 'Error deleting chapter',
+								background: 'variant-filled-error'
+							};
+							toastStore.trigger(toast);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	}
 </script>
 
 <Tutorial />
@@ -72,6 +140,7 @@
 		{bookData}
 		storylineData={activeStoryline}
 		{storylines}
+		supabase={data.supabase}
 		on:selectedStoryline={loadChapters}
 	/>
 
@@ -107,22 +176,32 @@
 									<p class="w-full font-thin line-clamp-2">
 										{chapter.description}
 									</p>
-									<div class="btn-group variant-filled">
-										<a
-											class="button"
-											href="/editor/{bookData._id}?mode=reader&storylineID={activeStoryline._id}&chapterID={chapter._id}"
-										>
-											Read
-										</a>
-
-										{#if chapter.userPermissions?.collaborate}
+									<div class="flex items-center gap-2">
+										<div class="btn-group variant-filled">
 											<a
 												class="button"
-												href="/editor/{bookData._id}?mode=writer&storylineID={activeStoryline._id}&chapterID={chapter._id}"
+												href="/editor/{bookData._id}?mode=reader&storylineID={activeStoryline._id}&chapterID={chapter._id}"
 											>
-												Edit
+												Read
 											</a>
-										{/if}
+
+											{#if chapter.userPermissions?.collaborate}
+												<a
+													class="button"
+													href="/editor/{bookData._id}?mode=writer&storylineID={activeStoryline._id}&chapterID={chapter._id}"
+												>
+													Edit
+												</a>
+											{/if}
+											{#if user?.admin}
+												<button
+													class="button variant-filled-error"
+													on:click={() => deleteChapter(chapter)}
+												>
+													Delete
+												</button>
+											{/if}
+										</div>
 										{#if bookData.userPermissions?.collaborate}
 											<Tooltip
 												on:click={() => {

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { AppBar, getDrawerStore } from '@skeletonlabs/skeleton';
-	import { LightSwitch } from '@skeletonlabs/skeleton';
+	import { AppBar, getDrawerStore, modeCurrent, setModeCurrent } from '@skeletonlabs/skeleton';
 	import type { DrawerSettings } from '@skeletonlabs/skeleton';
 
 	import { onMount } from 'svelte';
@@ -11,7 +10,17 @@
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { caretDown, dollar, listUl, navicon, pencil, powerOff, user } from 'svelte-awesome/icons';
+	import {
+		caretDown,
+		dollar,
+		listUl,
+		navicon,
+		pencil,
+		powerOff,
+		user,
+		sunO,
+		moonO
+	} from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 	import { goto } from '$app/navigation';
@@ -50,6 +59,15 @@
 
 	onMount(() => {
 		drawerStore.close();
+
+		// Ensure theme is loaded from localStorage on mount
+		const storedTheme = localStorage.getItem('modeCurrent');
+		if (storedTheme !== null) {
+			const isLight = storedTheme === 'true';
+			if (isLight !== $modeCurrent) {
+				setModeCurrent(isLight);
+			}
+		}
 	});
 
 	/**
@@ -58,6 +76,16 @@
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
 		goto('');
+	};
+
+	/**
+	 * Toggle theme handler
+	 */
+	const toggleTheme = () => {
+		const newMode = !$modeCurrent;
+		setModeCurrent(newMode);
+		// Explicitly save to localStorage to ensure persistence
+		localStorage.setItem('modeCurrent', String(newMode));
 	};
 </script>
 
@@ -233,7 +261,15 @@
 					{/if}
 				</div>
 
-				<LightSwitch id="light-switch" />
+				<button
+					id="theme-toggle"
+					class="btn-icon variant-ghost-surface"
+					on:click={toggleTheme}
+					aria-label="Toggle theme"
+					title={$modeCurrent ? 'Switch to dark mode' : 'Switch to light mode'}
+				>
+					<Icon data={$modeCurrent ? moonO : sunO} scale={1.2} />
+				</button>
 			</div>
 		</svelte:fragment>
 	</AppBar>
