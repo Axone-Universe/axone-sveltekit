@@ -8,7 +8,7 @@
 	} from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { check, star, lock, edit, trash, bookmark } from 'svelte-awesome/icons';
+	import { check, star, lock, edit, trash, bookmark, plus } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
@@ -22,6 +22,9 @@
 	import { page } from '$app/stores';
 	import { deleteBucket } from '$lib/util/bucket/bucket';
 	import type { SupabaseClient } from '@supabase/supabase-js';
+	import type { HydratedCampaignProperties } from '$lib/properties/campaign';
+	import type { Response } from '$lib/util/types';
+	import CampaignSelectionModal from './CampaignSelectionModal.svelte';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let dispatchEvent: boolean = false;
@@ -224,6 +227,89 @@
 		};
 		modalStore.trigger(deleteModal);
 	}
+
+	async function addStorylineToCampaign(campaignBook: any, selected: boolean) {
+		const bookData = campaignBook as HydratedDocument<BookProperties>;
+
+		let response: Response;
+
+		if (selected) {
+			response = await trpc($page).books.addStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		} else {
+			response = await trpc($page).books.removeStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		}
+
+		const toast: ToastSettings = {
+			message: response.message,
+			background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+		};
+		toastStore.trigger(toast);
+	}
+
+	function showCampaigns() {
+		// Fetch active campaigns
+		trpc($page)
+			.campaigns.get.query({
+				limit: 100,
+				open: true
+			})
+			.then((response) => {
+				if (response.success && response.data && response.data.length > 0) {
+					const campaigns = response.data as HydratedDocument<HydratedCampaignProperties>[];
+					// Extract books from campaigns
+					const campaignBooks = campaigns
+						.map((c) => (typeof c.book === 'object' ? c.book : null))
+						.filter((b) => b !== null) as HydratedDocument<BookProperties>[];
+
+					// Check which campaigns already have this storyline
+					const selectedCampaignBookIds = campaignBooks
+						.filter((book) =>
+							book.storylines?.some((s) => {
+								const storylineId = typeof s === 'string' ? s : s._id;
+								return storylineId === storyline._id;
+							})
+						)
+						.map((book) => book._id);
+
+					// Create modal with campaign selection component
+					const campaignsModalComponent: ModalComponent = {
+						ref: CampaignSelectionModal,
+						props: {
+							campaignBooks: campaignBooks,
+							selectedCampaignBookIds: selectedCampaignBookIds,
+							onSelect: addStorylineToCampaign
+						}
+					};
+
+					const campaignsModal: ModalSettings = {
+						type: 'component',
+						component: campaignsModalComponent
+					};
+
+					modalStore.trigger(campaignsModal);
+				} else {
+					const toast: ToastSettings = {
+						message: 'No active campaigns found',
+						background: 'variant-filled-warning'
+					};
+					toastStore.trigger(toast);
+				}
+			})
+			.catch((error) => {
+				console.error(error);
+				const toast: ToastSettings = {
+					message: 'Error fetching campaigns',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(toast);
+			});
+	}
 </script>
 
 <button
@@ -258,6 +344,11 @@
 						label: 'Save',
 						icon: bookmark,
 						callback: () => openReadingListModal()
+					},
+					{
+						label: 'Campaign',
+						icon: plus,
+						callback: () => showCampaigns()
 					}
 				]}
 			/>

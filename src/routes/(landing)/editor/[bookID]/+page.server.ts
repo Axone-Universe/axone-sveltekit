@@ -18,6 +18,10 @@ export const load = (async (event) => {
 		})
 	).data as HydratedDocument<BookProperties>;
 
+	if (!event.locals.user) {
+		throw redirect(303, '/login');
+	}
+
 	// If there are no viewing permissions redirect
 	if (!userAuthoredBookResponse.userPermissions?.view) {
 		throw redirect(303, '/permissions/' + bookID + '/?documentType=book');
