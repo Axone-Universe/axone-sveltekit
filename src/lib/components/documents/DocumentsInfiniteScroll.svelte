@@ -32,6 +32,8 @@
 	export let title: string | undefined = undefined;
 	export let dispatchEvent: boolean = false;
 	export let callback: (arg: any, selected: boolean) => void = () => {};
+	export let user: any = undefined;
+	export let supabase: any = undefined;
 
 	let element: HTMLDivElement;
 	let debouncedSearchValue = '';
@@ -107,6 +109,11 @@
 		items = items.map((item) => (item._id === event.detail._id ? event.detail : item));
 		console.log(items);
 	}
+
+	function handleStorylineDeleted(deletedStorylineId: string) {
+		// Filter out the deleted storyline and trigger reactivity
+		items = items.filter((item) => item._id.toString() !== deletedStorylineId);
+	}
 </script>
 
 <div class="rounded-lg {action && 'variant-filled'}">
@@ -150,8 +157,10 @@
 							selected={selectedDocuments.includes(item._id.toString())}
 							{dispatchEvent}
 							on:selectedStoryline={handleSelected}
-							user={undefined}
+							{user}
+							{supabase}
 							storyline={storylineItem(item)}
+							onUpdate={() => handleStorylineDeleted(item._id.toString())}
 						/>
 					{:else if documentType === 'Chapter'}
 						<ChapterPreview chapter={chapterItem(item)} />

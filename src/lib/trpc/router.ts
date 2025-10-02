@@ -14,6 +14,7 @@ import { notes } from '$lib/trpc/routes/notes';
 import { t } from '$lib/trpc/t';
 import { reviews } from './routes/reviews';
 import { notifications } from './routes/notifications';
+import { readingLists } from './routes/readingLists';
 
 export const router = t.router({
 	accounts,
@@ -28,7 +29,8 @@ export const router = t.router({
 	notifications,
 	transactions,
 	resources,
-	xumm
+	xumm,
+	readingLists
 });
 
 export type Router = typeof router;

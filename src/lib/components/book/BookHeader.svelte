@@ -57,6 +57,7 @@
 	export let storylines: { [key: string]: HydratedDocument<StorylineProperties> } = {};
 	export let session: Session | null;
 	export let storylineData: HydratedDocument<StorylineProperties>;
+	export let supabase: any;
 
 	let bookGenres: Genre[] | undefined;
 	let user: HydratedDocument<UserProperties> | undefined = undefined;
@@ -331,6 +332,8 @@
 							on:selectedStoryline={handleSelected}
 							documentType="Storyline"
 							documents={Object.values(storylines)}
+							{user}
+							{supabase}
 						/>
 					{/if}
 				</div>
