@@ -2,7 +2,7 @@ import { label } from '$lib/properties/transaction';
 import { label as AccountLabel } from '$lib/properties/account';
 import { label as UserLabel } from '$lib/properties/user';
 import { label as ResourceLabel } from '$lib/properties/resource';
-import mongoose, { PipelineStage, Schema, model } from 'mongoose';
+import mongoose, { type PipelineStage, Schema, model } from 'mongoose';
 import { type TransactionProperties } from '$lib/properties/transaction';
 
 export const transactionSchema = new Schema<TransactionProperties>({
@@ -41,7 +41,7 @@ transactionSchema.pre(['find', 'findOne'], function () {
 });
 
 transactionSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 
 	populate(pipeline);

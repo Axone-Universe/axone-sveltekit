@@ -1,14 +1,14 @@
-import { AccountProperties } from '$lib/properties/account';
+import type { AccountProperties } from '$lib/properties/account';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { AXONE_ADMIN_EMAIL, AXONE_XRPL_ADDRESS } from '$env/static/private';
 import { t } from '$lib/trpc/t';
 import type { CurrencyCode, Response } from '$lib/util/types';
-import { HydratedDocument } from 'mongoose';
+import { type HydratedDocument } from 'mongoose';
 import { z } from 'zod';
 import { auth } from '../middleware/auth';
 import { TransactionBuilder } from '$lib/documents/transaction';
 import { xummSdk } from '$lib/services/xumm';
-import { Payment, xrpToDrops } from 'xrpl';
+import { type Payment, xrpToDrops } from 'xrpl';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 
 export const accounts = t.router({
@@ -25,7 +25,7 @@ export const accounts = t.router({
 			const accountsRepo = new AccountsRepository();
 
 			// get the account
-			const account = await accountsRepo.getById(ctx.session, input.id!);
+			const account = await accountsRepo.getById(ctx, input.id!);
 			response.data = account;
 
 			return {
@@ -73,7 +73,7 @@ export const accounts = t.router({
 			const accountsRepo = new AccountsRepository();
 
 			// get the account
-			const account = await accountsRepo.getById(ctx.session, input.id!);
+			const account = await accountsRepo.getById(ctx, input.id!);
 
 			// get the exchange rate
 			const rates = await xummSdk!.getRates(account.currency!);
@@ -81,7 +81,7 @@ export const accounts = t.router({
 
 			// get the axone admin user
 			const usersRepo = new UsersRepository();
-			const admin = await usersRepo.getByEmail(ctx.session, AXONE_ADMIN_EMAIL);
+			const admin = await usersRepo.getByEmail(ctx, AXONE_ADMIN_EMAIL);
 
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()

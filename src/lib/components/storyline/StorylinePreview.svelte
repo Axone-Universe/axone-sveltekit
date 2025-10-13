@@ -1,16 +1,30 @@
 <script lang="ts">
-	import { type ModalComponent, type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		type ModalComponent,
+		type ModalSettings,
+		getModalStore,
+		getToastStore,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { check, star } from 'svelte-awesome/icons';
+	import { check, star, lock, edit, trash, bookmark, plus } from 'svelte-awesome/icons';
 
 	import ImageWithFallback from '../util/ImageWithFallback.svelte';
 	import type { UserProperties } from '$lib/properties/user';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import StorylineModal from './StorylineModal.svelte';
-	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import StorylineDetails from './StorylineDetails.svelte';
+	import RowActions from '../studio/RowActions.svelte';
+	import { createEventDispatcher } from 'svelte';
 	import type { BookProperties } from '$lib/properties/book';
-	import { lock } from 'svelte-awesome/icons';
+	import { trpc } from '$lib/trpc/client';
+	import { page } from '$app/stores';
+	import { deleteBucket } from '$lib/util/bucket/bucket';
+	import type { SupabaseClient } from '@supabase/supabase-js';
+	import type { HydratedCampaignProperties } from '$lib/properties/campaign';
+	import type { Response } from '$lib/util/types';
+	import CampaignSelectionModal from './CampaignSelectionModal.svelte';
 
 	export let storyline: HydratedDocument<StorylineProperties>;
 	export let dispatchEvent: boolean = false;
@@ -20,11 +34,15 @@
 		| ((names: string[], storylineID: string) => Promise<void>) = undefined;
 	export let user: HydratedDocument<UserProperties> | undefined;
 	export let showEdit = false;
+	export let supabase: SupabaseClient | undefined = undefined;
+	export let onUpdate: (() => void) | undefined = undefined;
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
-	let storylineUser = storyline.user as UserProperties;
-	let book = storyline.book as BookProperties;
+	// Make these reactive so they update when storyline prop changes
+	$: storylineUser = storyline.user as UserProperties;
+	$: book = storyline.book as BookProperties;
 
 	let didError = false;
 
@@ -61,6 +79,237 @@
 	function clicked() {
 		dispatch('selectedStoryline', storyline._id);
 	}
+
+	function openEditModal(storylineToEdit: HydratedDocument<StorylineProperties>) {
+		const storylineDetailsModalComponent: ModalComponent = {
+			ref: StorylineDetails,
+			props: {
+				book: storylineToEdit.book,
+				storyline: storylineToEdit,
+				supabase: supabase,
+				cancelCallback: modalStore.close
+			}
+		};
+
+		const storylineDetailsModal: ModalSettings = {
+			type: 'component',
+			component: storylineDetailsModalComponent,
+			response: async (r) => {
+				// After editing, refresh the storyline data
+				if (r !== undefined) {
+					await refreshStoryline();
+				}
+			}
+		};
+
+		modalStore.trigger(storylineDetailsModal);
+	}
+
+	async function refreshStoryline() {
+		try {
+			const response = await trpc($page).storylines.getById.query({
+				id: storyline._id
+			});
+
+			if (response.success && response.data) {
+				// Update the storyline with fresh data
+				storyline = response.data as HydratedDocument<StorylineProperties>;
+			}
+		} catch (error) {
+			console.error('Error refreshing storyline:', error);
+		}
+	}
+
+	function openReadingListModal() {
+		if (!user) {
+			const toast: ToastSettings = {
+				message: 'Please log in to add storylines to reading lists',
+				background: 'variant-filled-warning'
+			};
+			toastStore.trigger(toast);
+			return;
+		}
+
+		readingListModal.meta = {
+			user: user,
+			storylineID: storyline._id
+		};
+		readingListModal.body = `Select the reading lists to add "${storyline.title}" to.`;
+		readingListModal.response = async (r) => {
+			if (r) {
+				await handleAddToReadingList(r);
+			}
+		};
+		modalStore.trigger(readingListModal);
+	}
+
+	async function handleAddToReadingList(names: string[]) {
+		try {
+			const userResponse = await trpc($page).users.updateReadingLists.mutate({
+				names,
+				storylineID: storyline._id
+			});
+
+			if (userResponse.success) {
+				// Update the user prop if possible
+				if (user) {
+					user = userResponse.data as HydratedDocument<UserProperties>;
+				}
+
+				const toast: ToastSettings = {
+					message: `"${storyline.title}" added to reading list${names.length > 1 ? 's' : ''}!`,
+					background: 'variant-filled-success'
+				};
+				toastStore.trigger(toast);
+			} else {
+				const toast: ToastSettings = {
+					message: userResponse.message || 'Failed to add to reading list',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(toast);
+			}
+		} catch (error) {
+			console.error(error);
+			const toast: ToastSettings = {
+				message: 'Error adding to reading list',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(toast);
+		}
+	}
+
+	function deleteStoryline(storylineToDelete: HydratedDocument<StorylineProperties>) {
+		const deleteModal: ModalSettings = {
+			type: 'confirm',
+			title: storylineToDelete.title,
+			body: 'Are you sure you want to delete this storyline?',
+			response: async (r: boolean) => {
+				if (r) {
+					try {
+						const response = await trpc($page).storylines.delete.mutate({
+							id: storylineToDelete._id
+						});
+
+						if (response.success) {
+							let bookID =
+								typeof storylineToDelete.book === 'string'
+									? storylineToDelete.book
+									: storylineToDelete.book?._id;
+
+							if (supabase && bookID) {
+								await deleteBucket({
+									supabase: supabase,
+									bucket: 'books',
+									path: `${bookID}/storylines/${storylineToDelete._id}`
+								});
+							}
+
+							if (onUpdate) {
+								onUpdate();
+							}
+						}
+
+						const toast: ToastSettings = {
+							message: response.message,
+							background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+						};
+						toastStore.trigger(toast);
+					} catch (error) {
+						console.error(error);
+						const toast: ToastSettings = {
+							message: 'Error deleting storyline',
+							background: 'variant-filled-error'
+						};
+						toastStore.trigger(toast);
+					}
+				}
+			}
+		};
+		modalStore.trigger(deleteModal);
+	}
+
+	async function addStorylineToCampaign(campaignBook: any, selected: boolean) {
+		const bookData = campaignBook as HydratedDocument<BookProperties>;
+
+		let response: Response;
+
+		if (selected) {
+			response = await trpc($page).books.addStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		} else {
+			response = await trpc($page).books.removeStoryline.mutate({
+				storylineID: storyline._id,
+				bookID: bookData._id
+			});
+		}
+
+		const toast: ToastSettings = {
+			message: response.message,
+			background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+		};
+		toastStore.trigger(toast);
+	}
+
+	function showCampaigns() {
+		// Fetch active campaigns
+		trpc($page)
+			.campaigns.get.query({
+				limit: 100,
+				open: true
+			})
+			.then((response) => {
+				if (response.success && response.data && response.data.length > 0) {
+					const campaigns = response.data as HydratedDocument<HydratedCampaignProperties>[];
+					// Extract books from campaigns
+					const campaignBooks = campaigns
+						.map((c) => (typeof c.book === 'object' ? c.book : null))
+						.filter((b) => b !== null) as HydratedDocument<BookProperties>[];
+
+					// Check which campaigns already have this storyline
+					const selectedCampaignBookIds = campaignBooks
+						.filter((book) =>
+							book.storylines?.some((s) => {
+								const storylineId = typeof s === 'string' ? s : s._id;
+								return storylineId === storyline._id;
+							})
+						)
+						.map((book) => book._id);
+
+					// Create modal with campaign selection component
+					const campaignsModalComponent: ModalComponent = {
+						ref: CampaignSelectionModal,
+						props: {
+							campaignBooks: campaignBooks,
+							selectedCampaignBookIds: selectedCampaignBookIds,
+							onSelect: addStorylineToCampaign
+						}
+					};
+
+					const campaignsModal: ModalSettings = {
+						type: 'component',
+						component: campaignsModalComponent
+					};
+
+					modalStore.trigger(campaignsModal);
+				} else {
+					const toast: ToastSettings = {
+						message: 'No active campaigns found',
+						background: 'variant-filled-warning'
+					};
+					toastStore.trigger(toast);
+				}
+			})
+			.catch((error) => {
+				console.error(error);
+				const toast: ToastSettings = {
+					message: 'Error fetching campaigns',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(toast);
+			});
+	}
 </script>
 
 <button
@@ -75,6 +324,35 @@
 		>
 			<Icon class="w-5 h-5" data={check} />
 		</button>
+	{/if}
+	{#if user?.admin}
+		<div class="absolute top-1 right-1 z-10">
+			<RowActions
+				document={storyline}
+				rowActions={[
+					{
+						label: 'Edit',
+						icon: edit,
+						callback: openEditModal
+					},
+					{
+						label: 'Delete',
+						icon: trash,
+						callback: deleteStoryline
+					},
+					{
+						label: 'Save',
+						icon: bookmark,
+						callback: () => openReadingListModal()
+					},
+					{
+						label: 'Campaign',
+						icon: plus,
+						callback: () => showCampaigns()
+					}
+				]}
+			/>
+		</div>
 	{/if}
 	<ImageWithFallback
 		src={storyline.imageURL === '' ? book.imageURL : storyline.imageURL}

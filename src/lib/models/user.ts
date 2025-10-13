@@ -1,4 +1,5 @@
 import { GENRES } from '$lib/properties/genre';
+import { AXONE_ADMIN_EMAIL } from '$env/static/private';
 import {
 	DEFAULT_READING_LIST,
 	label,
@@ -19,6 +20,7 @@ export const userSchema = new Schema<UserProperties>({
 	facebook: String,
 	instagram: String,
 	twitter: String,
+	admin: Boolean,
 	genres: [
 		{
 			type: String,
@@ -48,12 +50,19 @@ export const userSchema = new Schema<UserProperties>({
 userSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
+		const update = this.getUpdate() as any;
 
-		setUpdateDate(this.getUpdate());
+		if (update?.$set?.admin !== undefined) {
+			if (user.email !== AXONE_ADMIN_EMAIL) {
+				// prevent unauthorized change
+				delete update?.$set?.admin;
+			}
+		}
+		setUpdateDate(update);
 
-		const updatedFilter = { $and: [filter, { _id: userID }] };
+		const updatedFilter = { $and: [filter, { _id: user._id }] };
 
 		this.setQuery(updatedFilter);
 
@@ -63,6 +72,11 @@ userSchema.pre(
 
 userSchema.pre('save', function (next) {
 	this.createdAt = this.updatedAt = new Date();
+
+	if (this.admin && this.email !== AXONE_ADMIN_EMAIL) {
+		this.admin = false;
+	}
+
 	next();
 });
 

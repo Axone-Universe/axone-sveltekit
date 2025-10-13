@@ -16,7 +16,7 @@ export const deltas = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.chapterID(input.chapterID);
 
@@ -44,7 +44,7 @@ export const deltas = t.router({
 				data: {}
 			};
 			try {
-				const result = await deltasRepo.getById(ctx.session, input.id);
+				const result = await deltasRepo.getById(ctx, input.id);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -60,7 +60,7 @@ export const deltas = t.router({
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder(input.id)
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.chapterID(input.chapterID);
 
 			if (input.ops) {
@@ -89,7 +89,7 @@ export const deltas = t.router({
 		.input(versions)
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder(input.id)
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.chapterID(input.chapterID);
 
 			await deltaBuilder.createVersion(input.title);
@@ -115,7 +115,7 @@ export const deltas = t.router({
 		.input(versions)
 		.mutation(async ({ input, ctx }) => {
 			const deltaBuilder = new DeltaBuilder(input.id)
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.chapterID(input.chapterID);
 
 			await deltaBuilder.restoreVersion(input.versionID!);

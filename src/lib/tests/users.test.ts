@@ -35,33 +35,33 @@ describe('users', () => {
 	});
 
 	test('get all users', async () => {
-		const userResponse1 = await createDBUser(testSessionOne);
-		const userResponse2 = await createDBUser(testSessionTwo);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
 
-		const caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const userResponses = await caller.users.get({});
 
 		// compare sorted arrays to ignore element position differences (if any)
 		expect(userResponses.data.map((a) => a._id).sort()).toEqual(
-			[userResponse1.data._id, userResponse2.data._id].sort()
+			[testUserOneDB._id, testUserTwoDB._id].sort()
 		);
 	});
 
 	test('get by details', async () => {
-		await createDBUser(testSessionOne);
-		const userResponse2 = await createDBUser(testSessionTwo);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
 
-		const caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const userResponses = await caller.users.get({ detail: userTwo.email });
 
 		// compare sorted arrays to ignore element position differences (if any)
-		expect(userResponses.data.map((a) => a._id).sort()).toEqual([userResponse2.data._id].sort());
+		expect(userResponses.data.map((a) => a._id).sort()).toEqual([testUserTwoDB._id].sort());
 	});
 
 	test('update user details', async () => {
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
 
-		const caller = router.createCaller({ session: testSessionOne });
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 		const updateUserResponse = await caller.users.update({
 			facebook: 'www.facebook.com/user1'
 		});
@@ -70,20 +70,21 @@ describe('users', () => {
 	});
 
 	test('get single user', async () => {
-		const createUserResponse = await createDBUser(testSessionOne);
-		await createDBUser(testSessionTwo);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
 
-		const caller = router.createCaller({ session: null });
-		const userResponse = await caller.users.getById({ id: createUserResponse.data._id });
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
+		const userResponse = await caller.users.getById({ id: testUserOneDB._id });
 
-		expect(userResponse.data!._id).toEqual(createUserResponse.data._id);
+		expect(userResponse.data!._id).toEqual(testUserOneDB._id);
 	});
 
 	test('create reading list', async () => {
 		const favourites = 'Favourites';
 
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 
 		const response = await caller.users.createReadingList({ name: favourites });
 		expect(Object.fromEntries(response.data!.readingLists!.entries())).toEqual({
@@ -93,16 +94,16 @@ describe('users', () => {
 	});
 
 	test('throws on creating a reading list with same name', async () => {
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 
 		const createResponse = await caller.users.createReadingList({ name: DEFAULT_READING_LIST });
 		expect(createResponse.message.includes('duplicate key error')).toEqual(true);
 	});
 
 	test('delete reading list', async () => {
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 
 		const res = await caller.users.deleteReadingList({ name: DEFAULT_READING_LIST });
 
@@ -110,10 +111,10 @@ describe('users', () => {
 	});
 
 	test('update reading lists', async () => {
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 
-		const bookResponse = await createBook(testSessionOne, 'My Book');
+		const bookResponse = await createBook(testSessionOne, testUserOneDB, 'My Book');
 		const storylines = [
 			(
 				await caller.storylines.get({
@@ -149,14 +150,14 @@ describe('users', () => {
 	});
 
 	test('get reading list', async () => {
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 
 		const favourites = 'Favourites';
 
 		await caller.users.createReadingList({ name: favourites });
 
-		const bookResponse = await createBook(testSessionOne, 'My Book');
+		const bookResponse = await createBook(testSessionOne, testUserOneDB, 'My Book');
 		const storylines = [
 			(
 				await caller.storylines.get({
@@ -177,9 +178,8 @@ describe('users', () => {
 	});
 
 	test('rename reading list', async () => {
-		const caller = router.createCaller({ session: testSessionOne });
-		await createDBUser(testSessionOne);
-
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
 		const favourites = 'Favourites';
 
 		const user = await caller.users.renameReadingList({

@@ -4,23 +4,23 @@ import type { Response } from '$lib/util/types';
 import { AXONE_ADMIN_EMAIL, AXONE_XRPL_ADDRESS } from '$env/static/private';
 import { PUBLIC_PLATFORM_FEES, PUBLIC_DOMAIN_NAME } from '$env/static/public';
 import {
-	NFTokenMint,
-	NFTokenCreateOffer,
+	type NFTokenMint,
+	type NFTokenCreateOffer,
 	type Payment,
 	xrpToDrops,
 	convertStringToHex,
 	NFTokenMintFlags,
 	NFTokenCreateOfferFlags,
-	NFTokenAcceptOffer
+	type NFTokenAcceptOffer
 } from 'xrpl';
 import { xummSdk } from '$lib/services/xumm';
 
-import { RatesResponse, XummWebhookBody } from 'xumm-sdk/dist/src/types';
+import type { RatesResponse, XummWebhookBody } from 'xumm-sdk/dist/src/types';
 import { buyToken, createPayload, readRates } from '../schemas/xumm';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
 import { TransactionBuilder } from '$lib/documents/transaction';
-import { HydratedTransactionProperties } from '$lib/properties/transaction';
-import { HydratedDocument } from 'mongoose';
+import type { HydratedTransactionProperties } from '$lib/properties/transaction';
+import { type HydratedDocument } from 'mongoose';
 import { auth } from '../middleware/auth';
 import { currencies } from '$lib/util/constants';
 import { z } from 'zod';
@@ -46,7 +46,7 @@ export const xumm = t.router({
 
 			// get resource to be tokenized
 			const resourcesRepo = new ResourcesRepository();
-			const resource = await resourcesRepo.getById(ctx.session, input.resourceId);
+			const resource = await resourcesRepo.getById(ctx, input.resourceId);
 
 			// get account of minter
 			const accountRepo = new AccountsRepository();
@@ -54,7 +54,7 @@ export const xumm = t.router({
 
 			// get the axone admin user
 			const usersRepo = new UsersRepository();
-			const admin = await usersRepo.getByEmail(ctx.session, AXONE_ADMIN_EMAIL);
+			const admin = await usersRepo.getByEmail(ctx, AXONE_ADMIN_EMAIL);
 
 			// create the transaction
 			const transactionBuilder = new TransactionBuilder()
@@ -138,7 +138,7 @@ export const xumm = t.router({
 
 			// get resource to be listed
 			const resourcesRepo = new ResourcesRepository();
-			const resource = await resourcesRepo.getById(ctx.session, input.resourceId);
+			const resource = await resourcesRepo.getById(ctx, input.resourceId);
 
 			if (!resource.isTokenized) {
 				response.success = false;
@@ -152,7 +152,7 @@ export const xumm = t.router({
 
 			// get the axone admin user
 			const usersRepo = new UsersRepository();
-			const admin = await usersRepo.getByEmail(ctx.session, AXONE_ADMIN_EMAIL);
+			const admin = await usersRepo.getByEmail(ctx, AXONE_ADMIN_EMAIL);
 
 			// get the minting transaction
 			const transactionsRepo = new TransactionsRepository();
@@ -239,7 +239,7 @@ export const xumm = t.router({
 
 			// get resource to be bought
 			const resourcesRepo = new ResourcesRepository();
-			const resource = await resourcesRepo.getById(ctx.session, input.resourceId);
+			const resource = await resourcesRepo.getById(ctx, input.resourceId);
 
 			if (!resource.isListed) {
 				response.success = false;
@@ -397,7 +397,10 @@ export const xumm = t.router({
 
 			if (transaction.xrplType === 'NFTokenAcceptOffer') {
 				const resourcesRepo = new ResourcesRepository();
-				const resource = await resourcesRepo.getById(null, (transaction.resource ?? '') as string);
+				const resource = await resourcesRepo.getById(
+					undefined,
+					(transaction.resource ?? '') as string
+				);
 
 				resourceBuilder.userID(transaction.receiver! as string).isListed(false);
 

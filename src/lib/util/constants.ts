@@ -11,7 +11,7 @@ import {
 	label as ResourceLabel
 } from '$lib/properties/resource';
 import { uploadImage } from './bucket/bucket';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 export const formatDate = (date: Date) => {
 	return date.toLocaleDateString(undefined, {

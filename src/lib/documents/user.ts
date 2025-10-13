@@ -12,7 +12,7 @@ import { Storyline } from '$lib/models/storyline';
 
 export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties>> {
 	private readonly _userProperties: UserProperties;
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 
 	constructor(id?: string) {
 		super();
@@ -29,6 +29,11 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 
 	lastName(lastName: string): UserBuilder {
 		this._userProperties.lastName = lastName;
+		return this;
+	}
+
+	admin(admin: boolean): UserBuilder {
+		this._userProperties.admin = admin;
 		return this;
 	}
 
@@ -72,8 +77,8 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
-	sessionUserID(sessionUserID: string): UserBuilder {
-		this._sessionUserID = sessionUserID;
+	sessionUser(sessionUser: UserProperties): UserBuilder {
+		this._sessionUser = sessionUser;
 		return this;
 	}
 
@@ -81,7 +86,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		const user = await User.findOneAndUpdate(
 			{ _id: this._userProperties._id },
 			this._userProperties,
-			{ new: true, userID: this._sessionUserID }
+			{ new: true, user: this._sessionUser }
 		);
 
 		return user;
@@ -135,7 +140,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 						[`readingLists.${createReadingList.name}`]: []
 					}
 				},
-				{ new: true, userID: this._sessionUserID }
+				{ new: true, user: this._sessionUser }
 			);
 
 			return user;
@@ -154,7 +159,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 					[`readingLists.${createReadingList.name}`]: []
 				}
 			},
-			{ new: true, userID: this._sessionUserID }
+			{ new: true, user: this._sessionUser }
 		);
 
 		return user;
@@ -170,7 +175,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 					[`readingLists.${renameReadingList.oldName}`]: `readingLists.${renameReadingList.newName}`
 				}
 			},
-			{ new: true, userID: this._sessionUserID }
+			{ new: true, user: this._sessionUser }
 		);
 
 		return user!;

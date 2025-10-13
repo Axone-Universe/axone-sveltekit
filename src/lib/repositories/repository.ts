@@ -1,3 +1,4 @@
+import type { Context } from '$lib/trpc/context';
 import type { Session } from '@supabase/supabase-js';
 
 export interface Count {
@@ -5,5 +6,5 @@ export interface Count {
 }
 
 export abstract class Repository {
-	abstract getById(session: Session | null, id?: string): Promise<unknown>;
+	abstract getById(ctx?: Context, id?: string): Promise<unknown>;
 }

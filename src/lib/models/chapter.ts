@@ -19,6 +19,7 @@ import {
 	setUpdateDate
 } from './permission';
 import { Storyline } from './storyline';
+import { User } from './user';
 
 interface ExtendedChapterProperties extends ChapterProperties {
 	addChild: (chapterID: string, session: ClientSession) => Promise<void>;
@@ -59,15 +60,15 @@ chapterSchema.pre(['find', 'findOne'], function () {
 });
 
 chapterSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const comments = this.options.comments;
 	const storylineID = this.options.storylineID;
 	const pipeline = this.pipeline();
 	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline, comments);
-	addUserPermissionPipeline(userID, pipeline);
-	addViewRestrictionPipeline(userID, pipeline, 'storylines', 'storyline', storylineID);
+	addUserPermissionPipeline(user, pipeline);
+	addViewRestrictionPipeline(user, pipeline, 'storylines', 'storyline', storylineID);
 
 	for (const filter of postPipeline) {
 		pipeline.push(filter);
@@ -77,10 +78,10 @@ chapterSchema.pre('aggregate', function (next) {
 });
 
 chapterSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
-	const userID = this.getOptions().userID;
+	const user = this.getOptions().user;
 	const filter = this.getFilter();
 
-	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -89,13 +90,15 @@ chapterSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], functio
 chapterSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
 
 		setUpdateDate(this.getUpdate());
 
-		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
+
+		// console.log('** model up ', JSON.stringify(updatedFilter, null, 4));
 
 		this.setQuery(updatedFilter);
 
@@ -109,6 +112,16 @@ chapterSchema.pre('save', async function (next) {
 
 	this.createdAt = this.updatedAt = new Date();
 
+	const user = await User.aggregate([
+		{
+			$match: {
+				_id: userID
+			}
+		}
+	])
+		.cursor()
+		.next();
+
 	const storyline = await Storyline.aggregate(
 		[
 			{
@@ -118,7 +131,7 @@ chapterSchema.pre('save', async function (next) {
 			}
 		],
 		{
-			userID: userID
+			user: user
 		}
 	)
 		.cursor()

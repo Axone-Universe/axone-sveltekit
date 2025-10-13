@@ -276,7 +276,9 @@
 		modalComponent.props = {
 			documentType: 'Storyline' as PermissionedDocument,
 			documents: Object.values(storylines),
-			class: 'md:!w-7/12'
+			class: 'md:!w-7/12',
+			user: data.user,
+			supabase: data.supabase
 		};
 
 		modalSettings.response = (storylineId) => {

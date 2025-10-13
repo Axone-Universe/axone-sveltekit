@@ -26,10 +26,10 @@ describe('books', () => {
 		const testBookTitle = 'My Book';
 		const testUserOneSession = createTestSession(testUserOne);
 
-		await createDBUser(testUserOneSession);
-		let bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		let bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
 
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		await caller.storylines.get({
 			bookID: bookResponse.data._id
 		});
@@ -47,15 +47,19 @@ describe('books', () => {
 	});
 
 	test('get all books', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		await createDBUser(createTestSession(testUserTwo));
-		await createDBUser(createTestSession(testUserThree));
+		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
+		const testUserThreeSession = createTestSession(testUserThree);
 
-		const bookResponse1 = await createBook(createTestSession(testUserOne));
-		const bookResponse2 = await createBook(createTestSession(testUserTwo));
-		const bookResponse3 = await createBook(createTestSession(testUserThree));
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+		const testUserThreeDB = (await createDBUser(testUserThreeSession)).data;
 
-		const caller = router.createCaller({ session: null });
+		const bookResponse1 = await createBook(testUserOneSession, testUserOneDB);
+		const bookResponse2 = await createBook(testUserTwoSession, testUserTwoDB);
+		const bookResponse3 = await createBook(testUserThreeSession, testUserThreeDB);
+
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const bookResponses = await caller.books.get({});
 
 		expect(bookResponses.data.map((a) => a._id).sort()).toEqual(
@@ -64,15 +68,19 @@ describe('books', () => {
 	});
 
 	test('get all books with limit and cursor', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		await createDBUser(createTestSession(testUserTwo));
-		await createDBUser(createTestSession(testUserThree));
+		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
+		const testUserThreeSession = createTestSession(testUserThree);
 
-		const bookResponse1 = await createBook(createTestSession(testUserOne));
-		const bookResponse2 = await createBook(createTestSession(testUserTwo));
-		const bookResponse3 = await createBook(createTestSession(testUserThree));
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+		const testUserThreeDB = (await createDBUser(testUserThreeSession)).data;
 
-		const caller = router.createCaller({ session: null });
+		const bookResponse1 = await createBook(testUserOneSession, testUserOneDB);
+		const bookResponse2 = await createBook(testUserTwoSession, testUserTwoDB);
+		const bookResponse3 = await createBook(testUserThreeSession, testUserThreeDB);
+
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const bookResponses = await caller.books.get({ limit: 2 });
 		const bookResponses2 = await caller.books.get({ limit: 2, cursor: bookResponses.cursor });
 
@@ -82,22 +90,26 @@ describe('books', () => {
 	});
 
 	test('get books by genres', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		await createDBUser(createTestSession(testUserTwo));
-		await createDBUser(createTestSession(testUserThree));
+		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
+		const testUserThreeSession = createTestSession(testUserThree);
 
-		const bookResponse1 = await createBook(createTestSession(testUserOne), '', [
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+		const testUserThreeDB = (await createDBUser(testUserThreeSession)).data;
+
+		const bookResponse1 = await createBook(testUserOneSession, testUserOneDB, '', [
 			'Action',
 			'Adventure'
 		]);
-		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', [
+		const bookResponse2 = await createBook(testUserTwoSession, testUserTwoDB, '', [
 			'Action',
 			'Adventure',
 			'Fantasy'
 		]);
-		await createBook(createTestSession(testUserThree), '', ['Action', 'Dystopian']);
+		await createBook(testUserThreeSession, testUserThreeDB, '', ['Action', 'Dystopian']);
 
-		const caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const bookResponses = await caller.books.get({ genres: ['Action', 'Adventure'] });
 
 		expect(bookResponses.data.map((a) => a._id).sort()).toEqual(
@@ -106,21 +118,27 @@ describe('books', () => {
 	});
 
 	test('get recommended books', async () => {
-		const session = createTestSession(testUserOne);
-		const user = await createDBUser(session, ['Fantasy', 'Horror']);
+		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
 
-		const bookResponse1 = await createBook(createTestSession(testUserTwo), '', [
+		const testUserOneDB = (await createDBUser(testUserOneSession, ['Fantasy', 'Horror'])).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+
+		const bookResponse1 = await createBook(testUserTwoSession, testUserTwoDB, '', [
 			'Action',
 			'Fantasy'
 		]);
-		const bookResponse2 = await createBook(createTestSession(testUserTwo), '', ['Horror']);
-		const bookResponse3 = await createBook(createTestSession(testUserTwo), '', [
+		const bookResponse2 = await createBook(testUserTwoSession, testUserTwoDB, '', ['Horror']);
+		const bookResponse3 = await createBook(testUserTwoSession, testUserTwoDB, '', [
 			'Fantasy',
 			'Horror'
 		]);
-		await createBook(createTestSession(testUserTwo), '', ['Autobiographies', 'Historical']);
+		await createBook(testUserTwoSession, testUserTwoDB, '', ['Autobiographies', 'Historical']);
 
-		const caller = router.createCaller({ session });
+		const caller = router.createCaller({
+			session: testUserOneSession,
+			user: testUserOneDB
+		});
 		const bookResponses = await caller.books.get({ tags: ['Recommended'] });
 
 		expect(bookResponses.data.map((a) => a._id).sort()).toEqual(
@@ -129,13 +147,16 @@ describe('books', () => {
 	});
 
 	test('get book by title', async () => {
-		await createDBUser(createTestSession(testUserOne));
+		const testUserOneSession = createTestSession(testUserOne);
+
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+
 		const testBookTitle1 = 'My Book 1';
 		const testBookTitle2 = 'My Book 2';
-		const bookResponse = await createBook(createTestSession(testUserOne), testBookTitle1);
-		await createBook(createTestSession(testUserOne), testBookTitle2);
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle1);
+		await createBook(testUserOneSession, testUserOneDB, testBookTitle2);
 
-		const caller = router.createCaller({ session: null });
+		const caller = router.createCaller({ session: null, user: testUserOneDB });
 		const bookResponses = await caller.books.get({ title: testBookTitle1 });
 
 		expect(bookResponses.data.length).toEqual(2);
@@ -143,11 +164,17 @@ describe('books', () => {
 	});
 
 	test('delete books', async () => {
-		await createDBUser(createTestSession(testUserOne));
-		const testBookTitle1 = 'My Book 1';
-		const createBookResponse = await createBook(createTestSession(testUserOne), testBookTitle1);
+		const testUserOneSession = createTestSession(testUserOne);
 
-		const caller = router.createCaller({ session: createTestSession(testUserOne) });
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+
+		const testBookTitle1 = 'My Book 1';
+		const createBookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle1);
+
+		const caller = router.createCaller({
+			session: createTestSession(testUserOne),
+			user: testUserOneDB
+		});
 		let deletBookResponse = await caller.books.delete({ id: createBookResponse.data._id });
 
 		expect(deletBookResponse.success).toEqual(false);
@@ -174,16 +201,28 @@ describe('books', () => {
 	});
 
 	test('updating archived status', async () => {
-		const sessionOne = createTestSession(testUserOne);
-		const sessionTwo = createTestSession(testUserTwo);
-		await createDBUser(sessionOne);
-		await createDBUser(sessionTwo);
-		const userOneBook1 = await createBook(sessionOne);
-		const userOneBook2 = await createBook(sessionOne);
-		const userTwoBook1 = await createBook(sessionTwo);
+		const testUserOneSession = createTestSession(testUserOne);
+		const testUserTwoSession = createTestSession(testUserTwo);
 
-		const callerOne = router.createCaller({ session: sessionOne });
-		const callerTwo = router.createCaller({ session: sessionTwo });
+		console.log('** create users');
+
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
+
+		console.log('** create book');
+		const userOneBook1 = await createBook(testUserOneSession, testUserOneDB);
+		const userOneBook2 = await createBook(testUserOneSession, testUserOneDB);
+		const userTwoBook1 = await createBook(testUserTwoSession, testUserTwoDB);
+
+		console.log('** after bk');
+		const callerOne = router.createCaller({
+			session: testUserOneSession,
+			user: testUserOneDB
+		});
+		const callerTwo = router.createCaller({
+			session: testUserTwoSession,
+			user: testUserTwoDB
+		});
 
 		const userOneMainStoryline = (
 			await callerOne.storylines.get({
@@ -197,8 +236,11 @@ describe('books', () => {
 			})
 		).data[0];
 
+		console.log('** 1 create chapter ');
+
 		const userOneChapter = await createChapter(
-			sessionOne,
+			testUserOneSession,
+			testUserOneDB,
 			"UserOne's Chapter 1",
 			'Chapter 1',
 			userOneMainStoryline
@@ -214,8 +256,11 @@ describe('books', () => {
 			})
 		).data;
 
+		console.log('** 2 create chapter ');
+
 		const userTwoChapter = await createChapter(
-			sessionTwo,
+			testUserTwoSession,
+			testUserTwoDB,
 			"UserTwo's Chapter 1",
 			'The Spin-off Chapter 1',
 			userTwoStoryline

@@ -17,7 +17,7 @@ export const resources = t.router({
 		.input(create)
 		.mutation(async ({ input, ctx }) => {
 			const resourceBuilder = new ResourceBuilder()
-				.sessionUserID(ctx.session!.user.id)
+				.sessionUser(ctx.user!)
 				.userID(ctx.session!.user.id)
 				.type(input.type);
 
@@ -54,7 +54,7 @@ export const resources = t.router({
 			console.log(input);
 
 			try {
-				const result = await resourcesRepo.get(ctx.session, input);
+				const result = await resourcesRepo.get(ctx, input);
 
 				response.data = result;
 				response.cursor = result.length > 0 ? (input.cursor ?? 0) + result.length : undefined;
@@ -77,7 +77,7 @@ export const resources = t.router({
 				data: {}
 			};
 			try {
-				const result = await resourcesRepo.getByIds(ctx.session, input.ids!);
+				const result = await resourcesRepo.getByIds(ctx, input.ids!);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -97,7 +97,7 @@ export const resources = t.router({
 				data: {}
 			};
 			try {
-				const result = await resourcesRepo.getByChapterID(ctx.session, input.chapterID);
+				const result = await resourcesRepo.getByChapterID(ctx, input.chapterID);
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -111,7 +111,7 @@ export const resources = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const resourceBuilder = new ResourceBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const resourceBuilder = new ResourceBuilder(input.id).sessionUser(ctx.user!);
 
 			console.log('>> updating resource');
 			console.log(input);
@@ -150,7 +150,7 @@ export const resources = t.router({
 		.use(auth)
 		.input(update)
 		.mutation(async ({ input, ctx }) => {
-			const resourceBuilder = new ResourceBuilder(input.id).sessionUserID(ctx.session!.user.id);
+			const resourceBuilder = new ResourceBuilder(input.id).sessionUser(ctx.user!);
 
 			const response: Response = {
 				success: true,

@@ -29,11 +29,12 @@ describe('notifications', () => {
 		const testUserOneSession = createTestSession(generateUserSessionData());
 		const testUserTwoSession = createTestSession(generateUserSessionData());
 
-		await createDBUser(testUserOneSession);
-		const bookResponse = await createBook(testUserOneSession, testBookTitle);
+		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
+
+		const bookResponse = await createBook(testUserOneSession, testUserOneDB, testBookTitle);
 
 		// get the default storyline from created book
-		const caller = router.createCaller({ session: testUserOneSession });
+		const caller = router.createCaller({ session: testUserOneSession, user: testUserOneDB });
 		const storylines = (
 			await caller.storylines.get({
 				bookID: bookResponse.data._id

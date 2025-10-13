@@ -6,9 +6,10 @@ import { Account } from '$lib/models/account';
 import type mongoose from 'mongoose';
 import { type CurrencyCode } from '$lib/util/types';
 import { currencies } from '$lib/util/constants';
+import type { UserProperties } from '$lib/properties/user';
 
 export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProperties>> {
-	private _sessionUserID?: string;
+	private _sessionUser?: UserProperties;
 	private readonly _accountProperties: AccountProperties;
 
 	constructor(id?: string, currency?: CurrencyCode) {
@@ -40,6 +41,11 @@ export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProp
 		return this;
 	}
 
+	sessionUser(sessionUser: UserProperties): AccountBuilder {
+		this._sessionUser = sessionUser;
+		return this;
+	}
+
 	async update(): Promise<HydratedDocument<AccountProperties>> {
 		if (!this._accountProperties._id)
 			throw new Error('Must provide an accountID to update the account.');
@@ -61,7 +67,7 @@ export class AccountBuilder extends DocumentBuilder<HydratedDocument<AccountProp
 
 		result = await Account.deleteOne(
 			{ _id: this._accountProperties._id },
-			{ userID: this._sessionUserID }
+			{ user: this._sessionUser }
 		);
 
 		return result as mongoose.mongo.DeleteResult;

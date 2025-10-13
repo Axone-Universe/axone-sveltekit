@@ -1,7 +1,7 @@
 import { label, type StorylineProperties } from '$lib/properties/storyline';
 import mongoose, { Schema, model, type PipelineStage, type ClientSession } from 'mongoose';
 import { label as BookLabel } from '$lib/properties/book';
-import { label as UserLabel } from '$lib/properties/user';
+import { label as UserLabel, UserProperties } from '$lib/properties/user';
 import { label as ChapterLabel } from '$lib/properties/chapter';
 import {
 	addUserPermissionPipeline,
@@ -12,6 +12,7 @@ import {
 	setUpdateDate
 } from './permission';
 import { Book } from './book';
+import { User } from './user';
 import { GENRES } from '$lib/properties/genre';
 
 interface ExtendedStorylineProperties extends StorylineProperties {
@@ -46,13 +47,13 @@ export const storylineSchema = new Schema<ExtendedStorylineProperties>({
 storylineSchema.index({ title: 'text', tags: 'text' });
 
 storylineSchema.pre('aggregate', function (next) {
-	const userID = this.options.userID;
+	const user = this.options.user;
 	const pipeline = this.pipeline();
 	const postPipeline = this.options.postPipeline ?? [];
 
 	populate(pipeline);
-	addUserPermissionPipeline(userID, pipeline);
-	addViewRestrictionPipeline(userID, pipeline, 'books', 'book');
+	addUserPermissionPipeline(user, pipeline);
+	addViewRestrictionPipeline(user, pipeline, 'books', 'book');
 
 	for (const filter of postPipeline) {
 		pipeline.push(filter);
@@ -62,10 +63,10 @@ storylineSchema.pre('aggregate', function (next) {
 });
 
 storylineSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], function (next) {
-	const userID = this.getOptions().userID;
+	const user = this.getOptions().user;
 	const filter = this.getFilter();
 
-	const updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+	const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 	this.setQuery(updatedFilter);
 
 	next();
@@ -74,12 +75,12 @@ storylineSchema.pre(['deleteOne', 'findOneAndDelete', 'findOneAndRemove'], funct
 storylineSchema.pre(
 	['updateOne', 'replaceOne', 'findOneAndReplace', 'findOneAndUpdate'],
 	function (next) {
-		const userID = this.getOptions().userID;
+		const user = this.getOptions().user;
 		const filter = this.getFilter();
 
 		setUpdateDate(this.getUpdate());
 
-		let updatedFilter = addOwnerUpdateRestrictionFilter(userID, filter);
+		let updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 		updatedFilter = addArchivedRestrictionFilter(updatedFilter);
 
 		this.setQuery(updatedFilter);
@@ -94,6 +95,16 @@ storylineSchema.pre('save', async function (next) {
 
 	this.createdAt = this.updatedAt = new Date();
 
+	const user = await User.aggregate([
+		{
+			$match: {
+				_id: userID
+			}
+		}
+	])
+		.cursor()
+		.next();
+
 	const book = await Book.aggregate(
 		[
 			{
@@ -103,7 +114,7 @@ storylineSchema.pre('save', async function (next) {
 			}
 		],
 		{
-			userID: userID
+			user: user
 		}
 	)
 		.cursor()

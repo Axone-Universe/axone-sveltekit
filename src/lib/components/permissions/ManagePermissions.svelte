@@ -44,6 +44,8 @@
 		permissions['public'] ??
 		(new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>);
 
+	let showPublicAccessConfirmation = false;
+
 	onMount(() => {
 		setDocumentOwner();
 		setPermissionUsers();
@@ -113,11 +115,22 @@
 	/** An empty user means the permission is for the public */
 	function onPublicAccessChange() {
 		if (permissions['public']) {
-			delete permissions['public'];
-			permissions = permissions;
+			// Show confirmation button when removing public access
+			showPublicAccessConfirmation = true;
 		} else {
 			permissions['public'] = publicPermission;
+			showPublicAccessConfirmation = false;
 		}
+	}
+
+	function confirmRemovePublicAccess() {
+		delete permissions['public'];
+		permissions = permissions;
+		showPublicAccessConfirmation = false;
+	}
+
+	function cancelRemovePublicAccess() {
+		showPublicAccessConfirmation = false;
 	}
 
 	function onPermissionChanged(event: any) {
@@ -201,7 +214,7 @@
 				<small>Publish for public viewing or collaboration</small>
 			</div>
 
-			<div>
+			<div class="relative">
 				<div class="flex-row btn-group variant-filled">
 					<button
 						id="public-permissions-btn"
@@ -213,6 +226,7 @@
 						<Icon class="border-none" data={caretDown} scale={1} />
 					</button>
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
 					<span on:click={() => onPublicAccessChange()} class="!py-1 !px-3">
 						<input
 							class="radio"
@@ -223,6 +237,29 @@
 						/>
 					</span>
 				</div>
+
+				<!-- Confirmation overlay -->
+				{#if showPublicAccessConfirmation}
+					<div
+						class="absolute -top-24 right-0 card p-4 shadow-xl z-50 bg-surface-100-800-token border-2 border-warning-500 min-w-[280px]"
+					>
+						<p class="text-sm mb-3 font-semibold">
+							Remove public access? Your {permissionedDocumentType.toLowerCase()} will no longer be viewable
+							by the public.
+						</p>
+						<div class="flex gap-2 justify-end">
+							<button class="btn btn-sm variant-ghost-surface" on:click={cancelRemovePublicAccess}>
+								Cancel
+							</button>
+							<button
+								class="btn btn-sm variant-filled-warning"
+								on:click={confirmRemovePublicAccess}
+							>
+								Confirm
+							</button>
+						</div>
+					</div>
+				{/if}
 
 				<div
 					class="card shadow-xl py-2 !bg-surface-100-800-token z-10"
