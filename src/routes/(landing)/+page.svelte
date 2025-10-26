@@ -145,54 +145,45 @@
 {#if campaigns.length > 0}
 	<Section class="bg-surface-50-900-token">
 		<Container>
-			<div
-				class="relative w-full rounded-lg overflow-hidden bg-[url(/writing_background.png)] bg-cover bg-center"
-			>
-				<!-- Background overlay -->
-				<div class="absolute inset-0 bg-surface-50/50 dark:bg-surface-900/50" />
+			<!-- Content -->
+			<div class="relative z-10 p-6">
+				<div class="mb-6">
+					<h2 class="text-2xl md:text-3xl font-bold mb-2">Active Writing Competitions</h2>
+					<p class="text-lg text-surface-700-200-token">
+						Join our current campaigns and showcase your talent
+					</p>
+				</div>
 
-				<!-- Content -->
-				<div class="relative z-10 p-6">
-					<div class="mb-6">
-						<h2 class="text-2xl md:text-3xl font-bold mb-2">Active Writing Competitions</h2>
-						<p class="text-lg text-surface-700-200-token">
-							Join our current campaigns and showcase your talent
-						</p>
-					</div>
-
-					<!-- Campaigns Grid -->
-					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-						{#each campaigns as campaign}
-							<a
-								href="./book/{campaign.book._id}"
-								class="card card-hover overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-105"
-							>
-								<div class="aspect-[2/3] relative overflow-hidden">
-									<ImageWithFallback
-										src={campaign.book.imageURL}
-										alt={campaign.book.title}
-										class="w-full h-full object-cover"
-									/>
-									<div
-										class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-									/>
-									<div class="absolute bottom-0 left-0 right-0 p-2 text-white">
-										<h3 class="font-bold text-sm mb-1 line-clamp-2">{campaign.book.title}</h3>
-										<p class="text-xs text-white/80 line-clamp-2">{campaign.book.description}</p>
-									</div>
-
-									<!-- Hover Button Overlay -->
-									<div
-										class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-									>
-										<div class="btn variant-filled-primary text-sm px-6 py-2">
-											Enter Competition
-										</div>
-									</div>
+				<!-- Campaigns Grid -->
+				<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+					{#each campaigns as campaign}
+						<a
+							href="./book/{campaign.book._id}"
+							class="card card-hover overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-105"
+						>
+							<div class="aspect-[2/3] relative overflow-hidden">
+								<ImageWithFallback
+									src={campaign.book.imageURL}
+									alt={campaign.book.title}
+									class="w-full h-full object-cover"
+								/>
+								<div
+									class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+								/>
+								<div class="absolute bottom-0 left-0 right-0 p-2 text-white">
+									<h3 class="font-bold text-sm mb-1 line-clamp-2">{campaign.book.title}</h3>
+									<p class="text-xs text-white/80 line-clamp-2">{campaign.book.description}</p>
 								</div>
-							</a>
-						{/each}
-					</div>
+
+								<!-- Hover Button Overlay -->
+								<div
+									class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+								>
+									<div class="btn variant-filled-primary text-sm px-6 py-2">Enter Competition</div>
+								</div>
+							</div>
+						</a>
+					{/each}
 				</div>
 			</div>
 		</Container>
@@ -218,9 +209,13 @@
 <Section class="bg-surface-100-800-token flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
-			<div class="w-full max-w-[400px] mx-auto">
-				<div class="relative">
-					<Author_3 />
+			<div class="w-full max-w-full mx-auto">
+				<div class="lg:order-2 w-full max-w-[600px] mx-auto relative">
+					<img
+						src="/publishing_1_resized.png"
+						alt="Axone Universe"
+						class="w-full h-auto object-contain"
+					/>
 				</div>
 			</div>
 			<div

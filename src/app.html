@@ -1,11 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<!-- <script src="https://sdk.cc-embed.adobe.com/v3/CCEverywhere.js"></script> -->
 		<script src="https://cc-embed.adobe.com/sdk/v4/CCEverywhere.js"></script>
+		<!-- Theme initialization script - runs before hydration to prevent flash -->
+		<script>
+			(function () {
+				// Check localStorage for theme preference
+				const storedTheme = localStorage.getItem('theme-mode');
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+				// Determine which theme to use
+				const isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+
+				// Apply the theme class immediately
+				if (isDark) {
+					alert('dark');
+					document.documentElement.classList.add('dark');
+				} else {
+					alert('light');
+					document.documentElement.classList.remove('dark');
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body

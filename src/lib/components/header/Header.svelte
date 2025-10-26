@@ -30,6 +30,31 @@
 
 	const drawerStore = getDrawerStore();
 
+	// Initialize store from DOM on component load (before any reactive statements run)
+	if (typeof document !== 'undefined') {
+		const isDark = document.documentElement.classList.contains('dark');
+		// Sync store with DOM immediately
+		if (isDark && $modeCurrent) {
+			// DOM is dark but store says light, fix store
+			setModeCurrent(false);
+		} else if (!isDark && !$modeCurrent) {
+			// DOM is light but store says dark, fix store
+			setModeCurrent(true);
+		}
+	}
+
+	// Reactive statement to ensure DOM is in sync with store
+	$: if (typeof document !== 'undefined') {
+		const htmlElement = document.documentElement;
+		if ($modeCurrent) {
+			// Light mode
+			htmlElement.classList.remove('dark');
+		} else {
+			// Dark mode
+			htmlElement.classList.add('dark');
+		}
+	}
+
 	/**
 	 * parameters and methods for the nav header
 	 * @param target
@@ -59,15 +84,6 @@
 
 	onMount(() => {
 		drawerStore.close();
-
-		// Ensure theme is loaded from localStorage on mount
-		const storedTheme = localStorage.getItem('modeCurrent');
-		if (storedTheme !== null) {
-			const isLight = storedTheme === 'true';
-			if (isLight !== $modeCurrent) {
-				setModeCurrent(isLight);
-			}
-		}
 	});
 
 	/**
@@ -84,8 +100,15 @@
 	const toggleTheme = () => {
 		const newMode = !$modeCurrent;
 		setModeCurrent(newMode);
-		// Explicitly save to localStorage to ensure persistence
-		localStorage.setItem('modeCurrent', String(newMode));
+
+		// Save to localStorage
+		if (newMode) {
+			localStorage.setItem('theme-mode', 'light');
+		} else {
+			localStorage.setItem('theme-mode', 'dark');
+		}
+
+		// The reactive statement above will handle the DOM update
 	};
 </script>
 
