@@ -30,31 +30,6 @@
 
 	const drawerStore = getDrawerStore();
 
-	// Initialize store from DOM on component load (before any reactive statements run)
-	if (typeof document !== 'undefined') {
-		const isDark = document.documentElement.classList.contains('dark');
-		// Sync store with DOM immediately
-		if (isDark && $modeCurrent) {
-			// DOM is dark but store says light, fix store
-			setModeCurrent(false);
-		} else if (!isDark && !$modeCurrent) {
-			// DOM is light but store says dark, fix store
-			setModeCurrent(true);
-		}
-	}
-
-	// Reactive statement to ensure DOM is in sync with store
-	$: if (typeof document !== 'undefined') {
-		const htmlElement = document.documentElement;
-		if ($modeCurrent) {
-			// Light mode
-			htmlElement.classList.remove('dark');
-		} else {
-			// Dark mode
-			htmlElement.classList.add('dark');
-		}
-	}
-
 	/**
 	 * parameters and methods for the nav header
 	 * @param target

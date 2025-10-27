@@ -1,21 +1,17 @@
 <script lang="ts">
 	import Section from '$lib/components/Section.svelte';
 	import Container from '$lib/components/Container.svelte';
-	import Author_1 from '$lib/assets/author-1.svelte';
-	import Author_3 from '$lib/assets/author-3.svelte';
-	import Author_4 from '$lib/assets/author-4.svelte';
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { goto } from '$app/navigation';
 	import { users, usd, paintBrush, comments } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import UserCarousel from '$lib/components/user/UserCarousel.svelte';
+	import CampaignCarousel from '$lib/components/campaign/CampaignCarousel.svelte';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { trpc } from '$lib/trpc/client';
 	import { type HydratedCampaignProperties } from '$lib/properties/campaign';
 	import { type HydratedDocument } from 'mongoose';
-	import ImageWithFallback from '$lib/components/util/ImageWithFallback.svelte';
-	import { formattedDate } from '$lib/util/studio/strings';
 
 	export let data: { supabase: SupabaseClient; session: Session | null };
 
@@ -87,7 +83,7 @@
 			imageURL:
 				'https://ejrsceonrzysmcheplfg.supabase.co/storage/v1/object/public/profiles/ffd875b3-02ce-4ab3-b3b2-9d2ff6979356/profile.png',
 			about:
-				'"I stumbled upon the Axone Universe Collaborative Writing Competition by chance and was thrilled to participate, grateful that I can share my writing with a broader audience. Although winning was an unexpected honor, I am ecstatic with the success. This experience has reinforced my love for storytelling."'
+				'"Publishing my stories on Axone Universe has been an incredible experience. The platform makes it easy to share my work, connect with readers, and feel part of a vibrant creative community. I’ve grown so much as a writer thanks to the support and exposure I’ve received here."'
 		},
 		{
 			_id: '4',
@@ -145,47 +141,7 @@
 {#if campaigns.length > 0}
 	<Section class="bg-surface-50-900-token">
 		<Container>
-			<!-- Content -->
-			<div class="relative z-10 p-6">
-				<div class="mb-6">
-					<h2 class="text-2xl md:text-3xl font-bold mb-2">Active Writing Competitions</h2>
-					<p class="text-lg text-surface-700-200-token">
-						Join our current campaigns and showcase your talent
-					</p>
-				</div>
-
-				<!-- Campaigns Grid -->
-				<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-					{#each campaigns as campaign}
-						<a
-							href="./book/{campaign.book._id}"
-							class="card card-hover overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-105"
-						>
-							<div class="aspect-[2/3] relative overflow-hidden">
-								<ImageWithFallback
-									src={campaign.book.imageURL}
-									alt={campaign.book.title}
-									class="w-full h-full object-cover"
-								/>
-								<div
-									class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-								/>
-								<div class="absolute bottom-0 left-0 right-0 p-2 text-white">
-									<h3 class="font-bold text-sm mb-1 line-clamp-2">{campaign.book.title}</h3>
-									<p class="text-xs text-white/80 line-clamp-2">{campaign.book.description}</p>
-								</div>
-
-								<!-- Hover Button Overlay -->
-								<div
-									class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-								>
-									<div class="btn variant-filled-primary text-sm px-6 py-2">Enter Competition</div>
-								</div>
-							</div>
-						</a>
-					{/each}
-				</div>
-			</div>
+			<CampaignCarousel {campaigns} />
 		</Container>
 	</Section>
 {/if}
@@ -241,9 +197,13 @@
 <Section class="bg-surface-50-900-token flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 items-center">
-			<div class="lg:order-2 w-full max-w-[400px] mx-auto">
+			<div class="lg:order-2 w-full max-w-[700px] mx-auto">
 				<div class="relative">
-					<Author_1 />
+					<img
+						src="/writers_block.png"
+						alt="Overcome writer's block"
+						class="w-full h-auto object-contain"
+					/>
 				</div>
 			</div>
 			<div
@@ -270,9 +230,13 @@
 <Section class="bg-surface-100-800-token flex items-center">
 	<Container>
 		<div class="grid grid-cols-1 lg:grid-cols-2 md:gap-10 items-center">
-			<div class="md:inline-block w-full max-w-[400px] mx-auto">
+			<div class="md:inline-block w-full max-w-[700px] mx-auto">
 				<div class="relative">
-					<Author_4 />
+					<img
+						src="/illustration_collab.png"
+						alt="Collaboration illustration"
+						class="w-full h-auto object-contain"
+					/>
 				</div>
 			</div>
 			<div
