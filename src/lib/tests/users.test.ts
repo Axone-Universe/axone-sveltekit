@@ -190,5 +190,120 @@ describe('users', () => {
 		expect(Object.fromEntries(user.data!.readingLists!.entries())).toEqual({ Favourites: [] });
 	});
 
+	test('create user with referralSource - Cape Town Writers Network', async () => {
+		const caller = router.createCaller({ session: testSessionOne, user: undefined });
+		const userResponse = await caller.users.create({
+			firstName: userOne.user_metadata.firstName,
+			lastName: userOne.user_metadata.lastName,
+			email: userOne.email,
+			referralSource: "Cape Town Writers' Network"
+		});
+
+		expect(userResponse.data.referralSource).toEqual("Cape Town Writers' Network");
+		expect(userResponse.data.referralAboutSource).toBeUndefined();
+		expect(userResponse.data.referralSocialMediaSource).toEqual([]);
+		expect(userResponse.data.referralUser).toBeUndefined();
+	});
+
+	test('create user with referralSource - Other and referralAboutSource', async () => {
+		const caller = router.createCaller({ session: testSessionOne, user: undefined });
+		const userResponse = await caller.users.create({
+			firstName: userOne.user_metadata.firstName,
+			lastName: userOne.user_metadata.lastName,
+			email: userOne.email,
+			referralSource: 'Other',
+			referralAboutSource: 'Found through a friend at a book club'
+		});
+
+		expect(userResponse.data.referralSource).toEqual('Other');
+		expect(userResponse.data.referralAboutSource).toEqual('Found through a friend at a book club');
+		expect(userResponse.data.referralSocialMediaSource).toEqual([]);
+		expect(userResponse.data.referralUser).toBeUndefined();
+	});
+
+	test('create user with referralSource - Social Media and referralSocialMediaSource', async () => {
+		const caller = router.createCaller({ session: testSessionOne, user: undefined });
+		const userResponse = await caller.users.create({
+			firstName: userOne.user_metadata.firstName,
+			lastName: userOne.user_metadata.lastName,
+			email: userOne.email,
+			referralSource: 'Social Media',
+			referralSocialMediaSource: ['Instagram', 'TikTok']
+		});
+
+		expect(userResponse.data.referralSource).toEqual('Social Media');
+		expect(userResponse.data.referralSocialMediaSource).toEqual(['Instagram', 'TikTok']);
+		expect(userResponse.data.referralAboutSource).toBeUndefined();
+		expect(userResponse.data.referralUser).toBeUndefined();
+	});
+
+	test('create user with referralSource - Referral and referralUser', async () => {
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: undefined });
+		const userResponse = await caller.users.create({
+			firstName: userOne.user_metadata.firstName,
+			lastName: userOne.user_metadata.lastName,
+			email: userOne.email,
+			referralSource: 'Referral',
+			referralUser: testUserTwoDB._id
+		});
+
+		expect(userResponse.data.referralSource).toEqual('Referral');
+		expect(userResponse.data.referralUser).toEqual(testUserTwoDB._id);
+		expect(userResponse.data.referralAboutSource).toBeUndefined();
+		expect(userResponse.data.referralSocialMediaSource).toEqual([]);
+	});
+
+	test('update user with referral fields', async () => {
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
+
+		// Update with Google Search
+		let updateResponse = await caller.users.update({
+			referralSource: 'Google Search'
+		});
+		expect(updateResponse.data?.referralSource).toEqual('Google Search');
+
+		// Update with Other and custom text
+		updateResponse = await caller.users.update({
+			referralSource: 'Other',
+			referralAboutSource: 'Conference presentation'
+		});
+		expect(updateResponse.data?.referralSource).toEqual('Other');
+		expect(updateResponse.data?.referralAboutSource).toEqual('Conference presentation');
+
+		// Update with Social Media platforms
+		updateResponse = await caller.users.update({
+			referralSource: 'Social Media',
+			referralSocialMediaSource: ['LinkedIn', 'Facebook']
+		});
+		expect(updateResponse.data?.referralSource).toEqual('Social Media');
+		expect(updateResponse.data?.referralSocialMediaSource).toEqual(['LinkedIn', 'Facebook']);
+	});
+
+	test('update user referralSource clears unrelated referral fields', async () => {
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
+
+		// First set Social Media with platforms
+		await caller.users.update({
+			referralSource: 'Social Media',
+			referralSocialMediaSource: ['Instagram']
+		});
+
+		// Then update to Google Search (should clear social media sources)
+		const updateResponse = await caller.users.update({
+			referralSource: 'Google Search',
+			referralSocialMediaSource: [],
+			referralAboutSource: undefined,
+			referralUser: undefined
+		});
+
+		expect(updateResponse.data?.referralSource).toEqual('Google Search');
+		expect(updateResponse.data?.referralSocialMediaSource).toEqual([]);
+		expect(updateResponse.data?.referralAboutSource).toBeUndefined();
+		expect(updateResponse.data?.referralUser).toBeUndefined();
+	});
+
 	// TODO: test cascading deletes of storylines
 });

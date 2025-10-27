@@ -102,6 +102,12 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
+			if (input.referralSource) userBuilder = userBuilder.referralSource(input.referralSource);
+			if (input.referralAboutSource)
+				userBuilder = userBuilder.referralAboutSource(input.referralAboutSource);
+			if (input.referralSocialMediaSource)
+				userBuilder = userBuilder.referralSocialMediaSource(input.referralSocialMediaSource);
+			if (input.referralUser) userBuilder = userBuilder.referralUser(input.referralUser);
 
 			const response: Response = {
 				success: true,
@@ -137,6 +143,12 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
+			if (input.referralSource) userBuilder = userBuilder.referralSource(input.referralSource);
+			if (input.referralAboutSource)
+				userBuilder = userBuilder.referralAboutSource(input.referralAboutSource);
+			if (input.referralSocialMediaSource)
+				userBuilder = userBuilder.referralSocialMediaSource(input.referralSocialMediaSource);
+			if (input.referralUser) userBuilder = userBuilder.referralUser(input.referralUser);
 
 			const response: Response = {
 				success: true,

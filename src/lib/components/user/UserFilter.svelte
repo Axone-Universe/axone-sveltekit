@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings, AutocompleteOption } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
@@ -14,11 +15,33 @@
 	let customClass = '';
 	export { customClass as class };
 
+	let inputElement: HTMLInputElement;
+	let dropdownElement: HTMLDivElement;
+
 	let autocompletePopupSettings: PopupSettings = {
 		event: 'click',
 		target: 'popupAutocomplete',
 		placement: 'bottom'
 	};
+
+	// Match dropdown width to input width
+	onMount(() => {
+		if (inputElement && dropdownElement) {
+			const updateWidth = () => {
+				dropdownElement.style.width = `${inputElement.offsetWidth}px`;
+			};
+			updateWidth();
+			window.addEventListener('resize', updateWidth);
+			return () => window.removeEventListener('resize', updateWidth);
+		}
+	});
+
+	// Also update width when the popup opens
+	function updateDropdownWidth() {
+		if (inputElement && dropdownElement) {
+			dropdownElement.style.width = `${inputElement.offsetWidth}px`;
+		}
+	}
 
 	let selectedUser: string = '';
 	let autocompleteUsers: AutocompleteOption[] = [
@@ -86,6 +109,7 @@
 
 <div class={`card w-full ${customClass}`}>
 	<input
+		bind:this={inputElement}
 		id="permission-users-input"
 		class="input autocomplete"
 		type="search"
@@ -94,10 +118,13 @@
 		placeholder="Add people"
 		use:popup={autocompletePopupSettings}
 		on:keyup={onKeyup}
+		on:click={updateDropdownWidth}
+		on:focus={updateDropdownWidth}
 		autocomplete="off"
 	/>
 	<div
-		class="card p-2 max-h-48 overflow-auto w-2/5 xl:w-3/8 !z-10 !bg-surface-100-800-token"
+		bind:this={dropdownElement}
+		class="card p-2 max-h-48 overflow-auto !z-10 !bg-surface-100-800-token"
 		id={autoCompleteDiv}
 		data-popup="popupAutocomplete"
 	>
