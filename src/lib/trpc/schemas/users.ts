@@ -10,6 +10,7 @@ export const create = z.object({
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
 	admin: z.boolean().optional(),
+	ambassador: z.boolean().optional(),
 	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	email: z.string().optional(),
@@ -28,6 +29,7 @@ export const update = z.object({
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
 	admin: z.boolean().optional(),
+	ambassador: z.boolean().optional(),
 	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	email: z.string().optional(),
@@ -45,6 +47,11 @@ export const update = z.object({
 
 export const getReadingList = z.object({
 	name: z.string().optional()
+});
+
+export const updateUserAsAdmin = z.object({
+	userId: z.string(),
+	ambassador: z.boolean()
 });
 
 export const createDeleteReadingList = z.object({

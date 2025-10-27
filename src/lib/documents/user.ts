@@ -37,6 +37,11 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	ambassador(ambassador: boolean): UserBuilder {
+		this._userProperties.ambassador = ambassador;
+		return this;
+	}
+
 	imageURL(imageURL: string): UserBuilder {
 		this._userProperties.imageURL = imageURL;
 		return this;
