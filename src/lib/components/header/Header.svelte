@@ -59,15 +59,6 @@
 
 	onMount(() => {
 		drawerStore.close();
-
-		// Ensure theme is loaded from localStorage on mount
-		const storedTheme = localStorage.getItem('modeCurrent');
-		if (storedTheme !== null) {
-			const isLight = storedTheme === 'true';
-			if (isLight !== $modeCurrent) {
-				setModeCurrent(isLight);
-			}
-		}
 	});
 
 	/**
@@ -84,8 +75,15 @@
 	const toggleTheme = () => {
 		const newMode = !$modeCurrent;
 		setModeCurrent(newMode);
-		// Explicitly save to localStorage to ensure persistence
-		localStorage.setItem('modeCurrent', String(newMode));
+
+		// Save to localStorage
+		if (newMode) {
+			localStorage.setItem('theme-mode', 'light');
+		} else {
+			localStorage.setItem('theme-mode', 'dark');
+		}
+
+		// The reactive statement above will handle the DOM update
 	};
 </script>
 
