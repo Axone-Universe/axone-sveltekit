@@ -17,7 +17,11 @@ export const create = z.object({
 	instagram: z.string().optional(),
 	twitter: z.string().optional(),
 	genres: genreSchema.optional(),
-	labels: userSchema.optional()
+	labels: userSchema.optional(),
+	referralSource: z.string().optional(),
+	referralAboutSource: z.string().optional(),
+	referralSocialMediaSource: z.array(z.string()).optional(),
+	referralUser: z.string().optional()
 });
 
 export const update = z.object({
@@ -32,7 +36,11 @@ export const update = z.object({
 	twitter: z.string().optional(),
 	genres: genreSchema.optional(),
 	labels: userSchema.optional(),
-	readingLists: z.map(z.string(), z.array(z.string())).optional()
+	readingLists: z.map(z.string(), z.array(z.string())).optional(),
+	referralSource: z.string().optional(),
+	referralAboutSource: z.string().optional(),
+	referralSocialMediaSource: z.array(z.string()).optional(),
+	referralUser: z.string().optional()
 });
 
 export const getReadingList = z.object({

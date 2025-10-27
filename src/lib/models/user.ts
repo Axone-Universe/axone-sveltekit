@@ -43,6 +43,10 @@ export const userSchema = new Schema<UserProperties>({
 		],
 		default: new Map([[DEFAULT_READING_LIST, []]])
 	},
+	referralSource: String,
+	referralAboutSource: String,
+	referralSocialMediaSource: [String],
+	referralUser: { type: String, ref: label },
 	createdAt: Date,
 	updatedAt: Date
 });
