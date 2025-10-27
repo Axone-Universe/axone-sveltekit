@@ -2,7 +2,7 @@ import type { Genre } from './genre';
 
 export const label = 'User';
 
-export const USER_LABELS = ['Writer', 'Illustrator', 'Editor'] as const;
+export const USER_LABELS = ['Reader', 'Writer', 'Illustrator', 'Editor'] as const;
 export const DEFAULT_READING_LIST = 'All';
 export type UserLabel = (typeof USER_LABELS)[number];
 
@@ -20,6 +20,10 @@ export interface UserProperties {
 	genres?: Genre[];
 	labels?: UserLabel[];
 	readingLists?: Map<string, string[]>;
+	referralSource?: string;
+	referralAboutSource?: string;
+	referralSocialMediaSource?: string[];
+	referralUser?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
 }

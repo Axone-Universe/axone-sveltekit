@@ -77,6 +77,26 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	referralSource(referralSource: string): UserBuilder {
+		this._userProperties.referralSource = referralSource;
+		return this;
+	}
+
+	referralAboutSource(referralAboutSource: string): UserBuilder {
+		this._userProperties.referralAboutSource = referralAboutSource;
+		return this;
+	}
+
+	referralSocialMediaSource(referralSocialMediaSource: string[]): UserBuilder {
+		this._userProperties.referralSocialMediaSource = referralSocialMediaSource;
+		return this;
+	}
+
+	referralUser(referralUser: string): UserBuilder {
+		this._userProperties.referralUser = referralUser;
+		return this;
+	}
+
 	sessionUser(sessionUser: UserProperties): UserBuilder {
 		this._sessionUser = sessionUser;
 		return this;
