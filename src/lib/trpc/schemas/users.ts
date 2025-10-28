@@ -54,6 +54,12 @@ export const updateUserAsAdmin = z.object({
 	ambassador: z.boolean()
 });
 
+export const redeemReward = z.object({
+	points: z.number(),
+	rewardType: z.string(),
+	rewardValue: z.number()
+});
+
 export const createDeleteReadingList = z.object({
 	name: z.string()
 });
