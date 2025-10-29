@@ -13,8 +13,7 @@ import {
 	update,
 	updateReadingLists,
 	renameReadingList,
-	updateUserAsAdmin,
-	redeemReward
+	updateUserAsAdmin
 } from '$lib/trpc/schemas/users';
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
@@ -349,49 +348,5 @@ export const users = t.router({
 			}
 
 			return { ...response, ...{ data: response.data as { count: number } } };
-		}),
-
-	redeemReward: t.procedure
-		.use(logger)
-		.use(auth)
-		.input(redeemReward)
-		.mutation(async ({ input, ctx }) => {
-			const response: Response = {
-				success: true,
-				message: 'reward redeemed successfully',
-				data: {}
-			};
-
-			try {
-				// Get referral count to verify points
-				const usersRepo = new UsersRepository();
-				const referralCount = await usersRepo.countReferrals(ctx.session!.user.id);
-				const totalPoints = referralCount * 10;
-
-				// Check if user has enough points
-				if (totalPoints < input.points) {
-					response.success = false;
-					response.message = 'Insufficient points';
-					return response;
-				}
-
-				// TODO: Implement reward redemption logic
-				// This should:
-				// 1. Deduct points from user (track redeemed rewards in a separate collection)
-				// 2. Generate and send voucher code via email
-				// 3. Log the redemption for tracking
-
-				// For now, we'll just return success
-				response.data = {
-					message: `Reward of ${input.rewardValue} will be sent to your email within 24-48 hours`,
-					pointsRedeemed: input.points,
-					remainingPoints: totalPoints - input.points
-				};
-			} catch (error) {
-				response.success = false;
-				response.message = error instanceof Object ? error.toString() : 'unknown error';
-			}
-
-			return response;
 		})
 });

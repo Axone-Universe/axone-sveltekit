@@ -147,15 +147,16 @@ export const xrplTransactionTypes = [
 	'NFTokenAcceptOffer'
 ] as const;
 
-export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
+export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal', 'Redemption']] as const;
 
 export const transactionStatuses = ['pending', 'success', 'failed'] as const;
 
-export const currencyCodes = ['XRP', 'USD'] as const;
+export const currencyCodes = ['XRP', 'USD', 'ZAR'] as const;
 
 export const currencies: Record<CurrencyCode, Currency> = {
 	XRP: { scale: 6, code: 'XRP', symbol: 'XRP' },
-	USD: { code: 'USD', symbol: '$', scale: 2 }
+	USD: { code: 'USD', symbol: '$', scale: 2 },
+	ZAR: { code: 'ZAR', symbol: 'R', scale: 2 }
 };
 
 export const visibleDocuments = [BookLabel, ChapterLabel, StorylineLabel, ResourceLabel] as const;

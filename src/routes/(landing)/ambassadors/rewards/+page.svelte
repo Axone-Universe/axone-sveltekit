@@ -8,10 +8,29 @@
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
-	// Fetch referral count to calculate points
+	let isRedeeming = false;
+	let redeemingRewardPoints: number | null = null;
+
+	// Fetch referral count to calculate earned points
 	$: referralCountQuery = trpcWithQuery($page).users.getReferralCount.createQuery();
 	$: referralCount = $referralCountQuery.data?.data?.count ?? 0;
-	$: totalPoints = referralCount * 10;
+	$: totalEarnedPoints = referralCount * 10;
+
+	// Fetch redemption transactions to calculate used points
+	// User is the receiver (receiving voucher from platform/admin)
+	$: redemptionTransactionsQuery = trpcWithQuery($page).transactions.get.createQuery({
+		receiverId: $page.data.session?.user.id,
+		limit: 1000
+	});
+	$: redemptionTransactions = ($redemptionTransactionsQuery.data?.data?.filter(
+		(txn: any) => txn.type === 'Redemption'
+	) ?? []) as any[];
+	// Extract points from documentId field (where points are stored for tracking)
+	$: usedPoints = redemptionTransactions.reduce((sum: number, txn: any) => {
+		const points = parseInt(txn.documentId ?? '0', 10);
+		return sum + points;
+	}, 0) as number;
+	$: totalPoints = totalEarnedPoints - usedPoints;
 
 	// Reward tiers for Takealot vouchers
 	const rewardTiers = [
@@ -36,30 +55,59 @@
 	}
 
 	async function redeemReward(reward: { points: number; value: number; label: string }) {
+		isRedeeming = true;
+		redeemingRewardPoints = reward.points;
+
+		// Show processing toast
+		const processingToast: ToastSettings = {
+			message: `Processing redemption for ${reward.label}...`,
+			background: 'variant-filled-secondary',
+			autohide: false
+		};
+		const processingToastId = toastStore.trigger(processingToast);
+
 		try {
-			const response = await trpc($page).users.redeemReward.mutate({
+			const response = await trpc($page).transactions.redeemReward.mutate({
 				points: reward.points,
 				rewardType: 'takealot_voucher',
 				rewardValue: reward.value
 			});
 
+			// Close processing toast
+			toastStore.close(processingToastId);
+
 			if (response.success) {
-				const toast: ToastSettings = {
-					message: `Successfully redeemed ${reward.label}! Check your email for details.`,
+				const successToast: ToastSettings = {
+					message: `Successfully redeemed ${reward.label}! Check your email within 24-48 hours.`,
 					background: 'variant-filled-success',
+					timeout: 7000
+				};
+				toastStore.trigger(successToast);
+
+				// Refetch both queries to update points
+				await Promise.all([$referralCountQuery.refetch(), $redemptionTransactionsQuery.refetch()]);
+			} else {
+				const errorToast: ToastSettings = {
+					message: response.message || 'Failed to redeem reward. Please try again later.',
+					background: 'variant-filled-error',
 					timeout: 5000
 				};
-				toastStore.trigger(toast);
-
-				// Refetch the referral count to update points
-				$referralCountQuery.refetch();
+				toastStore.trigger(errorToast);
 			}
 		} catch (error) {
-			const toast: ToastSettings = {
-				message: 'Failed to redeem reward. Please try again later.',
-				background: 'variant-filled-error'
+			// Close processing toast
+			toastStore.close(processingToastId);
+
+			const errorToast: ToastSettings = {
+				message: 'An error occurred while processing your redemption. Please try again later.',
+				background: 'variant-filled-error',
+				timeout: 5000
 			};
-			toastStore.trigger(toast);
+			toastStore.trigger(errorToast);
+			console.error('Redemption error:', error);
+		} finally {
+			isRedeeming = false;
+			redeemingRewardPoints = null;
 		}
 	}
 </script>
@@ -78,14 +126,18 @@
 		<div class="flex items-center justify-between">
 			<div class="space-y-2">
 				<p class="text-sm opacity-90">Your Points Balance</p>
-				{#if $referralCountQuery.isLoading}
+				{#if $referralCountQuery.isLoading || $redemptionTransactionsQuery.isLoading}
 					<p class="text-5xl font-bold animate-pulse">...</p>
 				{:else}
 					<p class="text-5xl font-bold">{totalPoints}</p>
 				{/if}
-				<p class="text-sm opacity-90">
-					{referralCount} referrals × 10 points = {totalPoints} points
-				</p>
+				<div class="text-sm opacity-90 space-y-1">
+					<p>{referralCount} referrals × 10 = {totalEarnedPoints} points earned</p>
+					{#if usedPoints > 0}
+						<p>- {usedPoints} points redeemed</p>
+						<p class="font-semibold">= {totalPoints} points available</p>
+					{/if}
+				</div>
 			</div>
 			<Award size={64} class="opacity-80" />
 		</div>
@@ -131,11 +183,37 @@
 
 					<!-- Redeem Button -->
 					<button
-						class="btn w-full {canRedeem ? 'variant-filled-success' : 'variant-ghost-surface'}"
-						disabled={!canRedeem}
+						class="btn w-full {canRedeem && !isRedeeming
+							? 'variant-filled-success'
+							: 'variant-ghost-surface'}"
+						disabled={!canRedeem || isRedeeming}
 						on:click={() => confirmRedemption(reward)}
 					>
-						{#if canRedeem}
+						{#if isRedeeming && redeemingRewardPoints === reward.points}
+							<div class="flex items-center gap-2">
+								<svg
+									class="animate-spin h-5 w-5"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									/>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									/>
+								</svg>
+								<span>Processing...</span>
+							</div>
+						{:else if canRedeem}
 							<Gift size={20} />
 							<span>Redeem Now</span>
 						{:else}
