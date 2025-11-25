@@ -465,7 +465,6 @@
 							<ol class="text-md font-normal list">
 								{#each winners as winner, index}
 									<li>
-										<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
 										<div class="flex items-center gap-2">
 											<Avatar
 												src={winner.imageURL}
@@ -538,7 +537,6 @@
 								<ol class="text-md font-thin list">
 									{#each bookData.campaign.criteria as criterion, index}
 										<li>
-											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
 											<span class="flex-auto">{criterion.value}</span>
 										</li>
 									{/each}
@@ -554,7 +552,6 @@
 								<ol class="text-md font-thin list">
 									{#each bookData.campaign.rewards as reward, index}
 										<li>
-											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
 											<span class="flex-auto">{reward.value}</span>
 										</li>
 									{/each}
@@ -570,7 +567,6 @@
 								<ol class="text-md font-normal list">
 									{#each bookData.campaign.resources as resource, index}
 										<li>
-											<span class="badge-icon p-4 variant-soft-primary">{index + 1}</span>
 											{#if resource.link}
 												<a
 													target="_blank"
