@@ -305,5 +305,96 @@ describe('users', () => {
 		expect(updateResponse.data?.referralUser).toBeUndefined();
 	});
 
+	test('get referral count - no referrals', async () => {
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const caller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
+
+		const response = await caller.users.getReferralCount();
+
+		expect(response.success).toEqual(true);
+		expect(response.data.count).toEqual(0);
+	});
+
+	test('get referral count - with referrals', async () => {
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
+
+		// Create users referred by testUserOne
+		const referredUser1Session = createTestSession(generateUserSessionData());
+		const referredUser2Session = createTestSession(generateUserSessionData());
+		const referredUser3Session = createTestSession(generateUserSessionData());
+
+		// Create users with referralUser set to testUserOne's ID
+		const caller = router.createCaller({ session: referredUser1Session, user: undefined });
+		await caller.users.create({
+			firstName: referredUser1Session.user.user_metadata.firstName,
+			lastName: referredUser1Session.user.user_metadata.lastName,
+			email: referredUser1Session.user.email,
+			referralSource: 'Referral',
+			referralUser: testUserOneDB._id
+		});
+
+		const caller2 = router.createCaller({ session: referredUser2Session, user: undefined });
+		await caller2.users.create({
+			firstName: referredUser2Session.user.user_metadata.firstName,
+			lastName: referredUser2Session.user.user_metadata.lastName,
+			email: referredUser2Session.user.email,
+			referralSource: 'Referral',
+			referralUser: testUserOneDB._id
+		});
+
+		const caller3 = router.createCaller({ session: referredUser3Session, user: undefined });
+		await caller3.users.create({
+			firstName: referredUser3Session.user.user_metadata.firstName,
+			lastName: referredUser3Session.user.user_metadata.lastName,
+			email: referredUser3Session.user.email,
+			referralSource: 'Referral',
+			referralUser: testUserOneDB._id
+		});
+
+		// Get referral count for testUserOne
+		const mainCaller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
+		const response = await mainCaller.users.getReferralCount();
+
+		expect(response.success).toEqual(true);
+		expect(response.data.count).toEqual(3);
+	});
+
+	test('get referral count - only counts users with matching referralUser', async () => {
+		const testUserOneDB = (await createDBUser(testSessionOne)).data;
+		const testUserTwoDB = (await createDBUser(testSessionTwo)).data;
+
+		// Create users referred by testUserOne
+		const referredUser1Session = createTestSession(generateUserSessionData());
+		const referredUser2Session = createTestSession(generateUserSessionData());
+
+		// Create users with referralUser set to testUserOne's ID
+		const caller1 = router.createCaller({ session: referredUser1Session, user: undefined });
+		await caller1.users.create({
+			firstName: referredUser1Session.user.user_metadata.firstName,
+			lastName: referredUser1Session.user.user_metadata.lastName,
+			email: referredUser1Session.user.email,
+			referralSource: 'Referral',
+			referralUser: testUserOneDB._id
+		});
+
+		// Create user with referralUser set to testUserTwo's ID (should not be counted)
+		const caller2 = router.createCaller({ session: referredUser2Session, user: undefined });
+		await caller2.users.create({
+			firstName: referredUser2Session.user.user_metadata.firstName,
+			lastName: referredUser2Session.user.user_metadata.lastName,
+			email: referredUser2Session.user.email,
+			referralSource: 'Referral',
+			referralUser: testUserTwoDB._id
+		});
+
+		// Get referral count for testUserOne - should only count 1
+		const mainCaller = router.createCaller({ session: testSessionOne, user: testUserOneDB });
+		const response = await mainCaller.users.getReferralCount();
+
+		expect(response.success).toEqual(true);
+		expect(response.data.count).toEqual(1);
+	});
+
 	// TODO: test cascading deletes of storylines
 });

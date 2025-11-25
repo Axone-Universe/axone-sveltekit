@@ -153,8 +153,9 @@ export function addOwnerUpdateRestrictionFilter(user: UserProperties, filter: an
 	}
 
 	let permissionFilter = {};
+	// We add the _id filter to allow updating the user document itself
 	permissionFilter = {
-		$or: [...(user.admin ? [{}] : []), { user: user._id }]
+		$or: [...(user.admin ? [{}] : []), { user: user._id }, { _id: user._id }]
 	};
 
 	const updatedFilter = { $and: [filter, permissionFilter] };

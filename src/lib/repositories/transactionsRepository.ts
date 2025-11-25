@@ -51,6 +51,7 @@ export class TransactionsRepository extends Repository {
 
 		if (input.accountId) filter.account = input.accountId;
 		if (input.senderId) filter.sender = input.senderId;
+		if (input.receiverId) filter.receiver = input.receiverId;
 
 		pipeline.push({ $match: filter });
 
@@ -77,5 +78,19 @@ export class TransactionsRepository extends Repository {
 		return new Promise<number>((resolve) => {
 			resolve(count);
 		});
+	}
+
+	async getRedemptionTransactions(
+		userId: string
+	): Promise<HydratedDocument<TransactionProperties>[]> {
+		const result = await Transaction.aggregate([
+			{
+				$match: {
+					receiver: userId,
+					type: 'Redemption'
+				}
+			}
+		]).exec();
+		return result;
 	}
 }

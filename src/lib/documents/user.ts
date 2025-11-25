@@ -18,7 +18,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		super();
 		this._userProperties = {
 			_id: id ? id : '',
-			...(id ? { readingLists: new Map([[DEFAULT_READING_LIST, []]]) } : {})
+			...(id ? {} : { readingLists: new Map([[DEFAULT_READING_LIST, []]]) })
 		};
 	}
 
@@ -34,6 +34,11 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 
 	admin(admin: boolean): UserBuilder {
 		this._userProperties.admin = admin;
+		return this;
+	}
+
+	ambassador(ambassador: boolean): UserBuilder {
+		this._userProperties.ambassador = ambassador;
 		return this;
 	}
 
@@ -108,6 +113,8 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 			this._userProperties,
 			{ new: true, user: this._sessionUser }
 		);
+
+		console.log('** user', user);
 
 		return user;
 	}

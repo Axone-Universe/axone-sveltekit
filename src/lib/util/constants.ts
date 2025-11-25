@@ -147,15 +147,55 @@ export const xrplTransactionTypes = [
 	'NFTokenAcceptOffer'
 ] as const;
 
-export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal']] as const;
+export const transactionTypes = [...xrplTransactionTypes, ...['Withdrawal', 'Redemption']] as const;
 
 export const transactionStatuses = ['pending', 'success', 'failed'] as const;
 
-export const currencyCodes = ['XRP', 'USD'] as const;
+export const currencyCodes = ['XRP', 'USD', 'ZAR'] as const;
 
 export const currencies: Record<CurrencyCode, Currency> = {
 	XRP: { scale: 6, code: 'XRP', symbol: 'XRP' },
-	USD: { code: 'USD', symbol: '$', scale: 2 }
+	USD: { code: 'USD', symbol: '$', scale: 2 },
+	ZAR: { code: 'ZAR', symbol: 'R', scale: 2 }
 };
+
+export type RewardTier = {
+	points: number;
+	value: number;
+	label: string;
+	currency: CurrencyCode;
+	rewardType: string;
+};
+
+export const rewardTiers: RewardTier[] = [
+	{
+		points: 100,
+		value: 100,
+		label: 'R100 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 250,
+		value: 250,
+		label: 'R250 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 500,
+		value: 500,
+		label: 'R500 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 1000,
+		value: 1000,
+		label: 'R1000 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	}
+];
 
 export const visibleDocuments = [BookLabel, ChapterLabel, StorylineLabel, ResourceLabel] as const;

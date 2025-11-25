@@ -31,9 +31,10 @@
 
 	const modalStore = getModalStore();
 
-	let placeHolderAccount: HydratedDocument<AccountProperties> | undefined;
-	$: account = placeHolderAccount;
-	$: currencySymbol = '';
+	let accounts: HydratedDocument<AccountProperties>[] = [];
+	let selectedAccountId: string = '';
+	$: account = accounts.find((acc) => acc._id === selectedAccountId);
+	$: currencySymbol = account ? currencies[account.currency as CurrencyCode].symbol : '';
 
 	$: getTransactionsInfinite = trpcWithQuery($page).transactions.get.createInfiniteQuery(
 		{
@@ -42,7 +43,7 @@
 		},
 		{
 			enabled: account ? true : false,
-			queryKey: ['monetization', archiveMode],
+			queryKey: ['monetization', archiveMode, selectedAccountId],
 			getNextPageParam: (lastPage) => lastPage.cursor
 		}
 	);
@@ -55,20 +56,32 @@
 
 	/** life cycles */
 	onMount(async () => {
-		account = (
-			await trpc($page).accounts.getByUserId.query({
-				userId: data.session?.user.id!
-			})
-		).data as HydratedDocument<AccountProperties>;
+		const response = await trpc($page).accounts.getAllByUserId.query({
+			userId: data.session?.user.id!
+		});
 
-		console.log('<< account obtained');
-		console.log(account);
+		accounts = response.data as HydratedDocument<AccountProperties>[];
 
-		if (account) {
-			currencySymbol = currencies[account.currency as CurrencyCode].symbol;
+		console.log('<< accounts obtained');
+		console.log(accounts);
+
+		if (accounts.length > 0) {
+			selectedAccountId = accounts[0]._id;
 			$getTransactionsInfinite.fetchNextPage();
 		}
 	});
+
+	function handleAccountChange(event: Event) {
+		const target = event.target as HTMLSelectElement;
+		selectedAccountId = target.value;
+		$getTransactionsInfinite.refetch();
+	}
+
+	function getAccountDisplayText(acc: HydratedDocument<AccountProperties>): string {
+		const symbol = currencies[acc.currency as CurrencyCode]?.symbol || '';
+		const balance = acc.balance?.toFixed(acc.currencyScale) ?? 0;
+		return `${symbol}${balance} (${acc.currency})`;
+	}
 
 	const withdrawComponent: ModalComponent = {
 		ref: WithdrawPage,
@@ -139,12 +152,26 @@
 					<tr>
 						<td colspan={colSpan - 2} />
 						<td colspan={1}>
-							<div class="flex">
-								<button class="btn !text-sm font-bold variant-ghost-primary !py-1">
-									{currencySymbol}
-									{account?.balance?.toFixed(account.currencyScale) ?? 0}
-								</button>
-							</div>
+							{#if accounts.length > 1}
+								<select
+									class="select !text-sm font-bold variant-ghost-primary !py-1"
+									bind:value={selectedAccountId}
+									on:change={handleAccountChange}
+								>
+									{#each accounts as acc}
+										<option value={acc._id}>
+											{getAccountDisplayText(acc)}
+										</option>
+									{/each}
+								</select>
+							{:else}
+								<div class="flex">
+									<button class="btn !text-sm font-bold variant-ghost-primary !py-1">
+										{currencySymbol}
+										{account?.balance?.toFixed(account.currencyScale) ?? 0}
+									</button>
+								</div>
+							{/if}
 						</td>
 						<td colspan={1}>
 							<Tooltip

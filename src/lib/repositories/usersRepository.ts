@@ -139,4 +139,9 @@ export class UsersRepository extends Repository {
 			resolve(count);
 		});
 	}
+
+	async countReferrals(userId: string): Promise<number> {
+		const count = await User.countDocuments({ referralUser: userId });
+		return count;
+	}
 }
