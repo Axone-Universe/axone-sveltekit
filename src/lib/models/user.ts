@@ -8,7 +8,7 @@ import {
 } from '$lib/properties/user';
 import { label as StorylineLabel } from '$lib/properties/storyline';
 import mongoose, { Schema, model } from 'mongoose';
-import { setUpdateDate } from './permission';
+import { addOwnerUpdateRestrictionFilter, setUpdateDate } from './permission';
 
 export const userSchema = new Schema<UserProperties>({
 	_id: { type: String, required: true },
@@ -21,6 +21,7 @@ export const userSchema = new Schema<UserProperties>({
 	instagram: String,
 	twitter: String,
 	admin: Boolean,
+	ambassador: Boolean,
 	genres: [
 		{
 			type: String,
@@ -43,6 +44,10 @@ export const userSchema = new Schema<UserProperties>({
 		],
 		default: new Map([[DEFAULT_READING_LIST, []]])
 	},
+	referralSource: String,
+	referralAboutSource: String,
+	referralSocialMediaSource: [String],
+	referralUser: { type: String, ref: label },
 	createdAt: Date,
 	updatedAt: Date
 });
@@ -60,10 +65,10 @@ userSchema.pre(
 				delete update?.$set?.admin;
 			}
 		}
+
 		setUpdateDate(update);
 
-		const updatedFilter = { $and: [filter, { _id: user._id }] };
-
+		const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
 		this.setQuery(updatedFilter);
 
 		next();

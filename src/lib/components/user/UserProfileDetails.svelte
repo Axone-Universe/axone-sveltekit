@@ -2,23 +2,89 @@
 	import { Avatar, Step, Stepper, FileButton, getToastStore } from '@skeletonlabs/skeleton';
 	import type { ToastSettings } from '@skeletonlabs/skeleton';
 	import defaultUserImage from '$lib/assets/default-user.png';
-	import { USER_LABELS, type UserProperties } from '$lib/properties/user';
+	import { USER_LABELS, type UserProperties, type UserLabel } from '$lib/properties/user';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import { GENRES } from '$lib/properties/genre';
-	import { pencil as pencilIcon } from 'svelte-awesome/icons';
-	import Icon from 'svelte-awesome';
+	import { pencil as pencilIcon, book, edit, paintBrush } from 'svelte-awesome/icons';
+	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { StorageBucketError, UploadFileToBucketParams } from '$lib/util/types';
 	import { uploadImage } from '$lib/util/bucket/bucket';
+	import UserFilter from '$lib/components/user/UserFilter.svelte';
+	import type { HydratedDocument } from 'mongoose';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { trpc } from '$lib/trpc/client';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
 	export let supabase: SupabaseClient;
 
 	let genres = userProperties.genres ?? [];
-	let labels = userProperties.labels ?? [];
+	let labels: UserLabel[] = userProperties.labels?.length ? userProperties.labels : ['Reader'];
+	let referralSource = userProperties.referralSource ?? '';
+	let referralAboutSource = userProperties.referralAboutSource ?? '';
+	let socialMediaSources = userProperties.referralSocialMediaSource ?? [];
+	let referralUsers: { [key: string]: HydratedDocument<UserProperties> } = {};
+	let isReferralFromLink = false; // Track if referral came from a link
 
 	const toastStore = getToastStore();
+
+	// Check for referral ID from localStorage on mount
+	onMount(async () => {
+		const referralId = localStorage.getItem('axone-referral-id');
+		if (referralId && !userProperties.referralUser) {
+			try {
+				// Fetch the referrer user details
+				const response = await trpc($page).users.get.query({ id: referralId });
+				if (response.data && response.data.length > 0) {
+					const referrerUser = response.data[0] as HydratedDocument<UserProperties>;
+					// Set the referral fields
+					referralSource = 'Referral';
+					userProperties.referralUser = referralId;
+					referralUsers[referralId] = referrerUser;
+					isReferralFromLink = true; // Mark that this came from a referral link
+					console.log('Pre-populated referral from localStorage:', referralId);
+					// Clear the localStorage value after using it
+					localStorage.removeItem('axone-referral-id');
+				}
+			} catch (error) {
+				console.error('Error fetching referrer user:', error);
+				// Clear invalid referral ID
+				localStorage.removeItem('axone-referral-id');
+			}
+		}
+	});
+
+	const REFERRAL_SOURCES = [
+		"Cape Town Writers' Network",
+		'Social Media',
+		'Google Search',
+		'Referral',
+		'Other'
+	] as const;
+
+	const SOCIAL_MEDIA_OPTIONS = ['Instagram', 'LinkedIn', 'TikTok', 'Facebook'] as const;
+
+	const ROLE_CONFIG: Record<string, { icon: any; description: string; disabled?: boolean }> = {
+		Reader: {
+			icon: book,
+			description: 'Discover and enjoy stories from the community',
+			disabled: true
+		},
+		Writer: {
+			icon: edit,
+			description: 'Create original stories and collaborate with others'
+		},
+		Illustrator: {
+			icon: paintBrush,
+			description: 'Bring stories to life with visual art'
+		},
+		Editor: {
+			icon: pencilIcon,
+			description: 'Help refine and polish written content'
+		}
+	};
 
 	const aboutMaxLength = 500;
 	/**
@@ -46,7 +112,46 @@
 	async function submit() {
 		userProperties.genres = genres;
 		userProperties.labels = labels;
+
+		// Handle referralSource based on selection
+		if (referralSource) {
+			userProperties.referralSource = referralSource;
+		}
+
+		// Handle referralAboutSource - only set if "Other" is selected
+		if (referralSource === 'Other' && referralAboutSource.trim()) {
+			userProperties.referralAboutSource = referralAboutSource.trim();
+		} else {
+			userProperties.referralAboutSource = undefined;
+		}
+
+		// Handle referralSocialMediaSource - only set if "Social Media" is selected
+		if (referralSource === 'Social Media') {
+			userProperties.referralSocialMediaSource = socialMediaSources;
+		} else {
+			userProperties.referralSocialMediaSource = undefined;
+		}
+
+		// Handle referralUser - only set if "Referral" is selected
+		if (referralSource !== 'Referral') {
+			userProperties.referralUser = undefined;
+		}
+
+		console.log('UserProfileDetails submit:', {
+			referralSource: userProperties.referralSource,
+			referralAboutSource: userProperties.referralAboutSource,
+			referralSocialMediaSource: userProperties.referralSocialMediaSource,
+			referralUser: userProperties.referralUser
+		});
+
 		onSubmit(userProperties);
+	}
+
+	function onReferralUserSelect(event: any) {
+		const userId = event.detail.value;
+		if (userId && referralUsers[userId]) {
+			userProperties.referralUser = userId;
+		}
 	}
 
 	/**
@@ -127,8 +232,81 @@
 				About
 				<TextArea maxLength={500} bind:textContent={userProperties.about} />
 			</label>
+
+			<!-- User Role Section -->
+			<div class="space-y-4 pt-4 border-t border-surface-300-600-token">
+				<h3 class="text-lg font-semibold">User Role</h3>
+				<p class="text-sm text-surface-600-300-token">
+					Select the roles that best describe you. Reader role is selected by default, and you can
+					choose additional roles to help us provide you with the right opportunities on the
+					platform.
+				</p>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{#each USER_LABELS as userLabel}
+						{@const config = ROLE_CONFIG[userLabel]}
+						<button
+							type="button"
+							disabled={config.disabled && labels.includes(userLabel)}
+							class="card p-4 text-left transition-all duration-200 {labels.includes(userLabel)
+								? 'variant-filled-primary ring-2 ring-primary-500'
+								: 'variant-soft hover:variant-soft-primary'} {config.disabled &&
+							labels.includes(userLabel)
+								? 'opacity-75 cursor-not-allowed'
+								: 'cursor-pointer'}"
+							on:click={() => {
+								if (config.disabled && labels.includes(userLabel)) return;
+								const index = labels.indexOf(userLabel);
+								if (index > -1) {
+									labels = labels.filter((v) => v !== userLabel);
+								} else {
+									labels = [...labels, userLabel];
+								}
+							}}
+						>
+							<div class="flex items-start gap-3">
+								<div
+									class="w-10 h-10 rounded-lg flex items-center justify-center {labels.includes(
+										userLabel
+									)
+										? 'bg-primary-500/20'
+										: 'bg-surface-400-500-token/20'}"
+								>
+									<Icon data={config.icon} scale={1.2} />
+								</div>
+								<div class="flex-1">
+									<h4 class="font-semibold mb-1">
+										{userLabel}
+										{#if config.disabled}
+											<span class="text-xs opacity-70">(Default)</span>
+										{/if}
+									</h4>
+									<p class="text-xs text-surface-600-300-token leading-relaxed">
+										{config.description}
+									</p>
+								</div>
+							</div>
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Social Media Section -->
+			<div class="space-y-4 pt-4 border-t border-surface-300-600-token">
+				<h3 class="text-lg font-semibold">Social Media</h3>
+				<label>
+					Facebook profile link
+					<input class="input" type="text" bind:value={userProperties.facebook} />
+				</label>
+				<label>
+					Instagram handle
+					<input class="input" type="text" bind:value={userProperties.instagram} />
+				</label>
+				<label>
+					Twitter handle
+					<input class="input" type="text" bind:value={userProperties.twitter} />
+				</label>
+			</div>
 		</div>
-		<!-- svelte-ignore a11y-label-has-associated-control -->
 	</Step>
 
 	<Step>
@@ -154,51 +332,103 @@
 		</div>
 	</Step>
 	<Step>
-		<svelte:fragment slot="header">User Role</svelte:fragment>
-		<div class="min-h-[calc(60vh)] space-y-4">
-			<div>
-				You can have multiple roles as a user on the Axone platform. You are given the Reader role
-				by default and you can have Writer, Editor, and Illustrator as additional roles. These roles
-				are important for determining how we can provide you exposure should you be looking to
-				collaborate on the platform.
-			</div>
-			<div class="flex justify-center">
-				<div class="btn-group variant-filled w-fit">
-					{#each USER_LABELS as userLabel}
-						<button
-							class={labels.includes(userLabel) ? 'variant-filled-primary' : 'variant-soft'}
-							on:click={() => {
-								const index = labels.indexOf(userLabel);
-								if (index > -1) {
-									labels = labels.filter((v) => v !== userLabel);
-								} else {
-									labels = [...labels, userLabel];
-								}
-							}}
-							on:keypress
+		<svelte:fragment slot="header">How Did You Hear About Us?</svelte:fragment>
+		<div class="min-h-[calc(60vh)] space-y-6">
+			<p class="text-surface-600-300-token">
+				Help us understand how you discovered Axone Universe
+				{#if isReferralFromLink}
+					<span class="block mt-2 text-primary-500 font-semibold">
+						You were referred by a member of our community!
+					</span>
+				{/if}
+			</p>
+
+			<!-- Referral Source Selection -->
+			<div class="space-y-4">
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label class="font-semibold">Select one option:</label>
+				<div class="space-y-3">
+					{#each REFERRAL_SOURCES as source}
+						<label
+							class="flex items-center space-x-3 {isReferralFromLink
+								? 'cursor-not-allowed opacity-60'
+								: 'cursor-pointer'}"
 						>
-							{userLabel}
-						</button>
+							<input
+								type="radio"
+								name="referralSource"
+								value={source}
+								bind:group={referralSource}
+								class="radio"
+								disabled={isReferralFromLink}
+							/>
+							<span>{source}</span>
+						</label>
 					{/each}
 				</div>
 			</div>
-		</div>
-	</Step>
-	<Step>
-		<svelte:fragment slot="header">Social Media</svelte:fragment>
-		<div class="min-h-[calc(60vh)]">
-			<label>
-				Facebook profile link
-				<input class="input" type="text" bind:value={userProperties.facebook} />
-			</label>
-			<label>
-				Instagram handle
-				<input class="input" type="text" bind:value={userProperties.instagram} />
-			</label>
-			<label>
-				Twitter handle
-				<input class="input" type="text" bind:value={userProperties.twitter} />
-			</label>
+
+			<!-- Social Media Options (shown when "Social Media" is selected) -->
+			{#if referralSource === 'Social Media'}
+				<div class="space-y-4 p-4 card variant-soft">
+					<!-- svelte-ignore a11y-label-has-associated-control -->
+					<label class="font-semibold">Which social media platform(s)?</label>
+					<div class="flex flex-wrap gap-2">
+						{#each SOCIAL_MEDIA_OPTIONS as platform}
+							<button
+								class="chip {socialMediaSources.includes(platform)
+									? 'variant-filled-primary'
+									: 'variant-soft'}"
+								on:click={() => {
+									const index = socialMediaSources.indexOf(platform);
+									if (index > -1) {
+										socialMediaSources = socialMediaSources.filter((v) => v !== platform);
+									} else {
+										socialMediaSources = [...socialMediaSources, platform];
+									}
+								}}
+							>
+								{platform}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Referral User Selection (shown when "Referral" is selected) -->
+			{#if referralSource === 'Referral'}
+				<div class="space-y-4 p-4 card variant-soft">
+					<!-- svelte-ignore a11y-label-has-associated-control -->
+					<label class="font-semibold">Who referred you?</label>
+					{#if !isReferralFromLink}
+						<UserFilter onUserSelect={onReferralUserSelect} users={referralUsers} class="w-full" />
+					{/if}
+					{#if userProperties.referralUser && referralUsers[userProperties.referralUser]}
+						<div class="flex items-center gap-2 text-sm">
+							<span class="text-surface-600-300-token">Selected:</span>
+							<span class="font-semibold">
+								{referralUsers[userProperties.referralUser].firstName}
+								{referralUsers[userProperties.referralUser].lastName}
+							</span>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			<!-- Other Option (shown when "Other" is selected) -->
+			{#if referralSource === 'Other'}
+				<div class="space-y-4 p-4 card variant-soft">
+					<label>
+						<span class="font-semibold">Please specify:</span>
+						<input
+							class="input mt-2"
+							type="text"
+							bind:value={referralAboutSource}
+							placeholder="How did you hear about us?"
+						/>
+					</label>
+				</div>
+			{/if}
 		</div>
 	</Step>
 </Stepper>

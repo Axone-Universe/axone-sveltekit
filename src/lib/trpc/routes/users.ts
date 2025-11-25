@@ -12,7 +12,8 @@ import {
 	getReadingList,
 	update,
 	updateReadingLists,
-	renameReadingList
+	renameReadingList,
+	updateUserAsAdmin
 } from '$lib/trpc/schemas/users';
 import type { HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
@@ -94,6 +95,7 @@ export const users = t.router({
 			if (input.firstName) userBuilder = userBuilder.firstName(input.firstName);
 			if (input.lastName) userBuilder = userBuilder.lastName(input.lastName);
 
+			if (input.ambassador !== undefined) userBuilder = userBuilder.ambassador(input.ambassador);
 			if (input.imageURL) userBuilder = userBuilder.imageURL(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.email) userBuilder = userBuilder.email(input.email);
@@ -102,12 +104,20 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
+			if (input.referralSource) userBuilder = userBuilder.referralSource(input.referralSource);
+			if (input.referralAboutSource)
+				userBuilder = userBuilder.referralAboutSource(input.referralAboutSource);
+			if (input.referralSocialMediaSource)
+				userBuilder = userBuilder.referralSocialMediaSource(input.referralSocialMediaSource);
+			if (input.referralUser) userBuilder = userBuilder.referralUser(input.referralUser);
 
 			const response: Response = {
 				success: true,
 				message: 'update successfull',
 				data: {}
 			};
+
+			console.log('userBuilder', userBuilder);
 			try {
 				const result = await userBuilder.update();
 				response.data = result;
@@ -129,6 +139,7 @@ export const users = t.router({
 				.lastName(input.lastName!);
 
 			if (input.admin) userBuilder = userBuilder.admin(input.admin);
+			if (input.ambassador !== undefined) userBuilder = userBuilder.ambassador(input.ambassador);
 			if (input.imageURL) userBuilder = userBuilder.imageURL(input.imageURL);
 			if (input.about) userBuilder = userBuilder.about(input.about);
 			if (input.email) userBuilder = userBuilder.email(input.email);
@@ -137,6 +148,12 @@ export const users = t.router({
 			if (input.twitter) userBuilder = userBuilder.twitter(input.twitter);
 			if (input.genres) userBuilder = userBuilder.genres(input.genres);
 			if (input.labels) userBuilder = userBuilder.labels(input.labels);
+			if (input.referralSource) userBuilder = userBuilder.referralSource(input.referralSource);
+			if (input.referralAboutSource)
+				userBuilder = userBuilder.referralAboutSource(input.referralAboutSource);
+			if (input.referralSocialMediaSource)
+				userBuilder = userBuilder.referralSocialMediaSource(input.referralSocialMediaSource);
+			if (input.referralUser) userBuilder = userBuilder.referralUser(input.referralUser);
 
 			const response: Response = {
 				success: true,
@@ -276,5 +293,62 @@ export const users = t.router({
 			}
 
 			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
+		}),
+
+	updateUserAsAdmin: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(updateUserAsAdmin)
+		.mutation(async ({ input, ctx }) => {
+			// Check if the current user is an admin
+			if (!ctx.user?.admin) {
+				return {
+					success: false,
+					message: 'Unauthorized: Only admins can update other users',
+					data: null
+				};
+			}
+
+			const response: Response = {
+				success: true,
+				message: 'user ambassador status updated',
+				data: {}
+			};
+
+			try {
+				const result = await new UserBuilder(input.userId)
+					.sessionUser(ctx.user!)
+					.ambassador(input.ambassador)
+					.update();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unknown error';
+			}
+
+			return { ...response, ...{ data: response.data as HydratedDocument<UserProperties> | null } };
+		}),
+
+	getReferralCount: t.procedure
+		.use(logger)
+		.use(auth)
+		.query(async ({ ctx }) => {
+			const response: Response = {
+				success: true,
+				message: 'referral count retrieved',
+				data: { count: 0 }
+			};
+
+			try {
+				// Count users where referralUser equals the current user's ID
+				const usersRepo = new UsersRepository();
+				const count = await usersRepo.countReferrals(ctx.session!.user.id);
+				response.data = { count };
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unknown error';
+			}
+
+			return { ...response, ...{ data: response.data as { count: number } } };
 		})
 });

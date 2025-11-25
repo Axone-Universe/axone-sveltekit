@@ -10,20 +10,7 @@ export const create = z.object({
 	firstName: z.string().min(1).optional(),
 	lastName: z.string().min(1).optional(),
 	admin: z.boolean().optional(),
-	imageURL: z.string().optional(),
-	about: z.string().optional(),
-	email: z.string().optional(),
-	facebook: z.string().optional(),
-	instagram: z.string().optional(),
-	twitter: z.string().optional(),
-	genres: genreSchema.optional(),
-	labels: userSchema.optional()
-});
-
-export const update = z.object({
-	firstName: z.string().min(1).optional(),
-	lastName: z.string().min(1).optional(),
-	admin: z.boolean().optional(),
+	ambassador: z.boolean().optional(),
 	imageURL: z.string().optional(),
 	about: z.string().optional(),
 	email: z.string().optional(),
@@ -32,11 +19,39 @@ export const update = z.object({
 	twitter: z.string().optional(),
 	genres: genreSchema.optional(),
 	labels: userSchema.optional(),
-	readingLists: z.map(z.string(), z.array(z.string())).optional()
+	referralSource: z.string().optional(),
+	referralAboutSource: z.string().optional(),
+	referralSocialMediaSource: z.array(z.string()).optional(),
+	referralUser: z.string().optional()
+});
+
+export const update = z.object({
+	firstName: z.string().min(1).optional(),
+	lastName: z.string().min(1).optional(),
+	admin: z.boolean().optional(),
+	ambassador: z.boolean().optional(),
+	imageURL: z.string().optional(),
+	about: z.string().optional(),
+	email: z.string().optional(),
+	facebook: z.string().optional(),
+	instagram: z.string().optional(),
+	twitter: z.string().optional(),
+	genres: genreSchema.optional(),
+	labels: userSchema.optional(),
+	readingLists: z.map(z.string(), z.array(z.string())).optional(),
+	referralSource: z.string().optional(),
+	referralAboutSource: z.string().optional(),
+	referralSocialMediaSource: z.array(z.string()).optional(),
+	referralUser: z.string().optional()
 });
 
 export const getReadingList = z.object({
 	name: z.string().optional()
+});
+
+export const updateUserAsAdmin = z.object({
+	userId: z.string(),
+	ambassador: z.boolean()
 });
 
 export const createDeleteReadingList = z.object({

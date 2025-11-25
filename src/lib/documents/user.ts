@@ -18,7 +18,7 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		super();
 		this._userProperties = {
 			_id: id ? id : '',
-			...(id ? { readingLists: new Map([[DEFAULT_READING_LIST, []]]) } : {})
+			...(id ? {} : { readingLists: new Map([[DEFAULT_READING_LIST, []]]) })
 		};
 	}
 
@@ -34,6 +34,11 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 
 	admin(admin: boolean): UserBuilder {
 		this._userProperties.admin = admin;
+		return this;
+	}
+
+	ambassador(ambassador: boolean): UserBuilder {
+		this._userProperties.ambassador = ambassador;
 		return this;
 	}
 
@@ -77,6 +82,26 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 		return this;
 	}
 
+	referralSource(referralSource: string): UserBuilder {
+		this._userProperties.referralSource = referralSource;
+		return this;
+	}
+
+	referralAboutSource(referralAboutSource: string): UserBuilder {
+		this._userProperties.referralAboutSource = referralAboutSource;
+		return this;
+	}
+
+	referralSocialMediaSource(referralSocialMediaSource: string[]): UserBuilder {
+		this._userProperties.referralSocialMediaSource = referralSocialMediaSource;
+		return this;
+	}
+
+	referralUser(referralUser: string): UserBuilder {
+		this._userProperties.referralUser = referralUser;
+		return this;
+	}
+
 	sessionUser(sessionUser: UserProperties): UserBuilder {
 		this._sessionUser = sessionUser;
 		return this;
@@ -88,6 +113,8 @@ export class UserBuilder extends DocumentBuilder<HydratedDocument<UserProperties
 			this._userProperties,
 			{ new: true, user: this._sessionUser }
 		);
+
+		console.log('** user', user);
 
 		return user;
 	}

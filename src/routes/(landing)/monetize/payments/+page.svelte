@@ -16,10 +16,9 @@
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import { getArchiveModal, getUnarchiveModal } from '$lib/util/studio/modals';
-	import { formattedDate } from '$lib/util/studio/strings';
 	import RowActions from '$lib/components/studio/RowActions.svelte';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
-	import { arrowDown, cartArrowDown, trash } from 'svelte-awesome/icons';
+	import { arrowDown, cartArrowDown, trash, check } from 'svelte-awesome/icons';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { type AccountProperties } from '$lib/properties/account';
@@ -102,6 +101,44 @@
 						})
 						.catch((error: any) => {
 							console.log(error);
+						});
+				}
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
+	function completeTransaction(transactionId: string) {
+		const modal: ModalSettings = {
+			type: 'confirm',
+			// Data
+			title: 'Complete Transaction',
+			body: 'Are you sure you want to mark this transaction as complete?',
+			// TRUE if confirm pressed, FALSE if cancel pressed
+			response: (r: boolean) => {
+				if (r) {
+					trpc($page)
+						.transactions.complete.mutate({
+							id: transactionId
+						})
+						.then(async (response) => {
+							if (response.success) {
+								// Refetch transactions to update the list
+								$getTransactionsInfinite.refetch();
+							}
+							const completionToast: ToastSettings = {
+								message: response.message,
+								background: response.success ? 'variant-filled-success' : 'variant-filled-error'
+							};
+							toastStore.trigger(completionToast);
+						})
+						.catch((error: any) => {
+							console.log(error);
+							const errorToast: ToastSettings = {
+								message: 'Failed to complete transaction',
+								background: 'variant-filled-error'
+							};
+							toastStore.trigger(errorToast);
 						});
 				}
 			}
@@ -199,25 +236,42 @@
 									{#if transaction.status === 'pending'}
 										<RowActions
 											document={transaction}
-											rowActions={[
-												{
-													label: 'Checkout',
-													icon: cartArrowDown,
-													callback: () => {
-														window.open(
-															`/payment?payloadId=${transaction.payload?.uuid}`,
-															'_blank'
-														);
-													}
-												},
-												{
-													label: 'Cancel',
-													icon: trash,
-													callback: () => {
-														cancelTransaction(transaction._id);
-													}
-												}
-											]}
+											rowActions={transaction.currency === 'XRP'
+												? [
+														{
+															label: 'Checkout',
+															icon: cartArrowDown,
+															callback: () => {
+																window.open(
+																	`/payment?payloadId=${transaction.payload?.uuid}`,
+																	'_blank'
+																);
+															}
+														},
+														{
+															label: 'Cancel',
+															icon: trash,
+															callback: () => {
+																cancelTransaction(transaction._id);
+															}
+														}
+												  ]
+												: [
+														{
+															label: 'Complete',
+															icon: check,
+															callback: () => {
+																completeTransaction(transaction._id);
+															}
+														},
+														{
+															label: 'Cancel',
+															icon: trash,
+															callback: () => {
+																cancelTransaction(transaction._id);
+															}
+														}
+												  ]}
 										/>
 									{/if}
 								</td>

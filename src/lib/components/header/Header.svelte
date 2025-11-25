@@ -9,6 +9,7 @@
 	import type { PopupSettings } from '../../util/popup/types';
 
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
+	import type { UserProperties } from '$lib/properties/user';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import {
 		caretDown,
@@ -19,14 +20,21 @@
 		powerOff,
 		user,
 		sunO,
-		moonO
+		moonO,
+		star
 	} from 'svelte-awesome/icons';
 	import { collaborateMenuList, creatorsMenuList, readMenuList } from '$lib/util/links';
 	import NotificationCenter from '../notifications/NotificationCenter.svelte';
 	import { goto } from '$app/navigation';
 	import { StoreIcon } from 'lucide-svelte';
 
-	export let data: { supabase: SupabaseClient; session: Session | null };
+	export let data: {
+		supabase: SupabaseClient;
+		session: Session | null;
+		user?: UserProperties | null;
+	};
+
+	$: isAmbassador = data.user?.ambassador ?? false;
 
 	const drawerStore = getDrawerStore();
 
@@ -243,6 +251,16 @@
 										<span>Monetize</span>
 									</a>
 									<hr class="!my-2 variant-fill-primary" />
+									{#if isAmbassador}
+										<a
+											class="btn space-x-6 hover:variant-soft-primary justify-between variant-soft-warning"
+											href={`/ambassadors/referrals`}
+										>
+											<Icon data={star} />
+											<span>Ambassadors</span>
+										</a>
+										<hr class="!my-2 variant-fill-primary" />
+									{/if}
 									<button
 										class="btn space-x-6 hover:variant-soft-primary justify-between"
 										on:click={onLogoutButtonClick}
