@@ -8,6 +8,7 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { auth } from '$lib/trpc/middleware/auth';
 import { t } from '$lib/trpc/t';
 import type { Response, CurrencyCode } from '$lib/util/types';
+import { currencies } from '$lib/util/constants';
 import mongoose, { type HydratedDocument } from 'mongoose';
 import { z } from 'zod';
 import { read, redeemReward } from '../schemas/transactions';
@@ -79,6 +80,33 @@ export const transactions = t.router({
 
 		return { ...response, ...{ data: response.data as mongoose.mongo.DeleteResult } };
 	}),
+	complete: t.procedure
+		.use(logger)
+		.use(auth)
+		.input(z.object({ id: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			const response: Response = {
+				success: true,
+				message: 'transaction successfully completed',
+				data: {}
+			};
+
+			try {
+				const result = await new TransactionBuilder(input.id)
+					.status('success')
+					.sessionUser(ctx.user!)
+					.update();
+				response.data = result;
+			} catch (error) {
+				response.success = false;
+				response.message = error instanceof Object ? error.toString() : 'unknown error';
+			}
+
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<TransactionProperties> }
+			};
+		}),
 	redeemReward: t.procedure
 		.use(logger)
 		.use(auth)
@@ -125,20 +153,27 @@ export const transactions = t.router({
 					throw new Error('Admin user not found');
 				}
 
-				// Get or create account in USD currency (for Rand vouchers)
+				// Get currency details from constants
+				const currencyCode = input.currency;
+				const currency = currencies[currencyCode];
+				if (!currency) {
+					throw new Error(`Invalid currency: ${currencyCode}`);
+				}
+
+				// Get or create account in the specified currency
 				const accountsRepo = new AccountsRepository();
 				let account = await accountsRepo.getByUserId(ctx.session!.user.id, false);
 
-				// If account doesn't exist or is not in USD, create a USD account
-				if (!account || account.currency !== 'USD') {
-					const accountBuilder = new AccountBuilder(undefined, 'USD').userID(ctx.session!.user.id);
+				// If account doesn't exist or is not in the required currency, create/update account
+				if (!account || account.currency !== currencyCode) {
+					const accountBuilder = new AccountBuilder(undefined, currencyCode).userID(
+						ctx.session!.user.id
+					);
 					account = await accountBuilder.build();
 				}
 
-				// The voucher value is the monetary value in Rand (which we'll store as USD cents)
-				// For simplicity, we'll treat R1 = $1 for the account balance
-				const voucherValue = input.rewardValue; // in Rand/USD
-				const voucherValueCents = voucherValue * 100; // Convert to cents
+				const voucherValue = input.rewardValue;
+				const currencySymbol = currency.symbol;
 
 				// 1. Create Redemption transaction (increases balance by monetary value, status: success)
 				// Note: We store the monetary value in value/netValue (for balance updates)
@@ -149,14 +184,12 @@ export const transactions = t.router({
 					.receiverID(ctx.session!.user.id) // User is the receiver
 					.accountId(account._id)
 					.accountCurrency(account.currency as CurrencyCode)
-					.exchangeRate(1) // 1:1 for USD
-					.currency('USD')
-					.value(voucherValueCents) // Store monetary value in cents (for balance)
-					.netValue(voucherValueCents)
+					.exchangeRate(1) // 1:1 exchange rate
+					.currency(currencyCode)
+					.value(voucherValue) // Store monetary value as-is
+					.netValue(voucherValue)
 					.documentId(input.points.toString()) // Store points for tracking
-					.note(
-						`Redemption: ${input.rewardType} - R${input.rewardValue} voucher (${input.points} points redeemed)`
-					)
+					.note(`Redemption: ${input.rewardType}`)
 					.status('success') // Mark as success to increase balance
 					.sessionUser(ctx.user!)
 					.build();
@@ -171,11 +204,11 @@ export const transactions = t.router({
 					.receiverID(ctx.session!.user.id) // User is the receiver
 					.accountId(account._id)
 					.accountCurrency(account.currency as CurrencyCode)
-					.exchangeRate(1) // 1:1 for USD
-					.currency('USD')
-					.value(voucherValueCents) // Store monetary value in cents
-					.netValue(voucherValueCents)
-					.note(`Withdrawal: ${input.rewardType} - R${input.rewardValue} voucher pending delivery`)
+					.exchangeRate(1) // 1:1 exchange rate
+					.currency(currencyCode)
+					.value(voucherValue) // Store monetary value as-is
+					.netValue(voucherValue)
+					.note(`Withdrawal: ${input.rewardType}`)
 					.status('pending') // Pending until admin processes
 					.xrplType('Payment')
 					.sessionUser(ctx.user!)
@@ -188,7 +221,7 @@ export const transactions = t.router({
 					redemptionTransaction,
 					withdrawalTransaction,
 					account,
-					message: `Reward of R${input.rewardValue} will be sent to your email within 24-48 hours`,
+					message: `Reward of ${currencySymbol}${input.rewardValue} will be sent to your email within 24-48 hours`,
 					pointsRedeemed: input.points,
 					remainingPoints: availablePoints - input.points
 				};

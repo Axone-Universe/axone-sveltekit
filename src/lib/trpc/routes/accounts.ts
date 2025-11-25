@@ -54,6 +54,27 @@ export const accounts = t.router({
 				...{ data: response.data as HydratedDocument<AccountProperties> }
 			};
 		}),
+	getAllByUserId: t.procedure
+		.use(auth)
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const response: Response = {
+				success: true,
+				message: 'accounts successfully obtained',
+				data: {}
+			};
+
+			const accountsRepo = new AccountsRepository();
+
+			// get all accounts for the user
+			const accounts = await accountsRepo.getAllByUserId(input.userId!);
+			response.data = accounts;
+
+			return {
+				...response,
+				...{ data: response.data as HydratedDocument<AccountProperties>[] }
+			};
+		}),
 	withdraw: t.procedure
 		.use(auth)
 		.input(

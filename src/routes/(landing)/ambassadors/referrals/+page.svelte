@@ -110,12 +110,12 @@
 		<div class="card p-6 space-y-2">
 			<div class="flex items-center justify-between">
 				<h3 class="h4 font-semibold">Points Earned</h3>
-				<TrendingUp size={24} class="text-success-500" />
+				<TrendingUp size={24} class="text-success-700-200-token" />
 			</div>
 			{#if $referralCountQuery.isLoading}
 				<p class="text-4xl font-bold animate-pulse">...</p>
 			{:else}
-				<p class="text-4xl font-bold text-success-500">{referralPoints}</p>
+				<p class="text-4xl font-bold text-success-700-200-token">{referralPoints}</p>
 			{/if}
 			<p class="text-sm text-surface-600-300-token">10 points per referral</p>
 		</div>

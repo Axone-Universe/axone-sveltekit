@@ -26,6 +26,12 @@ export class AccountsRepository extends Repository {
 		return result[0];
 	}
 
+	async getAllByUserId(userId: string): Promise<HydratedDocument<AccountProperties>[]> {
+		// Get all accounts for a user
+		const result = await Account.aggregate([{ $match: { user: userId } }]).exec();
+		return result;
+	}
+
 	async getById(ctx: Context, id: string): Promise<HydratedDocument<AccountProperties>> {
 		// We use exec here because cursor doesn't go through post middleware for aggregate
 		const result = await Account.aggregate([{ $match: { _id: id } }], {

@@ -86,7 +86,7 @@ export class TransactionsRepository extends Repository {
 		const result = await Transaction.aggregate([
 			{
 				$match: {
-					sender: userId,
+					receiver: userId,
 					type: 'Redemption'
 				}
 			}

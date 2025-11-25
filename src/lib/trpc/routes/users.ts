@@ -116,6 +116,8 @@ export const users = t.router({
 				message: 'update successfull',
 				data: {}
 			};
+
+			console.log('userBuilder', userBuilder);
 			try {
 				const result = await userBuilder.update();
 				response.data = result;

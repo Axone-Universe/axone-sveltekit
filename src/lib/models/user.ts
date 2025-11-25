@@ -65,10 +65,10 @@ userSchema.pre(
 				delete update?.$set?.admin;
 			}
 		}
+
 		setUpdateDate(update);
 
 		const updatedFilter = addOwnerUpdateRestrictionFilter(user, filter);
-
 		this.setQuery(updatedFilter);
 
 		next();

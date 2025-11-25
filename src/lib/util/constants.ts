@@ -159,4 +159,43 @@ export const currencies: Record<CurrencyCode, Currency> = {
 	ZAR: { code: 'ZAR', symbol: 'R', scale: 2 }
 };
 
+export type RewardTier = {
+	points: number;
+	value: number;
+	label: string;
+	currency: CurrencyCode;
+	rewardType: string;
+};
+
+export const rewardTiers: RewardTier[] = [
+	{
+		points: 100,
+		value: 100,
+		label: 'R100 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 250,
+		value: 250,
+		label: 'R250 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 500,
+		value: 500,
+		label: 'R500 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	},
+	{
+		points: 1000,
+		value: 1000,
+		label: 'R1000 Takealot Voucher',
+		currency: 'ZAR',
+		rewardType: 'takealot_voucher'
+	}
+];
+
 export const visibleDocuments = [BookLabel, ChapterLabel, StorylineLabel, ResourceLabel] as const;

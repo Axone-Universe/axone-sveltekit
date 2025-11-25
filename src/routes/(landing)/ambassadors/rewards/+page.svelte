@@ -4,6 +4,8 @@
 	import { Gift, Award, TrendingUp, ExternalLink } from 'lucide-svelte';
 	import { getToastStore, getModalStore } from '@skeletonlabs/skeleton';
 	import type { ToastSettings, ModalSettings } from '@skeletonlabs/skeleton';
+	import { rewardTiers } from '$lib/util/constants';
+	import type { RewardTier } from '$lib/util/constants';
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
@@ -22,6 +24,7 @@
 		receiverId: $page.data.session?.user.id,
 		limit: 1000
 	});
+
 	$: redemptionTransactions = ($redemptionTransactionsQuery.data?.data?.filter(
 		(txn: any) => txn.type === 'Redemption'
 	) ?? []) as any[];
@@ -32,15 +35,7 @@
 	}, 0) as number;
 	$: totalPoints = totalEarnedPoints - usedPoints;
 
-	// Reward tiers for Takealot vouchers
-	const rewardTiers = [
-		{ points: 100, value: 100, label: 'R100 Takealot Voucher' },
-		{ points: 250, value: 250, label: 'R250 Takealot Voucher' },
-		{ points: 500, value: 500, label: 'R500 Takealot Voucher' },
-		{ points: 1000, value: 1000, label: 'R1000 Takealot Voucher' }
-	];
-
-	function confirmRedemption(reward: { points: number; value: number; label: string }) {
+	function confirmRedemption(reward: RewardTier) {
 		const modal: ModalSettings = {
 			type: 'confirm',
 			title: 'Confirm Redemption',
@@ -54,7 +49,7 @@
 		modalStore.trigger(modal);
 	}
 
-	async function redeemReward(reward: { points: number; value: number; label: string }) {
+	async function redeemReward(reward: RewardTier) {
 		isRedeeming = true;
 		redeemingRewardPoints = reward.points;
 
@@ -69,8 +64,9 @@
 		try {
 			const response = await trpc($page).transactions.redeemReward.mutate({
 				points: reward.points,
-				rewardType: 'takealot_voucher',
-				rewardValue: reward.value
+				rewardType: reward.rewardType,
+				rewardValue: reward.value,
+				currency: reward.currency
 			});
 
 			// Close processing toast
@@ -165,7 +161,7 @@
 								Cost: {reward.points} points
 							</p>
 						</div>
-						<Gift size={32} class={canRedeem ? 'text-success-500' : 'text-surface-400'} />
+						<Gift size={32} class={canRedeem ? 'text-success-700-200-token' : 'text-surface-400'} />
 					</div>
 
 					<!-- Progress Bar -->
@@ -184,7 +180,7 @@
 					<!-- Redeem Button -->
 					<button
 						class="btn w-full {canRedeem && !isRedeeming
-							? 'variant-filled-success'
+							? 'variant-filled-success bg-success-700-200-token'
 							: 'variant-ghost-surface'}"
 						disabled={!canRedeem || isRedeeming}
 						on:click={() => confirmRedemption(reward)}

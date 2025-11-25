@@ -15,5 +15,6 @@ export type ReadTransaction = z.infer<typeof read>;
 export const redeemReward = z.object({
 	points: z.number(),
 	rewardType: z.string(),
-	rewardValue: z.number()
+	rewardValue: z.number(),
+	currency: z.enum(['XRP', 'USD', 'ZAR'])
 });
