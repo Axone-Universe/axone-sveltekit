@@ -12,6 +12,9 @@
 	import { uploadImage } from '$lib/util/bucket/bucket';
 	import UserFilter from '$lib/components/user/UserFilter.svelte';
 	import type { HydratedDocument } from 'mongoose';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { trpc } from '$lib/trpc/client';
 
 	export let userProperties: UserProperties;
 	export let onSubmit: any;
@@ -23,8 +26,35 @@
 	let referralAboutSource = userProperties.referralAboutSource ?? '';
 	let socialMediaSources = userProperties.referralSocialMediaSource ?? [];
 	let referralUsers: { [key: string]: HydratedDocument<UserProperties> } = {};
+	let isReferralFromLink = false; // Track if referral came from a link
 
 	const toastStore = getToastStore();
+
+	// Check for referral ID from localStorage on mount
+	onMount(async () => {
+		const referralId = localStorage.getItem('axone-referral-id');
+		if (referralId && !userProperties.referralUser) {
+			try {
+				// Fetch the referrer user details
+				const response = await trpc($page).users.get.query({ id: referralId });
+				if (response.data && response.data.length > 0) {
+					const referrerUser = response.data[0] as HydratedDocument<UserProperties>;
+					// Set the referral fields
+					referralSource = 'Referral';
+					userProperties.referralUser = referralId;
+					referralUsers[referralId] = referrerUser;
+					isReferralFromLink = true; // Mark that this came from a referral link
+					console.log('Pre-populated referral from localStorage:', referralId);
+					// Clear the localStorage value after using it
+					localStorage.removeItem('axone-referral-id');
+				}
+			} catch (error) {
+				console.error('Error fetching referrer user:', error);
+				// Clear invalid referral ID
+				localStorage.removeItem('axone-referral-id');
+			}
+		}
+	});
 
 	const REFERRAL_SOURCES = [
 		"Cape Town Writers' Network",
@@ -304,7 +334,14 @@
 	<Step>
 		<svelte:fragment slot="header">How Did You Hear About Us?</svelte:fragment>
 		<div class="min-h-[calc(60vh)] space-y-6">
-			<p class="text-surface-600-300-token">Help us understand how you discovered Axone Universe</p>
+			<p class="text-surface-600-300-token">
+				Help us understand how you discovered Axone Universe
+				{#if isReferralFromLink}
+					<span class="block mt-2 text-primary-500 font-semibold">
+						You were referred by a member of our community!
+					</span>
+				{/if}
+			</p>
 
 			<!-- Referral Source Selection -->
 			<div class="space-y-4">
@@ -312,13 +349,18 @@
 				<label class="font-semibold">Select one option:</label>
 				<div class="space-y-3">
 					{#each REFERRAL_SOURCES as source}
-						<label class="flex items-center space-x-3 cursor-pointer">
+						<label
+							class="flex items-center space-x-3 {isReferralFromLink
+								? 'cursor-not-allowed opacity-60'
+								: 'cursor-pointer'}"
+						>
 							<input
 								type="radio"
 								name="referralSource"
 								value={source}
 								bind:group={referralSource}
 								class="radio"
+								disabled={isReferralFromLink}
 							/>
 							<span>{source}</span>
 						</label>
@@ -358,7 +400,9 @@
 				<div class="space-y-4 p-4 card variant-soft">
 					<!-- svelte-ignore a11y-label-has-associated-control -->
 					<label class="font-semibold">Who referred you?</label>
-					<UserFilter onUserSelect={onReferralUserSelect} users={referralUsers} class="w-full" />
+					{#if !isReferralFromLink}
+						<UserFilter onUserSelect={onReferralUserSelect} users={referralUsers} class="w-full" />
+					{/if}
 					{#if userProperties.referralUser && referralUsers[userProperties.referralUser]}
 						<div class="flex items-center gap-2 text-sm">
 							<span class="text-surface-600-300-token">Selected:</span>

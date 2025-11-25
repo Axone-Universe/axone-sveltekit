@@ -1,21 +1,82 @@
 <script lang="ts">
 	import type { UserProperties } from '$lib/properties/user';
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import { Avatar, getToastStore } from '@skeletonlabs/skeleton';
+	import type { ToastSettings } from '@skeletonlabs/skeleton';
+	import { trpc } from '$lib/trpc/client';
+	import { page } from '$app/stores';
 
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { user as userIcon, book, edit, pencil } from 'svelte-awesome/icons';
+	import { user as userIcon, book, edit, pencil, star } from 'svelte-awesome/icons';
 
 	export let user: UserProperties;
+	export let currentUser: UserProperties | null = null;
 
 	let customClass = '';
 	export { customClass as class };
 
+	const toastStore = getToastStore();
 	const userLabels = user.labels as unknown as Record<string, boolean>;
+
+	$: isAdmin = currentUser?.admin ?? false;
+
+	async function toggleAmbassador() {
+		if (!currentUser?._id) return;
+
+		try {
+			// We need to update the target user, not the current user
+			// For now, this will update via the standard update route
+			// Note: In production, you may want a dedicated admin route
+			const response = await trpc($page).users.updateUserAsAdmin.mutate({
+				userId: user._id,
+				ambassador: !user.ambassador
+			});
+
+			if (response.success) {
+				user.ambassador = !user.ambassador;
+				const toast: ToastSettings = {
+					message: `${user.firstName} ${
+						user.ambassador ? 'promoted to' : 'removed from'
+					} ambassador`,
+					background: 'variant-filled-success'
+				};
+				toastStore.trigger(toast);
+			}
+		} catch (error) {
+			const toast: ToastSettings = {
+				message: 'Failed to update ambassador status',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(toast);
+		}
+	}
 </script>
 
 <div
 	class={`card p-2 card-hover group rounded-md overflow-hidden w-full aspect-[2/3] relative cursor-pointer text-left text-white ${customClass}`}
 >
+	<!-- Ambassador Badge -->
+	{#if user.ambassador}
+		<div class="absolute top-2 left-2 z-10 badge variant-filled-warning">
+			<Icon data={star} scale={0.8} />
+			<span class="ml-1">Ambassador</span>
+		</div>
+	{/if}
+
+	<!-- Admin Dropdown -->
+	{#if isAdmin}
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div class="absolute top-2 right-2 z-10" on:click|stopPropagation>
+			<button
+				class="btn btn-sm variant-filled-primary"
+				on:click={toggleAmbassador}
+				title={user.ambassador ? 'Remove Ambassador' : 'Make Ambassador'}
+			>
+				<Icon data={star} scale={0.8} />
+			</button>
+		</div>
+	{/if}
+
 	<header class="h-2/6 flex flex-col items-center">
 		<a href={'/profile/' + user._id}>
 			{#if user.imageURL !== undefined}

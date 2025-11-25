@@ -9,6 +9,7 @@ export type UserLabel = (typeof USER_LABELS)[number];
 export interface UserProperties {
 	_id: string;
 	admin?: boolean;
+	ambassador?: boolean;
 	firstName?: string;
 	lastName?: string;
 	about?: string;

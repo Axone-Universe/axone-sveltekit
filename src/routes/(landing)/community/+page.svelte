@@ -12,10 +12,14 @@
 	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import type { PageData } from './$types';
 	import { debouncedScrollCallback } from '$lib/util/debouncedCallback';
 	import ScrollToTopButton from '$lib/components/util/ScrollToTopButton.svelte';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+
+	export let data: PageData;
+	export let { user: currentUser } = data;
 
 	const SEARCH_DEBOUNCE_SECONDS = 1.0;
 	const FILTERS_KEY = 'creatorsFilters';
@@ -212,7 +216,7 @@
 			<div class="pt-4 px-2 grid grid-cols-2 md:grid-cols-4 grid-flow-row gap-2 w-full">
 				{#each items as item (item._id)}
 					<div class="animate-fade animate-once animate-duration-1000 animate-ease-in-out">
-						<UserPreview user={item} />
+						<UserPreview {currentUser} user={item} />
 					</div>
 				{/each}
 			</div>
