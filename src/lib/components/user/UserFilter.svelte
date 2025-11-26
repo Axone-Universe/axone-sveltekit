@@ -94,7 +94,7 @@
 		autocompleteUsers = [];
 
 		for (const user of newUsers) {
-			let label = `<div>
+			let label = `<div class="flex flex-col items-start">
 							<p class="flex font-bold text-lg">${user.firstName}</p>
 							<p class="text-base">${user.email}</p>
 						</div>`;
@@ -132,6 +132,7 @@
 			{emptyState}
 			{regionEmpty}
 			regionButton="btn-sm !rounded-md w-full"
+			regionList="!list-none"
 			duration={0}
 			bind:input={selectedUser}
 			bind:options={autocompleteUsers}

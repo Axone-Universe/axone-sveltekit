@@ -7,22 +7,17 @@
 		class="min-h-screen rounded-lg m-2 top-16 hidden sm:flex flex-col justify-between w-[25%] min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<div class="fixed flex flex-col gap-2">
-			<div use:tocCrawler={{ mode: 'generate' }} class="hidden">
-				<h2>Introduction</h2>
-				<h2>Books</h2>
-				<h3>Storylines</h3>
-				<h3>Chapters</h3>
-				<h2>Campaigns</h2>
-				<h2>Permissions</h2>
-				<h2>Copyrights</h2>
-			</div>
 			<TableOfContents>
 				<h1>Axone Universe</h1>
 			</TableOfContents>
 		</div>
 	</div>
-	<div id="contents" class="flex flex-col pt-16 sm:pt-4 px-5 md:px-20 gap-5 w-full h-fit">
-		<h2 class="h2" id="introduction">Introduction</h2>
+	<div
+		id="contents"
+		use:tocCrawler={{ mode: 'generate', scrollTarget: '' }}
+		class="flex flex-col pt-16 sm:pt-4 px-5 md:px-20 gap-5 w-full h-fit scroll-smooth"
+	>
+		<h2 class="h2 scroll-mt-20" id="introduction">Introduction</h2>
 		<div>
 			<p>
 				The Axone Universe is a collaborative writing platform for authors. Overcome the writer's
@@ -35,7 +30,7 @@
 			</p>
 		</div>
 		<hr class="my-4 variant-fill-primary" />
-		<h2 class="h2" id="books">Books</h2>
+		<h2 class="h2 scroll-mt-20" id="books">Books</h2>
 		<div class="flex flex-col gap-2">
 			<p>
 				On Axone a book is a story with different character/s and a plot which the book creator has
@@ -67,7 +62,7 @@
 			</ol>
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
-				<h3 class="h3" id="storylines">Storylines</h3>
+				<h3 class="h3 scroll-mt-20" id="storylines">Storylines</h3>
 				<p>
 					A book can have multiple storylines. Each storyline is a trajectory of a book in a
 					different unique direction. You can think of a storyline as a different version of the
@@ -96,7 +91,7 @@
 			</div>
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
-				<h3 class="h3" id="chapters">Chapters</h3>
+				<h3 class="h3 scroll-mt-20" id="chapters">Chapters</h3>
 				<p>
 					A storyline is made up of multiple chapters. Any author with permissions can add a chapter
 					to a storyline. To add a chapter to a storyline:
@@ -121,7 +116,7 @@
 			</div>
 		</div>
 		<hr class="my-4 variant-fill-primary" />
-		<h2 class="h2" id="campaigns">Campaigns</h2>
+		<h2 class="h2 scroll-mt-20" id="campaigns">Campaigns</h2>
 		<div class="flex flex-col gap-2">
 			<p>
 				An Axone campaign is a call for authors to write stories on a certain topic. For example a
@@ -157,7 +152,7 @@
 			</ol>
 		</div>
 		<hr class="my-4 variant-fill-primary" />
-		<h2 class="h2" id="permissions">Permissions</h2>
+		<h2 class="h2 scroll-mt-20" id="permissions">Permissions</h2>
 		<div class="flex flex-col gap-2">
 			<p>
 				Permissions restrict access to books, storylines and chapters. They are set and managed by
@@ -168,7 +163,7 @@
 
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
-				<h3 class="h3">Books</h3>
+				<h3 class="h3 scroll-mt-20" id="permissions-books">Books</h3>
 				<ol class="list">
 					<li>
 						<span class="flex-auto">
@@ -185,7 +180,7 @@
 			</div>
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
-				<h3 class="h3">Storylines</h3>
+				<h3 class="h3 scroll-mt-20" id="permissions-storylines">Storylines</h3>
 				<ol class="list">
 					<li>
 						<span class="flex-auto">
@@ -202,7 +197,7 @@
 			</div>
 			<div class="flex flex-col gap-2 mx-4">
 				<hr class="my-4 variant-fill-primary" />
-				<h3 class="h3">Chapters</h3>
+				<h3 class="h3 scroll-mt-20" id="permissions-chapters">Chapters</h3>
 				<ol class="list">
 					<li>
 						<span class="flex-auto"> View: Allows users to read the chapter.</span>
@@ -216,7 +211,7 @@
 				</ol>
 			</div>
 		</div>
-		<h2 class="h2" id="copyrights">Copyrights</h2>
+		<h2 class="h2 scroll-mt-20" id="copyrights">Copyrights</h2>
 		<div>
 			<p>
 				Axone has adopted a policy toward copyright infringement on the Services in accordance with
