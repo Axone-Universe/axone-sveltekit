@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
-	import { Megaphone, Book, Split, BookOpen, PaintBucket, Paintbrush } from 'lucide-svelte';
+	import { Megaphone, Book, Split, BookOpen, PaintBucket, Paintbrush, Bell } from 'lucide-svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
+	export let { user } = data;
+
+	$: isAdmin = user?.admin ?? false;
 </script>
 
 <div class="flex w-full p-2 gap-2">
@@ -57,6 +63,18 @@
 			<Paintbrush size={20} />
 			Resources
 		</a>
+
+		{#if isAdmin}
+			<a
+				class="btn justify-between px-12 {$page.url.pathname === '/studio/notifications'
+					? 'variant-filled-primary'
+					: 'variant-filled'}"
+				href="/studio/notifications"
+			>
+				<Bell size={20} />
+				Notifications
+			</a>
+		{/if}
 	</div>
 	<DrawerButton showLabel={false} />
 	<slot />

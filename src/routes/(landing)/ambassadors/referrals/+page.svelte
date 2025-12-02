@@ -14,7 +14,7 @@
 
 	// Generate referral link
 	$: referralLink = data.session?.user?.id
-		? `${PUBLIC_DOMAIN_NAME}sign-up?ref=${data.session.user.id}`
+		? `${PUBLIC_DOMAIN_NAME}/sign-up?ref=${data.session.user.id}`
 		: '';
 
 	// Fetch referral count

@@ -79,7 +79,7 @@ export const xumm = t.router({
 			console.log('<< txn created');
 			console.log(transaction);
 
-			const nftUri = PUBLIC_DOMAIN_NAME + 'tokens/' + resource._id;
+			const nftUri = PUBLIC_DOMAIN_NAME + '/tokens/' + resource._id;
 			const nftID = convertStringToHex(nftUri);
 
 			console.log('<< nft uri');

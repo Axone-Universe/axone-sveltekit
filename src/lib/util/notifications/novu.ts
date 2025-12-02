@@ -2,7 +2,7 @@
  * This file is used on the backend
  */
 import { Novu } from '@novu/node';
-import { NOVU_API_KEY } from '$env/static/private';
+import { NOVU_SECRET_KEY } from '$env/static/private';
 import type {
 	TopicNotificationProperties,
 	UserNotificationProperties
@@ -11,7 +11,7 @@ import { type HydratedDocument } from 'mongoose';
 import type { UserProperties } from '$lib/properties/user';
 import { User } from '$lib/models/user';
 
-export const novu = new Novu(NOVU_API_KEY);
+export const novu = new Novu(NOVU_SECRET_KEY);
 
 export async function sendNotifications(notifications: {
 	[key: string]: UserNotificationProperties | TopicNotificationProperties;
