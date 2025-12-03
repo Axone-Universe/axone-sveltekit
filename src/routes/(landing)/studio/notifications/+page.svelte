@@ -4,6 +4,8 @@
 	import EmailTemplatePreview from '$lib/components/notifications/EmailTemplatePreview.svelte';
 	import NewCampaign from '$lib/components/notifications/email-templates/new-campaign.svelte';
 	import CampaignWinners from '$lib/components/notifications/email-templates/campaign-winners.svelte';
+	import NewComment from '$lib/components/notifications/email-templates/new-comment.svelte';
+	import TransactionProcessed from '$lib/components/notifications/email-templates/transaction-processed.svelte';
 	import { getModalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import { PUBLIC_DOMAIN_NAME } from '$env/static/public';
 	import type { PageData } from './$types';
@@ -69,6 +71,99 @@
 					}
 				],
 				campaignUrl: `${PUBLIC_DOMAIN_NAME}/book/sample`,
+				origin: PUBLIC_DOMAIN_NAME
+			}
+		},
+		{
+			name: 'New Comment',
+			component: NewComment,
+			props: {
+				chapterTitle: 'Chapter 5: The Discovery',
+				bookTitle: 'The Great Adventure',
+				commenterName: 'Sarah Johnson',
+				commenterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				commentText:
+					"This chapter really captured the essence of the character's journey. The way you described the discovery scene was particularly moving. I found myself completely immersed in the moment!",
+				commentDate: new Date().toISOString(),
+				chapterUrl: `${PUBLIC_DOMAIN_NAME}/book/sample?chapter=chapter-5`,
+				origin: PUBLIC_DOMAIN_NAME
+			}
+		},
+		{
+			name: 'Transaction Processed - Success',
+			component: TransactionProcessed,
+			props: {
+				notificationType: 'success',
+				transactionType: 'Payment',
+				transactionStatus: 'success',
+				amount: '10.500000 XRP',
+				currency: 'XRP',
+				senderName: 'John Doe',
+				receiverName: 'Sarah Johnson',
+				transactionDate: new Date().toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+					hour: '2-digit',
+					minute: '2-digit'
+				}),
+				transactionHash: 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0',
+				chapterTitle: 'Chapter 5: The Discovery',
+				bookTitle: 'The Great Adventure',
+				chapterUrl: `${PUBLIC_DOMAIN_NAME}/book/sample?chapter=chapter-5`,
+				note: 'Payment for chapter contribution',
+				origin: PUBLIC_DOMAIN_NAME
+			}
+		},
+		{
+			name: 'Transaction Processed - Failure',
+			component: TransactionProcessed,
+			props: {
+				notificationType: 'failure',
+				transactionType: 'Payment',
+				transactionStatus: 'failed',
+				amount: '10.500000 XRP',
+				currency: 'XRP',
+				senderName: 'John Doe',
+				receiverName: 'Sarah Johnson',
+				transactionDate: new Date().toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+					hour: '2-digit',
+					minute: '2-digit'
+				}),
+				transactionHash: 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0',
+				chapterTitle: undefined,
+				bookTitle: undefined,
+				chapterUrl: undefined,
+				note: 'Insufficient funds',
+				origin: PUBLIC_DOMAIN_NAME
+			}
+		},
+		{
+			name: 'Transaction Processed - Withdrawal',
+			component: TransactionProcessed,
+			props: {
+				notificationType: 'withdrawal',
+				transactionType: 'Withdrawal',
+				transactionStatus: 'pending',
+				amount: '50.000000 XRP',
+				currency: 'XRP',
+				senderName: 'System',
+				receiverName: 'Sarah Johnson',
+				transactionDate: new Date().toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+					hour: '2-digit',
+					minute: '2-digit'
+				}),
+				transactionHash: undefined,
+				chapterTitle: undefined,
+				bookTitle: undefined,
+				chapterUrl: undefined,
+				note: 'Withdrawal request to external wallet',
 				origin: PUBLIC_DOMAIN_NAME
 			}
 		}

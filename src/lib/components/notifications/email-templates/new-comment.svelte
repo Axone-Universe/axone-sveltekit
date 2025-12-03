@@ -13,14 +13,13 @@
 		Img
 	} from 'svelte-email';
 
-	export let campaignTitle: string;
-	export let winners: {
-		firstName: string;
-		lastName: string;
-		imageURL?: string;
-		position: number;
-	}[];
-	export let campaignUrl: string;
+	export let chapterTitle: string;
+	export let bookTitle: string;
+	export let commenterName: string;
+	export let commenterImageURL: string | undefined;
+	export let commentText: string;
+	export let commentDate: string;
+	export let chapterUrl: string;
 	export let origin: string;
 
 	const fontFamily = '"Google Sans", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -77,7 +76,7 @@
 		padding: '32px'
 	};
 
-	const campaignTitleSection = {
+	const titleSection = {
 		textAlign: 'center' as const,
 		marginBottom: '32px'
 	};
@@ -93,106 +92,56 @@
 		marginBottom: '12px'
 	};
 
-	const campaignTitleStyle = {
+	const chapterTitleStyle = {
 		fontFamily,
 		fontSize: '30px',
 		fontWeight: 'bold',
 		color: '#111827',
-		margin: '0 0 12px 0',
+		margin: '0 0 8px 0',
 		lineHeight: '1.3'
 	};
 
-	const description = {
-		marginBottom: '40px'
-	};
-
-	const descriptionText = {
+	const bookTitleStyle = {
 		fontFamily,
 		fontSize: '18px',
-		color: '#374151',
-		lineHeight: '1.75',
+		color: '#6b7280',
 		margin: '0',
-		textAlign: 'center' as const
+		lineHeight: '1.4'
 	};
 
-	const section = {
-		marginBottom: '40px'
+	const commentSection = {
+		backgroundColor: '#f8f9fa',
+		border: '1px solid #e5e7eb',
+		borderRadius: '12px',
+		padding: '24px',
+		marginBottom: '32px'
 	};
 
-	const sectionHeader = {
+	const commenterInfo = {
 		display: 'flex',
 		alignItems: 'center',
 		gap: '12px',
 		marginBottom: '16px'
 	};
 
-	const iconCircle = {
-		width: '40px',
-		height: '40px',
-		borderRadius: '50%',
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexShrink: 0
-	};
-
-	const iconCircleAmber = {
-		...iconCircle,
-		backgroundColor: '#fcf4da'
-	};
-
-	// Icon image URLs - using circled PNG icons
-	const getIconUrl = (iconName: string) => `${origin}/icons/${iconName}.png`;
-
-	const sectionTitle = {
-		fontFamily,
-		fontSize: '24px',
-		fontWeight: 'bold',
-		color: '#111827',
-		margin: '0'
-	};
-
-	const listItem = {
-		marginBottom: '16px'
-	};
-
-	const listItemTable = 'width: 100%; border-collapse: collapse; margin-bottom: 16px;';
-
-	const winnerCard = {
-		backgroundColor: '#f8f9fa',
-		border: '1px solid #e5e7eb',
-		borderRadius: '8px',
-		padding: '20px',
-		marginBottom: '12px'
-	};
-
-	const winnerTable = 'width: 100%; border-collapse: collapse;';
-
-	const winnerCell = 'padding: 0; vertical-align: middle;';
-
-	const medalCell = 'padding: 0 12px 0 0; vertical-align: middle; width: 40px;';
-
-	const avatarCell = 'padding: 0 12px 0 0; vertical-align: middle; width: 56px;';
-
-	const winnerInfoCell = 'padding: 0; vertical-align: middle;';
-
 	const avatarContainer = {
-		width: '56px',
-		height: '56px',
+		width: '48px',
+		height: '48px',
 		borderRadius: '50%',
 		overflow: 'hidden',
 		border: '2px solid #e5e7eb',
-		display: 'block'
+		display: 'block',
+		flexShrink: 0
 	};
 
 	const avatarStyle = {
-		width: '56px',
-		height: '56px',
+		width: '48px',
+		height: '48px',
 		display: 'block',
 		objectFit: 'cover' as const
 	};
 
-	const winnerName = {
+	const commenterNameStyle = {
 		fontFamily,
 		fontSize: '18px',
 		fontWeight: '600',
@@ -201,25 +150,21 @@
 		lineHeight: '1.4'
 	};
 
-	const medalEmoji = {
-		fontSize: '32px',
-		lineHeight: '1',
-		margin: '0'
+	const commentDateStyle = {
+		fontFamily,
+		fontSize: '14px',
+		color: '#6b7280',
+		margin: '4px 0 0 0',
+		lineHeight: '1.4'
 	};
 
-	const positionText = {
+	const commentTextStyle = {
 		fontFamily,
 		fontSize: '16px',
-		fontWeight: '600',
-		color: '#4F46E5',
-		margin: '0'
-	};
-
-	const sectionIcon = {
-		display: 'block',
-		width: '40px',
-		height: '40px',
-		margin: '0 auto'
+		color: '#374151',
+		lineHeight: '1.75',
+		margin: '0',
+		whiteSpace: 'pre-wrap' as const
 	};
 
 	const ctaSection = {
@@ -310,11 +255,27 @@
 		color: '#6b7280',
 		margin: '0'
 	};
+
+	// Format the comment date
+	const formatDate = (dateString: string) => {
+		try {
+			const date = new Date(dateString);
+			return date.toLocaleDateString('en-US', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		} catch {
+			return dateString;
+		}
+	};
 </script>
 
 <Html>
 	<Head />
-	<Preview preview="Campaign Winners: {campaignTitle}">Campaign Winners: {campaignTitle}</Preview>
+	<Preview preview="New Comment on {chapterTitle}">New Comment on {chapterTitle}</Preview>
 	<Body style={main}>
 		<Section style={wrapper}>
 			<Container style={container}>
@@ -327,84 +288,52 @@
 						height="h-full"
 						style={logo}
 					/>
-					<Heading style={headerTitle}>Campaign Winners</Heading>
+					<Heading style={headerTitle}>New Comment</Heading>
 					<Section style={headerDivider} />
 				</Section>
 
 				<!-- Main Content -->
 				<Section style={content}>
-					<!-- Campaign Title -->
-					<Section style={campaignTitleSection}>
-						<Text style={badge}>🎉 Congratulations 🎉</Text>
-						<Heading style={campaignTitleStyle}>{campaignTitle}</Heading>
+					<!-- Chapter Title -->
+					<Section style={titleSection}>
+						<Text style={badge}>💬 New Comment</Text>
+						<Heading style={chapterTitleStyle}>{chapterTitle}</Heading>
+						<Text style={bookTitleStyle}>from {bookTitle}</Text>
 					</Section>
 
-					<!-- Description -->
-					<Section style={description}>
-						<Text style={descriptionText}>
-							Congratulations to all the winners! Thank you to everyone who participated in this
-							campaign.
-						</Text>
-					</Section>
-
-					<!-- Winners Section -->
-					<Section style={section}>
-						<Section style={sectionHeader}>
-							<Section style={iconCircleAmber}>
-								<Img
-									src={getIconUrl('trophy')}
-									alt="Trophy icon"
-									width="40"
-									height="40"
-									style={sectionIcon}
-								/>
-							</Section>
-							<Heading style={sectionTitle}>Winners</Heading>
+					<!-- Comment Section -->
+					<Section style={commentSection}>
+						<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+							<tr>
+								<td style="padding: 0; vertical-align: top;">
+									<!-- Commenter Avatar -->
+									<Section style={avatarContainer}>
+										<Img
+											src={commenterImageURL || `${origin}/default-user.png`}
+											alt={commenterName}
+											width="48"
+											height="48"
+											style={avatarStyle}
+										/>
+									</Section>
+								</td>
+								<td style="padding: 0 0 0 16px; vertical-align: top; width: 100%;">
+									<!-- Commenter Name -->
+									<Text style={commenterNameStyle}>{commenterName}</Text>
+									<Text style={commentDateStyle}>{formatDate(commentDate)}</Text>
+								</td>
+							</tr>
+						</table>
+						<!-- Comment Text -->
+						<Section style="margin-top: 16px;">
+							<Text style={commentTextStyle}>{commentText}</Text>
 						</Section>
-						{#each winners as winner}
-							<Section style={listItem}>
-								<Section style={winnerCard}>
-									<table
-										style={winnerTable}
-										role="presentation"
-										cellspacing="0"
-										cellpadding="0"
-										border="0"
-									>
-										<tr>
-											<td style={medalCell}>
-												<Text style={medalEmoji}>
-													{winner.position === 1 ? '🥇' : winner.position === 2 ? '🥈' : '🥉'}
-												</Text>
-											</td>
-											<td style={avatarCell}>
-												<Section style={avatarContainer}>
-													<Img
-														src={winner.imageURL || `${origin}/default-user.png`}
-														alt="{winner.firstName} {winner.lastName}"
-														width="56"
-														height="56"
-														style={avatarStyle}
-													/>
-												</Section>
-											</td>
-											<td style={winnerInfoCell}>
-												<Text style={winnerName}>
-													#{winner.position}: {winner.firstName}
-													{winner.lastName}
-												</Text>
-											</td>
-										</tr>
-									</table>
-								</Section>
-							</Section>
-						{/each}
 					</Section>
 
 					<!-- CTA Button -->
 					<Section style={ctaSection}>
-						<Link href={campaignUrl} style={ctaButton}>View Campaign</Link>
-						<Text style={ctaSubtext}>See all campaign details and results</Text>
+						<Link href={chapterUrl} style={ctaButton}>View Chapter</Link>
+						<Text style={ctaSubtext}>Read the full conversation and join the discussion</Text>
 					</Section>
 
 					<Hr style={divider} />

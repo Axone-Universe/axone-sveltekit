@@ -102,28 +102,81 @@
 		lineHeight: '1.3'
 	};
 
-	const dates = {
+	const datesContainer = {
 		textAlign: 'center' as const,
-		fontSize: '14px',
-		color: '#4b5563',
-		padding: '8px 0'
+		marginTop: '16px'
 	};
 
-	const dateItem = {
-		display: 'inline',
-		padding: '0 8px'
+	const datesTable =
+		'width: auto; margin: 0 auto; border-collapse: separate; border-spacing: 16px;';
+
+	const datesTableCell = 'padding: 0; vertical-align: middle;';
+
+	const dateBox = {
+		width: '80px',
+		borderRadius: '12px',
+		overflow: 'hidden',
+		display: 'inline-block',
+		border: '1px solid #e5e7eb',
+		boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
 	};
 
-	const dateIconStyle = {
-		fontSize: '18px',
-		display: 'inline',
-		marginRight: '4px'
+	const dateBoxTable = 'width: 80px; border-collapse: collapse;';
+
+	const dateBoxTopStart =
+		'height: 40px; background-color: #0FBA81; padding: 4px 8px; text-align: center; vertical-align: middle;';
+
+	const dateBoxTopEnd =
+		'height: 40px; background-color: #DC2626; padding: 4px 8px; text-align: center; vertical-align: middle;';
+
+	const dateBoxMonth = {
+		fontFamily,
+		fontSize: '11px',
+		fontWeight: '600',
+		color: '#ffffff',
+		textTransform: 'uppercase' as const,
+		lineHeight: '1.2',
+		margin: '0',
+		display: 'block'
 	};
 
-	const dateSeparatorStyle = {
+	const dateBoxYear = {
+		fontFamily,
+		fontSize: '10px',
+		fontWeight: '400',
+		color: '#ffffff',
+		opacity: 0.9,
+		lineHeight: '1.2',
+		margin: '0',
+		display: 'block'
+	};
+
+	const dateBoxBottom =
+		'height: 40px; background-color: #ffffff; padding: 4px; text-align: center; vertical-align: middle;';
+
+	const dateBoxDay = {
+		fontFamily,
+		fontSize: '24px',
+		fontWeight: 'bold',
+		color: '#111827',
+		lineHeight: '1',
+		margin: '0'
+	};
+
+	const dateSeparator = {
+		fontSize: '20px',
 		color: '#9ca3af',
-		display: 'inline',
-		padding: '0 8px'
+		display: 'inline-block',
+		verticalAlign: 'middle'
+	};
+
+	// Helper function to parse date and extract parts
+	const parseDate = (dateString: string) => {
+		const date = new Date(dateString);
+		const month = date.toLocaleString('en-US', { month: 'short' });
+		const year = date.getFullYear().toString();
+		const day = date.getDate().toString();
+		return { month, year, day };
 	};
 
 	const description = {
@@ -387,13 +440,70 @@
 					<Section style={campaignTitleSection}>
 						<Text style={badge}>Featured Campaign</Text>
 						<Heading style={campaignTitleStyle}>{campaignTitle}</Heading>
-						<Section style={dates}>
-							<Text style={dateIconStyle}
-								>📅 {startDate}
-								{' '}
-								→
-								{' '} 🏁 {endDate}</Text
+						<Section style={datesContainer}>
+							{@const startDateParts = parseDate(startDate)}
+							{@const endDateParts = parseDate(endDate)}
+							<table
+								style={datesTable}
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
 							>
+								<tr>
+									<td style={datesTableCell}>
+										<!-- Start Date Box -->
+										<Section style={dateBox}>
+											<table
+												style={dateBoxTable}
+												role="presentation"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+											>
+												<tr>
+													<td style={dateBoxTopStart}>
+														<Text style={dateBoxMonth}>{startDateParts.month}</Text>
+														<Text style={dateBoxYear}>{startDateParts.year}</Text>
+													</td>
+												</tr>
+												<tr>
+													<td style={dateBoxBottom}>
+														<Text style={dateBoxDay}>{startDateParts.day}</Text>
+													</td>
+												</tr>
+											</table>
+										</Section>
+									</td>
+									<td style={datesTableCell}>
+										<Text style={dateSeparator}>→</Text>
+									</td>
+									<td style={datesTableCell}>
+										<!-- End Date Box -->
+										<Section style={dateBox}>
+											<table
+												style={dateBoxTable}
+												role="presentation"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+											>
+												<tr>
+													<td style={dateBoxTopEnd}>
+														<Text style={dateBoxMonth}>{endDateParts.month}</Text>
+														<Text style={dateBoxYear}>{endDateParts.year}</Text>
+													</td>
+												</tr>
+												<tr>
+													<td style={dateBoxBottom}>
+														<Text style={dateBoxDay}>{endDateParts.day}</Text>
+													</td>
+												</tr>
+											</table>
+										</Section>
+									</td>
+								</tr>
+							</table>
 						</Section>
 					</Section>
 
