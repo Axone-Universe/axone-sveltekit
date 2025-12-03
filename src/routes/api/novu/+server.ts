@@ -2,8 +2,7 @@ import {
 	newCampaignWorkflow,
 	campaignWinnersWorkflow,
 	newCommentWorkflow,
-	transactionProcessedWorkflow,
-	testWorkflow
+	transactionProcessedWorkflow
 } from '$lib/services/notifications/novu/workflows';
 import { serve, Client } from '@novu/framework/sveltekit';
 import { NOVU_SECRET_KEY } from '$env/static/private';
