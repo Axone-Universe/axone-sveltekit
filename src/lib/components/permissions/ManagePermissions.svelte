@@ -16,12 +16,16 @@
 	import type { ChapterProperties } from '$lib/properties/chapter';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { caretDown, trash } from 'svelte-awesome/icons';
-	import { afterUpdate, onMount } from 'svelte';
+	import { afterUpdate, onMount, createEventDispatcher } from 'svelte';
 	import { ulid } from 'ulid';
 	import type { StorylineProperties } from '$lib/properties/storyline';
 	import type { UserNotificationProperties } from '$lib/properties/notification';
 	import { documentURL } from '$lib/util/links';
 	import UserFilter from '../user/UserFilter.svelte';
+
+	const dispatch = createEventDispatcher<{
+		permissionsChange: Record<string, HydratedDocument<PermissionProperties>>;
+	}>();
 
 	export let permissionedDocument:
 		| HydratedDocument<BookProperties>
@@ -46,9 +50,19 @@
 
 	let showPublicAccessConfirmation = false;
 
+	// Flag to prevent dispatching on initial mount
+	let isInitialized = false;
+
+	// Watch for permissions changes and dispatch event
+	$: if (isInitialized) {
+		dispatch('permissionsChange', permissions);
+	}
+
 	onMount(() => {
 		setDocumentOwner();
 		setPermissionUsers();
+		// Enable event dispatching after initialization
+		isInitialized = true;
 	});
 
 	afterUpdate(() => {
@@ -119,6 +133,7 @@
 			showPublicAccessConfirmation = true;
 		} else {
 			permissions['public'] = publicPermission;
+			permissions = permissions; // Trigger reactivity
 			showPublicAccessConfirmation = false;
 		}
 	}
@@ -137,6 +152,7 @@
 		const userID = event.target.getAttribute('name');
 		const value = event.target.value;
 		permissions[userID]!.permission = value;
+		permissions = permissions; // Trigger reactivity
 	}
 </script>
 

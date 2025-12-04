@@ -47,9 +47,6 @@
 			genres = book.genres ?? [];
 			tags = book.tags ?? [];
 			previousImageURL = book.imageURL;
-			previousPermissions = book.permissions
-				? JSON.parse(JSON.stringify(book.permissions))
-				: undefined;
 			previousBookId = currentBookId;
 		}
 	}
@@ -60,9 +57,6 @@
 		genres = book.genres ?? [];
 		tags = book.tags ?? [];
 		previousImageURL = book.imageURL;
-		previousPermissions = book.permissions
-			? JSON.parse(JSON.stringify(book.permissions))
-			: undefined;
 	});
 
 	// Handler functions that update both book and updatedData
@@ -98,19 +92,11 @@
 		updatedData.tags = tags;
 	}
 
-	// Track permissions changes (ManagePermissions uses bind:permissionedDocument)
-	let previousPermissions = book.permissions
-		? JSON.parse(JSON.stringify(book.permissions))
-		: undefined;
-	$: if (book._id && book.permissions !== undefined) {
-		const permissionsChanged =
-			JSON.stringify(book.permissions) !== JSON.stringify(previousPermissions);
-		if (permissionsChanged) {
-			updatedData.permissions = book.permissions;
-			previousPermissions = book.permissions
-				? JSON.parse(JSON.stringify(book.permissions))
-				: undefined;
-		}
+	// Handle permissions changes from ManagePermissions component
+	function handlePermissionsChange(event: CustomEvent<Record<string, any>>) {
+		const newPermissions = event.detail;
+		book.permissions = newPermissions;
+		updatedData.permissions = newPermissions;
 	}
 
 	async function createBookData() {
@@ -283,6 +269,7 @@
 					bind:permissionedDocument={book}
 					{notifications}
 					permissionedDocumentType="Book"
+					on:permissionsChange={handlePermissionsChange}
 				/>
 			</div>
 			<div class="flex flex-col justify-end sm:flex-row gap-2">

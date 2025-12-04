@@ -4,6 +4,7 @@
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import ManagePermissions from '$lib/components/permissions/ManagePermissions.svelte';
 
@@ -21,6 +22,46 @@
 
 	let notifications = {};
 
+	// Track updated fields - initialize with id if chapter has one
+	let updatedData: any = chapter._id ? { id: chapter._id } : {};
+
+	// Track previous chapter._id to only reset when it actually changes
+	let previousChapterId: string | undefined = chapter._id?.toString();
+
+	// Reset updatedData only when chapter._id actually changes (not just when it's truthy)
+	$: {
+		const currentChapterId = chapter._id?.toString();
+		if (currentChapterId && currentChapterId !== previousChapterId) {
+			updatedData = { id: chapter._id };
+			previousChapterId = currentChapterId;
+		}
+	}
+
+	// Initialize on mount
+	onMount(() => {
+		previousChapterId = chapter._id?.toString();
+	});
+
+	// Handler functions that update both chapter and updatedData
+	function handleTitleInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		chapter.title = value;
+		updatedData.title = value;
+	}
+
+	function handleDescriptionInput(event: Event) {
+		const value = (event.target as HTMLTextAreaElement).value;
+		chapter.description = value;
+		updatedData.description = value;
+	}
+
+	// Handle permissions changes from ManagePermissions component
+	function handlePermissionsChange(event: CustomEvent<Record<string, any>>) {
+		const newPermissions = event.detail;
+		chapter.permissions = newPermissions;
+		updatedData.permissions = newPermissions;
+	}
+
 	async function submit() {
 		// permissions = permissions.map
 		if (chapter._id) {
@@ -35,16 +76,6 @@
 	async function createChapter() {
 		let toastMessage = 'Creation Failed';
 		let toastBackground = 'bg-warning-500';
-
-		let createDetails = {
-			title: chapter.title!,
-			bookID,
-			storylineID,
-			prevChapterID,
-			description: chapter.description!,
-			permissions: chapter.permissions,
-			notifications
-		};
 
 		trpc($page)
 			.chapters.create.mutate({
@@ -63,8 +94,6 @@
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapter) : '';
 				}
-
-				console.log(response.message);
 			})
 			.finally(() => {
 				let t: ToastSettings = {
@@ -81,16 +110,36 @@
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
+		// Only send updatedData for updates (it already includes the id)
+		const updatePayload: any = {
+			...updatedData
+		};
+
+		// Include notifications if they exist
+		if (Object.keys(notifications).length > 0) {
+			updatePayload.notifications = notifications;
+		}
+
+		// If no changes detected (only id in updatedData), show a message and return
+		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
+		if (!hasChanges && Object.keys(notifications).length === 0) {
+			const t: ToastSettings = {
+				message: 'No changes detected',
+				background: 'variant-filled-primary',
+				autohide: true
+			};
+			toastStore.trigger(t);
+			return;
+		}
+
 		trpc($page)
-			.chapters.update.mutate({
-				id: chapter._id,
-				title: chapter.title,
-				description: chapter.description,
-				permissions: chapter.permissions,
-				notifications: notifications
-			})
+			.chapters.update.mutate(updatePayload)
 			.then((response) => {
 				chapter = response.data as HydratedDocument<ChapterProperties>;
+
+				// Reset updatedData after successful save (include id if chapter has one)
+				updatedData = chapter._id ? { id: chapter._id } : {};
+
 				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
 
@@ -119,7 +168,8 @@
 					<input
 						class="input"
 						type="text"
-						bind:value={chapter.title}
+						value={chapter.title}
+						on:input={handleTitleInput}
 						placeholder="Chapter Title"
 						required
 					/>
@@ -128,7 +178,8 @@
 					* Chapter Description
 					<textarea
 						class="textarea h-44 overflow-hidden"
-						bind:value={chapter.description}
+						value={chapter.description}
+						on:input={handleDescriptionInput}
 						required
 					/>
 				</label>
@@ -139,6 +190,7 @@
 						bind:permissionedDocument={chapter}
 						{notifications}
 						permissionedDocumentType="Chapter"
+						on:permissionsChange={handlePermissionsChange}
 					/>
 				</div>
 			</div>

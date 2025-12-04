@@ -22,14 +22,22 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 
 	constructor(id?: string) {
 		super();
-		this._storylineProperties = {
-			_id: id ? id : ulid(),
-			imageURL: '',
-			main: false,
-			permissions: {},
-			cumulativeRating: 0,
-			numRatings: 0
-		};
+		if (id) {
+			// For existing storylines, only set the _id
+			this._storylineProperties = {
+				_id: id
+			} as StorylineProperties;
+		} else {
+			// For new storylines, initialize with default values
+			this._storylineProperties = {
+				_id: ulid(),
+				imageURL: '',
+				main: false,
+				permissions: {},
+				cumulativeRating: 0,
+				numRatings: 0
+			};
+		}
 	}
 
 	title(title: string): StorylineBuilder {

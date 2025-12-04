@@ -22,10 +22,18 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 
 	constructor(id?: string) {
 		super();
-		this._chapterProperties = {
-			_id: id ? id : ulid(),
-			permissions: {}
-		};
+		if (id) {
+			// For existing chapters, only set the _id
+			this._chapterProperties = {
+				_id: id
+			} as ChapterProperties;
+		} else {
+			// For new chapters, initialize with default values
+			this._chapterProperties = {
+				_id: ulid(),
+				permissions: {}
+			};
+		}
 	}
 
 	title(title: string): ChapterBuilder {

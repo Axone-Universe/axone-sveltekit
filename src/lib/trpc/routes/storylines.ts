@@ -140,7 +140,7 @@ export const storylines = t.router({
 
 			const response: Response = {
 				success: true,
-				message: 'storylines successfully retrieved',
+				message: 'Storyline successfully updated',
 				data: {}
 			};
 			try {

@@ -13,6 +13,7 @@
 
 	import { trpc } from '$lib/trpc/client';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import type { HydratedDocument } from 'mongoose';
 	import { uploadResource } from '$lib/util/constants';
 	import { supabaseClient, supabaseSession } from '$lib/stores/supabase';
@@ -32,6 +33,32 @@
 		modalStore.close();
 	};
 
+	// Track updated fields - initialize with id if resource has one
+	let updatedData: any = resource._id ? { id: resource._id } : {};
+
+	// Track previous resource._id to only reset when it actually changes
+	let previousResourceId: string | undefined = resource._id?.toString();
+
+	// Reset updatedData only when resource._id actually changes (not just when it's truthy)
+	$: {
+		const currentResourceId = resource._id?.toString();
+		if (currentResourceId && currentResourceId !== previousResourceId) {
+			updatedData = { id: resource._id };
+			previousResourceId = currentResourceId;
+			// Reset editedResource when resource changes
+			editedResource = {
+				...resource,
+				nftCollection: resource.nftCollection ?? 'characters',
+				properties: [...(resource.properties ?? [])]
+			};
+		}
+	}
+
+	// Initialize on mount
+	onMount(() => {
+		previousResourceId = resource._id?.toString();
+	});
+
 	/**
 	 * Uploads an resource to supabase storage
 	 * @param newResourceFile - the file to upload or the event that contains the file
@@ -46,7 +73,11 @@
 		);
 
 		if (response.success) {
-			// update the db resource first then the quill object
+			// uploadResource sets editedResource.src directly, so update updatedData
+			if (editedResource.src) {
+				updatedData.src = editedResource.src;
+			}
+			// update the db resource
 			updateResource();
 		} else {
 			toastStore.trigger({
@@ -57,24 +88,95 @@
 		}
 	}
 
+	// Handler functions that update both editedResource and updatedData
+	function handleTitleInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		editedResource.title = value;
+		updatedData.title = value;
+	}
+
+	function handleDescriptionInput(event: Event) {
+		const value = (event.target as HTMLTextAreaElement).value;
+		editedResource.description = value;
+		updatedData.description = value;
+	}
+
+	function handleCollectionChange(event: Event) {
+		const value = (event.target as HTMLSelectElement).value;
+		editedResource.nftCollection = value as any;
+		updatedData.nftCollection = value;
+	}
+
+	function handlePriceInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		const numValue = value ? parseFloat(value) : undefined;
+		editedResource.price = numValue;
+		updatedData.price = numValue;
+	}
+
+	function handleLicenseChange(event: Event) {
+		const value = (event.target as HTMLSelectElement).value;
+		editedResource.license = value as any;
+		updatedData.license = value;
+	}
+
+	function handleRoyaltyInput(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const num = parseFloat(input.value);
+
+		if (num > maxRoyalty) {
+			input.value = String(maxRoyalty);
+			editedResource.royalties = maxRoyalty;
+			updatedData.royalties = maxRoyalty;
+		} else {
+			editedResource.royalties = num;
+			updatedData.royalties = num;
+		}
+	}
+
+	function handlePropertyNameChange(index: number, event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		editedResource.properties[index].name = value;
+		// Update the entire properties array in updatedData
+		updatedData.properties = JSON.parse(JSON.stringify(editedResource.properties));
+	}
+
+	function handlePropertyValueChange(index: number, event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		editedResource.properties[index].value = value;
+		// Update the entire properties array in updatedData
+		updatedData.properties = JSON.parse(JSON.stringify(editedResource.properties));
+	}
+
 	async function updateResource() {
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
+		// Only send updatedData for updates (it already includes the id)
+		const updatePayload: any = {
+			...updatedData
+		};
+
+		// If no changes detected (only id in updatedData), show a message and return
+		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
+		if (!hasChanges) {
+			const t: ToastSettings = {
+				message: 'No changes detected',
+				background: 'variant-filled-primary',
+				autohide: true
+			};
+			toastStore.trigger(t);
+			return;
+		}
+
 		trpc($page)
-			.resources.update.mutate({
-				id: editedResource._id,
-				title: editedResource.title,
-				description: editedResource.description,
-				properties: editedResource.properties,
-				src: editedResource.src,
-				license: editedResource.license,
-				price: editedResource.price,
-				royalties: editedResource.royalties,
-				nftCollection: editedResource.nftCollection
-			})
+			.resources.update.mutate(updatePayload)
 			.then((response) => {
 				resource = response.data as HydratedDocument<HydratedResourceProperties>;
+
+				// Reset updatedData after successful save (include id if resource has one)
+				updatedData = resource._id ? { id: resource._id } : {};
+				previousResourceId = resource._id?.toString();
 
 				toastMessage = response.message;
 				toastBackground = 'bg-success-500';
@@ -127,11 +229,15 @@
 	function addProperty() {
 		editedResource.properties.push({ name: '', value: '' });
 		editedResource = editedResource;
+		// Update the entire properties array in updatedData
+		updatedData.properties = JSON.parse(JSON.stringify(editedResource.properties));
 	}
 
 	function removeProperty(index: number) {
 		editedResource.properties.splice(index, 1);
 		editedResource = editedResource;
+		// Update the entire properties array in updatedData
+		updatedData.properties = JSON.parse(JSON.stringify(editedResource.properties));
 	}
 
 	function saveChanges() {
@@ -145,9 +251,9 @@
 		let toastMessage = 'Please save all changes before tokenizing';
 		let toastBackground = 'variant-filled-error';
 
-		if (JSON.stringify(editedResource) !== JSON.stringify(resource)) {
-			console.log(editedResource);
-			console.log(resource);
+		// Check if there are unsaved changes
+		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
+		if (hasChanges) {
 			toastStore.trigger({
 				message: toastMessage,
 				background: toastBackground
@@ -192,9 +298,9 @@
 		let toastMessage = 'Please save all changes before listing';
 		let toastBackground = 'variant-filled-error';
 
-		if (JSON.stringify(editedResource) !== JSON.stringify(resource)) {
-			console.log(editedResource);
-			console.log(resource);
+		// Check if there are unsaved changes
+		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
+		if (hasChanges) {
 			toastStore.trigger({
 				message: toastMessage,
 				background: toastBackground
@@ -296,21 +402,10 @@
 			closeModal();
 		}
 	}
-
-	function handleRoyaltyChange(event: Event) {
-		const input = event.target as HTMLInputElement;
-		const num = parseFloat(input.value);
-
-		if (num > maxRoyalty) {
-			input.value = String(maxRoyalty); // update the input's visual value
-			editedResource.royalties = maxRoyalty; // update the bound variable
-		} else {
-			editedResource.royalties = num;
-		}
-	}
 </script>
 
 <!-- Modal backdrop -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div
 	class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
 	on:click={handleBackdropClick}
@@ -319,6 +414,7 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 >
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
 		class="card rounded-lg max-w-5xl w-full max-h-[90vh] overflow-hidden"
 		on:click={(e) => e.stopPropagation()}
@@ -392,7 +488,8 @@
 							<input
 								id="title"
 								type="text"
-								bind:value={editedResource.title}
+								value={editedResource.title}
+								on:input={handleTitleInput}
 								class="input w-full px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 								required
 							/>
@@ -403,7 +500,8 @@
 							<label for="description" class="block text-sm font-medium mb-2">Description *</label>
 							<textarea
 								id="description"
-								bind:value={editedResource.description}
+								value={editedResource.description}
+								on:input={handleDescriptionInput}
 								rows="4"
 								class="textarea w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 								required
@@ -415,7 +513,8 @@
 							<label for="collection" class="block text-sm font-medium mb-2">Collection *</label>
 							<select
 								id="collection"
-								bind:value={editedResource.nftCollection}
+								value={editedResource.nftCollection}
+								on:change={handleCollectionChange}
 								class="select w-full px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 								required
 							>
@@ -431,7 +530,8 @@
 							<input
 								id="price"
 								type="number"
-								bind:value={editedResource.price}
+								value={editedResource.price}
+								on:input={handlePriceInput}
 								placeholder="e.g., 150 XRP"
 								class="input w-full px-3 py-2 border focus:outline-none"
 							/>
@@ -445,8 +545,8 @@
 							<input
 								id="royalties"
 								type="number"
-								bind:value={editedResource.royalties}
-								on:change={handleRoyaltyChange}
+								value={editedResource.royalties}
+								on:input={handleRoyaltyInput}
 								min="0"
 								max="100"
 								step="0.1"
@@ -462,7 +562,8 @@
 							<label for="license" class="block text-sm font-medium mb-2">License *</label>
 							<select
 								id="license"
-								bind:value={editedResource.license}
+								value={editedResource.license}
+								on:change={handleLicenseChange}
 								class="select w-full px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 								required
 							>
@@ -500,14 +601,16 @@
 									<div class="flex gap-2 items-center">
 										<input
 											type="text"
-											bind:value={property.name}
+											value={property.name}
+											on:input={(e) => handlePropertyNameChange(index, e)}
 											placeholder="Property name"
 											class="input flex-1 px-3 py-2"
 											aria-label="Property name"
 										/>
 										<input
 											type="text"
-											bind:value={property.value}
+											value={property.value}
+											on:input={(e) => handlePropertyValueChange(index, e)}
 											placeholder="Property value"
 											class="input flex-1 px-3 py-2 border"
 											aria-label="Property value"
