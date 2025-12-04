@@ -6,6 +6,7 @@
 	import CampaignWinners from '$lib/components/notifications/email-templates/campaign-winners.svelte';
 	import NewComment from '$lib/components/notifications/email-templates/new-comment.svelte';
 	import TransactionProcessed from '$lib/components/notifications/email-templates/transaction-processed.svelte';
+	import CollaborationRequest from '$lib/components/notifications/email-templates/collaboration-request.svelte';
 	import { getModalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import { PUBLIC_DOMAIN_NAME } from '$env/static/public';
 	import type { PageData } from './$types';
@@ -165,6 +166,84 @@
 				chapterUrl: undefined,
 				note: 'Withdrawal request to external wallet',
 				origin: PUBLIC_DOMAIN_NAME
+			}
+		},
+		{
+			name: 'Collaboration Request - Book',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'John Doe',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Book',
+				documentTitle: 'The Great Adventure',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/book/sample`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: false
+			}
+		},
+		{
+			name: 'Collaboration Request - Chapter',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'Jane Smith',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Chapter',
+				documentTitle: 'Chapter 5: The Discovery',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/editor/sample?mode=reader&storylineID=storyline-1&chapterID=chapter-5`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: false
+			}
+		},
+		{
+			name: 'Collaboration Request - Storyline',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'Bob Johnson',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Storyline',
+				documentTitle: 'Alternative Ending',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/editor/sample?mode=reader&storylineID=storyline-2`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: false
+			}
+		},
+		{
+			name: 'Added as Collaborator - Book',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'Sarah Williams',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Book',
+				documentTitle: 'The Great Adventure',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/book/sample`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: true
+			}
+		},
+		{
+			name: 'Added as Collaborator - Chapter',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'Michael Brown',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Chapter',
+				documentTitle: 'Chapter 5: The Discovery',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/editor/sample?mode=reader&storylineID=storyline-1&chapterID=chapter-5`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: true
+			}
+		},
+		{
+			name: 'Added as Collaborator - Storyline',
+			component: CollaborationRequest,
+			props: {
+				requesterName: 'Emily Davis',
+				requesterImageURL: `${PUBLIC_DOMAIN_NAME}/default-user.png`,
+				documentType: 'Storyline',
+				documentTitle: 'Alternative Ending',
+				documentUrl: `${PUBLIC_DOMAIN_NAME}/editor/sample?mode=reader&storylineID=storyline-2`,
+				origin: PUBLIC_DOMAIN_NAME,
+				isOwner: true
 			}
 		}
 	];

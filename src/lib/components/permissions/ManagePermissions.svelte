@@ -101,7 +101,6 @@
 
 		let permission =
 			new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
-		permission._id = ulid();
 		permission.user = users[userID];
 
 		if (userID !== documentOwner._id) {

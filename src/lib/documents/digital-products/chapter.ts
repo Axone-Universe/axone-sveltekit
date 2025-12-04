@@ -69,6 +69,7 @@ export class ChapterBuilder extends DocumentBuilder<HydratedDocument<ChapterProp
 	}
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
+		super.permissions(permissions);
 		this._chapterProperties.permissions = permissions;
 		return this;
 	}

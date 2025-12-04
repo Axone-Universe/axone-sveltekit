@@ -91,6 +91,7 @@ export class StorylineBuilder extends DocumentBuilder<HydratedDocument<Storyline
 	}
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
+		super.permissions(permissions);
 		this._storylineProperties.permissions = permissions;
 		return this;
 	}

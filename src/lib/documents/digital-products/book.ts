@@ -72,6 +72,7 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
+		super.permissions(permissions);
 		this._bookProperties.permissions = permissions;
 		return this;
 	}

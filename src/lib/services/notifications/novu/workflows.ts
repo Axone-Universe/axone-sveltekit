@@ -4,6 +4,7 @@ import { renderNewCampaignEmail } from '$lib/services/notifications/novu/emails'
 import { renderCampaignWinnersEmail } from '$lib/services/notifications/novu/emails';
 import { renderNewCommentEmail } from '$lib/services/notifications/novu/emails';
 import { renderTransactionProcessedEmail } from '$lib/services/notifications/novu/emails';
+import { renderCollaborationRequestEmail } from '$lib/services/notifications/novu/emails';
 
 // Schema for new campaign workflow payload
 const newCampaignPayloadSchema = z.object({
@@ -24,6 +25,13 @@ const newCommentPayloadSchema = z.object({
 // Schema for transaction processed workflow payload
 const transactionProcessedPayloadSchema = z.object({
 	transactionId: z.string()
+});
+
+// Schema for collaboration request workflow payload
+const collaborationRequestPayloadSchema = z.object({
+	userId: z.string(),
+	documentType: z.enum(['Book', 'Chapter', 'Storyline']),
+	documentId: z.string()
 });
 
 // Control schema for email step (allows customization of subject)
@@ -142,5 +150,35 @@ export const transactionProcessedWorkflow = workflow(
 	},
 	{
 		payloadSchema: transactionProcessedPayloadSchema
+	}
+);
+
+/**
+ * Workflow for sending collaboration request notifications
+ */
+export const collaborationRequestWorkflow = workflow(
+	'collaboration-request',
+	async ({ step, payload }) => {
+		await step.email(
+			'send-collaboration-request-email',
+			async (controls) => {
+				const emailBody = await renderCollaborationRequestEmail({
+					userId: payload.userId,
+					documentType: payload.documentType,
+					documentId: payload.documentId
+				});
+
+				return {
+					subject: controls.subject,
+					body: emailBody
+				};
+			},
+			{
+				controlSchema: emailControlSchema
+			}
+		);
+	},
+	{
+		payloadSchema: collaborationRequestPayloadSchema
 	}
 );

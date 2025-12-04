@@ -2,7 +2,8 @@ import {
 	newCampaignWorkflow,
 	campaignWinnersWorkflow,
 	newCommentWorkflow,
-	transactionProcessedWorkflow
+	transactionProcessedWorkflow,
+	collaborationRequestWorkflow
 } from '$lib/services/notifications/novu/workflows';
 import { serve, Client } from '@novu/framework/sveltekit';
 import { NOVU_SECRET_KEY } from '$env/static/private';
@@ -21,7 +22,8 @@ export const { GET, POST, OPTIONS } = serve({
 		newCampaignWorkflow,
 		campaignWinnersWorkflow,
 		newCommentWorkflow,
-		transactionProcessedWorkflow
+		transactionProcessedWorkflow,
+		collaborationRequestWorkflow
 	],
 	client
 });

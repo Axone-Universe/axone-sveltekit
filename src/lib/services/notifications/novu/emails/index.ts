@@ -6,3 +6,7 @@ export {
 	type TransactionProcessedEmailProps,
 	type TransactionNotificationType
 } from './transaction-processed';
+export {
+	renderCollaborationRequestEmail,
+	type CollaborationRequestEmailProps
+} from './collaboration-request';
