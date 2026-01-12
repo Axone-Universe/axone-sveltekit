@@ -78,8 +78,6 @@
 	import { timeAgo, uploadResource } from '$lib/util/constants';
 	import TextArea from '$lib/components/TextArea.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
-	import { type UserNotificationProperties } from '$lib/properties/notification';
-	import { documentURL } from '$lib/util/links';
 	import {
 		type HydratedResourceProperties,
 		type ResourceProperties
@@ -640,24 +638,10 @@
 	}
 
 	function submitReaderComment(comment: string) {
-		const notifications: { [key: string]: UserNotificationProperties } = {};
-		notifications[''] = {
-			type: 'USER',
-			senderID: session!.user.id,
-			receiverID:
-				typeof selectedChapter!.user === 'string'
-					? selectedChapter!.user
-					: selectedChapter!.user!._id,
-			url: documentURL($page.url.origin, 'Chapter', selectedChapter!),
-			subject: 'Respond To Your Fans!',
-			notification: `${session!.user.email} has commented on your chapter!`
-		};
-
 		trpc($page)
 			.chapters.createComment.mutate({
 				chapterId: selectedChapter ? selectedChapter._id : '',
-				comment: comment,
-				notifications: notifications
+				comment: comment
 			})
 			.then((response) => {
 				if (selectedChapter && response.success) {

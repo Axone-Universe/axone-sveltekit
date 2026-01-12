@@ -43,6 +43,7 @@ export class DeltaBuilder extends DocumentBuilder<HydratedDocument<DeltaProperti
 	}
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
+		super.permissions(permissions);
 		this._deltaProperties.permissions = permissions;
 		return this;
 	}

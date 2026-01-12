@@ -5,6 +5,7 @@ import { logger } from '$lib/trpc/middleware/logger';
 import { t } from '$lib/trpc/t';
 import { create, read, update } from '$lib/trpc/schemas/storylines';
 import { sendNotifications } from '$lib/util/notifications/novu';
+import { triggerPermissionWorkflow } from '$lib/services/notifications/novu/triggers/permission';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
@@ -140,14 +141,31 @@ export const storylines = t.router({
 
 			const response: Response = {
 				success: true,
-				message: 'storylines successfully retrieved',
+				message: 'Storyline successfully updated',
 				data: {}
 			};
 			try {
 				const result = await storylineBuilder.update();
 
-				if (input.notifications) {
-					sendNotifications(input.notifications);
+				// Send notifications for new permissions (identified by empty _id)
+				if (input.permissions) {
+					// Trigger workflow for each new permission
+					for (const [userID, permission] of Object.entries(input.permissions)) {
+						// Skip 'public' permission and the sender
+						if (userID === 'public' || userID === ctx.session!.user.id) {
+							continue;
+						}
+
+						// Check if this is a new permission (empty _id indicates new permission)
+						if (permission._id === '') {
+							await triggerPermissionWorkflow({
+								documentType: 'Storyline',
+								documentId: result._id,
+								senderId: ctx.session!.user.id,
+								receiverId: userID
+							});
+						}
+					}
 				}
 				response.data = result;
 			} catch (error) {
@@ -212,8 +230,25 @@ export const storylines = t.router({
 			try {
 				const result = await storylineBuilder.build();
 
-				if (input.notifications) {
-					await sendNotifications(input.notifications);
+				// Send notifications for new permissions
+				if (input.permissions) {
+					// Trigger workflow for each new permission
+					for (const [userID, permission] of Object.entries(input.permissions)) {
+						// Skip 'public' permission and the sender
+						if (userID === 'public' || userID === ctx.session!.user.id) {
+							continue;
+						}
+
+						// Check if this is a new permission (empty _id indicates new permission)
+						if (permission._id === '') {
+							await triggerPermissionWorkflow({
+								documentType: 'Storyline',
+								documentId: result._id,
+								senderId: ctx.session!.user.id,
+								receiverId: userID
+							});
+						}
+					}
 				}
 				response.data = result;
 			} catch (error) {

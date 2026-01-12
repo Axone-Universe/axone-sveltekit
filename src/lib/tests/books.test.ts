@@ -204,17 +204,13 @@ describe('books', () => {
 		const testUserOneSession = createTestSession(testUserOne);
 		const testUserTwoSession = createTestSession(testUserTwo);
 
-		console.log('** create users');
-
 		const testUserOneDB = (await createDBUser(testUserOneSession)).data;
 		const testUserTwoDB = (await createDBUser(testUserTwoSession)).data;
 
-		console.log('** create book');
 		const userOneBook1 = await createBook(testUserOneSession, testUserOneDB);
 		const userOneBook2 = await createBook(testUserOneSession, testUserOneDB);
 		const userTwoBook1 = await createBook(testUserTwoSession, testUserTwoDB);
 
-		console.log('** after bk');
 		const callerOne = router.createCaller({
 			session: testUserOneSession,
 			user: testUserOneDB
@@ -236,8 +232,6 @@ describe('books', () => {
 			})
 		).data[0];
 
-		console.log('** 1 create chapter ');
-
 		const userOneChapter = await createChapter(
 			testUserOneSession,
 			testUserOneDB,
@@ -255,8 +249,6 @@ describe('books', () => {
 				parentChapter: userOneChapter.data._id
 			})
 		).data;
-
-		console.log('** 2 create chapter ');
 
 		const userTwoChapter = await createChapter(
 			testUserTwoSession,

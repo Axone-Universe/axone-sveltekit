@@ -23,7 +23,7 @@ export class PermissionPropertyBuilder {
 
 	constructor() {
 		this._properties = {
-			_id: 'public',
+			_id: '',
 			permission: 'view'
 		};
 	}

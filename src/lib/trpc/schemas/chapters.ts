@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { permissions } from './permissions';
-import { userNotification } from './notifications';
 
 export const create = z.object({
 	title: z.string(),
@@ -8,14 +7,12 @@ export const create = z.object({
 	bookID: z.string(),
 	storylineID: z.string(),
 	prevChapterID: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const createComment = z.object({
 	chapterId: z.string(),
-	comment: z.string(),
-	notifications: z.record(z.string(), userNotification).optional()
+	comment: z.string()
 });
 
 export const deleteComment = z.object({
@@ -54,8 +51,7 @@ export const update = z.object({
 	id: z.string(),
 	title: z.string().optional(),
 	description: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export type ReadChapter = z.infer<typeof read>;

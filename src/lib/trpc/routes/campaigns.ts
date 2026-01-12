@@ -5,6 +5,10 @@ import { create, read, update } from '$lib/trpc/schemas/campaigns';
 import { CampaignsRepository } from '$lib/repositories/campaignsRepository';
 import { CampaignBuilder } from '$lib/documents/campaigns/campaign';
 import { sendNotifications } from '$lib/util/notifications/novu';
+import {
+	triggerNewCampaignWorkflow,
+	triggerCampaignWinnersWorkflow
+} from '$lib/services/notifications/novu/triggers/campaign';
 import { BookBuilder } from '$lib/documents/digital-products/book';
 import type { Response } from '$lib/util/types';
 import type { HydratedDocument } from 'mongoose';
@@ -81,9 +85,11 @@ export const campaigns = t.router({
 			try {
 				const result = await campaignBuilder.build();
 
-				if (input.notifications) {
-					sendNotifications(input.notifications);
-				}
+				// Trigger new campaign workflow for 'general' topic
+				await triggerNewCampaignWorkflow({
+					campaignId: result._id
+				});
+
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -131,8 +137,11 @@ export const campaigns = t.router({
 			try {
 				const result = await campaignBuilder.update();
 
-				if (input.notifications) {
-					sendNotifications(input.notifications);
+				// Trigger campaign winners workflow for 'general' topic if winners were set
+				if (input.winners && input.winners.length > 0) {
+					await triggerCampaignWinnersWorkflow({
+						campaignId: result._id
+					});
 				}
 
 				response.data = result;
