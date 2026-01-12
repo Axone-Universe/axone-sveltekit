@@ -16,11 +16,6 @@
 	import { campaignDaysLeft } from '$lib/util/constants';
 	import UserFilter from '../user/UserFilter.svelte';
 	import { type UserProperties } from '$lib/properties/user';
-	import {
-		type TopicNotificationProperties,
-		type UserNotificationProperties
-	} from '$lib/properties/notification';
-	import { documentURL } from '$lib/util/links';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { trash } from 'svelte-awesome/icons';
 
@@ -48,9 +43,6 @@
 
 	// Used for the users filter
 	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
-	// Used to send notifications to winners
-	let notifications: { [key: string]: UserNotificationProperties | TopicNotificationProperties } =
-		{};
 
 	const toastStore = getToastStore();
 
@@ -199,47 +191,6 @@
 		winners.push(users[userID]);
 		winners = winners;
 		handleWinnersChange();
-
-		// create the notification to send to the winner
-		notifications[userID] = {
-			type: 'USER',
-			senderID: campaign.user,
-			receiverID: userID,
-			subject: 'You have won!!',
-			url: documentURL($page.url.origin, 'Book', book),
-			notification: `🎉🎉 Congratulations!
-
-			You are one of the winners for the campaign '${book.title}'.
-			
-			Please reach out to us at admin@axone.network to claim your prize 🏆`
-		};
-
-		// create the general notification to send to all users
-		notifications['general'] = {
-			url: documentURL($page.url.origin, 'Book', book),
-			type: 'TOPIC',
-			topicKey: 'general',
-			topicName: 'general',
-			subject: 'Writing Competition Winners!',
-			notification: `We have released the winners of our campaign, '${book.title}'. 
-
-			Find out more by visiting the campaign's page below. 
-
-			Keep writing folks, more campaigns coming soon!!`
-		};
-	}
-
-	function newCampaignNotification() {
-		notifications['general'] = {
-			url: documentURL($page.url.origin, 'Book', book),
-			type: 'TOPIC',
-			topicKey: 'general',
-			topicName: 'general',
-			subject: 'Writing Competition!',
-			notification: `A new campaign, ${book.title}, has been launched. Hurry and submit to win your share of the rewards!`
-		};
-
-		return notifications;
 	}
 
 	async function fetchWinners() {
@@ -287,16 +238,11 @@
 					updatePayload.book.id = book._id;
 				}
 
-				// Include notifications if they exist
-				if (Object.keys(notifications).length > 0) {
-					updatePayload.notifications = notifications;
-				}
-
 				// If no changes detected (only id in updatedData), show a message and return
 				const hasChanges =
 					Object.keys(updatedData).filter((key) => key !== 'id').length > 0 ||
 					(updatedData.book && Object.keys(updatedData.book).length > 0);
-				if (!hasChanges && Object.keys(notifications).length === 0) {
+				if (!hasChanges) {
 					const t: ToastSettings = {
 						message: 'No changes detected',
 						background: 'variant-filled-primary'
@@ -314,7 +260,6 @@
 					criteria: criteria,
 					rewards: rewards,
 					resources: resources,
-					notifications: newCampaignNotification(),
 					book: {
 						title: book.title,
 						description: book.description,

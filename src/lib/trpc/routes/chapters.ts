@@ -13,6 +13,8 @@ import {
 } from '$lib/trpc/schemas/chapters';
 import { read } from '$lib/trpc/schemas/chapters';
 import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { triggerPermissionWorkflow } from '$lib/services/notifications/novu/triggers/permission';
+import { triggerNewCommentWorkflow } from '$lib/services/notifications/novu/triggers/comment';
 import { setArchived } from '../schemas/shared';
 import type { Response } from '$lib/util/types';
 import type { ChapterProperties, CommentProperties } from '$lib/properties/chapter';
@@ -138,9 +140,27 @@ export const chapters = t.router({
 			try {
 				const result = await chapterBuilder.update();
 
-				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
+				// Send notifications for new permissions (identified by empty _id)
+				if (input.permissions) {
+					// Trigger workflow for each new permission
+					for (const [userID, permission] of Object.entries(input.permissions)) {
+						// Skip 'public' permission and the sender
+						if (userID === 'public' || userID === ctx.session!.user.id) {
+							continue;
+						}
+
+						// Check if this is a new permission (empty _id indicates new permission)
+						if (permission._id === '') {
+							await triggerPermissionWorkflow({
+								documentType: 'Chapter',
+								documentId: result._id,
+								senderId: ctx.session!.user.id,
+								receiverId: userID
+							});
+						}
+					}
 				}
+
 				response.data = result;
 			} catch (error) {
 				response.success = false;
@@ -202,16 +222,26 @@ export const chapters = t.router({
 			try {
 				const result = await chapterBuilder.build();
 
-				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
-				}
+				// Send notifications for new permissions
+				if (input.permissions) {
+					// Trigger workflow for each new permission
+					for (const [userID, permission] of Object.entries(input.permissions)) {
+						// Skip 'public' permission and the sender
+						if (userID === 'public' || userID === ctx.session!.user.id) {
+							continue;
+						}
 
-				// sendTopicNotification({
-				// 	topicKey: input.storylineID,
-				// 	topicName: input.title,
-				// 	url: documentURL('Chapter', result as HydratedDocument<ChapterProperties>),
-				// 	notification: `A new chapter '${input.title}' has been added to a storyline in your reading list!`
-				// });
+						// Check if this is a new permission (empty _id indicates new permission)
+						if (permission._id === '') {
+							await triggerPermissionWorkflow({
+								documentType: 'Chapter',
+								documentId: result._id,
+								senderId: ctx.session!.user.id,
+								receiverId: userID
+							});
+						}
+					}
+				}
 
 				response.data = result;
 			} catch (error) {
@@ -260,10 +290,27 @@ export const chapters = t.router({
 			};
 			try {
 				const result = await chapterBuilder.createComment(input.comment);
-				response.data = result.comments?.at(0);
+				const newComment = result.comments?.at(0);
+				response.data = newComment;
 
-				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
+				// Trigger new comment workflow
+				if (newComment) {
+					// Get chapter owner to send notification
+					const chaptersRepo = new ChaptersRepository();
+					const chapter = await chaptersRepo.getById(ctx, input.chapterId);
+
+					// Get chapter owner ID (skip if commenter is the owner)
+					const chapterOwnerId =
+						typeof chapter.user === 'string' ? chapter.user : chapter.user?._id;
+
+					// Only send notification if the commenter is not the chapter owner
+					if (chapterOwnerId && chapterOwnerId !== ctx.session!.user.id) {
+						await triggerNewCommentWorkflow({
+							chapterId: input.chapterId,
+							commentId: newComment._id,
+							recipientId: chapterOwnerId
+						});
+					}
 				}
 			} catch (error) {
 				response.success = false;

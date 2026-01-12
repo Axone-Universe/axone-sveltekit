@@ -30,7 +30,7 @@ import { resourceCollectionsData } from '$lib/properties/resource';
 import { UsersRepository } from '$lib/repositories/usersRepository';
 import { ResourceBuilder } from '$lib/documents/digital-assets/resource';
 import { getNFTokenId, getNFTokenOfferId, getNFTokenWalletAddress } from '$lib/services/xrpl';
-import { sendUserNotifications } from '$lib/util/notifications/novu';
+import { triggerTransactionProcessedWorkflow } from '$lib/services/notifications/novu/triggers/transaction';
 
 export const xumm = t.router({
 	createToken: t.procedure
@@ -313,10 +313,6 @@ export const xumm = t.router({
 					transactionBuilder.payloadId(payload!.uuid);
 
 					response.data = await transactionBuilder.update();
-
-					if (input.notifications) {
-						await sendUserNotifications(input.notifications);
-					}
 				} else {
 					response.success = false;
 					response.message = 'Error while creating NFT offer transaction payload';
@@ -418,6 +414,18 @@ export const xumm = t.router({
 		console.log('<< transaction');
 		console.log(updatedTransaction);
 
+		// Trigger notification workflow if transaction was successfully signed
+		if (payloadResponse.signed && updatedTransaction.receiver) {
+			const receiverId =
+				typeof updatedTransaction.receiver === 'string'
+					? updatedTransaction.receiver
+					: updatedTransaction.receiver._id.toString();
+			await triggerTransactionProcessedWorkflow({
+				transactionId: updatedTransaction._id.toString(),
+				receiverId
+			});
+		}
+
 		return response;
 	}),
 	payload: t.procedure
@@ -490,10 +498,6 @@ export const xumm = t.router({
 				transactionBuilder.payloadId(payload!.uuid);
 
 				response.data = await transactionBuilder.build();
-
-				if (input.notifications) {
-					await sendUserNotifications(input.notifications);
-				}
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

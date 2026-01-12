@@ -20,8 +20,6 @@
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
-	let notifications = {};
-
 	// Track updated fields - initialize with id if chapter has one
 	let updatedData: any = chapter._id ? { id: chapter._id } : {};
 
@@ -84,8 +82,7 @@
 				storylineID,
 				prevChapterID,
 				description: chapter.description!,
-				permissions: chapter.permissions,
-				notifications
+				permissions: chapter.permissions
 			})
 			.then((response) => {
 				chapter = response.data as HydratedDocument<ChapterProperties>;
@@ -115,14 +112,9 @@
 			...updatedData
 		};
 
-		// Include notifications if they exist
-		if (Object.keys(notifications).length > 0) {
-			updatePayload.notifications = notifications;
-		}
-
 		// If no changes detected (only id in updatedData), show a message and return
 		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
-		if (!hasChanges && Object.keys(notifications).length === 0) {
+		if (!hasChanges) {
 			const t: ToastSettings = {
 				message: 'No changes detected',
 				background: 'variant-filled-primary',
@@ -188,7 +180,6 @@
 					Permissions
 					<ManagePermissions
 						bind:permissionedDocument={chapter}
-						{notifications}
 						permissionedDocumentType="Chapter"
 						on:permissionsChange={handlePermissionsChange}
 					/>

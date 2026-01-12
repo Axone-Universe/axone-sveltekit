@@ -19,8 +19,6 @@
 	import { afterUpdate, onMount, createEventDispatcher } from 'svelte';
 	import { ulid } from 'ulid';
 	import type { StorylineProperties } from '$lib/properties/storyline';
-	import type { UserNotificationProperties } from '$lib/properties/notification';
-	import { documentURL } from '$lib/util/links';
 	import UserFilter from '../user/UserFilter.svelte';
 
 	const dispatch = createEventDispatcher<{
@@ -31,7 +29,6 @@
 		| HydratedDocument<BookProperties>
 		| HydratedDocument<ChapterProperties>
 		| HydratedDocument<StorylineProperties>;
-	export let notifications: { [key: string]: UserNotificationProperties } = {};
 	export let permissionedDocumentType: PermissionedDocument;
 	let customClass = '';
 	export { customClass as class };
@@ -106,22 +103,11 @@
 		if (userID !== documentOwner._id) {
 			permissions[userID] = permission;
 			permissions = permissions;
-			notifications[userID] = {
-				type: 'USER',
-				senderID: documentOwner._id,
-				receiverID: userID,
-				subject: 'Request To Collaborate!',
-				url: documentURL($page.url.origin, permissionedDocumentType, permissionedDocument),
-				notification: `${documentOwner.firstName!} has requested you to collaborate on the ${permissionedDocumentType} '${
-					permissionedDocument.title
-				}'!`
-			};
 		}
 	}
 
 	function removePermission(userID: string) {
 		delete permissions[userID];
-		delete notifications[userID];
 		permissions = permissions;
 	}
 

@@ -360,8 +360,7 @@
 		};
 		trpc($page)
 			.xumm.buyToken.query({
-				resourceId: editedResource._id,
-				notifications: notifications
+				resourceId: editedResource._id
 			})
 			.then((response) => {
 				if (response.success) {

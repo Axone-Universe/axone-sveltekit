@@ -26,7 +26,6 @@
 	let imageFile: File;
 	let genres = storyline.genres ?? [];
 	let tags = storyline.tags ?? [];
-	let notifications = {};
 
 	$: title = storyline.title;
 	const toastStore = getToastStore();
@@ -72,7 +71,11 @@
 
 	// Track imageURL changes (ImageUploader uses bind:imageURL, so we watch for changes)
 	let previousImageURL = storyline.imageURL;
-	$: if (storyline._id && storyline.imageURL !== undefined && storyline.imageURL !== previousImageURL) {
+	$: if (
+		storyline._id &&
+		storyline.imageURL !== undefined &&
+		storyline.imageURL !== previousImageURL
+	) {
 		updatedData.imageURL = storyline.imageURL;
 		previousImageURL = storyline.imageURL;
 	}
@@ -114,18 +117,13 @@
 
 		if (!newStoryline) {
 			// Only send updatedData for updates (it already includes the id)
-			// Include notifications if they exist
 			const updatePayload: any = {
 				...updatedData
 			};
 
-			if (Object.keys(notifications).length > 0) {
-				updatePayload.notifications = notifications;
-			}
-
 			// If no changes detected (only id in updatedData), show a message and return
 			const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
-			if (!hasChanges && Object.keys(notifications).length === 0) {
+			if (!hasChanges) {
 				const t: ToastSettings = {
 					message: 'No changes detected',
 					background: 'variant-filled-primary'
@@ -145,8 +143,7 @@
 				permissions: storyline.permissions,
 				genres,
 				tags,
-				imageURL: '',
-				notifications: notifications
+				imageURL: ''
 			});
 		}
 
@@ -278,17 +275,14 @@
 			Permissions
 			<ManagePermissions
 				bind:permissionedDocument={storyline}
-				{notifications}
 				permissionedDocumentType="Storyline"
 				on:permissionsChange={handlePermissionsChange}
 			/>
 		</div>
 
 		<div class="flex flex-col justify-end sm:flex-row gap-2">
-			<button
-				type="button"
-				class="btn variant-ghost-surface"
-				on:click={cancelCallback}>Cancel</button
+			<button type="button" class="btn variant-ghost-surface" on:click={cancelCallback}
+				>Cancel</button
 			>
 			<button class="btn variant-filled" type="submit">
 				{storyline._id ? 'Update' : 'Create'}

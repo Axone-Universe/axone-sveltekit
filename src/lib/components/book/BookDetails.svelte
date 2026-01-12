@@ -17,8 +17,6 @@
 	import ImageUploader from '../util/ImageUploader.svelte';
 	import { uploadImage } from '$lib/util/bucket/bucket';
 
-	let notifications = {};
-
 	export let book: HydratedDocument<BookProperties>;
 	export let supabase: SupabaseClient;
 	export let cancelCallback: () => void = () => {
@@ -116,18 +114,13 @@
 
 		if (!newBook) {
 			// Only send updatedData for updates (it already includes the id)
-			// Include notifications if they exist
 			const updatePayload: any = {
 				...updatedData
 			};
 
-			if (Object.keys(notifications).length > 0) {
-				updatePayload.notifications = notifications;
-			}
-
 			// If no changes detected (only id in updatedData), show a message and return
 			const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
-			if (!hasChanges && Object.keys(notifications).length === 0) {
+			if (!hasChanges) {
 				const t: ToastSettings = {
 					message: 'No changes detected',
 					background: 'variant-filled-primary'
@@ -144,8 +137,7 @@
 				description: book.description,
 				genres,
 				tags,
-				permissions: book.permissions,
-				notifications: notifications
+				permissions: book.permissions
 			});
 		}
 
@@ -267,7 +259,6 @@
 				Permissions
 				<ManagePermissions
 					bind:permissionedDocument={book}
-					{notifications}
 					permissionedDocumentType="Book"
 					on:permissionsChange={handlePermissionsChange}
 				/>
