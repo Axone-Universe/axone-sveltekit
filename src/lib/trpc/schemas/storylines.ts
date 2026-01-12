@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { permissions } from './permissions';
-import { userNotification } from './notifications';
 import { genreSchema } from './genres';
 import { homeFilterTags } from '$lib/util/constants';
 
@@ -24,8 +23,7 @@ export const update = z.object({
 	tags: z.array(z.string()).optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const create = z.object({
@@ -37,8 +35,7 @@ export const create = z.object({
 	tags: z.array(z.string()).optional(),
 	parent: z.string().optional(),
 	parentChapter: z.string().optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const read = z.object({

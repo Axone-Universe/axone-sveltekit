@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { genreSchema } from './genres';
 import { permissions } from './permissions';
-import { userNotification } from './notifications';
 
 import { homeFilterTags } from '$lib/util/constants';
 
@@ -14,8 +13,7 @@ export const create = z.object({
 	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
 	tags: z.array(z.string()).optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const read = z.object({
@@ -37,8 +35,7 @@ export const update = z.object({
 	imageURL: z.string().optional(),
 	genres: genreSchema.optional(),
 	tags: z.array(z.string()).optional(),
-	permissions: z.record(z.string(), permissions).optional(),
-	notifications: z.record(z.string(), userNotification).optional()
+	permissions: z.record(z.string(), permissions).optional()
 });
 
 export const addStoryline = z.object({

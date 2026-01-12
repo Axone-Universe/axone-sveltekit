@@ -133,6 +133,19 @@ lt --port 5173 --subdomain axone
 
 > NOTE: you can change this by editing the `vite.config.ts` file to `https:false`
 
+### Notifications
+
+We use Novu for notifications.
+
+- To run the dev server for Novu notifications dashboard:
+
+```
+npx novu@latest dev -p 3000
+```
+
+- Make sure you sync your local workflows with the cloud dashboard.
+- To have the correct correct novu endpoint (/api/novu) use the dev server. When you sync, it will ask you for that api endpoint.
+
 ## Building
 
 To create a production version of your app:
