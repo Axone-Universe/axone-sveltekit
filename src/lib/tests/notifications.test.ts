@@ -1,6 +1,5 @@
 import { router } from '$lib/trpc/router';
 import { vi, expect, describe, test, beforeAll, beforeEach } from 'vitest';
-import { novu } from '$lib/util/notifications/novu';
 import {
 	cleanUpDatabase,
 	connectDatabase,
@@ -12,6 +11,10 @@ import {
 } from '$lib/util/testing/testing';
 import { PermissionPropertyBuilder } from '$lib/properties/permission';
 import { AXONE_ADMIN_EMAIL } from '$env/static/private';
+import * as permissionTriggers from '$lib/services/notifications/novu/triggers/permission';
+import * as commentTriggers from '$lib/services/notifications/novu/triggers/comment';
+import * as campaignTriggers from '$lib/services/notifications/novu/triggers/campaign';
+import * as transactionTriggers from '$lib/services/notifications/novu/triggers/transaction';
 
 const payload_uuid = '854ef029-72ec-4031-99c0-e4af42250c71';
 const qr_png_link = 'https://xumm.app/sign/854ef029-72ec-4031-99c0-e4af42250c71_q.png';
@@ -65,14 +68,37 @@ beforeAll(async () => {
 });
 
 describe('notifications', () => {
-	let mockNovuTrigger: ReturnType<typeof vi.fn>;
+	let mockTriggerPermissionWorkflow: ReturnType<typeof vi.fn>;
+	let mockTriggerNewCommentWorkflow: ReturnType<typeof vi.fn>;
+	let mockTriggerNewCampaignWorkflow: ReturnType<typeof vi.fn>;
+	let mockTriggerCampaignWinnersWorkflow: ReturnType<typeof vi.fn>;
+	let mockTriggerTransactionProcessedWorkflow: ReturnType<typeof vi.fn>;
 
 	beforeEach(async () => {
 		await cleanUpDatabase();
-		// Mock novu.trigger for all tests
-		mockNovuTrigger = vi.fn().mockResolvedValue({});
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		vi.spyOn(novu, 'trigger').mockImplementation(mockNovuTrigger as any);
+		// Mock all trigger functions
+		mockTriggerPermissionWorkflow = vi.fn().mockResolvedValue(undefined);
+		mockTriggerNewCommentWorkflow = vi.fn().mockResolvedValue(undefined);
+		mockTriggerNewCampaignWorkflow = vi.fn().mockResolvedValue(undefined);
+		mockTriggerCampaignWinnersWorkflow = vi.fn().mockResolvedValue(undefined);
+		mockTriggerTransactionProcessedWorkflow = vi.fn().mockResolvedValue(undefined);
+
+		vi.spyOn(permissionTriggers, 'triggerPermissionWorkflow').mockImplementation(
+			mockTriggerPermissionWorkflow as (args_0: any) => Promise<void>
+		);
+		vi.spyOn(commentTriggers, 'triggerNewCommentWorkflow').mockImplementation(
+			mockTriggerNewCommentWorkflow as (args_0: any) => Promise<void>
+		);
+
+		vi.spyOn(campaignTriggers, 'triggerNewCampaignWorkflow').mockImplementation(
+			mockTriggerNewCampaignWorkflow as (args_0: any) => Promise<void>
+		);
+		vi.spyOn(campaignTriggers, 'triggerCampaignWinnersWorkflow').mockImplementation(
+			mockTriggerCampaignWinnersWorkflow as (args_0: any) => Promise<void>
+		);
+		vi.spyOn(transactionTriggers, 'triggerTransactionProcessedWorkflow').mockImplementation(
+			mockTriggerTransactionProcessedWorkflow as (args_0: any) => Promise<void>
+		);
 	});
 
 	test('triggerPermissionWorkflow - triggers when creating chapter with permissions', async () => {
@@ -109,17 +135,11 @@ describe('notifications', () => {
 		});
 
 		// Verify that triggerPermissionWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('collaboration-request', {
-			to: [
-				{
-					subscriberId: testUserTwoDB._id
-				}
-			],
-			payload: {
-				userId: testUserOneDB._id,
-				documentType: 'Chapter',
-				documentId: chapterResponse.data._id
-			}
+		expect(mockTriggerPermissionWorkflow).toHaveBeenCalledWith({
+			documentType: 'Chapter',
+			documentId: chapterResponse.data._id,
+			senderId: testUserOneDB._id,
+			receiverId: testUserTwoDB._id
 		});
 	});
 
@@ -154,17 +174,11 @@ describe('notifications', () => {
 		});
 
 		// Verify that triggerPermissionWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('collaboration-request', {
-			to: [
-				{
-					subscriberId: testUserTwoDB._id
-				}
-			],
-			payload: {
-				userId: testUserOneDB._id,
-				documentType: 'Storyline',
-				documentId: storylines[0]._id
-			}
+		expect(mockTriggerPermissionWorkflow).toHaveBeenCalledWith({
+			documentType: 'Storyline',
+			documentId: storylines[0]._id,
+			senderId: testUserOneDB._id,
+			receiverId: testUserTwoDB._id
 		});
 	});
 
@@ -201,16 +215,10 @@ describe('notifications', () => {
 		});
 
 		// Verify that triggerNewCommentWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('new-comment', {
-			to: [
-				{
-					subscriberId: testUserOneDB._id
-				}
-			],
-			payload: {
-				chapterId: chapterResponse.data._id,
-				commentId: commentResponse.data._id
-			}
+		expect(mockTriggerNewCommentWorkflow).toHaveBeenCalledWith({
+			chapterId: chapterResponse.data._id,
+			commentId: commentResponse.data._id,
+			recipientId: testUserOneDB._id
 		});
 	});
 
@@ -237,7 +245,7 @@ describe('notifications', () => {
 		});
 
 		// Reset the mock to count only new-comment calls
-		mockNovuTrigger.mockClear();
+		mockTriggerNewCommentWorkflow.mockClear();
 
 		// Create a comment as the chapter owner (testUserOne)
 		await caller.chapters.createComment({
@@ -246,7 +254,7 @@ describe('notifications', () => {
 		});
 
 		// Verify that triggerNewCommentWorkflow was NOT called
-		expect(mockNovuTrigger).not.toHaveBeenCalledWith('new-comment', expect.any(Object));
+		expect(mockTriggerNewCommentWorkflow).not.toHaveBeenCalled();
 	});
 
 	test('triggerNewCampaignWorkflow - triggers when creating a campaign', async () => {
@@ -262,11 +270,8 @@ describe('notifications', () => {
 		const campaignId = typeof book.campaign === 'string' ? book.campaign : book.campaign?._id ?? '';
 
 		// Verify that triggerNewCampaignWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('new-campaign', {
-			to: [{ type: 'Topic', topicKey: 'general' }],
-			payload: {
-				campaignId: campaignId
-			}
+		expect(mockTriggerNewCampaignWorkflow).toHaveBeenCalledWith({
+			campaignId: campaignId
 		});
 	});
 
@@ -286,7 +291,7 @@ describe('notifications', () => {
 		const campaignId = typeof book.campaign === 'string' ? book.campaign : book.campaign?._id ?? '';
 
 		// Reset the mock to count only campaign-winners calls
-		mockNovuTrigger.mockClear();
+		mockTriggerCampaignWinnersWorkflow.mockClear();
 
 		// Update campaign with winners (winners is an array of user IDs)
 		await caller.campaigns.update({
@@ -295,11 +300,8 @@ describe('notifications', () => {
 		});
 
 		// Verify that triggerCampaignWinnersWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('campaign-winners', {
-			to: [{ type: 'Topic', topicKey: 'general' }],
-			payload: {
-				campaignId: campaignId
-			}
+		expect(mockTriggerCampaignWinnersWorkflow).toHaveBeenCalledWith({
+			campaignId: campaignId
 		});
 	});
 
@@ -332,7 +334,7 @@ describe('notifications', () => {
 		expect(payloadId).toBeDefined();
 
 		// Reset the mock to count only transaction-processed calls
-		mockNovuTrigger.mockClear();
+		mockTriggerTransactionProcessedWorkflow.mockClear();
 
 		// Process the transaction via webhook
 		await caller.xumm.webhook({
@@ -369,15 +371,9 @@ describe('notifications', () => {
 		).data;
 
 		// Verify that triggerTransactionProcessedWorkflow was called
-		expect(mockNovuTrigger).toHaveBeenCalledWith('transaction-processed', {
-			to: [
-				{
-					subscriberId: testUserTwoDB._id
-				}
-			],
-			payload: {
-				transactionId: transaction._id
-			}
+		expect(mockTriggerTransactionProcessedWorkflow).toHaveBeenCalledWith({
+			transactionId: transaction._id,
+			receiverId: testUserTwoDB._id
 		});
 	});
 });
