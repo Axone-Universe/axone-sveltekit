@@ -362,50 +362,50 @@
 		notificationType === 'success'
 			? badgeSuccess
 			: notificationType === 'failure'
-				? badgeFailure
-				: badgeWithdrawal;
+			? badgeFailure
+			: badgeWithdrawal;
 
 	$: amountSectionStyle =
 		notificationType === 'success'
 			? amountSectionSuccess
 			: notificationType === 'failure'
-				? amountSectionFailure
-				: amountSectionWithdrawal;
+			? amountSectionFailure
+			: amountSectionWithdrawal;
 
 	$: amountValueStyle =
 		notificationType === 'success'
 			? amountValueSuccess
 			: notificationType === 'failure'
-				? amountValueFailure
-				: amountValueWithdrawal;
+			? amountValueFailure
+			: amountValueWithdrawal;
 
 	$: headerTitleText =
 		notificationType === 'success'
 			? 'Payment Received'
 			: notificationType === 'failure'
-				? 'Transaction Failed'
-				: 'Withdrawal Request';
+			? 'Transaction Failed'
+			: 'Withdrawal Request';
 
 	$: badgeText =
 		notificationType === 'success'
 			? '💰 Payment Received'
 			: notificationType === 'failure'
-				? '❌ Transaction Failed'
-				: '💸 Withdrawal Request';
+			? '❌ Transaction Failed'
+			: '💸 Withdrawal Request';
 
 	$: amountLabelText =
 		notificationType === 'success'
 			? 'Amount Received'
 			: notificationType === 'failure'
-				? 'Failed Amount'
-				: 'Withdrawal Amount';
+			? 'Failed Amount'
+			: 'Withdrawal Amount';
 
 	$: descriptionMessage =
 		notificationType === 'success'
 			? 'Your payment has been successfully processed and credited to your account.'
 			: notificationType === 'failure'
-				? 'We encountered an issue processing your transaction. Please try again or contact support if the problem persists.'
-				: 'Your withdrawal request has been received and is being processed. You will be notified once it is completed.';
+			? 'We encountered an issue processing your transaction. Please try again or contact support if the problem persists.'
+			: 'Your withdrawal request has been received and is being processed. You will be notified once it is completed.';
 
 	$: ctaButtonText =
 		notificationType === 'success'
@@ -413,8 +413,8 @@
 				? 'View Chapter'
 				: 'View Transaction'
 			: notificationType === 'failure'
-				? 'Try Again'
-				: 'View Status';
+			? 'Try Again'
+			: 'View Status';
 
 	$: ctaButtonStyle = notificationType === 'failure' ? ctaButtonFailure : ctaButton;
 
@@ -422,8 +422,8 @@
 		notificationType === 'success'
 			? 'Thank you for your contribution to the community'
 			: notificationType === 'failure'
-				? 'If you continue to experience issues, please contact our support team'
-				: 'We will notify you once your withdrawal is processed';
+			? 'If you continue to experience issues, please contact our support team'
+			: 'We will notify you once your withdrawal is processed';
 </script>
 
 <Html>
@@ -436,13 +436,7 @@
 			<Container style={container}>
 				<!-- Header with Logo -->
 				<Section style={header}>
-					<Img
-						src="{origin}/logo_banner.png"
-						alt="Logo"
-						width="w-full"
-						height="h-full"
-						style={logo}
-					/>
+					<Img src="{origin}/logo_banner.png" alt="Logo" width="400" height="auto" style={logo} />
 					<Heading style={headerTitle}>{headerTitleText}</Heading>
 					<Section style={headerDivider} />
 				</Section>
@@ -554,8 +548,7 @@
 											</td>
 											<td style="padding: 0; text-align: right;">
 												<Text style={detailValue}>
-													{transactionStatus.charAt(0).toUpperCase() +
-														transactionStatus.slice(1)}
+													{transactionStatus.charAt(0).toUpperCase() + transactionStatus.slice(1)}
 												</Text>
 											</td>
 										</tr>
@@ -651,4 +644,3 @@
 		</Section>
 	</Body>
 </Html>
-
