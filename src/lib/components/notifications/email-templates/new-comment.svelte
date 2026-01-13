@@ -281,13 +281,7 @@
 			<Container style={container}>
 				<!-- Header with Logo -->
 				<Section style={header}>
-					<Img
-						src="{origin}/logo_banner.png"
-						alt="Logo"
-						width="w-full"
-						height="h-full"
-						style={logo}
-					/>
+					<Img src="{origin}/logo_banner.png" alt="Logo" width="400" height="auto" style={logo} />
 					<Heading style={headerTitle}>New Comment</Heading>
 					<Section style={headerDivider} />
 				</Section>
