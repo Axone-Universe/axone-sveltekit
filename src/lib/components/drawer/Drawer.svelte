@@ -1,19 +1,62 @@
 <script lang="ts">
-	import { AppRail, AppRailTile, getDrawerStore } from '@skeletonlabs/skeleton';
+	import {
+		AppRail,
+		AppRailTile,
+		getDrawerStore,
+		type DrawerSettings
+	} from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { pencil, user, trash, users, infoCircle } from 'svelte-awesome/icons';
+	import {
+		pencil,
+		user,
+		trash,
+		users,
+		infoCircle,
+		home,
+		signIn,
+		listUl,
+		dollar,
+		star,
+		powerOff,
+		navicon
+	} from 'svelte-awesome/icons';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 	import { page } from '$app/stores';
 	import { StoreIcon } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
+	import type { UserProperties } from '$lib/properties/user';
 
-	export let data: { supabase: SupabaseClient; session: Session | null };
+	export let data: {
+		supabase: SupabaseClient;
+		session: Session | null;
+		user?: UserProperties | null;
+	};
 	const drawerStore = getDrawerStore();
 	let selectedTile: number = 0;
 
 	const onLogoutButtonClick = async () => {
 		await data.supabase.auth.signOut();
+		drawerStore.close();
 	};
+
+	function navigateTo(path: string) {
+		goto(path);
+	}
+
+	function openMobileProfileDrawer() {
+		const mobileProfileDrawerSettings: DrawerSettings = {
+			id: 'mobile-profile',
+			bgDrawer: 'bg-surface-100-800-token',
+			width: 'w-full',
+			padding: 'p-4',
+			rounded: 'rounded-t-xl',
+			position: 'bottom'
+		};
+		drawerStore.open(mobileProfileDrawerSettings);
+	}
+
+	$: isAmbassador = data.user?.ambassador ?? false;
 </script>
 
 {#if $drawerStore.id === 'landing'}
@@ -250,4 +293,137 @@
 			</a>
 		</div>
 	</Drawer>
+{:else if $drawerStore.id === 'mobile-profile'}
+	<Drawer zIndex="z-[1000]" position="bottom">
+		<div class="bg-surface-100-800-token rounded-t-xl p-4 space-y-2">
+			<!-- Drawer Handle -->
+			<div class="flex justify-center mb-4">
+				<div class="w-12 h-1 bg-surface-400-500-token rounded-full" />
+			</div>
+
+			{#if data.session && data.session.user}
+				<!-- Profile Options -->
+				<a
+					class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+					href={`/profile/${data.session.user.id}`}
+					on:click={drawerStore.close}
+				>
+					<Icon data={user} />
+					<span>Profile</span>
+				</a>
+				<hr class="!my-2 variant-fill-primary" />
+				<a
+					class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+					href={`/library`}
+					on:click={drawerStore.close}
+				>
+					<Icon data={listUl} />
+					<span>Library</span>
+				</a>
+				<hr class="!my-2 variant-fill-primary" />
+				<a
+					class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+					href={`/studio/books?campaigns=true`}
+					on:click={drawerStore.close}
+				>
+					<Icon data={pencil} />
+					<span>Studio</span>
+				</a>
+				<hr class="!my-2 variant-fill-primary" />
+				<a
+					class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+					href={`/monetize/earnings`}
+					on:click={drawerStore.close}
+				>
+					<Icon data={dollar} />
+					<span>Monetize</span>
+				</a>
+				{#if isAmbassador}
+					<hr class="!my-2 variant-fill-primary" />
+					<a
+						class="btn space-x-6 hover:variant-soft-primary justify-between w-full variant-soft-warning"
+						href={`/ambassadors/referrals`}
+						on:click={drawerStore.close}
+					>
+						<Icon data={star} />
+						<span>Ambassadors</span>
+					</a>
+				{/if}
+				<hr class="!my-2 variant-fill-primary" />
+				<button
+					class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+					on:click={onLogoutButtonClick}
+				>
+					<Icon data={powerOff} />
+					<span>Logout</span>
+				</button>
+			{:else}
+				<a class="btn variant-filled-primary w-full" href="/login" on:click={drawerStore.close}>
+					Login
+				</a>
+			{/if}
+		</div>
+	</Drawer>
 {/if}
+
+<!-- Mobile Bottom Navigation Bar -->
+<div
+	class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-100-800-token border-t border-surface-500/30"
+>
+	<div
+		class="flex justify-around items-center py-2 px-2"
+		style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));"
+	>
+		<!-- Home Icon -->
+		<a
+			href={data.session && data.session.user ? '/home' : '/'}
+			class="flex flex-col items-center justify-center gap-1 p-2 min-w-[60px] text-surface-600-300-token hover:text-primary-500 transition-colors"
+			aria-label="Home"
+		>
+			<Icon data={home} scale={1.5} />
+			<span class="text-xs">Home</span>
+		</a>
+
+		<!-- Community Icon -->
+		<a
+			href="/community"
+			class="flex flex-col items-center justify-center gap-1 p-2 min-w-[60px] text-surface-600-300-token hover:text-primary-500 transition-colors"
+			aria-label="Community"
+		>
+			<Icon data={users} scale={1.5} />
+			<span class="text-xs">Community</span>
+		</a>
+
+		<!-- Write Icon -->
+		<a
+			href="/book/create"
+			class="flex flex-col items-center justify-center gap-1 p-2 min-w-[60px] text-surface-600-300-token hover:text-primary-500 transition-colors"
+			aria-label="Write"
+			data-sveltekit-preload-data="off"
+		>
+			<Icon data={pencil} scale={1.5} />
+			<span class="text-xs">Write</span>
+		</a>
+
+		<!-- Menu Icon -->
+		{#if data.session && data.session.user}
+			<button
+				on:click={openMobileProfileDrawer}
+				class="flex flex-col items-center justify-center gap-1 p-2 min-w-[60px] text-surface-600-300-token hover:text-primary-500 transition-colors"
+				aria-label="Menu"
+			>
+				<Icon data={navicon} scale={1.5} />
+				<span class="text-xs">Menu</span>
+			</button>
+		{:else}
+			<a
+				href="/login"
+				class="flex flex-col items-center justify-center gap-1 p-2 min-w-[60px] text-surface-600-300-token hover:text-primary-500 transition-colors"
+				aria-label="Login"
+			>
+				<Icon data={signIn} scale={1.5} />
+				<span class="text-xs">Login</span>
+			</a>
+		{/if}
+	</div>
+</div>

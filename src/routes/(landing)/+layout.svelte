@@ -8,9 +8,11 @@
 	export let data: PageData;
 </script>
 
-<div class="flex flex-col items-center min-h-screen">
+<div class="flex flex-col items-center min-h-screen pb-20 lg:pb-0">
 	<Header {data} />
 	<Drawer {data} />
 	<slot {data} />
-	<Footer />
+	<div class="hidden lg:block">
+		<Footer />
+	</div>
 </div>

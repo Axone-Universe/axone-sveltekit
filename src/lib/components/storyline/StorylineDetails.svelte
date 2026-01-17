@@ -206,87 +206,89 @@
 	}
 </script>
 
-<div class={`card p-2 sm:p-4 space-y-4 w-modal ${customClass}`}>
+<div class="{customClass} w-modal">
 	<form on:submit|preventDefault={createStorylineData}>
-		<div class="flex justify-between gap-2">
-			<div class="flex flex-col w-full">
-				<label for="storyline-title"> * Storyline Title </label>
-				<input
-					id="storyline-title"
-					class="input"
-					type="text"
-					value={storyline.title}
-					on:input={handleTitleInput}
-					placeholder="Untitled Storyline"
-					required
-				/>
+		<div class="card p-2 sm:p-4 space-y-4">
+			<div class="flex flex-col md:flex-row justify-between gap-2">
+				<div class="flex flex-col w-full gap-2">
+					<label for="storyline-title"> * Storyline Title </label>
+					<input
+						id="storyline-title"
+						class="input"
+						type="text"
+						value={storyline.title}
+						on:input={handleTitleInput}
+						placeholder="Untitled Storyline"
+						required
+					/>
 
-				<label for="storyline-description"> * Description </label>
-				<textarea
-					id="storyline-description"
-					class="textarea w-full h-full overflow-hidden"
-					value={storyline.description}
-					on:input={handleDescriptionInput}
-					required
+					<label for="storyline-description"> * Description </label>
+					<textarea
+						id="storyline-description"
+						class="textarea w-full h-full overflow-hidden"
+						value={storyline.description}
+						on:input={handleDescriptionInput}
+						required
+					/>
+				</div>
+				<ImageUploader
+					bind:imageURL={storyline.imageURL}
+					bind:imageFile
+					class="card w-full md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
 				/>
 			</div>
-			<ImageUploader
-				bind:imageURL={storyline.imageURL}
-				bind:imageFile
-				class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
-			/>
-		</div>
-		<div>
-			Genres
-			<div id="genres-div" class="flex flex-wrap gap-1">
-				{#each GENRES as genre}
-					<button
-						type="button"
-						class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
-						on:click={() => {
-							const index = genres.indexOf(genre);
-							let newGenres;
-							if (index > -1) {
-								newGenres = genres.filter((v) => v !== genre);
-							} else {
-								newGenres = [...genres, genre];
-							}
-							handleGenresChange(newGenres);
-						}}
-					>
-						<span class="capitalize">{genre}</span>
-					</button>
-				{/each}
+			<div>
+				Genres
+				<div id="genres-div" class="flex flex-wrap gap-1">
+					{#each GENRES as genre}
+						<button
+							type="button"
+							class="chip {genres.includes(genre) ? 'variant-filled' : 'variant-soft'}"
+							on:click={() => {
+								const index = genres.indexOf(genre);
+								let newGenres;
+								if (index > -1) {
+									newGenres = genres.filter((v) => v !== genre);
+								} else {
+									newGenres = [...genres, genre];
+								}
+								handleGenresChange(newGenres);
+							}}
+						>
+							<span class="capitalize">{genre}</span>
+						</button>
+					{/each}
+				</div>
 			</div>
-		</div>
-		<div id="tags-div">
-			Tags
-			<InputChip
-				bind:value={tags}
-				name="tags"
-				placeholder="e.g. #zombies"
-				validation={(tag) => {
-					return tag.startsWith('#');
-				}}
-				on:valueChange={handleTagsChange}
-			/>
-		</div>
-		<div>
-			Permissions
-			<ManagePermissions
-				bind:permissionedDocument={storyline}
-				permissionedDocumentType="Storyline"
-				on:permissionsChange={handlePermissionsChange}
-			/>
-		</div>
+			<div id="tags-div">
+				Tags
+				<InputChip
+					bind:value={tags}
+					name="tags"
+					placeholder="e.g. #zombies"
+					validation={(tag) => {
+						return tag.startsWith('#');
+					}}
+					on:valueChange={handleTagsChange}
+				/>
+			</div>
+			<div>
+				Permissions
+				<ManagePermissions
+					bind:permissionedDocument={storyline}
+					permissionedDocumentType="Storyline"
+					on:permissionsChange={handlePermissionsChange}
+				/>
+			</div>
 
-		<div class="flex flex-col justify-end sm:flex-row gap-2">
-			<button type="button" class="btn variant-ghost-surface" on:click={cancelCallback}
-				>Cancel</button
-			>
-			<button class="btn variant-filled" type="submit">
-				{storyline._id ? 'Update' : 'Create'}
-			</button>
+			<div class="flex flex-col justify-end sm:flex-row gap-2">
+				<button type="button" class="btn variant-ghost-surface" on:click={cancelCallback}
+					>Cancel</button
+				>
+				<button class="btn variant-filled" type="submit">
+					{storyline._id ? 'Update' : 'Create'}
+				</button>
+			</div>
 		</div>
 	</form>
 </div>

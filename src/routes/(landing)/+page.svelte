@@ -112,7 +112,7 @@
 					<h1
 						class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight"
 					>
-						Enter The Axone Universe
+						Enter The Axe Universe
 					</h1>
 					<p class="text-md sm:text-xl lg:text-xl font-normal text-surface-600-300-token max-w-2xl">
 						Collaborate with authors and illustrators to create stories with multiple storylines.
@@ -167,11 +167,7 @@
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-10 items-center">
 			<div class="w-full max-w-full mx-auto">
 				<div class="lg:order-2 w-full max-w-[600px] mx-auto relative">
-					<img
-						src="/publishing_1_resized.png"
-						alt="Axone Universe"
-						class="w-full h-auto object-contain"
-					/>
+					<img src="/publish.png" alt="Axone Universe" class="w-full h-auto object-contain" />
 				</div>
 			</div>
 			<div
