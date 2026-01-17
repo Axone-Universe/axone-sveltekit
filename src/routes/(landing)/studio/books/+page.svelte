@@ -110,7 +110,7 @@
 		},
 		{
 			queryKey: ['booksStudio', archiveMode, isCampaigns ? '' : null],
-			getNextPageParam: (lastPage) => lastPage.cursor
+			getNextPageParam: (lastPage: { cursor: any }) => lastPage.cursor
 		}
 	);
 
@@ -244,7 +244,6 @@
 	}
 
 	async function refetch() {
-		$getBooksInfinite.remove();
 		await $getBooksInfinite.refetch();
 		selectedBooks = [];
 	}
@@ -305,8 +304,6 @@
 <Tutorial />
 <div class="min-h-screen overflow-hidden w-full">
 	<div class="w-full min-h-screen flex flex-col gap-2">
-		<DrawerButton />
-
 		<div class="table-container min-w-full">
 			<table class="table table-hover table-compact relative">
 				<thead>

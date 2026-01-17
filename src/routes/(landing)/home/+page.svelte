@@ -146,10 +146,10 @@
 <Tutorial />
 
 <Container class="w-full min-h-screen">
-	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-2">
+	<div class="sticky top-0 lg:top-[4.7rem] z-[2] flex flex-col gap-2 pb-2 lg:pb-0">
 		<input
 			id="search-input"
-			class="input text-sm h-8 p-2"
+			class="input text-base lg:text-sm h-12 lg:h-8 p-3 lg:p-2"
 			title="Search for stoylines"
 			type="search"
 			placeholder="Search storylines by title or #tag"
@@ -196,7 +196,7 @@
 		{#if showFilters}
 			<div
 				id="filters-container"
-				class="m-2 bg-surface-200-700-token rounded-lg bg-opacity-90 p-4 space-y-2"
+				class="m-2 rounded-lg p-4 space-y-2"
 			>
 				<div class="flex justify-between items-center">
 					<p class="font-bold">Select Filters</p>

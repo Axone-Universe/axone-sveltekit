@@ -73,7 +73,7 @@
 		},
 		{
 			queryKey: ['storylinesStudio', archiveMode],
-			getNextPageParam: (lastPage) => lastPage.cursor
+			getNextPageParam: (lastPage: { cursor: any }) => lastPage.cursor
 		}
 	);
 
@@ -150,7 +150,6 @@
 	}
 
 	async function refetch() {
-		$getStorylinesInfinite.remove();
 		await $getStorylinesInfinite.refetch();
 		selectedStorylines = [];
 	}
@@ -219,8 +218,6 @@
 <Tutorial />
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2">
-		<DrawerButton />
-
 		<div class="table-container min-w-full">
 			<table class="table table-hover table-compact">
 				<thead>

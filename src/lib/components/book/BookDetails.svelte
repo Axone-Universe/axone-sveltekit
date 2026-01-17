@@ -217,7 +217,7 @@
 				<ImageUploader
 					bind:imageURL={book.imageURL}
 					bind:imageFile
-					class="card w-5/6 md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
+					class="card w-full md:w-1/3 aspect-[2/3] h-fit overflow-hidden relative"
 				/>
 			</div>
 			<div>

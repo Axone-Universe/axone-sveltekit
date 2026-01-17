@@ -927,13 +927,14 @@
 </svelte:head>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <AppShell class="editor-shell min-h-screen">
 	<svelte:fragment slot="sidebarLeft">
 		<Drawer
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="w-[180px] md:w-[280px]"
 			position="left"
-			class="md:!relative h-full pt-24 md:pt-1"
+			class="md:!relative h-full pt-1"
 		>
 			<BookNav
 				class="p-4 flex flex-col items-center bg-surface-50-900-token h-full"
@@ -950,7 +951,7 @@
 			regionBackdrop="w-2/4 md:w-full !bg-transparent"
 			width="max-w-[80px]"
 			position="right"
-			class="md:!relative h-full !left-auto pt-24 md:pt-1"
+			class="md:!relative h-full !left-auto pt-1"
 		>
 			<div class="flex h-full">
 				{#if showAuthorComments && numComments !== 0}
@@ -1054,13 +1055,12 @@
 								class="card w-full p-1 shadow-xl scale-95 focus-within:scale-100 hover:scale-100"
 							>
 								{#if resourceData.src}
-									<div class="h-40 w-full object-cover overflow-hidden">
+									<div class="h-40 w-full object-cover overflow-hidden" on:click={() => showResourceModal(resourceData)}>
 										<img
 											id={`src-${resourceData._id}`}
 											class="resize-none rounded-md mb-2 w-full"
 											alt={resourceData.title}
 											src={resourceData.src}
-											on:click={() => showResourceModal(resourceData)}
 										/>
 									</div>
 								{:else}
@@ -1270,15 +1270,17 @@
 	</svelte:fragment>
 	<svelte:fragment slot="default">
 		<div class="flex justify-between h-screen w-full overflow-y-clip">
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{/if}
-			</div>
+			<button
+				on:click={toggleDrawer}
+				class="flex h-full items-center hover:variant-soft md:p-2 cursor-grab active:cursor-grabbing"
+				aria-label={$drawerStore.open ? 'Close drawer' : 'Open drawer'}
+			>
+				<div class="w-4 h-16 bg-surface-200-700-token rounded-r-lg flex items-center justify-center">
+					<div class="w-1 h-8 bg-surface-400-500-token rounded-full" />
+				</div>
+			</button>
 			{#if selectedChapter}
-				<div class="editor-container flex flex-col h-full w-full items-center overflow-scroll">
+				<div class="editor-container flex flex-col h-full w-full items-center">
 					{#if versionPreview}
 						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
 							<span>Version Preview</span>
@@ -1288,7 +1290,8 @@
 						<textarea
 							id="message"
 							rows="1"
-							class="block text-primary-700-200-token resize-none h-fit p-2.5 w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0"
+							wrap="off"
+							class="block text-primary-700-200-token resize-none h-fit p-2.5 w-full text-center text-2xl md:text-4xl bg-transparent border-transparent focus:border-transparent focus:ring-0 whitespace-nowrap overflow-x-auto"
 							placeholder="Storyline Title"
 							bind:value={selectedStoryline.title}
 							disabled
@@ -1304,20 +1307,22 @@
 					</div>
 
 					<Toolbar class="{mode === 'writer' ? '' : 'hidden'} m-4" />
-					<div class="w-10/12 !h-fit" id="editor" style={cssVarStyles} />
+					<div class="w-full md:w-10/12 !h-fit" id="editor" style={cssVarStyles} />
 				</div>
 			{:else if !selectedStoryline.userPermissions?.view}
 				<div class="flex h-full w-full justify-center items-center">
 					<RequestPermissionModal class="mt-4" document={selectedStoryline} />
 				</div>
 			{/if}
-			<div on:click={toggleDrawer} class="flex h-full items-center hover:variant-soft">
-				{#if $drawerStore.open}
-					<Icon class="flex p-2 justify-start" data={chevronRight} scale={3} />
-				{:else}
-					<Icon class="flex p-2 justify-start" data={chevronLeft} scale={3} />
-				{/if}
-			</div>
+			<button
+				on:click={toggleDrawer}
+				class="flex h-full items-center hover:variant-soft md:p-2 cursor-grab active:cursor-grabbing"
+				aria-label={$drawerStore.open ? 'Close drawer' : 'Open drawer'}
+			>
+				<div class="w-4 h-16 bg-surface-200-700-token rounded-l-lg flex items-center justify-center">
+					<div class="w-1 h-8 bg-surface-400-500-token rounded-full" />
+				</div>
+			</button>
 		</div>
 	</svelte:fragment>
 </AppShell>

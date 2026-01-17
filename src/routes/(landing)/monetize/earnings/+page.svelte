@@ -10,8 +10,6 @@
 	import { getModalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import InfoHeader from '$lib/components/InfoHeader.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
-	import { formattedDate } from '$lib/util/studio/strings';
-	import DrawerButton from '$lib/components/studio/DrawerButton.svelte';
 	import { arrowDown, arrowLeft, arrowRight, creditCard } from 'svelte-awesome/icons';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
@@ -44,7 +42,7 @@
 		{
 			enabled: account ? true : false,
 			queryKey: ['monetization', archiveMode, selectedAccountId],
-			getNextPageParam: (lastPage) => lastPage.cursor
+			getNextPageParam: (lastPage: { cursor: any; }) => lastPage.cursor
 		}
 	);
 
@@ -98,12 +96,12 @@
 	function loadMore() {
 		$getTransactionsInfinite.fetchNextPage();
 	}
-
+	
 	async function refetch() {
-		$getTransactionsInfinite.remove();
 		await $getTransactionsInfinite.refetch();
 		selectedTransactions = [];
 	}
+
 
 	function handleTransactionSelect(
 		e: Event & {
@@ -130,7 +128,6 @@
 
 <div class="min-h-screen w-full overflow-hidden">
 	<div class="w-full min-h-screen flex flex-col gap-2">
-		<DrawerButton />
 
 		<div class="table-container min-w-full">
 			<table class="table table-hover table-compact">
