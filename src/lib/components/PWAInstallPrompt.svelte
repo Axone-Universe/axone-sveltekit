@@ -52,9 +52,6 @@
 			return;
 		}
 
-		// Listen for the beforeinstallprompt event
-		window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
 		// // For browsers that support beforeinstallprompt (Android Chrome, etc.)
 		// // The event will fire and show the prompt immediately
 		// // For iOS Safari, we show a delayed prompt as a reminder
@@ -73,19 +70,7 @@
 			showPrompt = true;
 		}
 
-		return () => {
-			window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-		};
 	});
-
-	function handleBeforeInstallPrompt(e: Event) {
-		// Prevent the default browser install prompt
-		e.preventDefault();
-		// Store the event for later use
-		deferredPrompt = e as BeforeInstallPromptEvent;
-		// Show our custom prompt
-		showPrompt = true;
-	}
 
 	async function handleInstallClick() {
 		if (!deferredPrompt) {

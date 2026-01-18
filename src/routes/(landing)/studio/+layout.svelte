@@ -107,7 +107,7 @@
 		<div class="flex-1 flex flex-col gap-3 px-2 overflow-hidden">
 			<!-- Campaigns -->
 			<a
-				class="btn {$page.url.searchParams.get('campaigns') === 'true'
+				class="btn {$page.url.pathname.startsWith('/studio/books') && $page.url.searchParams.get('campaigns') === 'true'
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -123,7 +123,7 @@
 
 			<!-- Books -->
 			<a
-				class="btn {$page.url.pathname === '/studio/books' &&
+				class="btn {$page.url.pathname.startsWith('/studio/books') &&
 				$page.url.searchParams.get('campaigns') !== 'true'
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
@@ -140,7 +140,7 @@
 
 			<!-- Storylines -->
 			<a
-				class="btn {$page.url.pathname === '/studio/storylines'
+				class="btn {$page.url.pathname.startsWith('/studio/storylines')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -156,7 +156,7 @@
 
 			<!-- Chapters -->
 			<a
-				class="btn {$page.url.pathname === '/studio/chapters'
+				class="btn {$page.url.pathname.startsWith('/studio/chapters')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -174,7 +174,7 @@
 
 			<!-- Resources -->
 			<a
-				class="btn {$page.url.pathname === '/studio/resources'
+				class="btn {$page.url.pathname.startsWith('/studio/resources')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -191,7 +191,7 @@
 			<!-- Notifications (Admin only) -->
 			{#if isAdmin}
 				<a
-					class="btn {$page.url.pathname === '/studio/notifications'
+					class="btn {$page.url.pathname.startsWith('/studio/notifications')
 						? 'variant-filled-primary'
 						: 'variant-filled'} {isExpanded
 						? 'justify-between px-3'
@@ -213,7 +213,7 @@
 		class="min-h-screen rounded-lg sticky top-16 hidden sm:flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<a
-			class="btn justify-between px-12 {$page.url.searchParams.get('campaigns') === 'true'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/books') && $page.url.searchParams.get('campaigns') === 'true'
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/studio/books?campaigns=true"
@@ -222,7 +222,7 @@
 			Campaigns
 		</a>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/studio/books' &&
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/books') &&
 			$page.url.searchParams.get('campaigns') !== 'true'
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
@@ -232,7 +232,7 @@
 			Books
 		</a>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/studio/storylines'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/storylines')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/studio/storylines"
@@ -241,7 +241,7 @@
 			Storylines
 		</a>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/studio/chapters'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/chapters')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/studio/chapters"
@@ -253,7 +253,7 @@
 		<hr class="m-4" />
 
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/studio/resources'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/resources')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/studio/resources"
@@ -264,7 +264,7 @@
 
 		{#if isAdmin}
 			<a
-				class="btn justify-between px-12 {$page.url.pathname === '/studio/notifications'
+				class="btn justify-between px-12 {$page.url.pathname.startsWith('/studio/notifications')
 					? 'variant-filled-primary'
 					: 'variant-filled'}"
 				href="/studio/notifications"

@@ -101,7 +101,7 @@
 		<div class="flex-1 flex flex-col gap-3 px-2 overflow-hidden">
 			<!-- Referrals -->
 			<a
-				class="btn {$page.url.pathname === '/ambassadors/referrals'
+				class="btn {$page.url.pathname.startsWith('/ambassadors/referrals')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -117,7 +117,7 @@
 
 			<!-- Rewards -->
 			<a
-				class="btn {$page.url.pathname === '/ambassadors/rewards'
+				class="btn {$page.url.pathname.startsWith('/ambassadors/rewards')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -138,7 +138,7 @@
 		class="min-h-screen rounded-lg sticky top-16 hidden sm:flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/ambassadors/referrals'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/ambassadors/referrals')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/ambassadors/referrals"
@@ -147,7 +147,7 @@
 			Referrals
 		</a>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/ambassadors/rewards'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/ambassadors/rewards')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/ambassadors/rewards"

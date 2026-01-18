@@ -65,16 +65,6 @@
 		}
 	};
 
-	function setupTawkto() {
-		var s1 = document.createElement('script'),
-			s0 = document.getElementsByTagName('script')[0];
-		s1.async = true;
-		s1.src = 'https://embed.tawk.to/65b6ad518d261e1b5f58e698/1hl8pa1rm';
-		s1.charset = 'UTF-8';
-		s1.setAttribute('crossorigin', '*');
-		s0?.parentNode?.insertBefore(s1, s0);
-	}
-
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 

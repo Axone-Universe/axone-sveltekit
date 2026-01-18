@@ -1280,7 +1280,7 @@
 				</div>
 			</button>
 			{#if selectedChapter}
-				<div class="editor-container flex flex-col h-full w-full items-center">
+				<div class="editor-container flex flex-col h-full w-full items-center overflow-y-scroll">
 					{#if versionPreview}
 						<button class="btn fixed variant-filled-primary font-sans top-28 w-1/6">
 							<span>Version Preview</span>

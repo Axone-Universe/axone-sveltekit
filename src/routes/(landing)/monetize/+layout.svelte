@@ -101,7 +101,7 @@
 		<div class="flex-1 flex flex-col gap-3 px-2 overflow-hidden">
 			<!-- Earnings -->
 			<a
-				class="btn {$page.url.pathname === '/monetize/earnings'
+					class="btn {$page.url.pathname.startsWith('/monetize/earnings')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -117,7 +117,7 @@
 
 			<!-- Payments -->
 			<a
-				class="btn {$page.url.pathname === '/monetize/payments'
+				class="btn {$page.url.pathname.startsWith('/monetize/payments')
 					? 'variant-filled-primary'
 					: 'variant-filled'} {isExpanded
 					? 'justify-between px-3'
@@ -138,7 +138,7 @@
 		class="min-h-screen rounded-lg sticky top-16 hidden sm:flex flex-col w-64 min-w-[16rem] bg-surface-100-800-token pt-4 pb-24 p-4 gap-2"
 	>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/monetize/earnings'
+			class="btn justify-between px-12 {$page.url.pathname.startsWith('/monetize/earnings')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/monetize/earnings"
@@ -147,7 +147,7 @@
 			Earnings
 		</a>
 		<a
-			class="btn justify-between px-12 {$page.url.pathname === '/monetize/payments'
+				class="btn justify-between px-12 {$page.url.pathname.startsWith('/monetize/payments')
 				? 'variant-filled-primary'
 				: 'variant-filled'}"
 			href="/monetize/payments"
