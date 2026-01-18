@@ -12,7 +12,7 @@
 	<Header {data} />
 	<Drawer {data} />
 	<slot {data} />
-	<div class="hidden lg:block">
+	<div class="hidden lg:block w-full">
 		<Footer />
 	</div>
 </div>

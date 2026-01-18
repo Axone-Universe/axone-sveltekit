@@ -302,6 +302,7 @@
 </script>
 
 <Tutorial />
+
 <div class="min-h-screen overflow-hidden w-full">
 	<div class="w-full min-h-screen flex flex-col gap-2">
 		<div class="table-container min-w-full">
