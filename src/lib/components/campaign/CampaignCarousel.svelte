@@ -40,43 +40,45 @@
 	>
 		{#each campaigns as campaign}
 			<div class="shrink-0 w-full snap-start">
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-6">
-					<!-- Left Side: Campaign Frame -->
-					<div class="flex justify-center">
-						<div class="relative w-full max-w-[500px]">
-							<!-- Campaign Container with Background -->
-							<div
-								class="w-full bg-cover bg-center"
-								style="background-image: url('{campaign.book.imageURL}');"
-							>
-								<!-- Foreground Frame Image -->
-								<img
-									src="/writing_campaign.png"
-									alt="Campaign frame"
-									class="relative z-10 w-full h-full object-contain"
-								/>
-							</div>
-						</div>
+				<div
+					class="relative rounded-lg overflow-hidden min-h-[320px] md:min-h-[400px] flex flex-col justify-center"
+				>
+					<!-- Right 50%: solid background -->
+					<div
+						class="absolute right-0 top-0 bottom-0 w-1/2 bg-surface-50 dark:bg-surface-900"
+						aria-hidden="true"
+					/>
+					<!-- Left 50%: image (full height), blends to the right -->
+					<div class="campaign-image-wrap absolute left-0 top-0 bottom-0 w-1/2">
+						<ImageWithFallback
+							src={campaign.book.imageURL}
+							alt={campaign.book.title ?? 'Campaign'}
+							class="w-full h-full object-cover"
+						/>
 					</div>
-
-					<!-- Right Side: Campaign Details -->
-					<div class="flex flex-col space-y-6 text-center md:text-left">
-						<div class="space-y-4">
-							<h3 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-								{campaign.book.title}
-							</h3>
-							<p class="text-base md:text-lg text-surface-600-300-token line-clamp-5">
-								{campaign.book.description}
-							</p>
-						</div>
-						<div>
-							<a
-								href="./book/{campaign.book._id}"
-								class="btn variant-filled-primary btn-lg text-lg px-8 py-4 inline-flex items-center gap-2"
-							>
-								<span>Join Competition</span>
-								<i class="fa-solid fa-arrow-right" />
-							</a>
+					<!-- Content -->
+					<div
+						class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-6 md:p-10"
+					>
+						<div class="hidden md:block" />
+						<div class="flex flex-col space-y-6 text-center md:text-right">
+							<div class="space-y-4">
+								<h3 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+									{campaign.book.title}
+								</h3>
+								<p class="text-base md:text-lg text-surface-600-300-token line-clamp-5">
+									{campaign.book.description}
+								</p>
+							</div>
+							<div class="flex justify-center md:justify-end">
+								<a
+									href="./book/{campaign.book._id}"
+									class="btn variant-filled-primary btn-lg text-lg px-8 py-4 inline-flex items-center gap-2"
+								>
+									<span>Join Competition</span>
+									<i class="fa-solid fa-arrow-right" />
+								</a>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -98,3 +100,14 @@
 		{/each}
 	</div>
 </div>
+
+<style>
+	.campaign-image-wrap {
+		-webkit-mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
+		mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
+		-webkit-mask-size: 100% 100%;
+		mask-size: 100% 100%;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+	}
+</style>

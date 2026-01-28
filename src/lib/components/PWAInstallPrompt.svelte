@@ -12,16 +12,40 @@
 	let deferredPrompt: BeforeInstallPromptEvent | null = null;
 	let showPrompt = false;
 	let isMobile = false;
+	let isIOS = false;
 	let appInstalled = false;
 
-	// Check if device is mobile
+	// Check if device is iOS (iPhone, iPad, iPod)
+	function checkIOS(): boolean {
+		const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+		const uaLower = ua.toLowerCase();
+		return (
+			/ipad|iphone|ipod/.test(uaLower) || (/macintosh/.test(uaLower) && 'ontouchend' in document)
+		);
+	}
+
+	// Check if device is mobile, tablet, or iPad
 	function checkMobile() {
 		const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+		const userAgentLower = userAgent.toLowerCase();
+
+		// Check for mobile devices
 		const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-			userAgent.toLowerCase()
+			userAgentLower
 		);
-		const isSmallScreen = window.innerWidth <= 768;
-		return isMobileDevice || isSmallScreen;
+
+		// Check for tablets (including iPad and Android tablets)
+		const isTablet = /ipad|tablet|playbook|silk|(android(?!.*mobile))/i.test(userAgentLower);
+
+		// Check for iPad specifically (iOS 13+ reports as Mac, so we need to check for touch support)
+		const isIPad =
+			/ipad/i.test(userAgentLower) ||
+			(/macintosh/i.test(userAgentLower) && 'ontouchend' in document);
+
+		// Check for small screen (mobile/tablet sized)
+		const isSmallScreen = window.innerWidth <= 1024; // Increased to 1024 to include tablets
+
+		return isMobileDevice || isTablet || isIPad || isSmallScreen;
 	}
 
 	// Check if already dismissed in this session
@@ -34,6 +58,7 @@
 		// First check if app is running in standalone mode
 		const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 		const isInWebAppiOS = (window.navigator as any).standalone === true;
+
 		if (isStandalone || isInWebAppiOS) {
 			return true;
 		}
@@ -57,7 +82,7 @@
 	onMount(async () => {
 		// Check if app is installed
 		appInstalled = await isInstalled();
-		
+
 		// Don't show if already installed
 		if (appInstalled) {
 			return;
@@ -70,6 +95,7 @@
 
 		// Check if mobile
 		isMobile = checkMobile();
+		isIOS = checkIOS();
 		if (!isMobile) {
 			return;
 		}
@@ -92,26 +118,12 @@
 		if (!appInstalled && !isDismissed() && isMobile) {
 			showPrompt = true;
 		}
-
 	});
 
 	async function handleInstallClick() {
 		// Check if app is already installed (including when viewing in browser)
 		appInstalled = await isInstalled();
 		if (appInstalled) {
-			// If already installed, try to open it based on platform
-			const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-			const isAndroid = /Android/.test(navigator.userAgent);
-
-			// For Android: Try to open the installed app
-			if (isAndroid) {
-				// Try to open the app using the current URL
-				// The installed PWA should handle this URL
-				window.location.href = window.location.origin + window.location.pathname;
-			}
-			// For iOS: We can't programmatically open the installed app
-			// User needs to open it from home screen
-			
 			handleDismiss();
 			return;
 		}
@@ -170,16 +182,28 @@
 		role="alert"
 		aria-live="polite"
 	>
+		{#if isIOS}
+			<img
+				src="/icons/ios-share.jpg"
+				alt=""
+				class="shrink-0 w-6 h-6 object-contain invert dark:invert-1"
+				aria-hidden="true"
+			/>
+			<span class="text-sm font-medium pr-1 flex-1 min-w-0">
+				Tap the <strong>Share</strong> button, then <strong>Add to Home Screen</strong>
+			</span>
+		{:else}
+			<button
+				class="btn-icon btn-sm variant-soft-primary shrink-0"
+				on:click={handleInstallClick}
+				aria-label="Install app"
+			>
+				<Icon data={download} />
+			</button>
+			<span class="text-sm font-medium pr-1">Install App</span>
+		{/if}
 		<button
-			class="btn-icon btn-sm variant-soft-primary"
-			on:click={handleInstallClick}
-			aria-label="Install app"
-		>
-			<Icon data={download} />
-		</button>
-		<span class="text-sm font-medium pr-1">Install App</span>
-		<button
-			class="btn-icon btn-sm variant-ghost-surface text-white hover:bg-surface-800"
+			class="btn-icon btn-sm variant-ghost-surface text-white hover:bg-surface-800 shrink-0"
 			on:click={handleDismiss}
 			aria-label="Dismiss"
 		>
