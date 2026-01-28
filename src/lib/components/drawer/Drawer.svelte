@@ -3,6 +3,8 @@
 		AppRail,
 		AppRailTile,
 		getDrawerStore,
+		modeCurrent,
+		setModeCurrent,
 		type DrawerSettings
 	} from '@skeletonlabs/skeleton';
 	import { Drawer } from '@skeletonlabs/skeleton';
@@ -19,7 +21,9 @@
 		dollar,
 		star,
 		powerOff,
-		navicon
+		navicon,
+		sunO,
+		moonO
 	} from 'svelte-awesome/icons';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
 	import { page } from '$app/stores';
@@ -54,6 +58,16 @@
 			position: 'bottom'
 		};
 		drawerStore.open(mobileProfileDrawerSettings);
+	}
+
+	function toggleTheme() {
+		const newMode = !$modeCurrent;
+		setModeCurrent(newMode);
+		if (newMode) {
+			localStorage.setItem('theme-mode', 'light');
+		} else {
+			localStorage.setItem('theme-mode', 'dark');
+		}
 	}
 
 	$: isAmbassador = data.user?.ambassador ?? false;
@@ -300,6 +314,17 @@
 			<div class="flex justify-center mb-4">
 				<div class="w-12 h-1 bg-surface-400-500-token rounded-full" />
 			</div>
+
+			<!-- Theme toggle -->
+			<button
+				class="btn space-x-6 hover:variant-soft-primary justify-between w-full"
+				on:click={toggleTheme}
+				aria-label={$modeCurrent ? 'Switch to dark mode' : 'Switch to light mode'}
+			>
+				<Icon data={$modeCurrent ? moonO : sunO} />
+				<span>{$modeCurrent ? 'Dark mode' : 'Light mode'}</span>
+			</button>
+			<hr class="!my-2 variant-fill-primary" />
 
 			{#if data.session && data.session.user}
 				<!-- Profile Options -->
