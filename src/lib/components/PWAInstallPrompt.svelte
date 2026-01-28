@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { times, download } from 'svelte-awesome/icons';
+	import { times, download, navicon, ellipsisV } from 'svelte-awesome/icons';
 
 	// Type definition for PWA install prompt
 	interface BeforeInstallPromptEvent extends Event {
@@ -13,7 +13,13 @@
 	let showPrompt = false;
 	let isMobile = false;
 	let isIOS = false;
+	let isAndroid = false;
 	let appInstalled = false;
+
+	// Check if device is Android
+	function checkAndroid(): boolean {
+		return /Android/i.test(navigator.userAgent || navigator.vendor || (window as any).opera);
+	}
 
 	// Check if device is iOS (iPhone, iPad, iPod)
 	function checkIOS(): boolean {
@@ -96,24 +102,10 @@
 		// Check if mobile
 		isMobile = checkMobile();
 		isIOS = checkIOS();
+		isAndroid = checkAndroid();
 		if (!isMobile) {
 			return;
 		}
-
-		// // For browsers that support beforeinstallprompt (Android Chrome, etc.)
-		// // The event will fire and show the prompt immediately
-		// // For iOS Safari, we show a delayed prompt as a reminder
-		// // (iOS doesn't fire beforeinstallprompt, but users can still install manually)
-		// const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-		// if (isIOS) {
-		// 	// On iOS, show after a delay as a reminder (users install via Share > Add to Home Screen)
-		// 	setTimeout(async () => {
-		// 		appInstalled = await isInstalled();
-		// 		if (!appInstalled && !isDismissed() && isMobile) {
-		// 			showPrompt = true;
-		// 		}
-		// 	}, 3000);
-		// }
 
 		if (!appInstalled && !isDismissed() && isMobile) {
 			showPrompt = true;
@@ -191,6 +183,17 @@
 			/>
 			<span class="text-sm font-medium pr-1 flex-1 min-w-0">
 				Tap the <strong>Share</strong> button, then <strong>Add to Home Screen</strong>
+			</span>
+		{:else if isAndroid}
+			<button
+				class="btn-icon btn-sm variant-soft-primary shrink-0"
+				on:click={handleInstallClick}
+				aria-label="Install app"
+			>
+				<Icon data={ellipsisV} scale={1.2} />
+			</button>
+			<span class="text-sm font-medium pr-1 flex-1 min-w-0">
+				Tap the <strong>menu</strong> button, then <strong>Add to Home Screen</strong>
 			</span>
 		{:else}
 			<button

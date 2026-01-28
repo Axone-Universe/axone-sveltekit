@@ -56,10 +56,13 @@
 							class="w-full h-full object-cover"
 						/>
 					</div>
-					<!-- Content -->
+					<!-- Overlay on image area so text is readable when it overlays the image -->
 					<div
-						class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-6 md:p-10"
-					>
+						class="absolute left-0 top-0 bottom-0 w-1/2 z-[1] bg-gradient-to-r from-black/50 to-transparent pointer-events-none"
+						aria-hidden="true"
+					/>
+					<!-- Content -->
+					<div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-6 md:p-10">
 						<div class="hidden md:block" />
 						<div class="flex flex-col space-y-6 text-center md:text-right">
 							<div class="space-y-4">
