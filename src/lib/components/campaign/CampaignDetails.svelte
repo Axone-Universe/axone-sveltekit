@@ -16,11 +16,6 @@
 	import { campaignDaysLeft } from '$lib/util/constants';
 	import UserFilter from '../user/UserFilter.svelte';
 	import { type UserProperties } from '$lib/properties/user';
-	import {
-		type TopicNotificationProperties,
-		type UserNotificationProperties
-	} from '$lib/properties/notification';
-	import { documentURL } from '$lib/util/links';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { trash } from 'svelte-awesome/icons';
 
@@ -36,7 +31,7 @@
 
 	let imageFile: File;
 	let genres = book.genres ?? [];
-	$: tags = book.tags ?? [];
+	let tags = book.tags ?? [];
 
 	let tempStartDate = campaign.startDate ? (campaign.startDate as unknown as string) : '';
 	let tempEndDate = campaign.endDate ? (campaign.endDate as unknown as string) : '';
@@ -48,18 +43,43 @@
 
 	// Used for the users filter
 	let users: { [key: string]: HydratedDocument<UserProperties> } = {};
-	// Used to send notifications to winners
-	let notifications: { [key: string]: UserNotificationProperties | TopicNotificationProperties } =
-		{};
-
-	$: campaign.startDate = new Date(tempStartDate);
-	$: campaign.endDate = new Date(tempEndDate);
 
 	const toastStore = getToastStore();
 
+	// Track updated fields - initialize with id if campaign has one
+	let updatedData: any = campaign._id ? { id: campaign._id } : {};
+
+	// Track previous campaign._id to only reset when it actually changes
+	let previousCampaignId: string | undefined = campaign._id?.toString();
+
+	// Reset updatedData only when campaign._id actually changes
+	$: {
+		const currentCampaignId = campaign._id?.toString();
+		if (currentCampaignId && currentCampaignId !== previousCampaignId) {
+			updatedData = { id: campaign._id };
+			genres = book.genres ?? [];
+			tags = book.tags ?? [];
+			resources = campaign.resources ?? [];
+			criteria = campaign.criteria ?? [];
+			rewards = campaign.rewards ?? [];
+			previousCampaignId = currentCampaignId;
+		}
+	}
+
+	// Initialize on mount
 	onMount(() => {
-		tempStartDate = campaign.startDate ? campaign.startDate.toLocaleDateString('fr-CA') : '';
-		tempEndDate = campaign.endDate ? campaign.endDate.toLocaleDateString('fr-CA') : '';
+		// Ensure dates are Date objects before calling toLocaleDateString
+		const startDate = campaign.startDate ? new Date(campaign.startDate) : null;
+		const endDate = campaign.endDate ? new Date(campaign.endDate) : null;
+		tempStartDate = startDate ? startDate.toLocaleDateString('fr-CA') : '';
+		tempEndDate = endDate ? endDate.toLocaleDateString('fr-CA') : '';
+
+		previousCampaignId = campaign._id?.toString();
+		genres = book.genres ?? [];
+		tags = book.tags ?? [];
+		resources = campaign.resources ?? [];
+		criteria = campaign.criteria ?? [];
+		rewards = campaign.rewards ?? [];
 
 		// pre-fill the permissions
 		book.permissions.public = {
@@ -70,6 +90,77 @@
 		// fetch winners
 		fetchWinners();
 	});
+
+	// Handler functions that update both book/campaign and updatedData
+	function handleTitleInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		book.title = value;
+		if (!updatedData.book) updatedData.book = {};
+		updatedData.book.title = value;
+	}
+
+	function handleDescriptionInput(event: Event) {
+		const value = (event.target as HTMLTextAreaElement).value;
+		book.description = value;
+		if (!updatedData.book) updatedData.book = {};
+		updatedData.book.description = value;
+	}
+
+	// Track imageURL changes (ImageUploader uses bind:imageURL, so we watch for changes)
+	$: if (campaign._id && book.imageURL !== undefined) {
+		if (!updatedData.book) updatedData.book = {};
+		updatedData.book.imageURL = book.imageURL;
+	}
+
+	// Track genres changes
+	function handleGenresChange(newGenres: string[]) {
+		genres = newGenres as any;
+		book.genres = newGenres as any;
+		if (!updatedData.book) updatedData.book = {};
+		updatedData.book.genres = newGenres;
+	}
+
+	// Track tags changes
+	function handleTagsChange() {
+		book.tags = tags;
+		// Tags are not sent in the update, so we don't track them in updatedData
+	}
+
+	// Handle start date changes
+	function handleStartDateInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		tempStartDate = value;
+		campaign.startDate = new Date(value);
+		updatedData.startDate = campaign.startDate;
+	}
+
+	// Handle end date changes
+	function handleEndDateInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		tempEndDate = value;
+		campaign.endDate = new Date(value);
+		updatedData.endDate = campaign.endDate;
+	}
+
+	// Handle criteria changes from CampaignFeaturesList
+	function handleCriteriaChange(event: CustomEvent<{ value: string; link: string }[]>) {
+		updatedData.criteria = event.detail;
+	}
+
+	// Handle rewards changes from CampaignFeaturesList
+	function handleRewardsChange(event: CustomEvent<{ value: string; link: string }[]>) {
+		updatedData.rewards = event.detail;
+	}
+
+	// Handle resources changes from CampaignFeaturesList
+	function handleResourcesChange(event: CustomEvent<{ value: string; link: string }[]>) {
+		updatedData.resources = event.detail;
+	}
+
+	// Handle winners changes
+	function handleWinnersChange() {
+		updatedData.winners = winners.map((user) => user._id);
+	}
 
 	async function submit() {
 		if (!imageFile) {
@@ -99,47 +190,7 @@
 
 		winners.push(users[userID]);
 		winners = winners;
-
-		// create the notification to send to the winner
-		notifications[userID] = {
-			type: 'USER',
-			senderID: campaign.user,
-			receiverID: userID,
-			subject: 'You have won!!',
-			url: documentURL($page.url.origin, 'Book', book),
-			notification: `🎉🎉 Congratulations!
-
-			You are one of the winners for the campaign '${book.title}'.
-			
-			Please reach out to us at admin@axone.network to claim your prize 🏆`
-		};
-
-		// create the general notification to send to all users
-		notifications['general'] = {
-			url: documentURL($page.url.origin, 'Book', book),
-			type: 'TOPIC',
-			topicKey: 'general',
-			topicName: 'general',
-			subject: 'Writing Competition Winners!',
-			notification: `We have released the winners of our campaign, '${book.title}'. 
-
-			Find out more by visiting the campaign's page below. 
-
-			Keep writing folks, more campaigns coming soon!!`
-		};
-	}
-
-	function newCampaignNotification() {
-		notifications['general'] = {
-			url: documentURL($page.url.origin, 'Book', book),
-			type: 'TOPIC',
-			topicKey: 'general',
-			topicName: 'general',
-			subject: 'Writing Competition!',
-			notification: `A new campaign, ${book.title}, has been launched. Hurry and submit to win your share of the rewards!`
-		};
-
-		return notifications;
+		handleWinnersChange();
 	}
 
 	async function fetchWinners() {
@@ -159,6 +210,7 @@
 	function deleteWinner(index: number) {
 		winners.splice(index, 1);
 		winners = winners;
+		handleWinnersChange();
 	}
 
 	async function createCampaignData(imageURL?: string) {
@@ -170,24 +222,36 @@
 			};
 
 			if (book._id) {
-				response = await trpc($page).campaigns.update.mutate({
-					id: campaign._id,
-					startDate: campaign.startDate!,
-					endDate: campaign.endDate!,
-					criteria: criteria,
-					rewards: rewards,
-					resources: resources,
-					winners: winners.map((user) => user._id),
-					notifications,
-					book: {
-						id: book._id,
-						title: book.title,
-						description: book.description,
-						imageURL: imageURL ?? book.imageURL,
-						genres,
-						permissions: book.permissions
-					}
-				});
+				// Only send updatedData for updates (it already includes the id)
+				const updatePayload: any = {
+					...updatedData
+				};
+
+				// Include imageURL if it was uploaded
+				if (imageURL) {
+					if (!updatePayload.book) updatePayload.book = {};
+					updatePayload.book.imageURL = imageURL;
+				}
+
+				// Include book id if not already set
+				if (updatePayload.book && !updatePayload.book.id) {
+					updatePayload.book.id = book._id;
+				}
+
+				// If no changes detected (only id in updatedData), show a message and return
+				const hasChanges =
+					Object.keys(updatedData).filter((key) => key !== 'id').length > 0 ||
+					(updatedData.book && Object.keys(updatedData.book).length > 0);
+				if (!hasChanges) {
+					const t: ToastSettings = {
+						message: 'No changes detected',
+						background: 'variant-filled-primary'
+					};
+					toastStore.trigger(t);
+					return;
+				}
+
+				response = await trpc($page).campaigns.update.mutate(updatePayload);
 			} else {
 				response = await trpc($page).campaigns.create.mutate({
 					startDate: campaign.startDate!,
@@ -196,7 +260,6 @@
 					criteria: criteria,
 					rewards: rewards,
 					resources: resources,
-					notifications: newCampaignNotification(),
 					book: {
 						title: book.title,
 						description: book.description,
@@ -205,6 +268,25 @@
 						permissions: book.permissions
 					}
 				});
+			}
+
+			if (response.success) {
+				// Reset updatedData after successful save (include id if campaign has one)
+				if (response.data) {
+					campaign = response.data as HydratedDocument<CampaignProperties>;
+					updatedData = campaign._id ? { id: campaign._id } : {};
+					// Sync local state
+					genres = book.genres ?? [];
+					tags = book.tags ?? [];
+					resources = campaign.resources ?? [];
+					criteria = campaign.criteria ?? [];
+					rewards = campaign.rewards ?? [];
+					// Ensure dates are Date objects before calling toLocaleDateString
+					const startDate = campaign.startDate ? new Date(campaign.startDate) : null;
+					const endDate = campaign.endDate ? new Date(campaign.endDate) : null;
+					tempStartDate = startDate ? startDate.toLocaleDateString('fr-CA') : '';
+					tempEndDate = endDate ? endDate.toLocaleDateString('fr-CA') : '';
+				}
 			}
 
 			const t: ToastSettings = {
@@ -234,7 +316,8 @@
 						id="title"
 						class="input"
 						type="text"
-						bind:value={book.title}
+						value={book.title}
+						on:input={handleTitleInput}
 						placeholder="Untitled Campaign"
 						required
 					/>
@@ -242,7 +325,8 @@
 					<textarea
 						id="description"
 						class="textarea w-full h-full overflow-hidden"
-						bind:value={book.description}
+						value={book.description}
+						on:input={handleDescriptionInput}
 						required
 					/>
 				</div>
@@ -261,11 +345,13 @@
 							type="button"
 							on:click={() => {
 								const index = genres.indexOf(genre);
+								let newGenres;
 								if (index > -1) {
-									genres = genres.filter((v) => v !== genre);
+									newGenres = genres.filter((v) => v !== genre);
 								} else {
-									genres = [...genres, genre];
+									newGenres = [...genres, genre];
 								}
+								handleGenresChange(newGenres);
 							}}
 						>
 							<span class="capitalize">{genre}</span>
@@ -285,7 +371,8 @@
 						class="input"
 						type="date"
 						max={tempEndDate}
-						bind:value={tempStartDate}
+						value={tempStartDate}
+						on:input={handleStartDateInput}
 					/>
 				</div>
 				<div class="grow flex flex-col gap-2">
@@ -295,7 +382,8 @@
 						class="input"
 						type="date"
 						min={tempStartDate}
-						bind:value={tempEndDate}
+						value={tempEndDate}
+						on:input={handleEndDateInput}
 					/>
 				</div>
 			</div>
@@ -305,6 +393,7 @@
 					bind:features={criteria}
 					placeholder="e.g. All entries must be original work"
 					class="textarea w-full h-full overflow-hidden"
+					on:featuresChange={handleCriteriaChange}
 				/>
 			</div>
 			<div id="rewards-div" class="flex flex-col gap-2">
@@ -313,6 +402,7 @@
 					bind:features={rewards}
 					placeholder="e.g. Publishing deal with Penguin!"
 					class="textarea w-full h-full overflow-hidden"
+					on:featuresChange={handleRewardsChange}
 				/>
 			</div>
 			<div id="resources-div" class="flex flex-col gap-2">
@@ -322,6 +412,7 @@
 					insertLink={true}
 					placeholder="e.g. Judging Criteria"
 					class="textarea w-full h-full overflow-hidden"
+					on:featuresChange={handleResourcesChange}
 				/>
 			</div>
 			{#if book._id && campaignDaysLeft(campaign)[0] < 0}

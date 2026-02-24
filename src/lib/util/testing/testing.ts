@@ -63,6 +63,7 @@ export async function createBook(
 	const publicPermission =
 		new PermissionPropertyBuilder().getProperties() as HydratedDocument<PermissionProperties>;
 	publicPermission.permission = 'collaborate';
+	publicPermission._id = '';
 
 	const response = await caller.books.create({
 		title: title ? title : faker.commerce.productName() + ' But a Book',

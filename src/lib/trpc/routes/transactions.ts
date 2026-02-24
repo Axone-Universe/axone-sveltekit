@@ -13,6 +13,7 @@ import mongoose, { type HydratedDocument } from 'mongoose';
 import { z } from 'zod';
 import { read, redeemReward } from '../schemas/transactions';
 import { AXONE_ADMIN_EMAIL } from '$env/static/private';
+import { triggerTransactionProcessedWorkflow } from '$lib/services/notifications/novu/triggers/transaction';
 
 export const transactions = t.router({
 	get: t.procedure
@@ -97,6 +98,16 @@ export const transactions = t.router({
 					.sessionUser(ctx.user!)
 					.update();
 				response.data = result;
+
+				// Trigger notification workflow to inform receiver that transaction has been completed
+				if (result.receiver) {
+					const receiverId =
+						typeof result.receiver === 'string' ? result.receiver : result.receiver._id.toString();
+					await triggerTransactionProcessedWorkflow({
+						transactionId: result._id.toString(),
+						receiverId
+					});
+				}
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unknown error';
@@ -216,6 +227,12 @@ export const transactions = t.router({
 
 				console.log('<< withdrawalTransaction created');
 				console.log(withdrawalTransaction);
+
+				// Trigger notification workflow to inform admin about the reward redemption
+				await triggerTransactionProcessedWorkflow({
+					transactionId: withdrawalTransaction._id.toString(),
+					receiverId: admin._id.toString()
+				});
 
 				response.data = {
 					redemptionTransaction,

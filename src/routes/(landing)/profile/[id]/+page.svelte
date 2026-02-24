@@ -99,7 +99,7 @@
 			</div>
 
 			{#if userGenres && userGenres.length > 0}
-				<div class="flex flex-col w-full gap-4 px-20">
+				<div class="flex flex-col w-full gap-4 md:px-20">
 					<h4>Genres Interests</h4>
 					<div class=" w-full">
 						<div class="flex gap-2 flex-wrap">

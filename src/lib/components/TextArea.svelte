@@ -3,9 +3,11 @@
 	import 'emoji-picker-element';
 	// @ts-ignore Import module
 	import insertText from 'https://cdn.jsdelivr.net/npm/insert-text-at-cursor@0.3.0/index.js';
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { send, smileO } from 'svelte-awesome/icons';
+
+	const dispatch = createEventDispatcher();
 
 	export let maxLength: number;
 	export let placeholder: string = '';
@@ -15,6 +17,10 @@
 	export let submit: (textContent: string) => void = (textContent: string) => {};
 
 	$: remaining = maxLength - (textContent ? textContent.length : 0);
+
+	function handleInput(event: Event) {
+		dispatch('input', event);
+	}
 
 	const emojiPopup: PopupSettings = {
 		event: 'click',
@@ -38,6 +44,7 @@
 		maxlength={maxLength}
 		{required}
 		{placeholder}
+		on:input={handleInput}
 	/>
 	<div class="text-sm flex flex-row items-center gap-2 m-1 justify-between">
 		<div class="flex flex-row items-center gap-2">

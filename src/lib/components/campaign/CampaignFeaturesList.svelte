@@ -3,10 +3,15 @@
 	import type { HydratedDocument } from 'mongoose';
 	import { plus, trash } from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	export let features: { value: string; link: string }[];
 	export let placeholder: string;
 	export let insertLink: boolean = false;
+
+	const dispatch = createEventDispatcher<{
+		featuresChange: { value: string; link: string }[];
+	}>();
 
 	let customClass = '';
 	export { customClass as class };
@@ -15,10 +20,26 @@
 	let feature = '';
 	let link = '';
 
+	// Flag to prevent dispatching on initial mount
+	let isInitialized = false;
+
+	// Watch for features changes and dispatch event
+	$: if (isInitialized) {
+		dispatch('featuresChange', features);
+	}
+
+	onMount(() => {
+		// Enable event dispatching after initialization
+		isInitialized = true;
+	});
+
 	async function createFeature() {
 		if (feature) {
 			features.push({ value: feature, link: link });
 			features = features;
+			// Clear input fields after creating feature
+			feature = '';
+			link = '';
 		}
 	}
 

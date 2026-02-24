@@ -13,10 +13,18 @@ export class NoteBuilder extends DocumentBuilder<HydratedDocument<NoteProperties
 
 	constructor(id?: string) {
 		super();
-		this._noteProperties = {
-			title: '',
-			_id: id ? id : ulid()
-		};
+		if (id) {
+			// For existing notes, only set the _id
+			this._noteProperties = {
+				_id: id
+			} as NoteProperties;
+		} else {
+			// For new notes, initialize with default values
+			this._noteProperties = {
+				_id: ulid(),
+				title: ''
+			};
+		}
 	}
 
 	chapterID(chapterID: string): NoteBuilder {

@@ -17,20 +17,30 @@ export class CampaignBuilder extends DocumentBuilder<HydratedDocument<CampaignPr
 
 	constructor(id?: string) {
 		super();
-		this._campaignProperties = {
-			_id: id ? id : ulid(),
-			user: ''
-		};
-		this._bookProperties = {
-			_id: ulid(),
-			user: '',
-			title: '',
-			imageURL: '',
-			description: '',
-			permissions: {},
-			genres: [],
-			rating: 0
-		};
+		if (id) {
+			// For existing campaigns, only set the _id
+			this._campaignProperties = {
+				_id: id
+			} as CampaignProperties;
+			this._bookProperties = {
+				_id: ''
+			} as BookProperties;
+		} else {
+			// For new campaigns, initialize all fields with default values
+			this._campaignProperties = {
+				_id: ulid()
+			} as CampaignProperties;
+			this._bookProperties = {
+				_id: ulid(),
+				user: '',
+				title: '',
+				imageURL: '',
+				description: '',
+				permissions: {},
+				genres: [],
+				rating: 0
+			};
+		}
 	}
 
 	properties() {

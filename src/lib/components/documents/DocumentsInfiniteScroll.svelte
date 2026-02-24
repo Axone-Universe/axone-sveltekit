@@ -55,7 +55,7 @@
 		},
 		{
 			queryKey: [`${documentType}Component`, debouncedSearchValue],
-			getNextPageParam: (lastPage) => lastPage.cursor,
+			getNextPageParam: (lastPage: { cursor: any }) => lastPage.cursor,
 			staleTime: Infinity
 		}
 	);
@@ -134,7 +134,7 @@
 		</div>
 	{:else if items.length === 0}
 		{#if !action}
-			<div class="text-center flex flex-col items-center p-32">
+			<div class="text-center flex flex-col items-center md:p-32">
 				<InfoHeader
 					emoji="🤲"
 					heading="We're empty handed!"

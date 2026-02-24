@@ -13,15 +13,13 @@
 	import { onMount } from 'svelte';
 
 	import ReadingListModal from '$lib/components/modal/ReadingListModal.svelte';
+	import PWAInstallPrompt from '$lib/components/PWAInstallPrompt.svelte';
 
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
 	import { setSupabaseClient, setSupabaseSession } from '$lib/stores/supabase';
 
 	export let data: LayoutData;
-
-	let Tawk_API = {};
-	let Tawk_LoadStart = new Date();
 
 	initializeStores();
 
@@ -37,6 +35,27 @@
 		});
 		setSupabaseClient(supabase);
 		setSupabaseSession(session);
+
+		// Register service worker for PWA with root scope
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker
+				.register('/service-worker.js', { scope: '/' })
+				.then((registration) => {
+					console.log('Service Worker registered:', registration);
+					// Check if app is running in standalone mode
+					const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+					const isInWebAppiOS = (window.navigator as any).standalone === true;
+					if (isStandalone || isInWebAppiOS) {
+						console.log('App is running in standalone mode');
+					} else {
+						console.log('App is running in browser - install to get fullscreen experience');
+					}
+				})
+				.catch((error) => {
+					console.error('Service Worker registration failed:', error);
+				});
+		}
+
 		return () => subscription.unsubscribe();
 	});
 
@@ -46,16 +65,6 @@
 		}
 	};
 
-	function setupTawkto() {
-		var s1 = document.createElement('script'),
-			s0 = document.getElementsByTagName('script')[0];
-		s1.async = true;
-		s1.src = 'https://embed.tawk.to/65b6ad518d261e1b5f58e698/1hl8pa1rm';
-		s1.charset = 'UTF-8';
-		s1.setAttribute('crossorigin', '*');
-		s0?.parentNode?.insertBefore(s1, s0);
-	}
-
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
@@ -63,4 +72,5 @@
 	<slot />
 	<Modal components={modalComponentRegistry} />
 	<Toast zIndex="z-[1000]" />
+	<PWAInstallPrompt />
 </QueryClientProvider>

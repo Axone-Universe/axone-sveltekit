@@ -30,6 +30,26 @@
 
 	let note: NoteProperties = new NotePropertyBuilder().getProperties();
 
+	// Track updated fields - initialize with id if note has one
+	let updatedData: any = note._id ? { id: note._id } : {};
+
+	// Track previous note._id to only reset when it actually changes
+	let previousNoteId: string | undefined = note._id?.toString();
+
+	// Reset updatedData only when note._id actually changes (not just when it's truthy)
+	$: {
+		const currentNoteId = note._id?.toString();
+		if (currentNoteId && currentNoteId !== previousNoteId) {
+			updatedData = note._id ? { id: note._id } : {};
+			previousNoteId = currentNoteId;
+		}
+	}
+
+	// Initialize on mount
+	onMount(() => {
+		previousNoteId = note._id?.toString();
+	});
+
 	$: chapterNotes = chapter.chapterNotes ?? [];
 	let filteredChapterNotes = chapter.chapterNotes ?? [];
 	let chapterNotesList = '';
@@ -39,6 +59,18 @@
 		modalStore.close();
 	};
 
+	// Handler functions that update both note and updatedData
+	function handleTitleInput(event: Event) {
+		const value = (event.target as HTMLInputElement).value;
+		note.title = value;
+		updatedData.title = value;
+	}
+
+	// Handle note content changes (TextArea uses bind:textContent, so note.note is updated automatically)
+	function handleNoteInput() {
+		updatedData.note = note.note;
+	}
+
 	function tagSelected(tag: Tag) {
 		const index = note.tags!.indexOf(tag);
 		if (index > -1) {
@@ -46,6 +78,8 @@
 		} else {
 			note.tags = [...note.tags!, tag];
 		}
+		// Update updatedData when tags change
+		updatedData.tags = note.tags;
 	}
 
 	let filterTag = '';
@@ -59,6 +93,9 @@
 	let searchTerm = '';
 	const searchNotes = (tag?: Tag) => {
 		note = new NotePropertyBuilder().getProperties();
+		// Reset updatedData when resetting note
+		updatedData = {};
+		previousNoteId = undefined;
 
 		// if filter was selected already, deselect it
 		if (filterTag === tag) {
@@ -72,7 +109,12 @@
 			(chapterNote) => {
 				let chapterNoteTitle = chapterNote.title.toLowerCase();
 				const include = chapterNoteTitle.includes(searchTerm.toLowerCase());
-				if (include && chapterNotesList === chapterNote._id) note = chapterNote;
+				if (include && chapterNotesList === chapterNote._id) {
+					note = chapterNote;
+					// Reset updatedData when a note is found in search
+					updatedData = note._id ? { id: note._id } : {};
+					previousNoteId = note._id?.toString();
+				}
 				return include;
 			}
 		);
@@ -107,6 +149,10 @@
 				if ($modalStore[0]) {
 					$modalStore[0].response ? $modalStore[0].response(chapterNotes) : '';
 				}
+				// Reset note and updatedData after successful creation
+				note = new NotePropertyBuilder().getProperties();
+				updatedData = {};
+				previousNoteId = undefined;
 				searchNotes();
 			})
 			.finally(() => {
@@ -123,14 +169,33 @@
 		let toastMessage = 'Saving Failed';
 		let toastBackground = 'bg-warning-500';
 
+		// Only send updatedData for updates (it already includes the id)
+		const updatePayload: any = {
+			...updatedData
+		};
+
+		// If no changes detected (only id in updatedData), show a message and return
+		const hasChanges = Object.keys(updatedData).filter((key) => key !== 'id').length > 0;
+		if (!hasChanges) {
+			const t: ToastSettings = {
+				message: 'No changes detected',
+				background: 'variant-filled-primary',
+				autohide: true
+			};
+			toastStore.trigger(t);
+			return;
+		}
+
 		trpc($page)
-			.notes.update.mutate({
-				id: note._id,
-				title: note.title!,
-				note: note.note!,
-				tags: note.tags
-			})
+			.notes.update.mutate(updatePayload)
 			.then((noteResponse) => {
+				// Reset updatedData after successful save (include id if note has one)
+				if (noteResponse.data) {
+					note = noteResponse.data as HydratedDocument<NoteProperties>;
+					updatedData = note._id ? { id: note._id } : {};
+					previousNoteId = note._id?.toString();
+				}
+
 				toastMessage = 'Saving Successful';
 				toastBackground = 'bg-success-500';
 			})
@@ -179,8 +244,14 @@
 		tabSet = 1;
 		if (chapterNote) {
 			note = chapterNote;
+			// Reset updatedData when selecting an existing note
+			updatedData = note._id ? { id: note._id } : {};
+			previousNoteId = note._id?.toString();
 		} else {
 			note = new NotePropertyBuilder().getProperties();
+			// Reset updatedData when creating a new note
+			updatedData = {};
+			previousNoteId = undefined;
 		}
 	}
 </script>
@@ -283,7 +354,8 @@
 									class="input"
 									type="text"
 									placeholder="e.g. Harry Potter"
-									bind:value={note.title}
+									value={note.title}
+									on:input={handleTitleInput}
 									required
 								/>
 							</label>
@@ -296,6 +368,7 @@
 									bind:textContent={note.note}
 									required={true}
 									placeholder="e.g. Harry Potter is a boy aged 12 years old. He is kind, strong and loyal."
+									on:input={handleNoteInput}
 								/>
 							</label>
 						</div>

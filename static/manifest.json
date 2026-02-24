@@ -1,0 +1,25 @@
+{
+	"name": "Axone",
+	"short_name": "Axone",
+	"description": "Axone - Your creative writing platform",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#ffffff",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "/logo_192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/logo_512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	]
+}

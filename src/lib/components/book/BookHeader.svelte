@@ -267,7 +267,7 @@
         [.dark_&]:to-[rgba(var(--color-surface-900))] to-[rgba(var(--color-surface-50))]
         w-full space-x-4 h-full"
 	>
-		<div class="px-2 md:px-10 pt-32 md:pt-60 overflow-hidden space-y-4 relative">
+		<div class="md:px-10 pt-4 md:pt-60 overflow-hidden space-y-4 relative">
 			{#if bookData.campaign}
 				<div
 					class="absolute top-4 right-4 flex h-fit items-center bg-orange-700 py-1 px-2 rounded-full"
@@ -286,7 +286,7 @@
 						</button>
 					</p>
 				</div>
-				<div class="flex flex-col p-2 space-x-4 w-full items-center">
+				<div class="flex flex-col md:p-2 space-x-4 w-full items-center">
 					<div class="flex flex-row items-center w-full gap-4">
 						{#if Object.values(storylines).length > 1}
 							<div class="flex flex-col w-full items-center">

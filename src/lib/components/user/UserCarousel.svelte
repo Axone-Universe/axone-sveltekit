@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon from 'svelte-awesome/components/Icon.svelte';
 	import { chevronLeft, chevronRight } from 'svelte-awesome/icons';
+	import { onMount } from 'svelte';
 
 	export let users: Array<{
 		_id: string;
@@ -12,6 +13,18 @@
 	}>;
 
 	let carouselContainer: HTMLDivElement;
+	let currentIndex = 0;
+	let isMobile = false;
+
+	onMount(() => {
+		// Check if mobile on mount and on resize
+		const checkMobile = () => {
+			isMobile = window.innerWidth < 768;
+		};
+		checkMobile();
+		window.addEventListener('resize', checkMobile);
+		return () => window.removeEventListener('resize', checkMobile);
+	});
 
 	function scrollLeft(): void {
 		let x = carouselContainer.scrollWidth;
@@ -29,6 +42,52 @@
 			x = carouselContainer.scrollLeft + carouselContainer.clientWidth;
 		carouselContainer.scroll({ left: x, behavior: 'smooth' });
 	}
+
+	function goToSlide(index: number): void {
+		if (!carouselContainer) return;
+
+		if (isMobile) {
+			// On mobile, each dot represents one user (full width)
+			const slideWidth = carouselContainer.clientWidth;
+			carouselContainer.scroll({ left: slideWidth * index, behavior: 'smooth' });
+		} else {
+			// On desktop, scroll to show the selected user
+			// Each item is w-[30%] on md, w-[23%] on lg, with gap-3 (12px)
+			const containerWidth = carouselContainer.clientWidth;
+			const isLg = window.innerWidth >= 1024;
+			const itemWidthPercent = isLg ? 0.23 : 0.3;
+			const itemWidth = containerWidth * itemWidthPercent;
+			const gap = 12;
+			const scrollPosition = index * (itemWidth + gap);
+			carouselContainer.scroll({ left: scrollPosition, behavior: 'smooth' });
+		}
+	}
+
+	// Auto-update currentIndex when user manually scrolls
+	function handleScroll(): void {
+		if (!carouselContainer) return;
+
+		if (isMobile) {
+			// On mobile, each item is full width
+			const slideWidth = carouselContainer.clientWidth;
+			const newIndex = Math.round(carouselContainer.scrollLeft / slideWidth);
+			if (newIndex !== currentIndex && newIndex >= 0 && newIndex < users.length) {
+				currentIndex = newIndex;
+			}
+		} else {
+			// On desktop, find which user is most visible
+			const containerWidth = carouselContainer.clientWidth;
+			const isLg = window.innerWidth >= 1024;
+			const itemWidthPercent = isLg ? 0.23 : 0.3;
+			const itemWidth = containerWidth * itemWidthPercent;
+			const gap = 12;
+			const scrollPosition = carouselContainer.scrollLeft;
+			const newIndex = Math.round(scrollPosition / (itemWidth + gap));
+			if (newIndex !== currentIndex && newIndex >= 0 && newIndex < users.length) {
+				currentIndex = newIndex;
+			}
+		}
+	}
 </script>
 
 <div class="space-y-8">
@@ -38,12 +97,12 @@
 	</div>
 
 	<!-- Testimonials Carousel -->
-	<div class="grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+	<div class="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 items-center">
 		<!-- Button: Left -->
 		<button
 			type="button"
 			on:click={scrollLeft}
-			class="btn-icon variant-filled-primary"
+			class="hidden md:flex btn-icon variant-filled-primary"
 			aria-label="Scroll left"
 		>
 			<Icon data={chevronLeft} scale={1.3} />
@@ -52,10 +111,11 @@
 		<!-- Carousel Container -->
 		<div
 			bind:this={carouselContainer}
-			class="snap-x snap-mandatory scroll-smooth flex gap-3 overflow-x-auto scrollbar-hide"
+			on:scroll={handleScroll}
+			class="snap-x snap-mandatory scroll-smooth flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide"
 		>
 			{#each users as user}
-				<div class="shrink-0 w-[45%] md:w-[30%] lg:w-[23%] snap-start">
+				<div class="shrink-0 w-full md:w-[30%] lg:w-[23%] snap-start">
 					<a
 						href="/profile/{user._id}"
 						target="_blank"
@@ -109,11 +169,25 @@
 		<button
 			type="button"
 			on:click={scrollRight}
-			class="btn-icon variant-filled-primary"
+			class="hidden md:flex btn-icon variant-filled-primary"
 			aria-label="Scroll right"
 		>
 			<Icon data={chevronRight} scale={1.3} />
 		</button>
+	</div>
+
+	<!-- Dot Navigation -->
+	<div class="flex justify-center gap-2 mt-6">
+		{#each users as _, index}
+			<button
+				type="button"
+				on:click={() => goToSlide(index)}
+				class="w-3 h-3 rounded-full transition-all duration-300 {currentIndex === index
+					? 'bg-primary-500 w-8'
+					: 'bg-surface-400-500-token hover:bg-surface-500-400-token'}"
+				aria-label="Go to slide {index + 1}"
+			/>
+		{/each}
 	</div>
 </div>
 

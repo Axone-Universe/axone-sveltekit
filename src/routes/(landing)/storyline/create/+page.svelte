@@ -43,17 +43,17 @@
 				? 'bg-white/70'
 				: 'bg-black/70'}"
 		>
-			<h2 class="book-title text-3xl font-bold">
+			<h2 class="book-title text-xl md:text-3xl font-bold">
 				{bookData.campaign ? 'Campaign Titled: ' : 'Book Titled: '}
 				{bookData.title}
 			</h2>
 		</div>
 	</div>
 	<div
-		class="flex flex-col space-y-4 my-8 mx-4 items-center md:space-y-0 md:items-start md:flex-row lg:mx-32 xl:mx-60 h-screen"
+		class="flex flex-col space-y-4 my-8 items-stretch md:space-y-0 md:items-stretch md:flex-row lg:mx-32 xl:mx-60 min-h-[calc(100vh-12rem)]"
 	>
 		<BookNav
-			class="card mx-2 w-5/6 md:w-2/6 h-full p-2"
+			class="card w-full md:w-2/6 h-full md:h-auto md:min-h-full p-2"
 			storylines={[storyline]}
 			bind:selectedChapter={leftDrawerSelectedItem}
 			disabled={true}

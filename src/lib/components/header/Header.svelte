@@ -95,7 +95,7 @@
 	};
 </script>
 
-<div class="sticky top-0 z-50 w-full">
+<div class="hidden lg:block sticky top-0 z-50 w-full">
 	<AppBar
 		gridColumns="grid-cols-3"
 		slotDefault="flex justify-center"

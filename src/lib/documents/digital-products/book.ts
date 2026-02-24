@@ -20,16 +20,24 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	constructor(id?: string) {
 		super();
 
-		this._bookProperties = {
-			_id: id ? id : ulid(),
-			user: '',
-			title: '',
-			imageURL: '',
-			description: '',
-			permissions: {},
-			genres: [],
-			rating: 0
-		};
+		if (id) {
+			// For existing books, only set the _id
+			this._bookProperties = {
+				_id: id
+			} as BookProperties;
+		} else {
+			// For new books, initialize all fields with default values
+			this._bookProperties = {
+				_id: ulid(),
+				user: '',
+				title: '',
+				imageURL: '',
+				description: '',
+				permissions: {},
+				genres: [],
+				rating: 0
+			};
+		}
 	}
 
 	title(title: string): BookBuilder {
@@ -64,7 +72,8 @@ export class BookBuilder extends DocumentBuilder<HydratedDocument<BookProperties
 	}
 
 	permissions(permissions: Record<string, HydratedDocument<PermissionProperties>>) {
-		this._bookProperties.permissions = permissions;
+		super.permissions(permissions);
+		this._bookProperties.permissions = this._permissions;
 		return this;
 	}
 

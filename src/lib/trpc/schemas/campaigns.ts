@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { create as createBook, update as updateBook } from '$lib/trpc/schemas/books';
-import { topicNotification, userNotification } from './notifications';
 
 export const create = z.object({
 	startDate: z.coerce.date(),
@@ -31,8 +30,7 @@ export const create = z.object({
 		)
 		.optional(),
 	origin: z.string(),
-	book: createBook,
-	notifications: z.record(z.string(), userNotification.or(topicNotification)).optional()
+	book: createBook
 });
 
 export const update = z.object({
@@ -64,8 +62,7 @@ export const update = z.object({
 		)
 		.optional(),
 	winners: z.array(z.string()).optional(),
-	book: updateBook.optional(),
-	notifications: z.record(z.string(), userNotification.or(topicNotification)).optional()
+	book: updateBook.optional()
 });
 
 export const read = z.object({

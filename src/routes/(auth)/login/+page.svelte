@@ -119,7 +119,6 @@
 
 <Container class="flex h-screen justify-center items-center">
 	<div class="w-full max-w-screen-md flex flex-col gap-8">
-		<h1 class="text-center">Login</h1>
 
 		<button
 			on:click={signInWithGoogle}

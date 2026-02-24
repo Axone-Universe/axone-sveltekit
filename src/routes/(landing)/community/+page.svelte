@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import type { HydratedDocument } from 'mongoose';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { arrowDown, filter } from 'svelte-awesome/icons';
+	import { arrowDown, filter, times } from 'svelte-awesome/icons';
 	import { page } from '$app/stores';
 	import Container from '$lib/components/Container.svelte';
 	import UserPreview from '$lib/components/user/UserPreview.svelte';
 	import LoadingSpinner from '$lib/components/util/LoadingSpinner.svelte';
 	import { USER_LABELS, type UserLabel, type UserProperties } from '$lib/properties/user';
-	import { GenresBuilder, GENRES } from '$lib/properties/genre';
+	import { GenresBuilder, GENRES, type Genre } from '$lib/properties/genre';
 	import { trpcWithQuery } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -28,8 +27,12 @@
 	let genresBuilder = new GenresBuilder();
 	let filterCount = -1;
 	let mounted = false;
+	let showFilters = false;
 
 	let userLabels: UserLabel[] = [];
+	let genres: Genre[] = [];
+
+	$: genres = genresBuilder.build();
 
 	$: if (browser && mounted) {
 		sessionStorage.setItem(
@@ -38,8 +41,6 @@
 		);
 		filterCount = userLabels.length + genresBuilder.build().length;
 	}
-
-	let accordionOpen = false;
 
 	let searchValue = '';
 	let debouncedSearchValue = '';
@@ -66,6 +67,19 @@
 
 	function handleClear() {
 		genresBuilder = genresBuilder.reset();
+		userLabels = [];
+	}
+
+	function toggleFilters() {
+		showFilters = !showFilters;
+	}
+
+	function removeUserLabel(label: UserLabel) {
+		userLabels = userLabels.filter((l) => l !== label);
+	}
+
+	function removeGenre(genre: Genre) {
+		genresBuilder = genresBuilder.toggle(genre);
 	}
 
 	function loadMore() {
@@ -99,9 +113,11 @@
 
 		function onClickListener(e: MouseEvent) {
 			if (e.target) {
-				const acc = (e.target as HTMLElement).closest('.accordion');
-				if (!acc) {
-					accordionOpen = false;
+				// Close filter panel if clicking outside of it
+				const filterContainer = (e.target as HTMLElement).closest('#filters-container');
+				const filterButton = (e.target as HTMLElement).closest('#filter-toggle-btn');
+				if (!filterContainer && !filterButton && showFilters) {
+					showFilters = false;
 				}
 			}
 		}
@@ -118,38 +134,70 @@
 <svelte:window on:scroll={loadMore} />
 
 <Container class="w-full min-h-screen">
-	<div class="sticky top-[4.7rem] z-[2] flex flex-col gap-1">
+	<div class="sticky top-0 lg:top-[4.7rem] z-[2] flex flex-col gap-2 pb-2 lg:pb-0">
 		<input
-			class="input text-sm h-8 p-2"
+			class="input text-base lg:text-sm h-12 lg:h-8 p-3 lg:p-2"
 			title="Search for users"
 			type="search"
 			placeholder="Search for a user name"
 			bind:value={searchValue}
 			on:input={onType}
 		/>
-		<Accordion
-			hover="hover:none"
-			regionPanel="absolute accordion"
-			padding="py-1"
-			regionControl="px-4 h-8 accordion"
-			class="fill-accordion"
-		>
-			<AccordionItem bind:open={accordionOpen}>
-				<svelte:fragment slot="lead"><Icon data={filter} class="mb-1" /></svelte:fragment>
-				<svelte:fragment slot="summary"
-					><p>Filters {`${filterCount > -1 ? `(${filterCount})` : ''}`}</p></svelte:fragment
+
+		<!-- Filter button and selected chips row -->
+		<div class="flex items-center gap-2 flex-wrap px-2">
+			<button
+				id="filter-toggle-btn"
+				class="btn btn-sm variant-glass-primary gap-2"
+				on:click={toggleFilters}
+				title="Toggle filters"
+			>
+				<Icon data={filter} scale={1} />
+				Filters
+			</button>
+
+			<!-- Display selected filters as chips -->
+			{#each userLabels as label}
+				<button
+					class="chip variant-filled-primary rounded-full text-xs"
+					on:click={() => removeUserLabel(label)}
+					title="Click to remove"
 				>
-				<svelte:fragment slot="content">
-					<div class="card p-4 space-y-2">
-						<p class="font-bold">Tags</p>
+					<span>{label}</span>
+					<Icon class="w-3 h-3" data={times} />
+				</button>
+			{/each}
+			{#each genres as genre}
+				<button
+					class="chip variant-filled-primary rounded-full text-xs"
+					on:click={() => removeGenre(genre)}
+					title="Click to remove"
+				>
+					<span class="capitalize">{genre}</span>
+					<Icon class="w-3 h-3" data={times} />
+				</button>
+			{/each}
+		</div>
+
+		<!-- Collapsible filter panel -->
+		{#if showFilters}
+			<div
+				id="filters-container"
+				class="m-2 rounded-lg p-4 space-y-2"
+			>
+				<div class="flex justify-between items-center">
+					<p class="font-bold">Select Filters</p>
+				</div>
+
+				<div id="filters" class="!max-h-[200px] overflow-y-auto space-y-2">
+					<div>
+						<p class="text-sm mb-2 font-semibold">Tags</p>
 						<div class="flex flex-wrap gap-2">
 							{#each USER_LABELS as userLabel}
 								<button
-									class={`chip ${
-										userLabels && userLabels.includes(userLabel)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
+									class="chip rounded-full {userLabels.includes(userLabel)
+										? 'variant-filled-primary'
+										: 'variant-filled'}"
 									on:click={() => {
 										const index = userLabels.indexOf(userLabel);
 										if (index > -1) {
@@ -163,34 +211,28 @@
 								</button>
 							{/each}
 						</div>
-						<hr />
-						<div class="flex justify-between items-center">
-							<p class="font-bold">Genres</p>
-							<button class="btn btn-sm variant-filled-surface h-fit" on:click={handleClear}>
-								Clear
-							</button>
-						</div>
+					</div>
+					<hr />
+					<div>
+						<p class="text-sm mb-2 font-semibold">Genres</p>
 						<div class="flex flex-wrap gap-2">
 							{#each GENRES as genre}
 								<button
-									class={`chip ${
-										genresBuilder.build().includes(genre)
-											? 'variant-filled-primary'
-											: 'variant-soft'
-									}`}
+									class="chip rounded-full {genres.includes(genre)
+										? 'variant-filled-primary'
+										: 'variant-filled'}"
 									on:click={() => {
 										genresBuilder = genresBuilder.toggle(genre);
-										// selectedTag = null;
 									}}
 								>
-									<p>{genre}</p>
+									<span class="capitalize">{genre}</span>
 								</button>
 							{/each}
 						</div>
 					</div>
-				</svelte:fragment>
-			</AccordionItem>
-		</Accordion>
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	{#if $getUsersInfinite.isLoading}
