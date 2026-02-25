@@ -15,9 +15,11 @@
 		infoCircle
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
-	import { popup } from '@skeletonlabs/skeleton';
-	import type { PopupSettings } from '@skeletonlabs/skeleton';
+	import { popup, getToastStore } from '@skeletonlabs/skeleton';
+	import type { PopupSettings, ToastSettings } from '@skeletonlabs/skeleton';
 	import Section from '../Section.svelte';
+
+	const toastStore = getToastStore();
 
 	const xrpAddressPopup: PopupSettings = {
 		event: 'click',
@@ -125,7 +127,6 @@
 		isProcessing = true;
 
 		try {
-			// Simulate withdrawal processing
 			const response = await trpc($page).accounts.withdraw.query({
 				id: account._id ?? '',
 				receiverAddress: xrpAddress,
@@ -135,12 +136,25 @@
 			if (response.success) {
 				account = response.data as HydratedDocument<AccountProperties>;
 				showSuccessModal = true;
+				const successToast: ToastSettings = {
+					message: response.message ?? 'Withdrawal submitted successfully.',
+					background: 'variant-filled-success'
+				};
+				toastStore.trigger(successToast);
+			} else {
+				const errorToast: ToastSettings = {
+					message: response.message ?? 'Withdrawal failed. Please try again.',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(errorToast);
 			}
-
-			// Update available balance
-			// if (account.balance) account.balance -= parseFloat(withdrawalAmount);
 		} catch (error) {
-			alert('Withdrawal failed. Please try again.');
+			const message = error instanceof Error ? error.message : 'Withdrawal failed. Please try again.';
+			const errorToast: ToastSettings = {
+				message,
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(errorToast);
 			console.log(error);
 		} finally {
 			isProcessing = false;
@@ -373,7 +387,7 @@
 						{:else if !isValidAmount}
 							Invalid amount
 						{:else}
-							Withdraw {usdAmount} XRP
+							Withdraw {usdAmount} USD
 						{/if}
 					</button>
 
