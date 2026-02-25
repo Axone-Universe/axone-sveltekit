@@ -1,6 +1,6 @@
 import type { AccountProperties } from '$lib/properties/account';
 import { AccountsRepository } from '$lib/repositories/accountsRepository';
-import { AXONE_ADMIN_EMAIL, AXONE_XRPL_ADDRESS } from '$env/static/private';
+import { AXONE_ADMIN_EMAIL } from '$env/static/private';
 import { t } from '$lib/trpc/t';
 import type { CurrencyCode, Response } from '$lib/util/types';
 import { type HydratedDocument } from 'mongoose';
@@ -10,6 +10,7 @@ import { TransactionBuilder } from '$lib/documents/transaction';
 import { xummSdk } from '$lib/services/xumm';
 import { type Payment, xrpToDrops } from 'xrpl';
 import { UsersRepository } from '$lib/repositories/usersRepository';
+import { triggerTransactionProcessedWorkflow } from '$lib/services/notifications/novu/triggers/transaction';
 
 export const accounts = t.router({
 	get: t.procedure
@@ -147,6 +148,18 @@ export const accounts = t.router({
 				transactionBuilder.payloadId(payload!.uuid);
 
 				await transactionBuilder.update();
+
+				// Trigger notification workflow to inform admin about the withdrawla transaction
+				// Get the axone admin user
+				const admin = await usersRepo.getByEmail(ctx, AXONE_ADMIN_EMAIL);
+				if (!admin) {
+					throw new Error('Admin user not found');
+				}
+
+				await triggerTransactionProcessedWorkflow({
+					transactionId: transaction._id.toString(),
+					receiverId: admin._id.toString()
+				});
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';

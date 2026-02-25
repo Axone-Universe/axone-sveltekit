@@ -15,7 +15,6 @@
 	import { type TransactionProperties } from '$lib/properties/transaction';
 	import Tooltip from '../Tooltip.svelte';
 	import { supabaseSession } from '$lib/stores/supabase';
-	import { documentURL } from '$lib/util/links';
 
 	/** props */
 	export let documentType: PermissionedDocument;
@@ -26,7 +25,7 @@
 	export { customClass as class };
 
 	/** constants */
-	const usdToXrpRateInterval = setInterval(() => {
+	const xrpToUsdRateInterval = setInterval(() => {
 		getRates();
 	}, 10000);
 
@@ -37,7 +36,7 @@
 		getRates();
 	});
 
-	onDestroy(() => clearInterval(usdToXrpRateInterval));
+	onDestroy(() => clearInterval(xrpToUsdRateInterval));
 
 	// State management using traditional Svelte syntax
 	let selectedAmount = 0;
@@ -61,11 +60,11 @@
 	$: isValidAmount = netAmount > 0;
 	$: canSubmit = isValidAmount && selectedPaymentMethod && !isProcessing;
 
-	// xrp values
-	$: usdToXrpRate = 0;
-	$: totalAmountXRP = Number((usdToXrpRate * totalAmount).toFixed(6));
-	$: netAmountXRP = Number((usdToXrpRate * netAmount).toFixed(6));
-	$: platformFeeXRP = Number((usdToXrpRate * platformFee).toFixed(6));
+	// xrp values (xrpToUsdRate = USD per 1 XRP, so XRP = USD / xrpToUsdRate)
+	let xrpToUsdRate = 0;
+	$: totalAmountXRP = xrpToUsdRate > 0 ? Number((totalAmount / xrpToUsdRate).toFixed(6)) : 0;
+	$: netAmountXRP = xrpToUsdRate > 0 ? Number((netAmount / xrpToUsdRate).toFixed(6)) : 0;
+	$: platformFeeXRP = xrpToUsdRate > 0 ? Number((platformFee / xrpToUsdRate).toFixed(6)) : 0;
 
 	// Functions
 	function selectPresetAmount(amount: number) {
@@ -93,24 +92,14 @@
 		console.log('<< rates');
 		console.log(response);
 
-		usdToXrpRate = response.data.XRP;
-		return usdToXrpRate;
+		xrpToUsdRate = response.data.XRP;
+		return xrpToUsdRate;
 	}
 
 	async function handleSubmit() {
 		if (!canSubmit) return;
 
 		isProcessing = true;
-
-		let notifications: any = {};
-		notifications[creator._id] = {
-			type: 'USER',
-			senderID: session?.user.id,
-			receiverID: creator._id,
-			subject: 'Incoming support payment!',
-			url: $page.url.origin + '/monetize/earnings',
-			notification: `You have received a pending amount of ${netAmountXRP} XRP from a supporter!`
-		};
 
 		try {
 			if (selectedPaymentMethod === 'xaman') {
@@ -121,8 +110,7 @@
 					documentType: documentType,
 					receiver: creator._id,
 					note: note,
-					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD',
-					notifications: notifications
+					currency: selectedPaymentMethod === 'xaman' ? 'XRP' : 'USD'
 				});
 
 				console.log('<< Create Payload');

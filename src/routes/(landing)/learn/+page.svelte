@@ -211,6 +211,89 @@
 				</ol>
 			</div>
 		</div>
+		<hr class="my-4 variant-fill-primary" />
+		<h2 class="h2 scroll-mt-20" id="monetization">Monetization</h2>
+		<div class="flex flex-col gap-2">
+			<p>
+				On Axone you can earn money from your work. When readers support you or buy your content,
+				funds accrue in your account balance. You can withdraw these earnings to your own wallet
+				when you're ready.
+			</p>
+
+			<div class="flex flex-col gap-2 mx-4">
+				<hr class="my-4 variant-fill-primary" />
+				<h3 class="h3 scroll-mt-20" id="monetization-earnings">How earnings work</h3>
+				<p>
+					Earnings are credited to your Axone account when supporters send payments (e.g. via the
+					Support feature) or when you receive payouts from sales or other monetization features.
+					You can have different accounts supporting different currencies: payments received in
+					<b>XRP</b> go to your XRP account, <b>ZAR</b> to your ZAR account, and so on. Your
+					available balance per currency is shown in your
+					<a class="anchor" href="/monetize/earnings">earnings</a>
+					page. You can withdraw each balance at any time (e.g. XRP to an XRP address you control).
+				</p>
+			</div>
+			<div class="flex flex-col gap-2 mx-4">
+				<hr class="my-4 variant-fill-primary" />
+				<h3 class="h3 scroll-mt-20" id="monetization-withdrawals">Withdrawals and XRP</h3>
+				<p>
+					Withdrawals on Axone are paid out in
+					<b>XRP</b>
+					, a cryptocurrency on the XRP Ledger. To withdraw, you need a destination where XRP can be
+					received: an
+					<b>XRP account</b>
+					. This is a wallet address on the XRP Ledger (usually starting with
+					<code>r...</code>
+					or in X-address format). You do not need to hold XRP beforehand to receive a withdrawal; the
+					platform sends XRP to your address.
+				</p>
+			</div>
+			<div class="flex flex-col gap-2 mx-4">
+				<hr class="my-4 variant-fill-primary" />
+				<h3 class="h3 scroll-mt-20" id="monetization-xaman">Creating an XRP account</h3>
+				<p>
+					If you don't have an XRP account yet, you can create one using a wallet app such as
+					<b>Xaman</b>
+					(formerly Xumm). Xaman is a popular, user-friendly wallet for the XRP Ledger.
+				</p>
+				<ol class="list">
+					<li>
+						<span class="flex-auto"
+							>Download
+							<a class="anchor" href="https://xaman.app" target="_blank" rel="noopener noreferrer"
+								>Xaman</a
+							>
+							on your phone or use the browser extension.</span
+						>
+					</li>
+					<li>
+						<span class="flex-auto"
+							>Create a new wallet and follow the backup steps (store your secret safely).</span
+						>
+					</li>
+					<li>
+						<span class="flex-auto"
+							>Your XRP address will be shown in the app. Use this address when withdrawing from
+							Axone.</span
+						>
+					</li>
+					<li>
+						<span class="flex-auto"
+							>If your exchange or custodian requires a
+							<b>destination tag</b>
+							for incoming XRP, you can find it in their deposit instructions and enter it in the destination
+							tag field on the withdraw page.</span
+						>
+					</li>
+				</ol>
+				<p>
+					Withdrawals are not instant: each request is processed after it is received and approved.
+					Once processed, XRP is sent to your XRP address. You can then hold, swap, or send XRP from
+					your Xaman (or other) wallet as you like.
+				</p>
+			</div>
+		</div>
+		<hr class="my-4 variant-fill-primary" />
 		<h2 class="h2 scroll-mt-20" id="copyrights">Copyrights</h2>
 		<div>
 			<p>

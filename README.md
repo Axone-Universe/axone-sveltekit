@@ -123,6 +123,8 @@ pnpm run dev --host
 
 Xaman sends a callback to our webhooks after transaction events.
 
+#### localtunnel
+
 - To enable this for development mode run localtunnel using this command;
 
 ```bash
@@ -132,6 +134,14 @@ lt --port 5173 --subdomain axone
 > NOTE: when using localtunnel make sure that your dev app is running on http://localhost not https://localhost
 
 > NOTE: you can change this by editing the `vite.config.ts` file to `https:false`
+
+#### ngrok
+
+To run ngrok use the command below. Ngrok is good when testing pwa because it loads javascript. Also works better with webhooks than localtunnel:
+
+```bash
+ngrok http 5173
+```
 
 ### Notifications
 

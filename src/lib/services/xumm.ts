@@ -7,13 +7,6 @@ export class CustomXummSdk extends XummSdk {
 	}
 
 	async getRates(currencyCode: string): Promise<SdkTypes.RatesResponse> {
-		if (currencyCode === 'XRP') {
-			const usdRates = await super.getRates('USD');
-			usdRates.USD = 1 / usdRates.XRP;
-			usdRates.XRP = 1;
-
-			return usdRates;
-		}
 		return super.getRates(currencyCode);
 	}
 }

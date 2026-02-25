@@ -446,10 +446,6 @@ export const xumm = t.router({
 			const accountRepo = new AccountsRepository();
 			const account = await accountRepo.getByUserId(input.receiver, true);
 
-			// get the exchange rate
-			const rates = await xummSdk!.getRates(account.currency!);
-			const accountCurrencyToXrpExchangeRate = rates.XRP;
-
 			// calculate the fees
 			const currencyScale = currencies[input.currency].scale;
 			const platformFee = (input.netValue * Number(PUBLIC_PLATFORM_FEES)).toFixed(currencyScale);
@@ -462,7 +458,8 @@ export const xumm = t.router({
 				.accountId(account._id)
 				.receiverID(input.receiver)
 				.senderID(ctx.session!.user.id)
-				.exchangeRate(accountCurrencyToXrpExchangeRate)
+				// It's XRP because we are using the XUMM API
+				.exchangeRate(1)
 				.accountCurrency(account.currency!)
 				// It's XRP because we are using the XUMM API
 				.currency('XRP')
@@ -474,7 +471,7 @@ export const xumm = t.router({
 				.type(input.transactionType)
 				.xrplType('Payment');
 
-			console.log('<< txn created');
+			console.log('<< txn created 66');
 			console.log(transactionBuilder.properties);
 
 			try {
@@ -501,6 +498,8 @@ export const xumm = t.router({
 			} catch (error) {
 				response.success = false;
 				response.message = error instanceof Object ? error.toString() : 'unkown error';
+				console.log('!! create payload error');
+				console.log(error);
 			}
 
 			return {
