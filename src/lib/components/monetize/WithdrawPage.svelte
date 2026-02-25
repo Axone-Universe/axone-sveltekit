@@ -11,10 +11,24 @@
 		exclamationCircle,
 		checkCircle,
 		externalLink,
-		copy
+		copy,
+		infoCircle
 	} from 'svelte-awesome/icons';
 	import Icon from 'svelte-awesome/components/Icon.svelte';
+	import { popup } from '@skeletonlabs/skeleton';
+	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import Section from '../Section.svelte';
+
+	const xrpAddressPopup: PopupSettings = {
+		event: 'click',
+		target: 'xrpAddressInfo',
+		placement: 'top'
+	};
+	const destinationTagPopup: PopupSettings = {
+		event: 'click',
+		target: 'destinationTagInfo',
+		placement: 'top'
+	};
 
 	/** props */
 	export let account: HydratedDocument<AccountProperties>;
@@ -208,7 +222,17 @@
 
 					<!-- XRP Address Field -->
 					<div class="mb-6">
-						<label for="xrpAddress" class="block text-sm font-medium mb-2"> XRP Address * </label>
+						<div class="flex items-center gap-2 mb-2">
+							<button
+								type="button"
+								use:popup={xrpAddressPopup}
+								class="btn-icon p-0.5 text-primary-600-300-token border-none rounded-full hover:bg-surface-200-700-token"
+								aria-label="What is an XRP address?"
+							>
+								<Icon class="w-6 h-6" data={infoCircle} scale={1.2} />
+							</button>
+							<label for="xrpAddress" class="text-sm font-medium"> XRP Address * </label>
+						</div>
 						<div class="relative">
 							<input
 								id="xrpAddress"
@@ -247,9 +271,19 @@
 
 					<!-- Destination Tag Field -->
 					<div class="mb-6">
-						<label for="destinationTag" class="block text-sm font-medium mb-2">
-							Destination Tag (Optional)
-						</label>
+						<div class="flex items-center gap-2 mb-2">
+							<button
+								type="button"
+								use:popup={destinationTagPopup}
+								class="btn-icon text-primary-600-300-token border-none rounded-full hover:bg-surface-200-700-token"
+								aria-label="What is a destination tag?"
+							>
+								<Icon class="w-6 h-6" data={infoCircle} scale={2} />
+							</button>
+							<label for="destinationTag" class="text-sm font-medium">
+								Destination Tag (Optional)
+							</label>
+						</div>
 						<input
 							id="destinationTag"
 							type="number"
@@ -342,6 +376,44 @@
 							Withdraw {usdAmount} XRP
 						{/if}
 					</button>
+
+					<!-- Popup content (positioned by Skeleton popup when opened) -->
+					<div
+						class="card p-4 w-80 max-w-[calc(100vw-2rem)] shadow-xl z-50"
+						data-popup="xrpAddressInfo"
+					>
+						<p class="font-medium mb-1 text-sm">What is an XRP address?</p>
+						<p class="text-sm text-secondary-700-200-token mb-2">
+							Your XRP address is the destination where withdrawn funds are sent. It is a unique
+							identifier on the XRP Ledger (e.g. starting with <code class="text-xs">r...</code> or an
+							X-address). You need a crypto wallet that supports XRP, such as Xaman.
+						</p>
+						<a
+							href="/learn#monetization"
+							class="anchor text-primary-600-300-token font-medium text-sm inline-flex items-center gap-1"
+						>
+							Learn more
+							<Icon class="w-4 h-4" data={externalLink} scale={1} />
+						</a>
+					</div>
+					<div
+						class="card p-4 w-80 max-w-[calc(100vw-2rem)] shadow-xl z-50"
+						data-popup="destinationTagInfo"
+					>
+						<p class="font-medium mb-1 text-sm">What is a destination tag?</p>
+						<p class="text-sm text-secondary-700-200-token mb-2">
+							A destination tag is an optional number that some exchanges and wallets use to
+							identify your account. If your wallet or exchange requires one for incoming XRP, enter
+							it here. Leave blank if not required.
+						</p>
+						<a
+							href="/learn#monetization"
+							class="anchor text-primary-600-300-token font-medium text-sm inline-flex items-center gap-1"
+						>
+							Learn more
+							<Icon class="w-4 h-4" data={externalLink} scale={1} />
+						</a>
+					</div>
 				</fieldset>
 			</div>
 		{/if}
