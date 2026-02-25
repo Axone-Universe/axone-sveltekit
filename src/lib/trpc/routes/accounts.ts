@@ -97,10 +97,6 @@ export const accounts = t.router({
 			// get the account
 			const account = await accountsRepo.getById(ctx, input.id!);
 
-			// get the exchange rate
-			const rates = await xummSdk!.getRates(account.currency!);
-			const exchangeRate = rates.XRP;
-
 			// get the axone admin user
 			const usersRepo = new UsersRepository();
 			const admin = await usersRepo.getByEmail(ctx, AXONE_ADMIN_EMAIL);
@@ -111,7 +107,7 @@ export const accounts = t.router({
 				.senderID(admin!._id)
 				.receiverID(ctx.session!.user.id)
 				.accountCurrency(account.currency!)
-				.exchangeRate(exchangeRate)
+				.exchangeRate(1)
 				.currency(account.currency as CurrencyCode)
 				.value(account.balance!)
 				.netValue(account.balance!)

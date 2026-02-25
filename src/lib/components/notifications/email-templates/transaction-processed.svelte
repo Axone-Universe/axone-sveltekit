@@ -411,7 +411,7 @@
 		notificationType === 'success'
 			? chapterUrl
 				? 'View Chapter'
-				: 'View Transaction'
+				: 'View Earnings'
 			: notificationType === 'failure'
 			? 'Try Again'
 			: 'View Status';
