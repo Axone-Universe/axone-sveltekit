@@ -44,11 +44,11 @@
 	$: showSuccessModal = false;
 	$: addressError = '';
 	$: amountError = '';
-	$: usdToXrpRate = 0; // Mock XRP to USD rate
+	$: xrpToUsdRate = 0; // XRP to USD rate (USD per 1 XRP)
 
 	// Reactive calculations
 	$: usdAmount = withdrawalAmount
-		? (parseFloat(withdrawalAmount) / usdToXrpRate).toFixed(6)
+		? (parseFloat(withdrawalAmount) * xrpToUsdRate).toFixed(6)
 		: '0.000000';
 	$: isValidAddress = validateXRPAddress(xrpAddress);
 	$: isValidAmount =
@@ -56,7 +56,7 @@
 	$: canWithdraw = isValidAddress && isValidAmount && !isProcessing;
 
 	/** constants */
-	const usdToXrpRateInterval = setInterval(() => {
+	const xrpToUsdRateInterval = setInterval(() => {
 		getRates();
 	}, 10000);
 
@@ -65,7 +65,7 @@
 		if ((account.balance ?? 0) > 0) setMaxAmount();
 	});
 
-	onDestroy(() => clearInterval(usdToXrpRateInterval));
+	onDestroy(() => clearInterval(xrpToUsdRateInterval));
 
 	async function getRates() {
 		console.log('getting rates...');
@@ -77,8 +77,8 @@
 		console.log('<< rates');
 		console.log(response);
 
-		usdToXrpRate = response.data.XRP;
-		return usdToXrpRate;
+		xrpToUsdRate = response.data.XRP;
+		return xrpToUsdRate;
 	}
 
 	function validateXRPAddress(address: string) {
@@ -173,14 +173,14 @@
 						{(account.balance ?? 0).toFixed(account.currencyScale)}
 					</div>
 					<div class="text-sm">
-						≈ {((account.balance ?? 0) / usdToXrpRate).toFixed(2)} USD
+						≈ {((account.balance ?? 0) * xrpToUsdRate).toFixed(2)} USD
 					</div>
 				</div>
 			</div>
 			<div class=" rounded-lg p-3">
 				<div class="flex items-center justify-between text-sm">
 					<span>XRP Rate:</span>
-					<span class="font-medium">${usdToXrpRate.toFixed(4)} USD</span>
+					<span class="font-medium">${xrpToUsdRate.toFixed(4)} USD</span>
 				</div>
 			</div>
 		</div>
@@ -344,7 +344,7 @@
 								</div>
 								<div class="flex justify-between items-center text-sm">
 									<span class="">USD Amount:</span>
-									<span class="">≈ {((account.balance ?? 0) / usdToXrpRate).toFixed(2)} USD</span>
+									<span class="">≈ {((account.balance ?? 0) * xrpToUsdRate).toFixed(2)} USD</span>
 								</div>
 							</div>
 						</div>
