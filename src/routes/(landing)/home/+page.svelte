@@ -194,10 +194,7 @@
 
 		<!-- Collapsible filter panel -->
 		{#if showFilters}
-			<div
-				id="filters-container"
-				class="m-2 rounded-lg p-4 space-y-2"
-			>
+			<div id="filters-container" class="m-2 rounded-lg p-4 space-y-2">
 				<div class="flex justify-between items-center">
 					<p class="font-bold">Select Filters</p>
 				</div>
@@ -256,7 +253,7 @@
 	<!-- Curated Reading Lists Section -->
 	{#if hasReadingLists}
 		<div
-			class="relative w-full my-8 rounded-lg overflow-hidden bg-[url(/reading-list_bg.webp)] bg-cover bg-center"
+			class="relative w-full my-4 md:my-8 rounded-lg overflow-hidden bg-[url(/reading-list_bg.webp)] bg-cover bg-center"
 		>
 			<!-- Background decorative elements -->
 
@@ -265,10 +262,12 @@
 			/>
 
 			<!-- Content -->
-			<div class="relative p-6">
-				<div class="mb-6">
-					<h2 class="text-2xl md:text-3xl font-bold mb-2">The Curated Shelf</h2>
-					<p class="text-lg text-surface-700-200-token">Handpicked collections from our editors</p>
+			<div class="relative p-2 md:p-6">
+				<div class="mb-4 md:mb-6">
+					<h2 class="text-lg md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2">The Curated Shelf</h2>
+					<p class="text-sm md:text-lg text-surface-700-200-token">
+						Handpicked collections from our editors
+					</p>
 				</div>
 
 				{#if $adminReadingListsQuery.isLoading || $storylinesQuery.isLoading}
